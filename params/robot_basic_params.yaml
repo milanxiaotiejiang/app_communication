@@ -1,0 +1,9 @@
+ros_version: 0.9.4.0_630
+machine_version: 630
+base_exist: true
+face_recognition: false
+has_knob: false
+has_voice: false
+self_check_version: 1
+
+

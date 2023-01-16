@@ -1,0 +1,120 @@
+//
+// Created by Looper on 2022/10/13.
+//
+
+#include "segmentation/map_attribute.h"
+
+/**
+ * map_origin_pose.position (0,0) 为显示地图的左下角，即 starting_position_pose.x 越大，机器人越靠右；starting_position_pose.y 越大，机器人越考上
+ */
+void MapAttribute::setRobotPositionPose(geometry_msgs::Pose2D positionPose) {
+    this->starting_position_pose = positionPose;
+}
+
+cv::Point MapAttribute::getRobotPositionPoint(const cv::Mat &room_map) const {
+    double rows = room_map.rows * map_resolution_from_subscription;
+    double x = starting_position_pose.x - map_origin_pose.position.x;
+    double y = rows - (starting_position_pose.y - map_origin_pose.position.y);
+    LOG(INFO) << "robot position (" << x << ", " << y << ")";
+    cv::Point starting_position;
+    starting_position.x = x / map_resolution_from_subscription;
+    starting_position.y = y / map_resolution_from_subscription;
+    return starting_position;
+}
+
+void MapAttribute::loadStation() {
+    if (access(map_yaml_path.c_str(), F_OK) != 0) {//存在
+        return;
+    }
+    YAML::Node config = YAML::LoadFile(map_yaml_path);
+    const YAML::Node &originNode = config["origin"];
+    if (!originNode.IsDefined()) {
+        return;
+    }
+    if (originNode.size() != 3) {
+        return;
+    }
+
+    map_origin_pose.position.x = originNode[1].as<double>();
+    map_origin_pose.position.y = originNode[0].as<double>();
+    map_origin_pose.position.z = originNode[2].as<double>();
+
+    map_origin.x = map_origin_pose.position.x;
+    map_origin.y = map_origin_pose.position.y;
+
+    initialize_finish = true;
+}
+
+void MapAttribute::resetProhibition() {
+    virtualWallList.clear();
+    penaltyZoneList.clear();
+}
+
+void MapAttribute::loadVirtualWall() {
+    if (access(prohibition_yaml_path.c_str(), F_OK) != 0) {//存在
+        return;
+    }
+
+    YAML::Node config = YAML::LoadFile(prohibition_yaml_path);
+    const YAML::Node &prohibitionNode = config["prohibition_areas"];
+    if (!prohibitionNode.IsDefined()) {
+        return;
+    }
+    auto size = prohibitionNode.size();
+    for (int i = 0; i < size; i++) {
+        const YAML::Node &childNode = prohibitionNode[i];
+
+        if (childNode.size() == VIRTUAL_WALL_DUS_COUNT) {//虚拟墙
+            handleProhibition(virtualWallList, childNode, VIRTUAL_WALL_DUS_COUNT);
+        }
+    }
+}
+
+void MapAttribute::loadPenaltyZone() {
+    if (access(prohibition_yaml_path.c_str(), F_OK) != 0) {//存在
+        return;
+    }
+
+    YAML::Node config = YAML::LoadFile(prohibition_yaml_path);
+    const YAML::Node &prohibitionNode = config["prohibition_areas"];
+    if (!prohibitionNode.IsDefined()) {
+        return;
+    }
+    auto size = prohibitionNode.size();
+    for (int i = 0; i < size; i++) {
+        const YAML::Node &childNode = prohibitionNode[i];
+
+        if (childNode.size() == PENALTY_ZONE_DUS_COUNT) {//禁区
+            handleProhibition(penaltyZoneList, childNode, PENALTY_ZONE_DUS_COUNT);
+        }
+    }
+}
+
+void
+MapAttribute::handleProhibition(std::vector<std::vector<Point>> &list, const YAML::Node &node, int dusCount) const {
+    std::vector<Point> pointList;
+    for (int j = 0; j < node.size(); j++) {
+        const YAML::Node &childNode = node[j];
+        if (childNode.size() == 2) {
+            Point point(atof(childNode[0].as<std::string>().c_str()),
+                        atof(childNode[1].as<std::string>().c_str())
+            );
+            pointList.push_back(point);
+        }
+    }
+
+    if (pointList.size() == dusCount) {
+        list.push_back(pointList);
+    }
+}
+
+cv::Point MapAttribute::rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const {
+    double rows = room_map.rows * map_resolution_from_subscription;
+    double cols = room_map.cols * map_resolution_from_subscription;
+    double x = cols - (point.getY() - map_origin_pose.position.x);
+    double y = rows - (point.getX() - map_origin_pose.position.y);
+    cv::Point position;
+    position.x = x / map_resolution_from_subscription;
+    position.y = y / map_resolution_from_subscription;
+    return position;
+}

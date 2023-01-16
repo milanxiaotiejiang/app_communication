@@ -1,0 +1,42 @@
+before_script:
+  - export CMAKE_PREFIX_PATH=/home/mi/sim_ws/devel:/home/mi/test_ws/devel:/home/mi/app_ws/devel:/opt/ros/melodic
+
+build:
+  stage: build
+  only:
+    - master
+  tags:
+    - build
+  script:
+    - rm -rf build/
+    - mkdir build && cd build
+    - cmake ..
+    - cmake --build .
+    - cpack
+    - cd ..
+    - cp build/*.deb .
+
+#   copy
+
+#   install
+#    - cd .. && cd ..
+#    - rm -rf deb/
+#    - mkdir deb && cd deb
+#    - cp ../src/app_communication/build/*.deb .
+#    - cp ../src/app_communication/package.xml .
+#    - cp -rf ../src/app_communication/params/ .
+#    - cd ..
+#    - rm -rf src/app_communication
+#    - catkin_make
+#    - mkdir src/app_communication
+#    - cd deb/
+#    - sudo dpkg -i --instdir=../src/app_communication com.maxrock.robot.communication-*.deb
+#    - cp package.xml ../src/app_communication
+#    - cp -rf params/ ../src/app_communication
+#    - cd ..
+#    - rm -rf deb/
+#    - cd
+#    - rosrun app_communication rec_app_node
+  artifacts:
+    paths:
+      - ./*.deb

@@ -1,0 +1,44 @@
+//
+// Created by lijiang on 2022/6/14.
+//
+
+#include <ros/package.h>
+#include "sub/DSVersionSubscribe.h"
+#include "tool/write_file.hpp"
+
+DSVersionSubscribe::DSVersionSubscribe(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut)
+        : handle(handle),
+          pubInner(std::move(pubInner)),
+          pubOut(std::move(pubOut)) {
+    sub_ds_hw = handle.subscribe("/dasheng/hw", 1, &DSVersionSubscribe::subscribeHWCallback, this);
+    sub_ds_sw = handle.subscribe("/dasheng/sw", 1, &DSVersionSubscribe::subscribeSWCallback, this);
+
+    std::cout << "DSVersionSubscribe" << std::endl;
+    std_msgs::Int16 version;
+    version.data = 0;
+    pubInner.publishDSVersion(version);
+    sleep(0.5);
+    version.data = 1;
+    pubInner.publishDSVersion(version);
+
+    string filePath;
+    filePath.append(ros::package::getPath("data_base"));
+    filePath.append("/config/pad_version_info.txt");
+
+    if (sh::File::exists(filePath)) {
+        unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
+        if (uFilePtr->open(std::ios::in)) {
+            auto padVersion = uFilePtr->readAll();
+            VersionManager::instance().setAppPadVersion(padVersion);
+        }
+        uFilePtr->close();
+    }
+}
+
+void DSVersionSubscribe::subscribeHWCallback(const std_msgs::String &msg) {
+    VersionManager::instance().setDsHardVersion(msg.data);
+}
+
+void DSVersionSubscribe::subscribeSWCallback(const std_msgs::String &msg) {
+    VersionManager::instance().setDsSoftVersion(msg.data);
+}

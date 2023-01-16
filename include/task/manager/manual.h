@@ -1,0 +1,47 @@
+//
+// Created by admin1 on 22-11-25.
+//
+
+#ifndef APP_COMMUNICATION_MANUAL_H
+#define APP_COMMUNICATION_MANUAL_H
+
+
+#include "task/async_task_call.h"
+
+class ManualManager {
+private:
+    AsyncTaskCall *asyncTaskCall;
+public:
+    static auto &instance() {
+        static ManualManager obj;
+        return obj;
+    }
+
+    void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
+        ManualManager::asyncTaskCall = asyncTaskCall;
+    }
+
+    void backToBase(bool force);
+
+    void resume();
+
+    void pause();
+
+    void enter_manul_mode();
+
+    void quit_manual_mode();
+
+    std::string runTaskId();
+
+    std::vector<RealTask> runTaskList();
+
+    std::vector<RealPoint> runTaskPoint();
+
+    void shutdown();
+
+    void reboot();
+
+};
+
+
+#endif //APP_COMMUNICATION_MANUAL_H

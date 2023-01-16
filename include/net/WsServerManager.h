@@ -1,0 +1,108 @@
+//
+// Created by mi on 2022/4/12.
+//
+
+#ifndef APP_COMMUNICATION_WSSERVERMANAGER_H
+#define APP_COMMUNICATION_WSSERVERMANAGER_H
+
+#include "unordered_map"
+#include "vector"
+#include <iostream>
+
+#include "pub/PubInner.h"
+#include "pub/PubOut.h"
+
+#include "nlohmann/json.hpp"
+
+#include "model/RegisterOperation.h"
+#include "model/RequestData.h"
+#include "model/RequestModel.h"
+
+#include "BlockingCollection.h"
+#include "sys/syscall.h"
+#include "tool/CThread.h"
+
+#include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/logger/syslog.hpp>
+#include <websocketpp/server.hpp>
+
+#include "model/NetModel.h"
+#include "model/RosBasic.h"
+#include "nav_msgs/Odometry.h"
+#include <nav_msgs/OccupancyGrid.h>
+#include <utility>
+
+#include "glog/logging.h"
+#include "net/MessageBusManager.h"
+
+using namespace std;
+using namespace code_machina;
+
+using json = nlohmann::json;
+
+const string APP_JSON = "/app_json";
+const string APP_JSON_V2 = "/app_json_v2";
+const string APP_SCHEDULE = "/app_schedule";
+const string APP_ERROR = "/error_code";
+const string APP_COMMUNICATION = "/app_communication";
+const string MOVEBASERECOVERYFAILURE = "/move_base/recovery_failure";
+
+const string MAP_APP = "/map_app";
+const string GRID_MAP_APP = "/grid_map_app";
+const string ODOM_APP = "/odom_app";
+const string ROBOT_STATUS = "/robot_status";
+const string MATERIAL_STATUS = "/material_status";
+const string ERROR_APP = "/error_app";
+const string NOTICE_APP = "/notice_app";
+const string TASK_POINT = "/task_point";
+const string CHECK_APP = "/check_app";
+const string KNOB_APP = "/knob_app";
+const string WAYPOINTS_MARKER = "/waypoints_marker";
+const string SCAN_APP = "/scan_app";
+const string PATH_TEST = "/path_test";
+const string INTERNAL_EVENT = "/robot_internal_event";
+const string RESPONSE = "/response";
+const string RESPONSE_JSON = "/response_json";
+
+const string MESSAGE_BUS_TOPIC = "message_bus_topic";
+
+const int NET_MODEL_MAP = 0;
+const int NET_MODEL_ODOM = 1;
+
+namespace APP_JSON_VERSION {
+    enum {
+        V1,
+        V2
+    };
+}
+namespace APP_COMMUNICATION_VERSION {
+    enum {
+        V1,
+        V2
+    };
+};
+
+class WsServerManager {
+public:
+    static auto &instance() {
+        static WsServerManager obj;
+        return obj;
+    }
+
+    static void startWebSocket(const PubInner &inner, const PubOut &out);
+
+    static void stopWebSocket();
+
+    static void sendData(const std::string &data);
+
+    static void setMapApp(const nav_msgs::OccupancyGrid &occupancyGrid);
+
+    static void setOdomApp(const nav_msgs::Odometry &odometry);
+
+    static void sendRequestData(const string &key, const std::string &data);
+
+    static void sendMessageBusTopic(const string &string);
+};
+
+
+#endif//APP_COMMUNICATION_WSSERVERMANAGER_H

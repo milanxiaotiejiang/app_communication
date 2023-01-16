@@ -1,0 +1,96 @@
+//
+// Created by Looper on 2022/9/13.
+//
+
+#ifndef APP_COMMUNICATION_ROOM_H
+#define APP_COMMUNICATION_ROOM_H
+
+#include "iostream"
+#include "map"
+#include "vector"
+#include "string"
+#include "set"
+#include <opencv2/core/types.hpp>
+
+#include "glog/logging.h"
+
+class Room {
+public:
+    struct cv_Point_comp {
+        bool operator()(const cv::Point &lhs, const cv::Point &rhs) const {
+            return ((lhs.y < rhs.y) || (lhs.y == rhs.y && lhs.x < rhs.x));
+        }
+    };
+
+    typedef std::set<cv::Point, cv_Point_comp> PointSet;
+
+    Room(int id_of_room);
+
+    void mergeRoom(Room &room_to_merge, double map_resolution);
+
+    int insertMemberPoint(cv::Point new_member, double map_resolution);
+
+    int insertMemberPoints(const std::vector<cv::Point> &new_members, double map_resolution);
+
+    void addNeighbor(int new_neighbor_id);
+
+    int addNeighborID(int new_neighbor_id);
+
+    int getNeighborCount();
+
+    std::map<int, int> &getNeighborStatistics();
+
+    void getNeighborStatisticsInverse(std::map<int, int, std::greater<int> > &neighbor_room_statistics_inverse);
+
+    int getNeighborWithLargestCommonBorder(bool exclude_wall = true);
+
+    double getPerimeterRatioOfXLargestRooms(const int number_rooms);
+
+    double getWallToPerimeterRatio();
+
+    std::vector<int> &getNeighborIDs();
+
+    double getArea();
+
+    double getPerimeter();
+
+    int getID() const;
+
+    cv::Point getCenter();
+
+    const std::vector<cv::Point> &getMembers();
+
+    int setRoomId(int new_value, cv::Mat &map);
+
+    int setArea(double room_area);
+
+    int setPerimeter(double room_perimeter);
+
+    int directInsertMemberPoints(const std::vector<cv::Point> &new_members, double map_resolution);
+
+    const std::string &getName() const;
+
+    void setName(const std::string &name);
+
+    friend std::ostream &operator<<(std::ostream &os, const Room &room);
+
+protected:
+    int id_number_;
+
+    std::vector<cv::Point> member_points_;
+
+    std::vector<int> neighbor_room_ids_;
+
+    std::map<int, int> neighbor_room_statistics_;
+
+    double room_area_;
+
+    double room_perimeter_;
+
+    std::string name;
+
+};
+
+bool sortRoomsAscending(Room a, Room b);
+
+#endif //APP_COMMUNICATION_ROOM_H
