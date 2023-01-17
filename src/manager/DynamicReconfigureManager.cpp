@@ -2,7 +2,7 @@
 // Created by admin1 on 2023/1/4.
 //
 
-#include "DynamicReconfigureManager.h"
+#include "manager/DynamicReconfigureManager.h"
 
 DynamicReconfigureManager::DynamicReconfigureManager() {
     ClientInitialize();

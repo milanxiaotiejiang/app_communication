@@ -10,24 +10,25 @@ TaskPoint::TaskPoint() : currentStep(0) {
 }
 
 TaskPoint::TaskPoint(const string &id, float x, float y, int currentStep, int totalStep, int currentFrequency,
-                     int totalFrequency, const WorkStatus &workStatus, int plannerType, bool is_cleaning, int mode) : id(id),
-                                                                                                            x(x), y(y),
-                                                                                                            currentStep(
-                                                                                                                    currentStep),
-                                                                                                            totalStep(
-                                                                                                                    totalStep),
-                                                                                                            currentFrequency(
-                                                                                                                    currentFrequency),
-                                                                                                            totalFrequency(
-                                                                                                                    totalFrequency),
-                                                                                                            work_status(
-                                                                                                                    workStatus),
-                                                                                                            plannerType(
-                                                                                                                    plannerType),
-                                                                                                            is_cleaning(
-                                                                                                                    is_cleaning) ,
-                                                                                                            m_mode(
-                                                                                                                    mode) {
+                     int totalFrequency, const WorkStatus &workStatus, int plannerType, bool is_cleaning, int mode)
+        : id(id),
+          x(x), y(y),
+          currentStep(
+                  currentStep),
+          totalStep(
+                  totalStep),
+          currentFrequency(
+                  currentFrequency),
+          totalFrequency(
+                  totalFrequency),
+          work_status(
+                  workStatus),
+          plannerType(
+                  plannerType),
+          is_cleaning(
+                  is_cleaning),
+          m_mode(
+                  mode) {
     ori_z = 0;
     ori_w = 1;
 }
@@ -108,14 +109,18 @@ void TaskPoint::setPlannerType(int plannerType) {
 
 
 TaskPoint::TaskPoint(const string &id, float x, float y, int currentFrequency, int totalFrequency,
-                     const WorkStatus &workStatus, int plannerType, bool is_cleaning,int mode) : id(id), x(x), y(y),
-                                                                                        currentFrequency(
-                                                                                                currentFrequency),
-                                                                                        totalFrequency(totalFrequency),
-                                                                                        work_status(workStatus),
-                                                                                        plannerType(plannerType),
-                                                                                        is_cleaning(is_cleaning) ,
-                                                                                        m_mode(mode) {
+                     const WorkStatus &workStatus, int plannerType, bool is_cleaning, int mode) : id(id), x(x), y(y),
+                                                                                                  currentFrequency(
+                                                                                                          currentFrequency),
+                                                                                                  totalFrequency(
+                                                                                                          totalFrequency),
+                                                                                                  work_status(
+                                                                                                          workStatus),
+                                                                                                  plannerType(
+                                                                                                          plannerType),
+                                                                                                  is_cleaning(
+                                                                                                          is_cleaning),
+                                                                                                  m_mode(mode) {
     ori_z = 0;
     ori_w = 1;
 }

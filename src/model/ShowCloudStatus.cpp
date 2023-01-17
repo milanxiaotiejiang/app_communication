@@ -5,30 +5,31 @@
 #include "model/ShowCloudStatus.h"
 
 ShowCloudStatus::ShowCloudStatus(int electric, int mop, int sweep, int water, const std::string &workStatusMessage,
-                   int work_status_code, bool emergency_stop_status,
-                   long current_execute_time,
-                   bool is_charging,
-                   int arom,
-                   int absorb_status,
-                   int push_status,
-                    bool lock_status,
-                   bool dust_box_status,
-                   std::string map_name,
-                    int map_id,
-                   long clean_area,
-                   int clean_count) : electric(electric), mop(mop), sweep(sweep),
-                                                   water(water), work_status_message(workStatusMessage),
-                                                   m_work_status_code(work_status_code), m_emergency_stop_status(emergency_stop_status),
-                                                   m_current_execute_time(current_execute_time), m_is_charging(is_charging),arom_status(arom),
-                                                   m_absorb_status(absorb_status),
-                   m_push_status(push_status),
-                    m_lock_status(lock_status),
-                   m_dust_box_status(dust_box_status),
-                   m_map_name(map_name),
-                    m_map_id(map_id),
-                   m_clean_area(clean_area),
-                   m_clean_count(clean_count)
-                                                   {}
+                                 int work_status_code, bool emergency_stop_status,
+                                 long current_execute_time,
+                                 bool is_charging,
+                                 int arom,
+                                 int absorb_status,
+                                 int push_status,
+                                 bool lock_status,
+                                 bool dust_box_status,
+                                 std::string map_name,
+                                 int map_id,
+                                 long clean_area,
+                                 int clean_count) : electric(electric), mop(mop), sweep(sweep),
+                                                    water(water), work_status_message(workStatusMessage),
+                                                    m_work_status_code(work_status_code),
+                                                    m_emergency_stop_status(emergency_stop_status),
+                                                    m_current_execute_time(current_execute_time),
+                                                    m_is_charging(is_charging), arom_status(arom),
+                                                    m_absorb_status(absorb_status),
+                                                    m_push_status(push_status),
+                                                    m_lock_status(lock_status),
+                                                    m_dust_box_status(dust_box_status),
+                                                    m_map_name(map_name),
+                                                    m_map_id(map_id),
+                                                    m_clean_area(clean_area),
+                                                    m_clean_count(clean_count) {}
 
 ShowCloudStatus::~ShowCloudStatus() {
 }
@@ -64,11 +65,12 @@ int ShowCloudStatus::getWater() const {
 void ShowCloudStatus::setWater(int water) {
     ShowCloudStatus::water = water;
 }
-int ShowCloudStatus::getArom() const{
+
+int ShowCloudStatus::getArom() const {
     return arom_status;
 }
 
-void ShowCloudStatus::setArom(int arom){
+void ShowCloudStatus::setArom(int arom) {
     arom_status = arom;
 }
 

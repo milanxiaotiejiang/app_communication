@@ -31,13 +31,11 @@ bool is_in_line(const WayPoint point1, const WayPoint point2, const WayPoint poi
     y2 = point2.getPosY();
     x = point3.getPosX();
     y = point3.getPosY();
-    float judge_num = (y1 - y2) * (x - x2) -(x1 - x2) * (y - y2);
+    float judge_num = (y1 - y2) * (x - x2) - (x1 - x2) * (y - y2);
 //    cout<<"judge_num: "<<judge_num<<endl;
-    if (abs(judge_num)<2*1e-3)
-    {
+    if (abs(judge_num) < 2 * 1e-3) {
         return true;
-    }
-    else
+    } else
         return false;
 
 }
@@ -56,16 +54,15 @@ bool is_in_line(const geometry_msgs::Pose point1, const geometry_msgs::Pose poin
     y2 = point2.position.y;
     x = point3.position.x;
     y = point3.position.y;
-    float judge_num = (y1 - y2) * (x - x2) -(x1 - x2) * (y - y2);
+    float judge_num = (y1 - y2) * (x - x2) - (x1 - x2) * (y - y2);
     // cout<<"judge_num: "<<judge_num<<endl;
-    if (abs(judge_num)<5*1e-3)
-    {
+    if (abs(judge_num) < 5 * 1e-3) {
         return true;
-    }
-    else
+    } else
         return false;
 
 }
+
 bool is_in_line(const Point point1, const Point point2, const Point point3) {
 
     float x1, y1, x2, y2, x, y;
@@ -75,17 +72,16 @@ bool is_in_line(const Point point1, const Point point2, const Point point3) {
     y2 = point2.getY();
     x = point3.getX();
     y = point3.getY();
-    float judge_num = (y1 - y2) * (x - x2) -(x1 - x2) * (y - y2);
+    float judge_num = (y1 - y2) * (x - x2) - (x1 - x2) * (y - y2);
     // cout<<"judge_num: "<<judge_num<<endl;
-    if (abs(judge_num)<5*1e-4)
-    {
+    if (abs(judge_num) < 5 * 1e-4) {
         return true;
-    }
-    else
+    } else
         return false;
 
 }
-bool is_in_line(const vector<Point> &p){
+
+bool is_in_line(const vector<Point> &p) {
 //    if(p.size() != 5)
 //        return false;
     double ave_x = 0, ave_y = 0;
@@ -101,6 +97,6 @@ bool is_in_line(const vector<Point> &p){
         r2 += (p[i].getX() - ave_x) * (p[i].getX() - ave_x);
         r3 += (p[i].getY() - ave_y) * (p[i].getY() - ave_y);
     }
-    double r = r1/(sqrt(r2) * sqrt(r3));
+    double r = r1 / (sqrt(r2) * sqrt(r3));
     return (abs(r) - 0.97) > 0;
 }

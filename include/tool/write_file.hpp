@@ -137,7 +137,7 @@ namespace sh {
 
     public:
         explicit File(const std::string &fileName)
-            : BaseFileIO(fileName) {}
+                : BaseFileIO(fileName) {}
 
         /**
          * 写入内容，返回值表示写入成功的长度
@@ -165,7 +165,8 @@ namespace sh {
             buf << fileStream.rdbuf();
             return buf.str();
         }
-        size_t getcount(){
+
+        size_t getcount() {
             return fileStream.gcount();
         }
 
@@ -181,7 +182,7 @@ namespace sh {
             if (offset > 0) {
                 seekInputPosition(offset);
             }
-            std::unique_ptr<char[]> buf(new (std::nothrow) char[maxSize + 1]);
+            std::unique_ptr<char[]> buf(new(std::nothrow) char[maxSize + 1]);
             fileStream.read(buf.get(), maxSize);
             std::size_t size = fileStream.gcount();
             std::string str(buf.get(), size);
@@ -197,7 +198,7 @@ namespace sh {
                 return "";
             }
 
-            std::unique_ptr<char[]> buf(new (std::nothrow) char[maxSize + 1]);
+            std::unique_ptr<char[]> buf(new(std::nothrow) char[maxSize + 1]);
             fileStream.getline(buf.get(), maxSize);
             std::size_t size = fileStream.gcount();
             std::string str(buf.get(), size);

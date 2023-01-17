@@ -196,7 +196,7 @@ int Room::directInsertMemberPoints(const std::vector<cv::Point> &new_members, do
     member_points_.clear();
     room_area_ = 0;
     room_perimeter_ = 0;
-    for (const auto & new_member : new_members) {
+    for (const auto &new_member: new_members) {
         member_points_.push_back(new_member);
     }
     room_area_ += map_resolution * map_resolution * new_members.size();

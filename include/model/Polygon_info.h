@@ -14,9 +14,9 @@ public:
 
     friend void to_json(json &j, const Polygon_info &b) {
         j = json{
-                {"child_id", b.child_id},
+                {"child_id",    b.child_id},
                 {"work_status", b.work_status},
-                {"points", b.points},
+                {"points",      b.points},
         };
     }
 

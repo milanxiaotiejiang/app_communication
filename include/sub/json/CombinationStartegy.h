@@ -27,7 +27,7 @@ public:
     vector<CombinationBrief> handler(string params) override;
 };
 
-class CombinationCombinationListStrategyV2 : public MessageStrategy<string,vector<CombinationBriefUpgrade>> {
+class CombinationCombinationListStrategyV2 : public MessageStrategy<string, vector<CombinationBriefUpgrade>> {
 public:
     vector<CombinationBriefUpgrade> handler(string params) override;
 };

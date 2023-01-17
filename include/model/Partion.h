@@ -35,7 +35,6 @@ public:
     virtual ~Name_info();
 
 
-
     friend void to_json(json &j, const Name_info &b) {
         j = json{
                 {"id",   b.id},

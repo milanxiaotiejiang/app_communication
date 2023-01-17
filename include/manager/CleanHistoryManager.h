@@ -49,6 +49,7 @@ public:
     bool GetCleanHistory(CleanHistory &clean_history, const string &taskId);
 
     bool GetLatestCleanHistory(CleanHistory &clean_history);
+
     bool ShowAllCleanHistory();
 
 private:

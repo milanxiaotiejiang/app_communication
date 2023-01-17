@@ -40,8 +40,8 @@ public:
 
     friend void to_json(json &j, const CleanContinuity &b) {
         j = json{
-                {"continuity_id", b.continuity_id},
-                {"is_customized", b.is_customized},
+                {"continuity_id",   b.continuity_id},
+                {"is_customized",   b.is_customized},
                 {"continuity_list", b.continuity_list},
         };
     }

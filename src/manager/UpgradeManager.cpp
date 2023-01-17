@@ -133,7 +133,7 @@ void UpgradeManager::updateViewPartPrincipal() {
         ws.setMopStatus(item.getWorkStatus().getDragStatus());
         ws.setVacuumStatus(item.getWorkStatus().getAbsorbStatus());
         ws.setPushStatus(item.getWorkStatus().getPushStatus());
-      //  ws.setStationDryStatus(item.getWorkStatus().setStationDryStatus());
+        //  ws.setStationDryStatus(item.getWorkStatus().setStationDryStatus());
         auto viewPart = ViewPart();
         viewPart.setMode(item.getMode());
         viewPart.setName(item.getName());
@@ -211,11 +211,12 @@ void UpgradeManager::updateCleanHistoryPrincipal() {
     std::vector<CleanHistory> vector;
     for (const auto &item: lastList.getMCleanHistoryList()) {
         WorkStatus ws;
-    //    ws.setStationDryStatus(item.getWorkStatus().setStationDryStatus());
-        CleanHistory historyUpgrade(item.isComplete(),true, item.getLaunchTime(), item.getExecuteTime(), item.getEndTime(),
+        //    ws.setStationDryStatus(item.getWorkStatus().setStationDryStatus());
+        CleanHistory historyUpgrade(item.isComplete(), true, item.getLaunchTime(), item.getExecuteTime(),
+                                    item.getEndTime(),
                                     item.getTaskMode(),
                                     item.getTaskId(), ws, item.getCleanArea(), item.getCleanTime(),
-                                    item.getErrorCode(), item.getErrorMessage(),1);
+                                    item.getErrorCode(), item.getErrorMessage(), 1);
 
         vector.push_back(historyUpgrade);
     }

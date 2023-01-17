@@ -24,7 +24,7 @@ int reset_prohibition(void);
 bool get_prohibition(vector<vector<float>> &prohibition_position);
 
 
-int set_partition(vector<float>& point , int);
+int set_partition(vector<float> &point, int);
 
 int reset_partition(void);
 

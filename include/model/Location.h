@@ -139,6 +139,7 @@ private:
 public:
 
     ~Location() = default;
+
     static Location *get_instance() {
         if (m_instance_ptr == nullptr) {
             m_instance_ptr = new Location;

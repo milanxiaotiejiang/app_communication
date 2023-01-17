@@ -87,7 +87,7 @@ string AddTimerStrategy::handler(TimerInfo params) {
     json jj;
     jj["code"] = 0;
     return jj.dump();
-    
+
 }
 
 string UpdateTimerStrategy::handler(TimerInfo params) {
@@ -240,10 +240,10 @@ string DeleteTimerStrategy::handler(string params) {
 
         PublishOutManager::instance().getPubOut()->publishAppSchedule(ret);
 
-       // return "";
-       json jj;
-       jj["code"] = 0;
-       return jj.dump();
+        // return "";
+        json jj;
+        jj["code"] = 0;
+        return jj.dump();
     } else {
         throw app::exception(make_error_code(error::open_file_timer_fail));
     }

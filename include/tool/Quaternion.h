@@ -4,10 +4,10 @@
 
 #ifndef APP_COMMUNICATION_QUATERNION_H
 #define APP_COMMUNICATION_QUATERNION_H
+
 #include "math.h"
 
-class Quaternion_ros
-{
+class Quaternion_ros {
 public:
     float w;
     float x;
@@ -35,8 +35,7 @@ void Quaternion_ros::toQuaternion(float pitch, float roll, float yaw)//rpy转四
     z = sy * cr * cp - cy * sr * sp;
 }
 
-Quaternion_ros::Quaternion_ros()
-{
+Quaternion_ros::Quaternion_ros() {
     w = 1;
     x = 0;
     y = 0;

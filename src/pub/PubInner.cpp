@@ -5,6 +5,7 @@
 #include "pub/PubInner.h"
 #include <std_msgs/Int8.h>
 #include "glog/logging.h"
+
 PubInner::PubInner(ros::NodeHandle handle) : handle(handle) {
     pub_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/switch_mode", 10);
     pub_flag_ = handle.advertise<std_msgs::Int32>("/flag", 10);
@@ -36,23 +37,25 @@ PubInner::PubInner(ros::NodeHandle handle) : handle(handle) {
     pub_knob_available = handle.advertise<std_msgs::Bool>("/knob/available", 1);
     pub_knob_task = handle.advertise<std_msgs::Int8>("/knob/task", 1);
     pub_reboot = handle.advertise<std_msgs::Int32>("/reboot_flag", 1);
-    pub_shutdown = handle.advertise<std_msgs::Int32>("/shutdown_flag",1);
+    pub_shutdown = handle.advertise<std_msgs::Int32>("/shutdown_flag", 1);
 }
 
 void PubInner::publishMode(const std_msgs::Int32 &message) const {
     //mode:0:建图；1修改地图；2工作
     pub_mode_.publish(message);
 }
+
 void PubInner::publishCharge(const std_msgs::Int32 &message) const {
     //mode:0:建图；1修改地图；2工作
     pub_charge_.publish(message);
 }
+
 void PubInner::publishFlag(const std_msgs::Int32 &message) const {
 
     pub_flag_.publish(message);
 }
 
-void PubInner::pubManualPush(const std_msgs::Int16 &message) const{
+void PubInner::pubManualPush(const std_msgs::Int16 &message) const {
     pub_manual_push_.publish(message);
 }
 
@@ -64,11 +67,11 @@ void PubInner::publishPushMode(const std_msgs::Int16 &message) const {
     pub_push_mode_.publish(message);
 }
 
-void PubInner::publishSelfClean(const std_msgs::Int16 &message) const{
+void PubInner::publishSelfClean(const std_msgs::Int16 &message) const {
     pub_self_clean_.publish(message);
 }
 
-void PubInner::publishVacuumMode(const std_msgs::Int16 &message) const{
+void PubInner::publishVacuumMode(const std_msgs::Int16 &message) const {
     pub_vacuum_mode_.publish(message);
 }
 
@@ -124,13 +127,16 @@ void PubInner::publishInitialposition(const geometry_msgs::PoseWithCovarianceSta
 void PubInner::publishMusic(const std_msgs::Int32 &message) const {
     pub_music.publish(message);
 }
-void PubInner::publishOtaPad(const std_msgs::String &message) const{
+
+void PubInner::publishOtaPad(const std_msgs::String &message) const {
     pub_otaPad.publish(message);
 }
-void PubInner::publishOtaCore(const std_msgs::String &message) const{
+
+void PubInner::publishOtaCore(const std_msgs::String &message) const {
     pub_otacore.publish(message);
 }
-void PubInner::publishOtaLow(const std_msgs::String &message) const{
+
+void PubInner::publishOtaLow(const std_msgs::String &message) const {
     LOG(ERROR) << message.data << "  ";
     pub_otalow.publish(message);
 }
@@ -155,10 +161,10 @@ void PubInner::publishKnobTask(const std_msgs::Int8 &message) const {
     pub_knob_task.publish(message);
 }
 
-void PubInner::publishShutDown(const std_msgs::Int32 &message) const{
+void PubInner::publishShutDown(const std_msgs::Int32 &message) const {
     pub_shutdown.publish(message);
 }
 
-void PubInner::publishReboot(const std_msgs::Int32 &message) const{
+void PubInner::publishReboot(const std_msgs::Int32 &message) const {
     pub_reboot.publish(message);
 }

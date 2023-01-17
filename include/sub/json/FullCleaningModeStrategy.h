@@ -44,12 +44,12 @@ class FullCleaningDetailsStrategy : public MessageStrategy<string, FullCleanBrie
     FullCleanBrief handler(string params) override;
 };
 
-class FullCleaningMainStrategy : public MessageStrategy<string, string>{
+class FullCleaningMainStrategy : public MessageStrategy<string, string> {
 public:
     string handler(string params) override;
 };
 
-class CancelFullCleaningMainStrategy : public MessageStrategy<string, string>{
+class CancelFullCleaningMainStrategy : public MessageStrategy<string, string> {
 public:
     string handler(string params) override;
 };

@@ -331,7 +331,7 @@ add_executable(rec_app_node
         src/task/model/CombinationPoseVo.cpp
         src/model/FullClean.cpp
         src/manager/FullCleanManager.cpp
-        src/manager/DynamicReconfigureManager.cpp src/manager/DynamicReconfigureManager.h)
+        src/manager/DynamicReconfigureManager.cpp include/manager/DynamicReconfigureManager.h)
 
 
 target_link_libraries(rec_app_node

@@ -79,13 +79,13 @@ public:
 
     friend void to_json(json &j, const CombinationBrief &b) {
         j = json{
-                {"combination_id", b.m_combination_id},
-                {"name",           b.m_name},
-                {"rate",           b.m_rate},
-                {"part_id_list",   b.m_part_id_list},
-                {"principal",      b.principal},
-                {"work_status",    b.work_status},
-                {"combination_type",  b.combination_type}
+                {"combination_id",   b.m_combination_id},
+                {"name",             b.m_name},
+                {"rate",             b.m_rate},
+                {"part_id_list",     b.m_part_id_list},
+                {"principal",        b.principal},
+                {"work_status",      b.work_status},
+                {"combination_type", b.combination_type}
         };
     }
 
@@ -153,12 +153,12 @@ public:
 
     friend void to_json(json &j, const CombinationDetail &b) {
         j = json{
-                {"combination_id", b.m_combination_id},
-                {"name",           b.m_name},
-                {"rate",           b.m_rate},
-                {"view_part_list", b.m_view_part_list},
-                {"principal",      b.principal},
-                {"work_status",    b.work_status},
+                {"combination_id",   b.m_combination_id},
+                {"name",             b.m_name},
+                {"rate",             b.m_rate},
+                {"view_part_list",   b.m_view_part_list},
+                {"principal",        b.principal},
+                {"work_status",      b.work_status},
                 {"combination_type", b.combination_type}
         };
     }

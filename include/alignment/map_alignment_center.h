@@ -19,7 +19,7 @@ public:
 
     void initialize(ros::NodeHandle handle);
 
-    void merge_lines(const cv::Mat& mat);
+    void merge_lines(const cv::Mat &mat);
 };
 
 

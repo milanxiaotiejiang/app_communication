@@ -22,7 +22,7 @@ private:
     bool file_empty;
 
 public:
-    FullCleanManager(){
+    FullCleanManager() {
         m_filename.append(ros::package::getPath("data_base"));
         m_filename.append("/config/fullclean_list_primcipal_json_work.txt");
         m_file_ptr = make_shared<sh::File>(m_filename);
@@ -53,8 +53,8 @@ private:
     static FullCleanManager *m_instance_ptr;
 
 public:
-    static FullCleanManager *get_instance(){
-        if(m_instance_ptr == nullptr){
+    static FullCleanManager *get_instance() {
+        if (m_instance_ptr == nullptr) {
             m_instance_ptr = new FullCleanManager;
         }
         return m_instance_ptr;

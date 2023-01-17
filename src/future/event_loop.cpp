@@ -17,16 +17,16 @@ namespace async {
 
     bool EventLoop::_loop(DurationMs timeout) {
 //        ASYNC_DEFER {
-            timers_.update();
+        timers_.update();
 
-            if (fctrMutex_.try_lock()) {
-                decltype(functors_) funcs;
-                funcs.swap(functors_);
-                fctrMutex_.unlock();
+        if (fctrMutex_.try_lock()) {
+            decltype(functors_) funcs;
+            funcs.swap(functors_);
+            fctrMutex_.unlock();
 
-                for (const auto &f: funcs)
-                    f();
-            }
+            for (const auto &f: funcs)
+                f();
+        }
 //        };
 
         std::this_thread::sleep_for(timeout);

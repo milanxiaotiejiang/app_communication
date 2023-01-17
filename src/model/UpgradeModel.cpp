@@ -308,7 +308,8 @@ CleanHistoryUpgrade::CleanHistoryUpgrade() {}
 
 CleanHistoryUpgrade::CleanHistoryUpgrade(bool isComplete, long launchTime, long executeTime, long endTime, int taskMode,
                                          const string &taskId, int cleanArea,
-                                         int cleanTime, int errorCode, const string errorCode2, const string &errorMessage, bool mBaseComplete,
+                                         int cleanTime, int errorCode, const string errorCode2,
+                                         const string &errorMessage, bool mBaseComplete,
                                          int taskType, const vector<std::string> &componentIdList,
                                          int skipPathPointCount, const vector<int> &operEvent, int rate,
                                          int sweepStatus, int mopStatus, int vacuumStatus, int pushStatus,
@@ -317,7 +318,8 @@ CleanHistoryUpgrade::CleanHistoryUpgrade(bool isComplete, long launchTime, long 
                                          int currentFlow, int urgencyStop, int pauseNum, int manualBack,
                                          int lowPowerBack, int forceBack, int outStation, int endSleep,
                                          int backBaseRetries, int backBasePointArrived, int stationArrived,
-                                         int rechargeRetries, int closeMechanism, int openMechanism) : is_complete(isComplete), launch_time(launchTime), execute_time(executeTime), end_time(endTime), task_mode(taskMode),
+                                         int rechargeRetries, int closeMechanism, int openMechanism) : is_complete(
+        isComplete), launch_time(launchTime), execute_time(executeTime), end_time(endTime), task_mode(taskMode),
                                                                                                        task_id(taskId),
                                                                                                        clean_area(
                                                                                                                cleanArea),

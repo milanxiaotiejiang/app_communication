@@ -20,7 +20,7 @@
 using json = nlohmann::json;
 using namespace std;
 
-class SaveMapStrategy : public MessageStrategy<MapInfo, MapInfo>  {
+class SaveMapStrategy : public MessageStrategy<MapInfo, MapInfo> {
 public:
     MapInfo handler(MapInfo params) override;
 };
@@ -56,7 +56,7 @@ public:
 };
 
 
-class ManualPushSaveStrategy : public MessageStrategy<MapInfo, MapInfo>  {
+class ManualPushSaveStrategy : public MessageStrategy<MapInfo, MapInfo> {
 public:
     MapInfo handler(MapInfo params) override;
 };

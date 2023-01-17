@@ -31,7 +31,7 @@ public:
 
     void storage2Memory(cv::Mat &mat, std::vector<Room> &rooms, double map_resolution_from_subscription);
 
-    void reRoomName(int targetId, const std::string& name);
+    void reRoomName(int targetId, const std::string &name);
 };
 
 

@@ -4,6 +4,7 @@
 
 #ifndef APP_COMMUNICATION_FULLPATHSUBSCRIBE_H
 #define APP_COMMUNICATION_FULLPATHSUBSCRIBE_H
+
 #include<ros/ros.h>
 #include <pub/PubInner.h>
 #include <pub/PubOut.h>

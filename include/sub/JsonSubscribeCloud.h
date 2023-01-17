@@ -24,7 +24,6 @@
 #include "clean_msgs/robot_control.h"
 
 
-
 using json = nlohmann::json;
 using namespace std;
 using namespace clean_msgs;
@@ -50,7 +49,7 @@ public:
     // std::string request_;
     // std::string response_;
 
-     bool function(robot_control::Request &req, robot_control::Response &res);
+    bool function(robot_control::Request &req, robot_control::Response &res);
 
     // void set_request(std::string request_);
 
@@ -60,7 +59,7 @@ public:
 
     // string get_response();
 
-   // void subscribeCallback(const std_msgs::String &result);
+    // void subscribeCallback(const std_msgs::String &result);
 };
 
 

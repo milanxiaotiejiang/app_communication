@@ -2,34 +2,28 @@
 
 #include <cstdint>
 
-namespace croncpp
-{
-    enum class Seconds : int8_t
-    {
+namespace croncpp {
+    enum class Seconds : int8_t {
         First = 0,
         Last = 59
     };
 
-    enum class Minutes : int8_t
-    {
+    enum class Minutes : int8_t {
         First = 0,
         Last = 59
     };
 
-    enum class Hours : int8_t
-    {
+    enum class Hours : int8_t {
         First = 0,
         Last = 23
     };
 
-    enum class DayOfMonth : uint8_t
-    {
+    enum class DayOfMonth : uint8_t {
         First = 1,
         Last = 31
     };
 
-    enum class Months : uint8_t
-    {
+    enum class Months : uint8_t {
         First = 1,
         January = First,
         February,
@@ -46,8 +40,7 @@ namespace croncpp
         Last = December
     };
 
-    enum class DayOfWeek : uint8_t
-    {
+    enum class DayOfWeek : uint8_t {
         // Sunday = 0 ... Saturday = 6
         First = 0,
         Last = 6,

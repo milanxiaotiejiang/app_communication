@@ -87,6 +87,7 @@ int Line::dblcmp(float a, float b) {
     else
         return -1;
 }
+
 int Line::point_on_line(Point a, Point b, Point c)//求a点是不是在线段bc上，>0不在，=0与端点重合，<0在。
 {
     return dblcmp(dot(b.getX() - a.getX(), b.getY() - a.getY(), c.getX() - a.getX(), c.getY() - a.getY()), 0);
@@ -101,6 +102,7 @@ Line Line::operator+(const Line &p) const {
 float Line::cross(float x1, float y1, float x2, float y2) {
     return x1 * y2 - x2 * y1;
 }
+
 float Line::ab_cross_ac(Point a, Point b, Point c)//ab与ac的叉积
 {
     return cross(b.getX() - a.getX(), b.getY() - a.getY(), c.getX() - a.getX(), c.getY() - a.getY());

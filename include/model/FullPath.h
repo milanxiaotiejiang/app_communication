@@ -4,8 +4,10 @@
 
 #ifndef APP_COMMUNICATION_FULLPATH_H
 #define APP_COMMUNICATION_FULLPATH_H
+
 #include "vector"
 #include "Point.h"
+
 using namespace std;
 
 class FullPath {
@@ -37,9 +39,6 @@ public:
         j.at("full_path").get_to(b.full_path);
     }
 };
-
-
-
 
 
 #endif //APP_COMMUNICATION_FULLPATH_H

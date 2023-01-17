@@ -26,8 +26,9 @@ public:
 
     }
 
-    MethodAlongWall(const std::string &method, const std::vector<float> &params, int id) : method(method), params(params),
-                                                                                     id(id) {}
+    MethodAlongWall(const std::string &method, const std::vector<float> &params, int id) : method(method),
+                                                                                           params(params),
+                                                                                           id(id) {}
 
     const std::string &getMethod() const {
         return method;

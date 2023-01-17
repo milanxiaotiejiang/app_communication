@@ -38,7 +38,8 @@ int set_prohibition(float *point, int num) {
             //            cout<<"     第"<<j+1<<"个点:"<<config["prohibition_areas"][0][0].size()<<endl;
             temp2.push_back(atof(config["prohibition_areas"][i][j][0].as<std::string>().c_str()));
             temp2.push_back(atof(config["prohibition_areas"][i][j][1].as<std::string>().c_str()));
-            cout << "     " << atof(config["prohibition_areas"][i][j][0].as<std::string>().c_str()) << "," << atof(config["prohibition_areas"][i][j][1].as<std::string>().c_str()) << endl;
+            cout << "     " << atof(config["prohibition_areas"][i][j][0].as<std::string>().c_str()) << ","
+                 << atof(config["prohibition_areas"][i][j][1].as<std::string>().c_str()) << endl;
             temp1.push_back(temp2);
         }
         prohibition_position.push_back(temp1);

@@ -4,8 +4,7 @@
 #include <tuple> // tie
 #include <utility> // move
 
-namespace nlohmann
-{
+namespace nlohmann {
 
 /*!
 @brief an internal type for a backed binary type
@@ -20,150 +19,136 @@ order to override the binary type.
 
 @since version 3.8.0; changed type of subtypes to std::uint64_t in 3.10.0.
 */
-template<typename BinaryType>
-class byte_container_with_subtype : public BinaryType
-{
-  public:
-    /// the type of the underlying container
-    using container_type = BinaryType;
-    /// the type of the subtype
-    using subtype_type = std::uint64_t;
+    template<typename BinaryType>
+    class byte_container_with_subtype : public BinaryType {
+    public:
+        /// the type of the underlying container
+        using container_type = BinaryType;
+        /// the type of the subtype
+        using subtype_type = std::uint64_t;
 
-    byte_container_with_subtype() noexcept(noexcept(container_type()))
-        : container_type()
-    {}
+        byte_container_with_subtype() noexcept(noexcept(container_type()))
+                : container_type() {}
 
-    byte_container_with_subtype(const container_type& b) noexcept(noexcept(container_type(b)))
-        : container_type(b)
-    {}
+        byte_container_with_subtype(const container_type &b) noexcept(noexcept(container_type(b)))
+                : container_type(b) {}
 
-    byte_container_with_subtype(container_type&& b) noexcept(noexcept(container_type(std::move(b))))
-        : container_type(std::move(b))
-    {}
+        byte_container_with_subtype(container_type &&b) noexcept(noexcept(container_type(std::move(b))))
+                : container_type(std::move(b)) {}
 
-    byte_container_with_subtype(const container_type& b, subtype_type subtype_) noexcept(noexcept(container_type(b)))
-        : container_type(b)
-        , m_subtype(subtype_)
-        , m_has_subtype(true)
-    {}
+        byte_container_with_subtype(const container_type &b, subtype_type subtype_) noexcept(noexcept(container_type(
+                b)))
+                : container_type(b), m_subtype(subtype_), m_has_subtype(true) {}
 
-    byte_container_with_subtype(container_type&& b, subtype_type subtype_) noexcept(noexcept(container_type(std::move(b))))
-        : container_type(std::move(b))
-        , m_subtype(subtype_)
-        , m_has_subtype(true)
-    {}
+        byte_container_with_subtype(container_type &&b, subtype_type subtype_) noexcept(noexcept(container_type(
+                std::move(b))))
+                : container_type(std::move(b)), m_subtype(subtype_), m_has_subtype(true) {}
 
-    bool operator==(const byte_container_with_subtype& rhs) const
-    {
-        return std::tie(static_cast<const BinaryType&>(*this), m_subtype, m_has_subtype) ==
-               std::tie(static_cast<const BinaryType&>(rhs), rhs.m_subtype, rhs.m_has_subtype);
-    }
+        bool operator==(const byte_container_with_subtype &rhs) const {
+            return std::tie(static_cast<const BinaryType &>(*this), m_subtype, m_has_subtype) ==
+                   std::tie(static_cast<const BinaryType &>(rhs), rhs.m_subtype, rhs.m_has_subtype);
+        }
 
-    bool operator!=(const byte_container_with_subtype& rhs) const
-    {
-        return !(rhs == *this);
-    }
+        bool operator!=(const byte_container_with_subtype &rhs) const {
+            return !(rhs == *this);
+        }
 
-    /*!
-    @brief sets the binary subtype
+        /*!
+        @brief sets the binary subtype
 
-    Sets the binary subtype of the value, also flags a binary JSON value as
-    having a subtype, which has implications for serialization.
+        Sets the binary subtype of the value, also flags a binary JSON value as
+        having a subtype, which has implications for serialization.
 
-    @complexity Constant.
+        @complexity Constant.
 
-    @exceptionsafety No-throw guarantee: this member function never throws
-    exceptions.
+        @exceptionsafety No-throw guarantee: this member function never throws
+        exceptions.
 
-    @sa see @ref subtype() -- return the binary subtype
-    @sa see @ref clear_subtype() -- clears the binary subtype
-    @sa see @ref has_subtype() -- returns whether or not the binary value has a
-    subtype
+        @sa see @ref subtype() -- return the binary subtype
+        @sa see @ref clear_subtype() -- clears the binary subtype
+        @sa see @ref has_subtype() -- returns whether or not the binary value has a
+        subtype
 
-    @since version 3.8.0
-    */
-    void set_subtype(subtype_type subtype_) noexcept
-    {
-        m_subtype = subtype_;
-        m_has_subtype = true;
-    }
+        @since version 3.8.0
+        */
+        void set_subtype(subtype_type subtype_) noexcept {
+            m_subtype = subtype_;
+            m_has_subtype = true;
+        }
 
-    /*!
-    @brief return the binary subtype
+        /*!
+        @brief return the binary subtype
 
-    Returns the numerical subtype of the value if it has a subtype. If it does
-    not have a subtype, this function will return subtype_type(-1) as a sentinel
-    value.
+        Returns the numerical subtype of the value if it has a subtype. If it does
+        not have a subtype, this function will return subtype_type(-1) as a sentinel
+        value.
 
-    @return the numerical subtype of the binary value
+        @return the numerical subtype of the binary value
 
-    @complexity Constant.
+        @complexity Constant.
 
-    @exceptionsafety No-throw guarantee: this member function never throws
-    exceptions.
+        @exceptionsafety No-throw guarantee: this member function never throws
+        exceptions.
 
-    @sa see @ref set_subtype() -- sets the binary subtype
-    @sa see @ref clear_subtype() -- clears the binary subtype
-    @sa see @ref has_subtype() -- returns whether or not the binary value has a
-    subtype
+        @sa see @ref set_subtype() -- sets the binary subtype
+        @sa see @ref clear_subtype() -- clears the binary subtype
+        @sa see @ref has_subtype() -- returns whether or not the binary value has a
+        subtype
 
-    @since version 3.8.0; fixed return value to properly return
-           subtype_type(-1) as documented in version 3.10.0
-    */
-    constexpr subtype_type subtype() const noexcept
-    {
-        return m_has_subtype ? m_subtype : subtype_type(-1);
-    }
+        @since version 3.8.0; fixed return value to properly return
+               subtype_type(-1) as documented in version 3.10.0
+        */
+        constexpr subtype_type subtype() const noexcept {
+            return m_has_subtype ? m_subtype : subtype_type(-1);
+        }
 
-    /*!
-    @brief return whether the value has a subtype
+        /*!
+        @brief return whether the value has a subtype
 
-    @return whether the value has a subtype
+        @return whether the value has a subtype
 
-    @complexity Constant.
+        @complexity Constant.
 
-    @exceptionsafety No-throw guarantee: this member function never throws
-    exceptions.
+        @exceptionsafety No-throw guarantee: this member function never throws
+        exceptions.
 
-    @sa see @ref subtype() -- return the binary subtype
-    @sa see @ref set_subtype() -- sets the binary subtype
-    @sa see @ref clear_subtype() -- clears the binary subtype
+        @sa see @ref subtype() -- return the binary subtype
+        @sa see @ref set_subtype() -- sets the binary subtype
+        @sa see @ref clear_subtype() -- clears the binary subtype
 
-    @since version 3.8.0
-    */
-    constexpr bool has_subtype() const noexcept
-    {
-        return m_has_subtype;
-    }
+        @since version 3.8.0
+        */
+        constexpr bool has_subtype() const noexcept {
+            return m_has_subtype;
+        }
 
-    /*!
-    @brief clears the binary subtype
+        /*!
+        @brief clears the binary subtype
 
-    Clears the binary subtype and flags the value as not having a subtype, which
-    has implications for serialization; for instance MessagePack will prefer the
-    bin family over the ext family.
+        Clears the binary subtype and flags the value as not having a subtype, which
+        has implications for serialization; for instance MessagePack will prefer the
+        bin family over the ext family.
 
-    @complexity Constant.
+        @complexity Constant.
 
-    @exceptionsafety No-throw guarantee: this member function never throws
-    exceptions.
+        @exceptionsafety No-throw guarantee: this member function never throws
+        exceptions.
 
-    @sa see @ref subtype() -- return the binary subtype
-    @sa see @ref set_subtype() -- sets the binary subtype
-    @sa see @ref has_subtype() -- returns whether or not the binary value has a
-    subtype
+        @sa see @ref subtype() -- return the binary subtype
+        @sa see @ref set_subtype() -- sets the binary subtype
+        @sa see @ref has_subtype() -- returns whether or not the binary value has a
+        subtype
 
-    @since version 3.8.0
-    */
-    void clear_subtype() noexcept
-    {
-        m_subtype = 0;
-        m_has_subtype = false;
-    }
+        @since version 3.8.0
+        */
+        void clear_subtype() noexcept {
+            m_subtype = 0;
+            m_has_subtype = false;
+        }
 
-  private:
-    subtype_type m_subtype = 0;
-    bool m_has_subtype = false;
-};
+    private:
+        subtype_type m_subtype = 0;
+        bool m_has_subtype = false;
+    };
 
 }  // namespace nlohmann

@@ -47,7 +47,7 @@ void Error_log::InitLog() {
     noticeFilePath.append("/config/notice.txt");
 
     if (!sh::File::exists(noticeFilePath)) {
-        unique_ptr <sh::File> cFilePtr(new sh::File(noticeFilePath));
+        unique_ptr<sh::File> cFilePtr(new sh::File(noticeFilePath));
         if (!cFilePtr->create(noticeFilePath)) {
             LOG(ERROR) << noticeFilePath << " create fail !";
         }
@@ -127,11 +127,11 @@ void Error_log::InitLog() {
 
             outfile.close();
         }
-       // return;
-    } 
+        // return;
+    }
     std::string basePath = ros::package::getPath("data_base") + "/config/";
     std::string path = basePath + "error_infos.yaml";
-    
+
     m_config = YAML::LoadFile(path);
 }
 
@@ -148,24 +148,24 @@ void Error_log::WriteLog(int ercode) {
     std::string solution;
     bool isSuccess = false;
 
-   // struct tm *local;
+    // struct tm *local;
     ofstream outfile;
-  //  std::string path = basePath + "error_infos.yaml";
-  //  YAML::Node config = YAML::LoadFile(path);
-  
-  
+    //  std::string path = basePath + "error_infos.yaml";
+    //  YAML::Node config = YAML::LoadFile(path);
+
+
 
     int err_infos__num = m_config["error_infos"].size();
-     std::cout << "err_infos__num: " << err_infos__num << std::endl;
-   
+    std::cout << "err_infos__num: " << err_infos__num << std::endl;
+
     //存入
     for (int i = 0; i < err_infos__num; i++) {
-    std::cout << "m_config: " << m_config["error_infos"][i]["err_code"].as<std::string>() << std::endl;
-    std::cout << "to_string(ercode): " << to_string(ercode) << std::endl;
+        std::cout << "m_config: " << m_config["error_infos"][i]["err_code"].as<std::string>() << std::endl;
+        std::cout << "to_string(ercode): " << to_string(ercode) << std::endl;
         if (m_config["error_infos"][i]["err_code"].as<std::string>() == to_string(ercode)) {
             std::cout << "err_infos__num22222: " << err_infos__num << std::endl;
             outfile.open(sFilepath, ios::app); //文件的物理地址，文件的打开方式, 如果没有会自动创建
-        //    std::string st = croncpp::Cron<croncpp::LocalClock, croncpp::NullLock>::get_timestring();
+            //    std::string st = croncpp::Cron<croncpp::LocalClock, croncpp::NullLock>::get_timestring();
             if (outfile.is_open()) {
                 noticeTitle = m_config["error_infos"][i]["err_msg"].as<std::string>();
                 noticeMessage = m_config["error_infos"][i]["err_sym"].as<std::string>();
@@ -195,7 +195,7 @@ void Error_log::WriteLog(int ercode) {
             noticeFilePtr->close();
         }
 
-        vector <Notice> list;
+        vector<Notice> list;
         if (!content.empty()) {
             auto jdecode = json::parse(content);
             list = jdecode.get<vector<Notice>>();
@@ -210,14 +210,15 @@ void Error_log::WriteLog(int ercode) {
         }
 
         NoticeManager::get_instance()->sendNotice(noticeCode, noticeTime, noticeTitle, noticeMessage, solution);
-        WriteToCloud(noticeCode,noticeTime);
+        WriteToCloud(noticeCode, noticeTime);
     }
 }
-void Error_log::WriteToCloud(int ntCode,long nttime){
-        clean_msgs::cloud_robot_event event;
-        event.event_id = "alarm_event";
-        event.event_data = "{\"err_time\":"+to_string(nttime)+", \"err_code\":" + to_string(ntCode) +"}";
-        NoticeManager::get_instance()->getPubOut()->publishCloudEvent(event);
-       
-    
-    }
+
+void Error_log::WriteToCloud(int ntCode, long nttime) {
+    clean_msgs::cloud_robot_event event;
+    event.event_id = "alarm_event";
+    event.event_data = "{\"err_time\":" + to_string(nttime) + ", \"err_code\":" + to_string(ntCode) + "}";
+    NoticeManager::get_instance()->getPubOut()->publishCloudEvent(event);
+
+
+}

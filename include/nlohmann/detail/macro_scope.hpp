@@ -9,86 +9,88 @@
 
 // exclude unsupported compilers
 #if !defined(JSON_SKIP_UNSUPPORTED_COMPILER_CHECK)
-    #if defined(__clang__)
-        #if (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__) < 30400
-            #error "unsupported Clang version - see https://github.com/nlohmann/json#supported-compilers"
-        #endif
-    #elif defined(__GNUC__) && !(defined(__ICC) || defined(__INTEL_COMPILER))
-        #if (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) < 40800
-            #error "unsupported GCC version - see https://github.com/nlohmann/json#supported-compilers"
-        #endif
-    #endif
+#if defined(__clang__)
+#if (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__) < 30400
+#error "unsupported Clang version - see https://github.com/nlohmann/json#supported-compilers"
+#endif
+#elif defined(__GNUC__) && !(defined(__ICC) || defined(__INTEL_COMPILER))
+#if (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__) < 40800
+#error "unsupported GCC version - see https://github.com/nlohmann/json#supported-compilers"
+#endif
+#endif
 #endif
 
 // C++ language standard detection
 // if the user manually specified the used c++ version this is skipped
 #if !defined(JSON_HAS_CPP_20) && !defined(JSON_HAS_CPP_17) && !defined(JSON_HAS_CPP_14) && !defined(JSON_HAS_CPP_11)
-    #if (defined(__cplusplus) && __cplusplus >= 202002L) || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
-        #define JSON_HAS_CPP_20
-        #define JSON_HAS_CPP_17
-        #define JSON_HAS_CPP_14
-    #elif (defined(__cplusplus) && __cplusplus >= 201703L) || (defined(_HAS_CXX17) && _HAS_CXX17 == 1) // fix for issue #464
-        #define JSON_HAS_CPP_17
-        #define JSON_HAS_CPP_14
-    #elif (defined(__cplusplus) && __cplusplus >= 201402L) || (defined(_HAS_CXX14) && _HAS_CXX14 == 1)
-        #define JSON_HAS_CPP_14
-    #endif
-    // the cpp 11 flag is always specified because it is the minimal required version
-    #define JSON_HAS_CPP_11
+#if (defined(__cplusplus) && __cplusplus >= 202002L) || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
+#define JSON_HAS_CPP_20
+#define JSON_HAS_CPP_17
+#define JSON_HAS_CPP_14
+#elif (defined(__cplusplus) && __cplusplus >= 201703L) || (defined(_HAS_CXX17) && _HAS_CXX17 == 1) // fix for issue #464
+#define JSON_HAS_CPP_17
+#define JSON_HAS_CPP_14
+#elif (defined(__cplusplus) && __cplusplus >= 201402L) || (defined(_HAS_CXX14) && _HAS_CXX14 == 1)
+#define JSON_HAS_CPP_14
+#endif
+// the cpp 11 flag is always specified because it is the minimal required version
+#define JSON_HAS_CPP_11
 #endif
 
 // disable documentation warnings on clang
 #if defined(__clang__)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdocumentation"
-    #pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdocumentation"
+#pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
 #endif
 
 // allow to disable exceptions
 #if (defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)) && !defined(JSON_NOEXCEPTION)
-    #define JSON_THROW(exception) throw exception
-    #define JSON_TRY try
-    #define JSON_CATCH(exception) catch(exception)
-    #define JSON_INTERNAL_CATCH(exception) catch(exception)
+#define JSON_THROW(exception) throw exception
+#define JSON_TRY try
+#define JSON_CATCH(exception) catch(exception)
+#define JSON_INTERNAL_CATCH(exception) catch(exception)
 #else
-    #include <cstdlib>
-    #define JSON_THROW(exception) std::abort()
-    #define JSON_TRY if(true)
-    #define JSON_CATCH(exception) if(false)
-    #define JSON_INTERNAL_CATCH(exception) if(false)
+#include <cstdlib>
+#define JSON_THROW(exception) std::abort()
+#define JSON_TRY if(true)
+#define JSON_CATCH(exception) if(false)
+#define JSON_INTERNAL_CATCH(exception) if(false)
 #endif
 
 // override exception macros
 #if defined(JSON_THROW_USER)
-    #undef JSON_THROW
-    #define JSON_THROW JSON_THROW_USER
+#undef JSON_THROW
+#define JSON_THROW JSON_THROW_USER
 #endif
 #if defined(JSON_TRY_USER)
-    #undef JSON_TRY
-    #define JSON_TRY JSON_TRY_USER
+#undef JSON_TRY
+#define JSON_TRY JSON_TRY_USER
 #endif
 #if defined(JSON_CATCH_USER)
-    #undef JSON_CATCH
-    #define JSON_CATCH JSON_CATCH_USER
-    #undef JSON_INTERNAL_CATCH
-    #define JSON_INTERNAL_CATCH JSON_CATCH_USER
+#undef JSON_CATCH
+#define JSON_CATCH JSON_CATCH_USER
+#undef JSON_INTERNAL_CATCH
+#define JSON_INTERNAL_CATCH JSON_CATCH_USER
 #endif
 #if defined(JSON_INTERNAL_CATCH_USER)
-    #undef JSON_INTERNAL_CATCH
-    #define JSON_INTERNAL_CATCH JSON_INTERNAL_CATCH_USER
+#undef JSON_INTERNAL_CATCH
+#define JSON_INTERNAL_CATCH JSON_INTERNAL_CATCH_USER
 #endif
 
 // allow to override assert
 #if !defined(JSON_ASSERT)
-    #include <cassert> // assert
-    #define JSON_ASSERT(x) assert(x)
+
+#include <cassert> // assert
+
+#define JSON_ASSERT(x) assert(x)
 #endif
 
 // allow to access some private functions (needed by the test suite)
 #if defined(JSON_TESTS_PRIVATE)
-    #define JSON_PRIVATE_UNLESS_TESTED public
+#define JSON_PRIVATE_UNLESS_TESTED public
 #else
-    #define JSON_PRIVATE_UNLESS_TESTED private
+#define JSON_PRIVATE_UNLESS_TESTED private
 #endif
 
 /*!
@@ -141,8 +143,8 @@
 
 // Macros to simplify conversion from/to types
 
-#define NLOHMANN_JSON_EXPAND( x ) x
-#define NLOHMANN_JSON_GET_MACRO(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, NAME,...) NAME
+#define NLOHMANN_JSON_EXPAND(x) x
+#define NLOHMANN_JSON_GET_MACRO(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, NAME, ...) NAME
 #define NLOHMANN_JSON_PASTE(...) NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_GET_MACRO(__VA_ARGS__, \
         NLOHMANN_JSON_PASTE64, \
         NLOHMANN_JSON_PASTE63, \
@@ -333,15 +335,15 @@
     }
 
 #ifndef JSON_USE_IMPLICIT_CONVERSIONS
-    #define JSON_USE_IMPLICIT_CONVERSIONS 1
+#define JSON_USE_IMPLICIT_CONVERSIONS 1
 #endif
 
 #if JSON_USE_IMPLICIT_CONVERSIONS
-    #define JSON_EXPLICIT
+#define JSON_EXPLICIT
 #else
-    #define JSON_EXPLICIT explicit
+#define JSON_EXPLICIT explicit
 #endif
 
 #ifndef JSON_DIAGNOSTICS
-    #define JSON_DIAGNOSTICS 0
+#define JSON_DIAGNOSTICS 0
 #endif

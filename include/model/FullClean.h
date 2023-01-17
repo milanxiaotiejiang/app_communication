@@ -4,6 +4,7 @@
 
 #ifndef APP_COMMUNICATION_FULLCLEAN_H
 #define APP_COMMUNICATION_FULLCLEAN_H
+
 #include "vector"
 #include "Point.h"
 #include "WorkStatus.h"
@@ -23,13 +24,15 @@ private:
 
 public:
     virtual ~FullCleanBrief() {}
+
     FullCleanBrief() {}
 
-    FullCleanBrief(std::string full_path_id, std::string name, int rate, const vector<Point> &fullPath, const WorkStatus &workStatus) : m_full_clean_path_id(full_path_id),
-                                                                                                                                        m_full_clean_name(name),
-                                                                                                                                        m_rate(rate),
-                                                                                                                                        full_path(fullPath),
-                                                                                                                                        work_status(workStatus){}
+    FullCleanBrief(std::string full_path_id, std::string name, int rate, const vector<Point> &fullPath,
+                   const WorkStatus &workStatus) : m_full_clean_path_id(full_path_id),
+                                                   m_full_clean_name(name),
+                                                   m_rate(rate),
+                                                   full_path(fullPath),
+                                                   work_status(workStatus) {}
 
 
     const std::string &getFullPathID() const;
@@ -59,10 +62,10 @@ public:
     friend void to_json(json &j, const FullCleanBrief &b) {
         j = json{
                 {"full_path_id", b.m_full_clean_path_id},
-                {"name", b.m_full_clean_name},
-                {"rate", b.m_rate},
-                {"work_status", b.work_status},
-                {"full_path", b.full_path}
+                {"name",         b.m_full_clean_name},
+                {"rate",         b.m_rate},
+                {"work_status",  b.work_status},
+                {"full_path",    b.full_path}
         };
     }
 
@@ -75,31 +78,38 @@ public:
     }
 };
 
-class FullCleanBriefList{
+class FullCleanBriefList {
 private:
     std::vector<FullCleanBrief> m_fullclean_brief_list;
 public:
-    friend void to_json(json &j, const FullCleanBriefList &b){
-        j = json {
-            {"m_full_clean_brief_list", b.m_fullclean_brief_list},
+    friend void to_json(json &j, const FullCleanBriefList &b) {
+        j = json{
+                {"m_full_clean_brief_list", b.m_fullclean_brief_list},
         };
     }
 
-    friend void from_json(const json &j, FullCleanBriefList &b){
+    friend void from_json(const json &j, FullCleanBriefList &b) {
         j.at("m_full_clean_brief_list").get_to(b.m_fullclean_brief_list);
     }
 
     FullCleanBriefList();
+
     ~FullCleanBriefList();
 
     const vector<FullCleanBrief> &getFullCleanBriefList() const;
+
     void setFullCLeanBriefList(const vector<FullCleanBrief> &fullclean_brief_list);
 
     bool addFullCleanBrief(const FullCleanBrief &fullCleanBrief);
+
     bool deleteFullCleanBrief(const string &fullclean_id);
+
     bool getFullCLeanBrief(FullCleanBrief &fullcleanBrief, const string &fullclean_id);
+
     bool resetFullCleanBrief(const FullCleanBrief &full_clean_brief, const string &fullclean_id);
+
     void setMainFullClean(const string &fullclean_id);
+
     void cancelMainFullClean(const string &fullclean_id);
 
 };

@@ -10,12 +10,16 @@
 #include "model/Notice.h"
 #include "manager/NoticeManager.h"
 #include "model/OtaInfo.h"
+
 class otaStrategy : public MessageStrategy<OtaInfo, string> {
 public:
     string handler(OtaInfo params) override;
-    int handleCore(OtaInfo& params);
-    int handlePad(OtaInfo& params);
-    int handleEcu(OtaInfo& params);
+
+    int handleCore(OtaInfo &params);
+
+    int handlePad(OtaInfo &params);
+
+    int handleEcu(OtaInfo &params);
 };
 
 

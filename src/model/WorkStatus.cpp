@@ -12,7 +12,7 @@ WorkStatus::WorkStatus(int sweepStatus, int mopStatus, int vacuumStatus, int pus
                        int disinfectStatus) : sweep_status(sweepStatus), mop_status(mopStatus),
                                               vacuum_status(vacuumStatus), push_status(pushStatus),
                                               aromatherapy_status(aromatherapyStatus),
-                                              disinfect_status(disinfectStatus){}
+                                              disinfect_status(disinfectStatus) {}
 
 int WorkStatus::getSweepStatus() const {
     return sweep_status;

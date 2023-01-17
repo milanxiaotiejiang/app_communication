@@ -27,14 +27,12 @@ void Timer_tool::startRunTimer() {
     RunSumTime = 0;
 }
 
-void Timer_tool::stopTimer()
-{
+void Timer_tool::stopTimer() {
     is_started = false;
 }
 
 void Timer_tool::pauseTimer() {
-    if(!is_paused)
-    {
+    if (!is_paused) {
         is_paused = true;
         durTimeBeforePause = (ros::Time::now() - restart).sec;
     }
@@ -42,7 +40,7 @@ void Timer_tool::pauseTimer() {
 }
 
 void Timer_tool::resumeTimer() {
-    if(is_paused){
+    if (is_paused) {
         is_paused = false;
         restart = ros::Time::now();
     }
@@ -74,5 +72,5 @@ void Timer_tool::setWaitSec(int waitSec) {
 }
 
 int Timer_tool::getRunSumTime() const {
-    return (ros::Time::now() - start0).sec ;
+    return (ros::Time::now() - start0).sec;
 }

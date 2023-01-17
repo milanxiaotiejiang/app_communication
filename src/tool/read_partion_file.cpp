@@ -116,8 +116,8 @@ bool setNameForID(const Name_info &name_info) {
     return false;
 }
 
-void clearBasicName(){
-      //加载文件
+void clearBasicName() {
+    //加载文件
     YAML::Node config = YAML::LoadFile(name_path);
     //查找info节点
     auto infoNode = config["info"];

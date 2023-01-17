@@ -106,17 +106,17 @@ public:
 
     friend void to_json(json &j, const TaskPoint &b) {
         j = json{
-                {"id", b.id},
-                {"x", b.x},
-                {"y", b.y},
-                {"currentStep", b.currentStep},
-                {"totalStep", b.totalStep},
+                {"id",               b.id},
+                {"x",                b.x},
+                {"y",                b.y},
+                {"currentStep",      b.currentStep},
+                {"totalStep",        b.totalStep},
                 {"currentFrequency", b.currentFrequency},
-                {"totalFrequency", b.totalFrequency},
-                {"work_status", b.work_status},
-                {"plannerType", b.plannerType},
-                {"is_cleaning", b.is_cleaning},
-                {"mode", b.m_mode}};
+                {"totalFrequency",   b.totalFrequency},
+                {"work_status",      b.work_status},
+                {"plannerType",      b.plannerType},
+                {"is_cleaning",      b.is_cleaning},
+                {"mode",             b.m_mode}};
     }
 
     friend void from_json(const json &j, TaskPoint &b) {

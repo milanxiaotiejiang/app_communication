@@ -20,6 +20,7 @@
 using json = nlohmann::json;
 
 using namespace std;
+
 class Combination {
 private:
 
@@ -27,7 +28,9 @@ private:
 
 public:
     Combination() {}
+
     ~Combination() {}
+
     const string &getCombinationID() const {
         return m_combination_id;
     }
@@ -144,22 +147,22 @@ public:
 
     friend void to_json(json &j, const Task &b) {
         j = json{
-                {"task_id", b.task_id},
-                {"mode", b.mode},
-                {"rate", b.rate},
-                {"work_status", b.work_status},
-                {"zoned", b.zoned},
-                {"polygon", b.polygon},
-                {"continuity", b.continuity},
-                {"teach_path", b.teach_path},
+                {"task_id",       b.task_id},
+                {"mode",          b.mode},
+                {"rate",          b.rate},
+                {"work_status",   b.work_status},
+                {"zoned",         b.zoned},
+                {"polygon",       b.polygon},
+                {"continuity",    b.continuity},
+                {"teach_path",    b.teach_path},
                 {"launch_people", b.launch_people},
-                {"launch_time", b.launch_time},
-                {"time_mode", b.time_mode},
-                {"in_execute", b.in_execute},
-                {"full_path", b.full_path},
-                {"combination", b.m_combination},
-                {"task_type", b.task_type},
-                {"oper_event", b.oper_event}};
+                {"launch_time",   b.launch_time},
+                {"time_mode",     b.time_mode},
+                {"in_execute",    b.in_execute},
+                {"full_path",     b.full_path},
+                {"combination",   b.m_combination},
+                {"task_type",     b.task_type},
+                {"oper_event",    b.oper_event}};
     }
 
     friend void from_json(const json &j, Task &b) {
@@ -180,11 +183,11 @@ public:
         try {
             j.at("task_type").get_to(b.task_type);
             j.at("oper_event").get_to(b.oper_event);
-            
+
         }
         catch (...) {
             //   std::cout<<"task name "<<j.at("task_name")<<std::endl;
-          
+
             b.task_type = 1;
             b.oper_event = 0;
         }

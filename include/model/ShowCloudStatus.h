@@ -117,7 +117,7 @@ public:
     friend void to_json(json &j, const ShowCloudStatus &b) {
         j = json{
                 {"battery",             b.electric},
-                {"drag_status",          b.mop},
+                {"drag_status",         b.mop},
                 {"sweep_status",        b.sweep},
                 {"water_box_status",    b.water},
                 {"work_status_message", b.work_status_message},

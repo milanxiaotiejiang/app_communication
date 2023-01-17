@@ -89,7 +89,7 @@ void SelfCheckSubscribe::ThreadHandle() {
 //                  << " imu:" << imu_->isValid()
 //                  << " laser_scan:" << laser_scan_->isValid() << std::endl;
         checkEnable();
-        
+
         if (cameras_[0]->isValid() == false) {
             pubError(CAMERA2_NO_DATA); //down inu
         }
@@ -108,12 +108,12 @@ void SelfCheckSubscribe::ThreadHandle() {
         }
         //检查超声传感器自检功能是否使能
         if (ultraSonic_->check_enabled()) {
-          if (ultraSonic_->is_ultra_1_valid() == false) {
-            pubError(ULTRASONIC1_ABNORMAL_OVER_30_SECOND);
-          }
-          if (ultraSonic_->is_ultra_2_valid() == false) {
-            pubError(ULTRASONIC2_ABNORMAL_OVER_30_SECOND);
-          }
+            if (ultraSonic_->is_ultra_1_valid() == false) {
+                pubError(ULTRASONIC1_ABNORMAL_OVER_30_SECOND);
+            }
+            if (ultraSonic_->is_ultra_2_valid() == false) {
+                pubError(ULTRASONIC2_ABNORMAL_OVER_30_SECOND);
+            }
         }
         if (bump_->is_bump_0_valid() == false) {
             pubError(BUMP1_ABNORMAL_OVER_30_SECOND);
@@ -204,13 +204,13 @@ void SelfCheckSubscribe::backChargeErrorCB(const std_msgs::StringConstPtr &msg) 
     pubError(error_type);
 }
 
-void SelfCheckSubscribe::checkEnable(){
+void SelfCheckSubscribe::checkEnable() {
     int machine_code = AsyncMachine::instance().getMachineCode();
     //超声只在工作时检验
     if (machine_code == 10001 || machine_code == 10005 ||
         machine_code == 10008 || machine_code == 10009) {//只在清洁中，转场中，回充中，低电量回充中报
         ultraSonic_->set_enabled(true);
-    }else{
-      ultraSonic_->set_enabled(false);
+    } else {
+        ultraSonic_->set_enabled(false);
     }
 }

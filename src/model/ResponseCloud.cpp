@@ -4,42 +4,42 @@
 
 #include "model/ResponseCloud.h"
 
-    ResponseCloud::ResponseCloud(){}
+ResponseCloud::ResponseCloud() {}
 
-    ResponseCloud::ResponseCloud(int code_,string message_,std::string result_,int id_):code(code_),
-    message(message_),
-    result(result_),
-    id(id_){}
+ResponseCloud::ResponseCloud(int code_, string message_, std::string result_, int id_) : code(code_),
+                                                                                         message(message_),
+                                                                                         result(result_),
+                                                                                         id(id_) {}
 
-    int ResponseCloud::getCode() const{
-        return code;
-    }
+int ResponseCloud::getCode() const {
+    return code;
+}
 
-    void ResponseCloud::setCode(int noticeCode){
-        code = noticeCode;
-    }
+void ResponseCloud::setCode(int noticeCode) {
+    code = noticeCode;
+}
 
-    string ResponseCloud::getMessage() const{
-        return message;
+string ResponseCloud::getMessage() const {
+    return message;
 
-    }
+}
 
-    void ResponseCloud::setMessage(string ss){
-        message = ss;
-    }
+void ResponseCloud::setMessage(string ss) {
+    message = ss;
+}
 
-    const string &ResponseCloud::getResult() const{
-        return result;
-    }
+const string &ResponseCloud::getResult() const {
+    return result;
+}
 
-    void ResponseCloud::setResult(const string &re){
-        result = re;
-    }
+void ResponseCloud::setResult(const string &re) {
+    result = re;
+}
 
-    const int &ResponseCloud::getId() const{
-        return id;
-    }
+const int &ResponseCloud::getId() const {
+    return id;
+}
 
-    void ResponseCloud::setId(const int &i){
-        id = i;
-    }
+void ResponseCloud::setId(const int &i) {
+    id = i;
+}

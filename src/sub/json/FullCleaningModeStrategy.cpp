@@ -59,7 +59,7 @@ string FullCLeaningAddStrategy::handler(FullCleanBrief params) {
 string FullCleaningUpdateStrategy::handler(FullCleanBrief params) {
     FullCleanBrief full_clean_brief_temp(params);
     switch (FullCleanManager::get_instance()->ResetFullCLean(full_clean_brief_temp,
-                                                                 full_clean_brief_temp.getFullPathID())) {
+                                                             full_clean_brief_temp.getFullPathID())) {
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));
         case EXECUTE_FAILED_:

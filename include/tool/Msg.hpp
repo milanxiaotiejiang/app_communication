@@ -20,6 +20,7 @@ namespace PolyM {
          * @param msgId Msg ID of this Msg.
          */
         Msg(int msgId);
+
         virtual ~Msg() = default;
 
         Msg(const Msg &) = delete;

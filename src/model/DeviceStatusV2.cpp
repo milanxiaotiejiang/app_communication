@@ -8,21 +8,30 @@ DeviceStatusV2::DeviceStatusV2() {}
 
 DeviceStatusV2::DeviceStatusV2(int mRsoc, long mCleanArea, long mCleanTime, const MapInfo &mCurrentMap,
                                bool mIsUrgencyStop, bool mLockStatus, bool mDustBoxStatus, bool mWaterBoxStatus,
-                               const WorkStatusUpgrade &mWorkStatus, const string &mWorkStatusMessage, int mWorkStatusCode,
-                               const string &version,bool has_facerecognition,
-                               bool has_basestation,bool hasknob,bool hasvoice, const string &device_rosversion, 
-                               const string &ecu_softversion,const string &ecu_hardversion, 
-                               const string &padversion,int aromstatus) : m_RSOC(mRsoc), m_clean_area(mCleanArea),
-                                                        m_clean_time(mCleanTime), m_current_map(mCurrentMap),
-                                                        m_is_urgency_stop(mIsUrgencyStop), m_lock_status(mLockStatus),
-                                                        m_dust_box_status(mDustBoxStatus),
-                                                        m_water_box_status(mWaterBoxStatus), m_work_status(mWorkStatus),
-                                                        m_work_status_message(mWorkStatusMessage),
-                                                        m_work_status_code(mWorkStatusCode), version(version),
-                                                        has_face_recognition(has_facerecognition),has_base_station(has_basestation),
-                                                        has_knob(hasknob),has_voice(hasvoice),device_ros_version(device_rosversion),
-                                                        ecu_soft_version(ecu_softversion),ecu_hard_version(ecu_hardversion),pad_version(padversion),
-                                                        aromatherapy_status(aromstatus) {}
+                               const WorkStatusUpgrade &mWorkStatus, const string &mWorkStatusMessage,
+                               int mWorkStatusCode,
+                               const string &version, bool has_facerecognition,
+                               bool has_basestation, bool hasknob, bool hasvoice, const string &device_rosversion,
+                               const string &ecu_softversion, const string &ecu_hardversion,
+                               const string &padversion, int aromstatus) : m_RSOC(mRsoc), m_clean_area(mCleanArea),
+                                                                           m_clean_time(mCleanTime),
+                                                                           m_current_map(mCurrentMap),
+                                                                           m_is_urgency_stop(mIsUrgencyStop),
+                                                                           m_lock_status(mLockStatus),
+                                                                           m_dust_box_status(mDustBoxStatus),
+                                                                           m_water_box_status(mWaterBoxStatus),
+                                                                           m_work_status(mWorkStatus),
+                                                                           m_work_status_message(mWorkStatusMessage),
+                                                                           m_work_status_code(mWorkStatusCode),
+                                                                           version(version),
+                                                                           has_face_recognition(has_facerecognition),
+                                                                           has_base_station(has_basestation),
+                                                                           has_knob(hasknob), has_voice(hasvoice),
+                                                                           device_ros_version(device_rosversion),
+                                                                           ecu_soft_version(ecu_softversion),
+                                                                           ecu_hard_version(ecu_hardversion),
+                                                                           pad_version(padversion),
+                                                                           aromatherapy_status(aromstatus) {}
 
 int DeviceStatusV2::getMRsoc() const {
     return m_RSOC;
@@ -168,6 +177,7 @@ bool DeviceStatusV2::ishas_base_station() const {
 void DeviceStatusV2::sethas_base_station(bool base_recognition) {
     has_base_station = base_recognition;
 }
+
 bool DeviceStatusV2::ishas_knob() const {
     return has_knob;
 }
@@ -183,10 +193,11 @@ bool DeviceStatusV2::ishas_voice() const {
 void DeviceStatusV2::sethas_voice(bool hvoice) {
     has_voice = hvoice;
 }
-int DeviceStatusV2::getAromStatus() const{
+
+int DeviceStatusV2::getAromStatus() const {
     return aromatherapy_status;
 }
 
-void DeviceStatusV2::setAromStatus(int code){
+void DeviceStatusV2::setAromStatus(int code) {
     aromatherapy_status = code;
 }

@@ -419,46 +419,46 @@ public:
     }
 
     void ultrasonicCB_1(const sensor_msgs::RangeConstPtr &ul_msg_1) {
-        if(enabled_){
-          float temp_range = ul_msg_1->range;
-          //        std::cout<<"temp_range1  "<<temp_range<<std::endl;
-          if (temp_range >= RANGE_THRESHOLD) {
-            ul_sensor_trigger_time_1 = ros::Time::now();
-            ultra_1_is_valid = true;
-          }
-
-          if (temp_range < RANGE_THRESHOLD) {
-            if ((ul_msg_1->header.stamp.toSec() -
-                 ul_sensor_trigger_time_1.toSec()) > 30.0) {
-              // ul_sensor_1_error
-              ultra_1_is_valid = false;
+        if (enabled_) {
+            float temp_range = ul_msg_1->range;
+            //        std::cout<<"temp_range1  "<<temp_range<<std::endl;
+            if (temp_range >= RANGE_THRESHOLD) {
+                ul_sensor_trigger_time_1 = ros::Time::now();
+                ultra_1_is_valid = true;
             }
-          }
-        }else{
-          ultra_1_is_valid = true;
+
+            if (temp_range < RANGE_THRESHOLD) {
+                if ((ul_msg_1->header.stamp.toSec() -
+                     ul_sensor_trigger_time_1.toSec()) > 30.0) {
+                    // ul_sensor_1_error
+                    ultra_1_is_valid = false;
+                }
+            }
+        } else {
+            ultra_1_is_valid = true;
         }
     }
 
     void ultrasonicCB_2(const sensor_msgs::RangeConstPtr &ul_msg_2) {
-        if(enabled_){
-          float temp_range = ul_msg_2->range;
-          if (temp_range >= RANGE_THRESHOLD) {
-            ul_sensor_trigger_time_2 = ros::Time::now();
-            ultra_2_is_valid = true;
-          }
-
-          if (temp_range < RANGE_THRESHOLD) {
-            std::cout << (ul_msg_2->header.stamp.toSec() -
-                          ul_sensor_trigger_time_2.toSec())
-                      << std::endl;
-            if ((ul_msg_2->header.stamp.toSec() -
-                 ul_sensor_trigger_time_2.toSec()) > 30.0) {
-              // ul_sensor_2_error
-              ultra_2_is_valid = false;
+        if (enabled_) {
+            float temp_range = ul_msg_2->range;
+            if (temp_range >= RANGE_THRESHOLD) {
+                ul_sensor_trigger_time_2 = ros::Time::now();
+                ultra_2_is_valid = true;
             }
-          }
-        }else{
-          ultra_2_is_valid = true;
+
+            if (temp_range < RANGE_THRESHOLD) {
+                std::cout << (ul_msg_2->header.stamp.toSec() -
+                              ul_sensor_trigger_time_2.toSec())
+                          << std::endl;
+                if ((ul_msg_2->header.stamp.toSec() -
+                     ul_sensor_trigger_time_2.toSec()) > 30.0) {
+                    // ul_sensor_2_error
+                    ultra_2_is_valid = false;
+                }
+            }
+        } else {
+            ultra_2_is_valid = true;
         }
     }
 
@@ -470,11 +470,11 @@ public:
         return ultra_2_is_valid;
     }
 
-    bool check_enabled(){
+    bool check_enabled() {
         return enabled_;
     }
 
-    bool set_enabled(bool enabled){
+    bool set_enabled(bool enabled) {
         enabled_ = enabled;
     }
 
@@ -530,10 +530,13 @@ public:
     void pubError(SelfCheckErrorType error_type) {
         internal_event::InternalEventPubManager::get_instance()->pubAlarm(error_type);
     }
+
     //规划模块自检报告回调函数
     void moveBaseErrorCB(const std_msgs::Int32ConstPtr &msg);
+
     //回充模块自检报告回调函数
     void backChargeErrorCB(const std_msgs::StringConstPtr &msg);
+
     //检查各传感器是否需要自检
     void checkEnable();
 };

@@ -29,20 +29,22 @@ int Task::getRate() const {
     return rate;
 }
 
-int Task::gettask_type() const{
+int Task::gettask_type() const {
     return task_type;
 }
 
-void Task::settask_type(int type){
+void Task::settask_type(int type) {
     task_type = type;
 }
-int Task::getoper_event() const{
+
+int Task::getoper_event() const {
     return oper_event;
 }
 
-void Task::setoper_event(int oe){
+void Task::setoper_event(int oe) {
     oper_event = oe;
 }
+
 void Task::setRate(int rate) {
     Task::rate = rate;
 }

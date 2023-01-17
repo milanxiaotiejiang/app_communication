@@ -100,7 +100,7 @@ public:
         return data;
     }
 
-    std::vector<T> &getData(){
+    std::vector<T> &getData() {
         return data;
     }
 

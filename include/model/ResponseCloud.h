@@ -18,12 +18,12 @@ private:
     string message;
     std::string result;
     int id;
-    
+
 
 public:
     ResponseCloud();
 
-    ResponseCloud(int code,string message,std::string result,int id);
+    ResponseCloud(int code, string message, std::string result, int id);
 
     int getCode() const;
 
@@ -41,13 +41,13 @@ public:
 
     void setId(const int &i);
 
-    
+
     friend void to_json(json &j, const ResponseCloud &b) {
         j = json{
                 {"code",    b.code},
-                {"message",    b.message},
-                {"result",   b.result},
-                {"id", b.id}
+                {"message", b.message},
+                {"result",  b.result},
+                {"id",      b.id}
         };
     }
 
@@ -56,7 +56,7 @@ public:
         j.at("message").get_to(b.message);
         j.at("result").get_to(b.result);
         j.at("id").get_to(b.id);
-        
+
     }
 };
 

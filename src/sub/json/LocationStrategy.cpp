@@ -81,5 +81,5 @@ void getLocationStrategy::handler() {
         }
     } else {
     }
-   // return strLocationInfo;
+    // return strLocationInfo;
 }

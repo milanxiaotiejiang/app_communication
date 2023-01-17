@@ -36,9 +36,9 @@ public:
 
     friend void to_json(json &j, const CleanPolygon &b) {
         j = json{
-                {"polygon_id", b.polygon_id},
+                {"polygon_id",    b.polygon_id},
                 {"is_customized", b.is_customized},
-                {"polygon_list", b.polygon_list},
+                {"polygon_list",  b.polygon_list},
         };
     }
 

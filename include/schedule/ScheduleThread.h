@@ -1,5 +1,6 @@
 #ifndef APP_COMMUNICATION_SCHEDULETHREAD_H
 #define APP_COMMUNICATION_SCHEDULETHREAD_H
+
 #include "iostream"
 #include "ctime"
 #include <unistd.h>
@@ -9,18 +10,23 @@
 #include <nlohmann/json.hpp>
 #include <pub/PubOut.h>
 #include <pub/PubInner.h>
+
 using namespace std;
 
-class ScheduleThread : public CThread
-{
+class ScheduleThread : public CThread {
 
 public:
-ScheduleThread(ros::NodeHandle handle,PubInner pubInner, PubOut pubOut) ;
-virtual ~ScheduleThread();
+    ScheduleThread(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut);
+
+    virtual ~ScheduleThread();
+
     croncpp::Cron<croncpp::LocalClock, croncpp::NullLock> cron;
-     void startScheduleCheck();
-     void init();
-     ros::NodeHandle handle;
+
+    void startScheduleCheck();
+
+    void init();
+
+    ros::NodeHandle handle;
     PubInner pubInner;
     PubOut pubOut;
     ros::Subscriber sub_json_;
@@ -28,8 +34,7 @@ virtual ~ScheduleThread();
 
     void subscribeCallback(const std_msgs::String &result);
 
-    void *run() override
-    {
+    void *run() override {
         startScheduleCheck();
         return NULL;
     }

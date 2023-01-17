@@ -36,17 +36,29 @@ private:
 
 public:
     CalcAreaClass(/* args */);
+
     ~CalcAreaClass();
+
     bool load_map();
+
     bool load_map_yaml(std::string path_to_yaml);
+
     bool getPoint(XmlRpc::XmlRpcValue &val, geometry_msgs::Point &point);
+
     float calProhibitionArea();
+
     Mat deal_map_img();
+
     float calcTotalArea();
+
     float calc_can_wash_area();
+
     float calCleanAvailableArea();
+
     bool CalcAllArea();
+
     float CalcAvailableRate();
+
     const float &getActualCleanArea();
 
     float CalcSingleRecArea(vector<float> point_list);                 //计算单个矩形的面积
@@ -57,6 +69,7 @@ public:
     float CalcPolygonArea();    //计算单个多边形面积
 
     float ClacTeachFileArea();
+
     float CalcTeachArea(std::vector<WayPoint> way_point_list);
 
 private:

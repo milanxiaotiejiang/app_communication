@@ -308,7 +308,8 @@ public:
 
     CleanHistoryUpgrade(bool isComplete, long launchTime, long executeTime, long endTime, int taskMode,
                         const string &taskId, int cleanArea, int cleanTime,
-                        int errorCode,const string errorCode2, const string &errorMessage, bool mBaseComplete, int taskType,
+                        int errorCode, const string errorCode2, const string &errorMessage, bool mBaseComplete,
+                        int taskType,
                         const vector<std::string> &componentIdList, int skipPathPointCount,
                         const vector<int> &operEvent, int rate, int sweepStatus, int mopStatus, int vacuumStatus,
                         int pushStatus, int aromatherapyStatus, int disinfectStatus, int currentStep,
@@ -379,7 +380,7 @@ public:
                 {"clean_area",              b.clean_area},
                 {"clean_time",              b.clean_time},
                 {"error_code",              b.error_code},
-                {"error_code2",              b.error_code2},
+                {"error_code2",             b.error_code2},
                 {"error_message",           b.error_message},
 
                 {"base_complete",           b.m_base_complete},

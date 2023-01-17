@@ -64,6 +64,7 @@ public:
     void setBaseExist(bool base_exist) {
         m_base_exist = base_exist;
     }
+
     bool getface_recognition() const {
         return m_face_recognition;
     }
@@ -102,6 +103,7 @@ private:
 
 public:
     ~Variable() = default;
+
     static Variable *get_instance() {
         if (m_instance_ptr == nullptr) {
             m_instance_ptr = new Variable;

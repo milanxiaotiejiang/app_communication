@@ -9,19 +9,15 @@
 #include "tool/Variable.h"
 
 ScanInnerSubscribe::ScanInnerSubscribe(ros::NodeHandle &handle, PubInner &pubInner, PubOut &pubOut)
-    : handle(handle), pubInner(pubInner), pubOut(pubOut)
-{
+        : handle(handle), pubInner(pubInner), pubOut(pubOut) {
     sub_scan_inner_ = handle.subscribe("/scan", 10, &ScanInnerSubscribe::subscribeCallback, this);
 }
 
-ScanInnerSubscribe::~ScanInnerSubscribe()
-{
+ScanInnerSubscribe::~ScanInnerSubscribe() {
 }
 
-void ScanInnerSubscribe::subscribeCallback(const sensor_msgs::LaserScan &scan_raw)
-{
-    if (Variable::get_instance()->isScanFlag())
-    {
+void ScanInnerSubscribe::subscribeCallback(const sensor_msgs::LaserScan &scan_raw) {
+    if (Variable::get_instance()->isScanFlag()) {
         Variable::get_instance()->setScanFlag(false);
         sensor_msgs::LaserScan scan_app;
         //    nav_msgs::Path path;
@@ -40,21 +36,17 @@ void ScanInnerSubscribe::subscribeCallback(const sensor_msgs::LaserScan &scan_ra
         scan_app.scan_time = scan_raw.scan_time;
         scan_app.time_increment = scan_raw.time_increment;
 
-        try
-        {
+        try {
             tf_listener.waitForTransform("odom", "laser", ros::Time(0.0), ros::Duration(0.5));
             tf_listener.lookupTransform("odom", "laser", ros::Time(0.0), stamped_transform);
         }
-        catch (tf::TransformException &ex)
-        {
+        catch (tf::TransformException &ex) {
             ROS_ERROR("%s", ex.what());
             // ros::Duration(0.5).sleep()
         }
         double current_angle = scan_raw.angle_min;
-        for (unsigned int i = 0; i < scan_raw.ranges.size(); i++)
-        {
-            if (i % 5 == 0)
-            {
+        for (unsigned int i = 0; i < scan_raw.ranges.size(); i++) {
+            if (i % 5 == 0) {
 
                 double dist = scan_raw.ranges[i];
                 float x_dir, y_dir, x_real, y_real;
@@ -64,9 +56,9 @@ void ScanInnerSubscribe::subscribeCallback(const sensor_msgs::LaserScan &scan_ra
                 x_real = x_dir * cos(theta) - y_dir * sin(theta);
                 y_real = y_dir * cos(theta) + x_dir * sin(theta);
                 scan_app.ranges.push_back(
-                    x_real + stamped_transform.getOrigin().getX());
+                        x_real + stamped_transform.getOrigin().getX());
                 scan_app.intensities.push_back(
-                    y_real + stamped_transform.getOrigin().getY());
+                        y_real + stamped_transform.getOrigin().getY());
                 //        geometry_msgs::PoseStamped this_pose_stamped;
                 //        this_pose_stamped.pose.position.x = scan_app.ranges[i];
                 //        this_pose_stamped.pose.position.y = scan_app.intensities[i];

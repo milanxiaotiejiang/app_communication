@@ -13,6 +13,7 @@
 #include "task/manager/manual.h"
 #include "manager/CombinationManager.h"
 #include "manager/ViewPartManager.h"
+
 //
 PubInner *pubInnerStatic = nullptr;
 
@@ -80,12 +81,12 @@ void execTask(TimerInfo &tsk) {
             LOG(INFO) << "获取组合路径失败";
             return;
         }
-        if(combination_brief_temp.getCombinationType() == 0){
+        if (combination_brief_temp.getCombinationType() == 0) {
             tk->setMode(7);
             Combination cmb;
             cmb.setCombinationID(tsk.getTaskId());
             tk->setCombination(cmb);
-        }else{
+        } else {
             tk->setMode(6);
             Combination cmb;
             cmb.setCombinationID(tsk.getTaskId());

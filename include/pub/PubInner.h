@@ -25,7 +25,7 @@ private:
     ros::NodeHandle handle;
     ros::Publisher pub_mode_,//发布工作模式
     pub_flag_,//基站控制flag
-    pub_charge_,
+    pub_charge_,//
     pub_manual_push_,//手推建图
     pub_push_mode_, //尘推
     pub_self_clean_, //基站自清洁
@@ -51,15 +51,16 @@ private:
     pub_back_to_base,   //回充
     pub_ds_version,     //下位机版本
     pub_knob_available,  //
-    pub_knob_task,
-    pub_shutdown,
-    pub_reboot;
+    pub_knob_task,//
+    pub_shutdown,//
+    pub_reboot;//
 
 
 public:
     PubInner(ros::NodeHandle handle);
 
     void publishMode(const std_msgs::Int32 &message) const;
+
     void publishCharge(const std_msgs::Int32 &message) const;
 
     void publishFlag(const std_msgs::Int32 &message) const;
@@ -99,9 +100,13 @@ public:
     void publishInitialposition(const geometry_msgs::PoseWithCovarianceStamped &message) const;
 
     void publishMusic(const std_msgs::Int32 &message) const;
+
     void publishOtaCore(const std_msgs::String &message) const;
+
     void publishOtaLow(const std_msgs::String &message) const;
+
     void publishOtaPad(const std_msgs::String &message) const;
+
     void publishRobotStatus(const std_msgs::Int32 &message) const;
 
     void publishBacktoBase(const std_msgs::Int32 &message) const;

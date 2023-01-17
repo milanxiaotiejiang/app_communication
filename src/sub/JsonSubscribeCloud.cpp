@@ -228,8 +228,8 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case OTA_CORE:
         case OTA_PAD:
         case OTA_LOWER:
-           messageStrategy = new otaStrategy();
-           break;
+            messageStrategy = new otaStrategy();
+            break;
 
     }
     if (messageStrategy != nullptr) {
@@ -239,7 +239,7 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         messageContext.startDateProgressing(MessageSource::Cloud, jdecode);
 
         res.resp = PublishOutManager::instance().getPubOut()->robot_result;//pubOut.robot_result;
-     //   LOG(ERROR) << "JsonSubscribeCloud method : " << res.resp;
+        //   LOG(ERROR) << "JsonSubscribeCloud method : " << res.resp;
         //pubOut.robot_result = "{}";
         PublishOutManager::instance().getPubOut()->robot_result = "{}";
         delete messageStrategy;

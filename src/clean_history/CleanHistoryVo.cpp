@@ -2,7 +2,7 @@
 // Created by Looper on 2022/12/8.
 //
 
-#include "CleanHistoryVo.h"
+#include "clean_history/CleanHistoryVo.h"
 
 clean_history_db::CleanHistoryVo::CleanHistoryVo(const std::string &taskId, int mode, int rate, int sweepStatus,
                                                  int mopStatus, int vacuumStatus, int pushStatus,

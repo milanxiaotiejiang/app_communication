@@ -13,22 +13,22 @@
 using json = nlohmann::json;
 
 
-
 class OtaInfo {
 private:
     std::string ota_module; //取值：“core", "pad", "ecu"，"nebula"
     std::string ota_version; //
     std::string ota_path; //
     std::string ota_desc; //
-    
+
 
 public:
     OtaInfo();
 
     virtual ~OtaInfo();
 
-    
-    OtaInfo(const std::string &ota_module, const std::string &ota_version, const std::string &ota_path,const std::string &ota_desc);
+
+    OtaInfo(const std::string &ota_module, const std::string &ota_version, const std::string &ota_path,
+            const std::string &ota_desc);
 
     const std::string &getota_module() const;
 
@@ -46,14 +46,13 @@ public:
 
     void setota_desc(const std::string &od);
 
-    
 
     friend void to_json(json &j, const OtaInfo &b) {
         j = json{
-                {"ota_module",   b.ota_module},
+                {"ota_module",  b.ota_module},
                 {"ota_version", b.ota_version},
                 {"ota_path",    b.ota_path},
-                {"ota_desc", b.ota_desc}
+                {"ota_desc",    b.ota_desc}
 
         };
     }
@@ -64,7 +63,7 @@ public:
         j.at("ota_version").get_to(b.ota_version);
         j.at("ota_path").get_to(b.ota_path);
         j.at("ota_desc").get_to(b.ota_desc);
-       
+
     }
 };
 

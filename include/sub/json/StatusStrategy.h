@@ -14,17 +14,17 @@
 using json = nlohmann::json;
 using namespace std;
 
-class StatusPauseStrategy : public MessageStringStrategy  {
+class StatusPauseStrategy : public MessageStringStrategy {
 public:
     void handler() override;
 };
 
-class StatusResumeStrategy : public MessageStringStrategy  {
+class StatusResumeStrategy : public MessageStringStrategy {
 public:
     void handler() override;
 };
 
-class StatusChargeStrategy : public MessageStringStrategy  {
+class StatusChargeStrategy : public MessageStringStrategy {
 public:
     void handler() override;
 };
@@ -44,7 +44,7 @@ public:
     void handler() override;
 };
 
-class RebootStrategy : public MessageStringStrategy{
+class RebootStrategy : public MessageStringStrategy {
 public:
     void handler() override;
 };

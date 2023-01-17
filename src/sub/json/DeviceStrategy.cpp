@@ -59,10 +59,10 @@ DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
                           0);
 
     WorkStatusUpgrade workStatusUpgrade(ZooInnerStatus::instance().getSweepStatus(),
-                      ZooInnerStatus::instance().getMopStatus(),
-                      0,
-                      ZooInnerStatus::instance().getPushStatus(),
-                      ZooInnerStatus::instance().getAromStatus());
+                                        ZooInnerStatus::instance().getMopStatus(),
+                                        0,
+                                        ZooInnerStatus::instance().getPushStatus(),
+                                        ZooInnerStatus::instance().getAromStatus());
 
     //获取剩余电量
     //int t_RSOC = DeviceStatusManager::get_instance()->getRSOC();

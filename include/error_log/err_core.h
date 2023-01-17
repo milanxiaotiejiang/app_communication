@@ -12,6 +12,7 @@
 #include <pub/PubInner.h>
 #include <std_msgs/String.h>
 #include "yaml-cpp/yaml.h"
+
 using namespace std;
 
 class Error_Core {
@@ -24,20 +25,18 @@ private:
     YAML::Node m_config;
 
     void subscribeErrCallback(const std_msgs::String &errmsg);
-    
+
 
 public:
 //Error_log(ros::NodeHandle handle,PubInner pubInner, PubOut pubOut) ;
-   Error_Core(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut);
+    Error_Core(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut);
 
 
     virtual ~Error_Core();
 
-    
 
     void WriteCoreLog(string msg);
 
-  
 
     void InitCoreLog();
 

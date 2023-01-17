@@ -4,35 +4,35 @@
 
 #include "model/FullClean.h"
 
-const std::string &FullCleanBrief::getFullPathID() const{
+const std::string &FullCleanBrief::getFullPathID() const {
     return m_full_clean_path_id;
 }
 
-void FullCleanBrief::setFullPathID(const std::string &full_path_id){
+void FullCleanBrief::setFullPathID(const std::string &full_path_id) {
     m_full_clean_path_id = full_path_id;
 }
 
-const std::string &FullCleanBrief::getName() const{
+const std::string &FullCleanBrief::getName() const {
     return m_full_clean_name;
 }
 
-void FullCleanBrief::setName(const std::string &full_path_name){
+void FullCleanBrief::setName(const std::string &full_path_name) {
     m_full_clean_name = full_path_name;
 }
 
-const int FullCleanBrief::getRate() const{
+const int FullCleanBrief::getRate() const {
     return m_rate;
 }
 
-void FullCleanBrief::setRate(int rate){
+void FullCleanBrief::setRate(int rate) {
     m_rate = rate;
 }
 
-const WorkStatus &FullCleanBrief::getWorkStatus() const{
-    return  work_status;
+const WorkStatus &FullCleanBrief::getWorkStatus() const {
+    return work_status;
 }
 
-void FullCleanBrief::setWorkStatus(const WorkStatus &workStatus){
+void FullCleanBrief::setWorkStatus(const WorkStatus &workStatus) {
     work_status = workStatus;
 }
 
@@ -58,7 +58,7 @@ FullCleanBriefList::FullCleanBriefList() {}
 FullCleanBriefList::~FullCleanBriefList() {}
 
 const vector<FullCleanBrief> &FullCleanBriefList::getFullCleanBriefList() const {
-    return  m_fullclean_brief_list;
+    return m_fullclean_brief_list;
 }
 
 void FullCleanBriefList::setFullCLeanBriefList(const vector<FullCleanBrief> &fullcleanBriefList) {
@@ -85,7 +85,7 @@ bool FullCleanBriefList::deleteFullCleanBrief(const string &fullclean_id) {
     return false;
 }
 
-bool FullCleanBriefList::getFullCLeanBrief(FullCleanBrief &fullCleanBrief,const string &fullclean_id) {
+bool FullCleanBriefList::getFullCLeanBrief(FullCleanBrief &fullCleanBrief, const string &fullclean_id) {
     for (auto &item: m_fullclean_brief_list) {
         if (item.getFullPathID() == fullclean_id) {
             fullCleanBrief = item;

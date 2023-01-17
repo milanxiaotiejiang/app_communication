@@ -78,7 +78,7 @@ bool CleanHistoryManager::ResetCleanHistory(const CleanHistory &clean_history, c
         m_CleanHistoryList = m_basicJson.get<CleanHistoryList>();//转数据
     }
     if (!m_CleanHistoryList.ResetCleanHistory(clean_history, taskId)) {
-     //   cout << "AT CleanHistoryManager::ResetCleanHistory return false" << endl;
+        //   cout << "AT CleanHistoryManager::ResetCleanHistory return false" << endl;
         return false;
     }
 
@@ -98,23 +98,23 @@ bool CleanHistoryManager::GetCleanHistory(CleanHistory &clean_history, const str
     m_file_ptr->close();
     ///LOG(ERROR) << "At CleanHistoryManager::GetCleanHistory before parse " << m_file_string << endl;
     if (m_file_string.size() > 0) {
-       try{
-           m_basicJson = json::parse(m_file_string);
-       }
-       catch(...){
-        LOG(ERROR) << "error!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-        cout << m_file_string << endl;
-        cout << "error!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-        return false;
-       }
-                       //转json
+        try {
+            m_basicJson = json::parse(m_file_string);
+        }
+        catch (...) {
+            LOG(ERROR) << "error!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+            cout << m_file_string << endl;
+            cout << "error!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+            return false;
+        }
+        //转json
         ///LOG(ERROR) << "At CleanHistoryManager::GetCleanHistory  2222222 " << endl;
         m_CleanHistoryList = m_basicJson.get<CleanHistoryList>();//转数据
-      //  cout << "At CleanHistoryManager::GetCleanHistory  3333333 " << endl;
+        //  cout << "At CleanHistoryManager::GetCleanHistory  3333333 " << endl;
     }
     //找到taskid匹配的任务，并赋值给clean_history
     if (!m_CleanHistoryList.GetCleanHistory(clean_history, task_Id)) {
-       // cout << "At CleanHistoryManager::GetCleanHistory can't match taskid:" << task_Id << endl;
+        // cout << "At CleanHistoryManager::GetCleanHistory can't match taskid:" << task_Id << endl;
         return false;
     }
 }
@@ -137,6 +137,7 @@ bool CleanHistoryManager::GetLatestCleanHistory(CleanHistory &clean_history) {
     }
     return true;
 }
+
 bool CleanHistoryManager::ShowAllCleanHistory() {
     if (m_file_ptr->open(std::ios::in)) {//读取文件
         m_file_string = m_file_ptr->readAll();

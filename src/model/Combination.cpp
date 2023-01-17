@@ -88,11 +88,11 @@ void CombinationBrief::setWorkStatus(const WorkStatus &work_status) {
     CombinationBrief::work_status = work_status;
 }
 
-const int &CombinationBrief::getCombinationType() const{
+const int &CombinationBrief::getCombinationType() const {
     return combination_type;
 }
 
-void CombinationBrief::setCombinationType(int type){
+void CombinationBrief::setCombinationType(int type) {
     combination_type = type;
 }
 
@@ -194,11 +194,11 @@ void CombinationDetail::setPrincipal(bool principal) {
     CombinationDetail::principal = principal;
 }
 
-const int &CombinationDetail::getCombinationType() const{
+const int &CombinationDetail::getCombinationType() const {
     return combination_type;
 }
 
-void CombinationDetail::setCombinationType(int type){
+void CombinationDetail::setCombinationType(int type) {
     combination_type = type;
 }
 

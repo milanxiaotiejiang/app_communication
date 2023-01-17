@@ -61,8 +61,8 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus) {
 
     //吸
     std_msgs::Int16 vacuum_status;
-    if(workStatus.getVacuumStatus() >=0 && workStatus.getVacuumStatus() <= 2){
-        if(workStatus.getVacuumStatus() != ZooInnerStatus::instance().getVacuumStatus()){
+    if (workStatus.getVacuumStatus() >= 0 && workStatus.getVacuumStatus() <= 2) {
+        if (workStatus.getVacuumStatus() != ZooInnerStatus::instance().getVacuumStatus()) {
             vacuum_status.data = ((int16_t) workStatus.getVacuumStatus());
             PublishInnerManager::instance().getPubInner()->publishVacuumMode(vacuum_status);
         }
@@ -73,7 +73,7 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus) {
     if (workStatus.getPushStatus() >= 0 && workStatus.getPushStatus() <= 2) {
         if (workStatus.getPushStatus() != ZooInnerStatus::instance().getPushStatus()) {
             push_status.data = ((int16_t) workStatus.getPushStatus());
-            if(push_status.data == 1){
+            if (push_status.data == 1) {
                 push_status.data = 2;
             }
             PublishInnerManager::instance().getPubInner()->publishPushMode(push_status);
@@ -93,37 +93,37 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus) {
 }
 
 void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus) {
-  //扫
+    //扫
     std_msgs::Int16 sweep_status;
-    sweep_status.data = ((int16_t)workStatus.getSweepStatus());
+    sweep_status.data = ((int16_t) workStatus.getSweepStatus());
     PublishInnerManager::instance().getPubInner()->publishSweepMode(
-    sweep_status);
+            sweep_status);
 
-  //拖
+    //拖
     std_msgs::Int16 mop_status;
-    mop_status.data = ((int16_t)workStatus.getMopStatus());
+    mop_status.data = ((int16_t) workStatus.getMopStatus());
     PublishInnerManager::instance().getPubInner()->publishMopMode(mop_status);
 
-  //吸
+    //吸
     std_msgs::Int16 vacuum_status;
-    vacuum_status.data = ((int16_t)workStatus.getVacuumStatus());
+    vacuum_status.data = ((int16_t) workStatus.getVacuumStatus());
     PublishInnerManager::instance().getPubInner()->publishVacuumMode(
-    vacuum_status);
+            vacuum_status);
 
-  //尘推
+    //尘推
     std_msgs::Int16 push_status;
-    push_status.data = ((int16_t)workStatus.getPushStatus());
+    push_status.data = ((int16_t) workStatus.getPushStatus());
     if (push_status.data == 1) {
-    push_status.data = 2;
+        push_status.data = 2;
     }
     PublishInnerManager::instance().getPubInner()->publishPushMode(
-    push_status);
+            push_status);
 
-  //香薰
+    //香薰
     std_msgs::Int16 aromatherapy_status;
-    aromatherapy_status.data = ((int16_t)workStatus.getAromatherapyStatus());
+    aromatherapy_status.data = ((int16_t) workStatus.getAromatherapyStatus());
     PublishInnerManager::instance().getPubInner()->publishAromStatus(
-    aromatherapy_status);
+            aromatherapy_status);
     std_msgs::Int16 disinfect_status;
 }
 

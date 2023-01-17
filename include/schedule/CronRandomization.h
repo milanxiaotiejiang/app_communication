@@ -6,52 +6,47 @@
 #include <functional>
 #include "CronData.h"
 
-namespace croncpp
-{
-    class CronRandomization
-    {
-        public:
-            std::tuple<bool, std::string> parse(const std::string& cron_schedule);
+namespace croncpp {
+    class CronRandomization {
+    public:
+        std::tuple<bool, std::string> parse(const std::string &cron_schedule);
 
-            CronRandomization();
+        CronRandomization();
 
-            CronRandomization(const CronRandomization&) = delete;
+        CronRandomization(const CronRandomization &) = delete;
 
-            CronRandomization & operator=(const CronRandomization &) = delete;
+        CronRandomization &operator=(const CronRandomization &) = delete;
 
-        private:
-            template<typename T>
-            std::pair<bool, std::string> get_random_in_range(const std::string& section,
-                                                             int& selected_value,
-                                                             std::pair<int, int> limit = std::make_pair(-1, -1));
+    private:
+        template<typename T>
+        std::pair<bool, std::string> get_random_in_range(const std::string &section,
+                                                         int &selected_value,
+                                                         std::pair<int, int> limit = std::make_pair(-1, -1));
 
-            std::pair<int, int> day_limiter(const std::set<Months>& month);
+        std::pair<int, int> day_limiter(const std::set<Months> &month);
 
-            int cap(int value, int lower, int upper);
+        int cap(int value, int lower, int upper);
 
-            std::regex const rand_expression{ R"#([rR]\((\d+)\-(\d+)\))#", std::regex_constants::ECMAScript };
-            std::random_device rd{};
-            std::mt19937 twister;
+        std::regex const rand_expression{R"#([rR]\((\d+)\-(\d+)\))#", std::regex_constants::ECMAScript};
+        std::random_device rd{};
+        std::mt19937 twister;
     };
 
     template<typename T>
-    std::pair<bool, std::string> CronRandomization::get_random_in_range(const std::string& section,
-                                                                        int& selected_value,
-                                                                        std::pair<int, int> limit)
-    {
+    std::pair<bool, std::string> CronRandomization::get_random_in_range(const std::string &section,
+                                                                        int &selected_value,
+                                                                        std::pair<int, int> limit) {
         auto res = std::make_pair(true, std::string{});
         selected_value = -1;
 
         std::smatch random_match;
 
-        if (std::regex_match(section.cbegin(), section.cend(), random_match, rand_expression))
-        {
+        if (std::regex_match(section.cbegin(), section.cend(), random_match, rand_expression)) {
             // Random range, get left and right numbers.
             auto left = std::stoi(random_match[1].str());
             auto right = std::stoi(random_match[2].str());
 
-            if (limit.first != -1 && limit.second != -1)
-            {
+            if (limit.first != -1 && limit.second != -1) {
                 left = cap(left, limit.first, limit.second);
                 right = cap(right, limit.first, limit.second);
             }
@@ -62,23 +57,17 @@ namespace croncpp
                     std::to_string(left) + "-" + std::to_string(right), numbers);
 
             // Remove items outside limits.
-            if (limit.first != -1 && limit.second != -1)
-            {
-                for (auto it = numbers.begin(); it != numbers.end(); )
-                {
-                    if (CronData::value_of(*it) < limit.first || CronData::value_of(*it) > limit.second)
-                    {
+            if (limit.first != -1 && limit.second != -1) {
+                for (auto it = numbers.begin(); it != numbers.end();) {
+                    if (CronData::value_of(*it) < limit.first || CronData::value_of(*it) > limit.second) {
                         it = numbers.erase(it);
-                    }
-                    else
-                    {
+                    } else {
                         ++it;
                     }
                 }
             }
 
-            if (res.first)
-            {
+            if (res.first) {
                 // Generate random indexes to select one of the numbers in the range.
                 std::uniform_int_distribution<> dis(0, static_cast<int>(numbers.size() - 1));
 
@@ -88,9 +77,7 @@ namespace croncpp
                 selected_value = CronData::value_of(*it);
                 res.second = std::to_string(selected_value);
             }
-        }
-        else
-        {
+        } else {
             // Not random, just append input to output.
             res.second = section;
         }

@@ -19,6 +19,7 @@
 #include "tool/OldFunction.hpp"
 
 using json = nlohmann::json;
+
 class BeforeJsonSubscribe {
 private:
     ros::NodeHandle handle;

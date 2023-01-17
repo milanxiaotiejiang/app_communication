@@ -6,9 +6,9 @@
 #include "net/WsServerManager.h"
 
 BeforeJsonSubscribe::BeforeJsonSubscribe(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut)
-    : handle(handle),
-      pubInner(std::move(pubInner)),
-      pubOut(std::move(pubOut)) {
+        : handle(handle),
+          pubInner(std::move(pubInner)),
+          pubOut(std::move(pubOut)) {
     sub_json_ = handle.subscribe(APP_COMMUNICATION, 1, &BeforeJsonSubscribe::subscribeCallback, this);
 }
 
@@ -45,12 +45,12 @@ void BeforeJsonSubscribe::subscribeCallback(const std_msgs::String &str) {
     }
     string Syn_flag(str.data, (length + 3 - 2) * 2, 2);//同步位信息
     string check(str.data, (length + 3 - 1) * 2, 2);   //校验位信息
-                                                       //    ROS_INFO("header: %s", header.c_str());
-                                                       //    ROS_INFO("length: %s", len.c_str());
-                                                       //    ROS_INFO("mission_id: %s", mission_id.c_str());
-                                                       //    ROS_INFO("mission: %s", mission.c_str());
-                                                       //    ROS_INFO("Syn_flag: %s", Syn_flag.c_str());
-                                                       //    ROS_INFO("check: %s", check.c_str());
+    //    ROS_INFO("header: %s", header.c_str());
+    //    ROS_INFO("length: %s", len.c_str());
+    //    ROS_INFO("mission_id: %s", mission_id.c_str());
+    //    ROS_INFO("mission: %s", mission.c_str());
+    //    ROS_INFO("Syn_flag: %s", Syn_flag.c_str());
+    //    ROS_INFO("check: %s", check.c_str());
     if (header == "FFAA")                              //判断校验位
     {
         float vel_value = hexstring2int(mission.substr(2, 2)) * 0.005;//针对移动指令的处理,30对应的速度是0.15
@@ -72,7 +72,7 @@ void BeforeJsonSubscribe::subscribeCallback(const std_msgs::String &str) {
                     move_cmd.angular.z = 0;
                 }
                 pubInner.publishVelocity(move_cmd);//发布速度
-                                                   //                ROS_INFO("start move!");
+                //                ROS_INFO("start move!");
                 break;
 
                 //            case SET_CREAT_MAP_MODE://creat map mode

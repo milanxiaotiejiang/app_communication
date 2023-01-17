@@ -46,7 +46,8 @@ static int hex2int(char c) {
         return c - '0';
     }
 }
-static int hexstring2int(std::string const& hexStr) {
+
+static int hexstring2int(std::string const &hexStr) {
     // int ID_num = (hex2int(hexStr[0])*16+hex2int(hexStr[1]));//只针对ID的两位数转化
     // return ID_num;
 

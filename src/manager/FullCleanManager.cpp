@@ -6,7 +6,7 @@
 #include "manager/ViewPartManager.h"
 
 bool FullCleanManager::FileOpenRead() {
-    if(!sh::File::exists(m_filename)){
+    if (!sh::File::exists(m_filename)) {
         unique_ptr<sh::File> uFilePtr(new sh::File(m_filename));
         if (!uFilePtr->create(m_filename)) {
             LOG(ERROR) << "create file failed!!!";
@@ -46,7 +46,7 @@ bool FullCleanManager::FileSave() {
 }
 
 int FullCleanManager::GetFullCleanBriefList(FullCleanBriefList &fullCleanBriefList) {
-    if(!FileOpenRead()){
+    if (!FileOpenRead()) {
         return FAILD_TO_OPEN_FILE_;
     }
     fullCleanBriefList = m_full_clean_brief_list;
@@ -54,26 +54,26 @@ int FullCleanManager::GetFullCleanBriefList(FullCleanBriefList &fullCleanBriefLi
 }
 
 int FullCleanManager::AddFullClean(const FullCleanBrief &fullCleanBrief) {
-    if(!FileOpenRead()){
+    if (!FileOpenRead()) {
         return FAILD_TO_OPEN_FILE_;
     }
-    if(!m_full_clean_brief_list.addFullCleanBrief(fullCleanBrief)){
+    if (!m_full_clean_brief_list.addFullCleanBrief(fullCleanBrief)) {
         return EXECUTE_FAILED_;
     }
-    if(!FileSave()){
+    if (!FileSave()) {
         return FAILED_TO_SAVE_FILE_;
     }
     return SUCCESS_;
 }
 
 int FullCleanManager::DeleteFullClean(const std::string &full_clean_id) {
-    if(!FileOpenRead()){
+    if (!FileOpenRead()) {
         return FAILD_TO_OPEN_FILE_;
     }
-    if(!m_full_clean_brief_list.deleteFullCleanBrief(full_clean_id)){
+    if (!m_full_clean_brief_list.deleteFullCleanBrief(full_clean_id)) {
         return EXECUTE_FAILED_;
     }
-    if(!FileSave()){
+    if (!FileSave()) {
         return FAILED_TO_SAVE_FILE_;
     }
     return SUCCESS_;
@@ -127,7 +127,7 @@ int FullCleanManager::setMainFullClean(const std::string &full_clean_id) {
     return SUCCESS_;
 }
 
-int FullCleanManager::cancelMainFullCLean(const std::string &full_clean_id){
+int FullCleanManager::cancelMainFullCLean(const std::string &full_clean_id) {
     if (!FileOpenRead()) {
         return FAILD_TO_OPEN_FILE_;
     }

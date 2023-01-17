@@ -27,7 +27,7 @@ public:
     string handler(Location params) override;
 };
 
-class getLocationStrategy : public MessageStringStrategy  {
+class getLocationStrategy : public MessageStringStrategy {
 public:
     void handler() override;
 };

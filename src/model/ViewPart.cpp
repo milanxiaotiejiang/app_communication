@@ -114,11 +114,13 @@ void ViewPart::ShowPointList(std::vector<Point> point_list) {
         item.show_point();
     }
 }
+
 //ViewPartList类
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ViewPartList::ViewPartList() {}
 
 ViewPartList::~ViewPartList() {}
+
 const std::vector<ViewPart> &ViewPartList::GetViewPartList() const {
     return m_view_part_list;
 }
@@ -164,6 +166,7 @@ bool ViewPartList::ResetViewPart(const ViewPart &view_part, const std::string &p
     std::cout << "ResetViewPart未找到相应part_id" << std::endl;
     return false;
 }
+
 bool ViewPartList::DelateViewPart(const std::string &part_id) {
     std::vector<ViewPart>::iterator iter;
     for (iter = m_view_part_list.begin(); iter != m_view_part_list.end(); iter++) {
@@ -191,6 +194,7 @@ bool ViewPartList::SearchName(const std::string &part_name) {
     }
     return false;
 }
+
 void ViewPartList::ShowAllViewPart() {
     for (auto &item: m_view_part_list) {
         item.showViewPart();

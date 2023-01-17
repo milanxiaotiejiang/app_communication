@@ -11,11 +11,12 @@
 #include <pub/PubOut.h>
 #include <pub/PubInner.h>
 #include "yaml-cpp/yaml.h"
+
 using namespace std;
 
 class Error_log {
 private:
-    
+
     Error_log() = default;
 
 
@@ -42,7 +43,7 @@ public:
 
     void WriteLog(int msg);
 
-    void WriteToCloud(int ntCode,long noticeTime);
+    void WriteToCloud(int ntCode, long noticeTime);
 
     void InitLog();
 

@@ -177,6 +177,6 @@ void PubOut::publishCloudEvent(const clean_msgs::cloud_robot_event &event) const
     pub_cloud_event.publish(event);
 }
 
-void PubOut::publishInternalEvent(const std_msgs::String &message) const{
+void PubOut::publishInternalEvent(const std_msgs::String &message) const {
     pub_internal_event_.publish(message);
 }

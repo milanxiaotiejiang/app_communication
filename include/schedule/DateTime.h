@@ -2,10 +2,8 @@
 
 #include <cstdint>
 
-namespace croncpp
-{
-    struct DateTime
-    {
+namespace croncpp {
+    struct DateTime {
         int year = 0;
         unsigned month = 0;
         unsigned day = 0;

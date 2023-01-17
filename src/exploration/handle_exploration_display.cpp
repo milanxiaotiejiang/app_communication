@@ -18,7 +18,7 @@ void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origi
         return;
     }
     const cv::Point &startPoint = MapAttribute::instance().getRobotPositionPoint(map);
-    
+
     int cols = map.cols;
     int rows = map.rows;
 
