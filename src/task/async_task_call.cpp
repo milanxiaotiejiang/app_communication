@@ -1412,7 +1412,7 @@ void AsyncTaskCall::recordLaserError(std::string error_event) {
     if (error_event == "laser_scan_4014") {
         internal_event::InternalEventPubManager::get_instance()->pubAlarm(
                 SelfCheckErrorType::LASER_RESTART_START);
-    } else if (error_event == "laser_scan_4014") {
+    } else if (error_event == "laser_scan_4015") {
         internal_event::InternalEventPubManager::get_instance()->pubAlarm(
                 SelfCheckErrorType::LASER_RESTART_SUCCEED);
     }

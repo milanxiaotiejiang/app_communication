@@ -157,7 +157,7 @@ public:
             case 10009:
                 return "回充中";
             case 10010:
-                return "程序错误";
+                return "运行异常";
             case 10011:
                 return "出站中";
             case 10012:

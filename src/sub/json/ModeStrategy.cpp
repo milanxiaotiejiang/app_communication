@@ -28,7 +28,7 @@ string RobotForceEnterModeStrategy::handler(int params) {
 string RobotPreparetoWorkStrategy::handler(string params) {
     std_msgs::Int32 mode;
     mode.data = (int32_t) 2;
-//    PublishInnerManager::instance().getPubInner()->publishMode(mode);
+    PublishInnerManager::instance().getPubInner()->publishMode(mode);
     return "";
 }
 
