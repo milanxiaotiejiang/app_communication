@@ -1,5 +1,21 @@
 #include "rec_app.h"
 
+/**
+ * 单元测试示例代码
+ */
+#define CATCH_CONFIG_MAIN
+
+#include <catch2/catch.hpp>
+
+int Factorial(int number) {
+    return number <= 1 ? number : Factorial(number - 1) * number;
+}
+
+TEST_CASE() {
+    REQUIRE(Factorial(3) == 6);
+}
+
+
 int ignore_area;//面积小于此百分比面积的分区区域将被忽略
 
 Error_log *Error_log::m_instance_ptr = nullptr;
@@ -30,6 +46,7 @@ int main(int argc, char **argv) {
     judgeEnvironment();
     initLog(argv);
     initDump();
+    initTest(argc, argv);
 
     //初始化ros节点
     ros::init(argc, argv, "rec_app_node");
@@ -234,6 +251,12 @@ void initDump() {
                                                              true,//如果为ture，不管怎样当未捕捉异常被抛出时都会写入minidump文件，如果为false则必须明确调用了 WriteMinidump 才会写入minidump 文件
                                                              -1);//如果为-1，则使用同线程模式（in-precess），如果有一个有效的值，则使用跨线程模式（out-of-process)
 
+}
+
+void initTest(int argc, char **argv) {
+    if (!isRealEnvironment) {
+        Catch::Session().run(argc, argv);
+    }
 }
 
 //本函数用于rec_app_node 节点发生崩溃后继续执行任务

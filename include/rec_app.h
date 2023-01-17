@@ -108,6 +108,8 @@ void initLog(char *const *argv);
 
 void initDump();
 
+void initTest(int i, char **pString);
+
 //重启续扫
 void restartAfterCrash(string &last_task);
 
