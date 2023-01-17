@@ -1,4 +1,5 @@
 #include "rec_app.h"
+#include "sys/wait.h"
 
 /**
  * 单元测试示例代码
@@ -11,9 +12,9 @@ int Factorial(int number) {
     return number <= 1 ? number : Factorial(number - 1) * number;
 }
 
-TEST_CASE() {
-    REQUIRE(Factorial(3) == 6);
-}
+//TEST_CASE() {
+//    REQUIRE(Factorial(3) == 7);
+//}
 
 
 int ignore_area;//面积小于此百分比面积的分区区域将被忽略
@@ -181,6 +182,8 @@ void initLog(char *const *argv) {
     //    LOG(INFO) << "This is my first glog INFO ";
     //    LOG(WARNING) << "This is my first glog WARNING";
     //    LOG(ERROR) << "This is my first glog ERROR 1";
+
+    LOG(ERROR) << "current process id is " << getpid();
 }
 
 /**
@@ -196,40 +199,45 @@ void initLog(char *const *argv) {
 //    minidump_stackwalk b0b3ee65-051a-414a-84065a83-9c8461c2.dmp symbols > b0b3ee65-051a-414a-84065a83-9c8461c2.txt
  */
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, void *context, bool succeeded) {
-    LOG(ERROR) << sys_gettid() << " " << "Dump path : " << descriptor.path();
+    LOG(ERROR) << sys_gettid() << " " << "Dump path : " << descriptor.path() << " " << succeeded;
 
     std::string instruct = "$HOME/app_ws/src/app_communication/scripts/parse_crash.sh";
     std::string program_installation_dir = isRealEnvironment ?
                                            "$HOME/AirCore/app/install/lib/app_communication/"
                                                              :
-                                           "$HOME/app_ws/build/app_communication/PATH/$HOME/app_ws/devel/lib/app_communication/";
+                                           "$HOME/app_ws/devel/lib/app_communication/";
     std::string crash_file_path = descriptor.path();
     unsigned long start = crash_file_path.find("app_dump/") + 9;
     auto crash_file = crash_file_path.substr(start);
     std::system((instruct + " " + program_installation_dir + " " + crash_file).c_str());
     LOG(INFO) << ("upload ... ");
 
-//    int i = 0;
-//    pid_t pid = fork();
-//    if (pid < 0) {
-//        LOG(ERROR) << ("fork error");
+
+//    //子进程的返回值为0,父进程的返回值则是新建的进程ID
+//    pid_t pid;
+//    if ((pid = fork()) < 0) {
+//        LOG(ERROR) << "fork error";
 //    } else if (pid == 0) {
-//        LOG(INFO) << ("fork success, this is son process");
+//        LOG(INFO) << "fork success, this is son process" << " " << getpid();
 //
-//        std::string instruct = "$HOME/app_ws/src/app_communication/scripts/parse_crash.sh";
-//        std::string program_installation_dir = "$HOME/app_ws/build/app_communication/PATH/$HOME/app_ws/devel/lib/app_communication/";
-//        std::string crash_file_path = descriptor.path();
-//        unsigned long start = crash_file_path.find("app_dump/") + 9;
-//        auto crash_file = crash_file_path.substr(start);
-//        std::system((instruct + " " + program_installation_dir + " " + crash_file).c_str());
-//        LOG(INFO) << ("upload ... ");
-//    } else {
-//        LOG(INFO) << "fork success, this is father process, son process id is " << pid;
-//        while (i < 10) {
-//            i += 2;
-//            printf("this is father process,i= %d \n", i);
-//            sleep(2);
+//        int argc = 0;
+//        char *argv = "";
+//        ros::init(argc, &argv, "catch_upload");
+//        ros::NodeHandle handle;
+//
+//        ros::Rate loop(5); // 5Hz循环分频
+//        while (ros::ok()) {
+//            ros::spinOnce();
+//            loop.sleep();
 //        }
+//
+//        exit(0);
+//    }
+//
+//    LOG(INFO) << "son process" << " " << pid;
+
+//    if (waitpid(pid, NULL, 0) != pid) {
+//        LOG(ERROR) << "fork error2";
 //    }
 
     return succeeded;
@@ -251,6 +259,8 @@ void initDump() {
                                                              true,//如果为ture，不管怎样当未捕捉异常被抛出时都会写入minidump文件，如果为false则必须明确调用了 WriteMinidump 才会写入minidump 文件
                                                              -1);//如果为-1，则使用同线程模式（in-precess），如果有一个有效的值，则使用跨线程模式（out-of-process)
 
+    volatile int *a = (int *) (NULL);
+    *a = 1;
 }
 
 void initTest(int argc, char **argv) {
