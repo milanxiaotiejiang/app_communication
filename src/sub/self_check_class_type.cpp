@@ -89,13 +89,13 @@ void SelfCheckSubscribe::ThreadHandle() {
 //                  << " imu:" << imu_->isValid()
 //                  << " laser_scan:" << laser_scan_->isValid() << std::endl;
         checkEnable();
-
-        if (cameras_[0]->isValid() == false) {
-            pubError(CAMERA2_NO_DATA); //down inu
-        }
-        if (cameras_[1]->isValid() == false) {
-
-            pubError(CAMERA1_NO_DATA);//up inu
+        if (cameras_[0]->checkEnabled()) {
+            if (cameras_[0]->isValid() == false) {
+                pubError(CAMERA2_NO_DATA); // down inu
+            }
+            if (cameras_[1]->isValid() == false) {
+                pubError(CAMERA1_NO_DATA); // up inu
+            }
         }
         if (imu_->isValid() == false) {
             pubError(IMU_NO_DATA);
@@ -212,5 +212,13 @@ void SelfCheckSubscribe::checkEnable() {
         ultraSonic_->set_enabled(true);
     } else {
         ultraSonic_->set_enabled(false);
+    }
+    if (!camera_check_enable_) {
+        handle.getParam("/node_controller/start_finish", camera_check_enable_);
+        if (camera_check_enable_) {
+            for (auto &item: cameras_) {
+                item->setEnabled(true);
+            }
+        }
     }
 }

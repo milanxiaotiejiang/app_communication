@@ -64,8 +64,7 @@ public:
         image_sub_ = private_nh_.subscribe<sensor_msgs::Image>(image_name_, 10, &Camera::ImageCB, this);
         pointcloud_sub_ = private_nh_.subscribe<sensor_msgs::PointCloud2>(pointcloud_name_, 10, &Camera::PointCloudCB,
                                                                           this);
-        last_image_ = ros::Time::now();
-        last_pointcloud_ = ros::Time::now();
+        enabled_ = false;
     }
 
     void ImageCB(const sensor_msgs::ImageConstPtr &depth_msg) {
@@ -81,6 +80,15 @@ public:
         return (now - last_image_ < ros::Duration(5) && now - last_pointcloud_ < ros::Duration(5));
     }
 
+    bool checkEnabled() { return enabled_; }
+
+    bool setEnabled(bool enabled) {
+        enabled_ = enabled;
+        //使能时间作为计算是否超时的起点
+        last_image_ = ros::Time::now();
+        last_pointcloud_ = ros::Time::now();
+    }
+
 private:
     ros::NodeHandle private_nh_;
     ros::Subscriber image_sub_;
@@ -89,6 +97,8 @@ private:
     std::string pointcloud_name_;
     ros::Time last_image_;
     ros::Time last_pointcloud_;
+
+    bool enabled_;
 
     int index = 0;
 };
@@ -522,6 +532,8 @@ private:
     ros::NodeHandle handle;
     PubInner pubInner;
     PubOut pubOut;
+
+    bool camera_check_enable_{false};//用于确认银牛是否启动
 
 public:
 
