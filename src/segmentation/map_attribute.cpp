@@ -3,6 +3,7 @@
 //
 
 #include "segmentation/map_attribute.h"
+#include "db/segmentation_data_base.h"
 
 /**
  * map_origin_pose.position (0,0) 为显示地图的左下角，即 starting_position_pose.x 越大，机器人越靠右；starting_position_pose.y 越大，机器人越考上
@@ -87,6 +88,26 @@ void MapAttribute::loadPenaltyZone() {
         if (childNode.size() == PENALTY_ZONE_DUS_COUNT) {//禁区
             handleProhibition(penaltyZoneList, childNode, PENALTY_ZONE_DUS_COUNT);
         }
+    }
+}
+
+void MapAttribute::loadPlanParam() {
+    std::string &map_id = SegmentationDataBase::instance().getDbMap().id;
+    auto planPo = SegmentationDataBase::instance().getDbPlan(map_id);
+    if (planPo.map_id.empty()) {
+        SegmentationDataBase::instance().setPlanParam(map_id,
+                                                      robot_radius_,
+                                                      map_correction_closing_neighborhood_size_,
+                                                      grid_obstacle_offset_,
+                                                      path_eps_,
+                                                      min_cell_area_,
+                                                      max_deviation_from_track_,
+                                                      room_area_factor_lower_limit_,
+                                                      room_area_factor_upper_limit_,
+                                                      neighborhood_index_,
+                                                      max_iterations_,
+                                                      min_critical_point_distance_factor_,
+                                                      max_area_for_merging_);
     }
 }
 

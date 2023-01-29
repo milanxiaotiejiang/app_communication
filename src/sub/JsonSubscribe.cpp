@@ -254,6 +254,12 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case REGION_EXPLORATION:
             messageStrategy = new ExplorationRoomStrategy();
             break;
+        case GET_PLAN_PARAM:
+            messageStrategy = new PlanParamGetStrategy();
+            break;
+        case SET_PLAN_PARAM:
+            messageStrategy = new PlanParamSetStrategy();
+            break;
         case MANUAL_PUSH_START:
             messageStrategy = new ManualPushStartStrategy();
             break;

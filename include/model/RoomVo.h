@@ -378,4 +378,86 @@ public:
     }
 };
 
+class PlanParam {
+private:
+    double robot_radius;
+    int map_correction_closing_neighborhood_size;
+    double grid_obstacle_offset;
+    double path_eps;
+    double min_cell_area;
+    double max_deviation_from_track;
+
+    double room_area_factor_lower_limit;
+    double room_area_factor_upper_limit;
+    int neighborhood_index;
+    int max_iterations;
+    double min_critical_point_distance_factor;
+    double max_area_for_merging;
+
+public:
+    double getRobotRadius() const;
+
+    int getMapCorrectionClosingNeighborhoodSize() const;
+
+    double getGridObstacleOffset() const;
+
+    double getPathEps() const;
+
+    double getMinCellArea() const;
+
+    double getMaxDeviationFromTrack() const;
+
+    double getRoomAreaFactorLowerLimit() const;
+
+    double getRoomAreaFactorUpperLimit() const;
+
+    int getNeighborhoodIndex() const;
+
+    int getMaxIterations() const;
+
+    double getMinCriticalPointDistanceFactor() const;
+
+    double getMaxAreaForMerging() const;
+
+public:
+    PlanParam();
+
+    PlanParam(double robotRadius, int mapCorrectionClosingNeighborhoodSize, double gridObstacleOffset, double pathEps,
+              double minCellArea, double maxDeviationFromTrack, double roomAreaFactorLowerLimit,
+              double roomAreaFactorUpperLimit, int neighborhoodIndex, int maxIterations,
+              double minCriticalPointDistanceFactor, double maxAreaForMerging);
+
+
+    friend void to_json(json &j, const PlanParam &planParam) {
+        j = json{
+                {"robot_radius",                             planParam.robot_radius},
+                {"map_correction_closing_neighborhood_size", planParam.map_correction_closing_neighborhood_size},
+                {"grid_obstacle_offset",                     planParam.grid_obstacle_offset},
+                {"min_cell_area",                            planParam.min_cell_area},
+                {"max_deviation_from_track",                 planParam.max_deviation_from_track},
+                {"room_area_factor_lower_limit",             planParam.room_area_factor_lower_limit},
+                {"room_area_factor_upper_limit",             planParam.room_area_factor_upper_limit},
+                {"neighborhood_index",                       planParam.neighborhood_index},
+                {"max_iterations",                           planParam.max_iterations},
+                {"min_critical_point_distance_factor",       planParam.min_critical_point_distance_factor},
+                {"max_area_for_merging",                     planParam.max_area_for_merging}
+        };
+    }
+
+    friend void from_json(const json &j, PlanParam &planParam) {
+        j.at("robot_radius").get_to(planParam.robot_radius);
+        j.at("map_correction_closing_neighborhood_size").get_to(planParam.map_correction_closing_neighborhood_size);
+        j.at("grid_obstacle_offset").get_to(planParam.grid_obstacle_offset);
+        j.at("path_eps").get_to(planParam.path_eps);
+        j.at("min_cell_area").get_to(planParam.min_cell_area);
+        j.at("max_deviation_from_track").get_to(planParam.max_deviation_from_track);
+        j.at("room_area_factor_lower_limit").get_to(planParam.room_area_factor_lower_limit);
+        j.at("room_area_factor_upper_limit").get_to(planParam.room_area_factor_upper_limit);
+        j.at("neighborhood_index").get_to(planParam.neighborhood_index);
+        j.at("max_iterations").get_to(planParam.max_iterations);
+        j.at("min_critical_point_distance_factor").get_to(planParam.min_critical_point_distance_factor);
+        j.at("max_area_for_merging").get_to(planParam.max_area_for_merging);
+    }
+};
+
 #endif //APP_COMMUNICATION_ROOMVO_H

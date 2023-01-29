@@ -8,20 +8,14 @@
 #include "Room.h"
 #include "model/RoomVo.h"
 #include "CvUtils.h"
+#include "db/segmentation_model.h"
 #include <opencv2/opencv.hpp>
-
-const double room_area_factor_lower_limit = 0.1;
-const double room_area_factor_upper_limit = 1000000;
-const int neighborhood_index = 280;
-const int max_iterations = 150;
-const double min_critical_point_distance_factor = 0.5;
-const double max_area_for_merging = 12.5;
 
 class SegmentationCenter {
 private:
     bool initialize_finish = false;
 
-    bool detectionTooSmallRoom(const cv::Mat &segmented_map, Room room) const;
+    bool detectionTooSmallRoom(const cv::Mat &segmented_map, Room room, PlanPo plan) const;
 
     bool pointInRoom(const cv::Mat &segmented_map, Room room, cv::Point point) const;
 

@@ -18,6 +18,7 @@
 #include <eigen_conversions/eigen_msg.h>
 #include "exploration/line.h"
 #include "segmentation/SegmentationCenter.h"
+#include "db/segmentation_data_base.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 
@@ -59,8 +60,9 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
 //    const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//    generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0), exploration_path, point_path);
-
+//    generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0),
+//                         exploration_path, point_path);
+//
 //    pathPublish(exploration_path);
 }
 
@@ -115,7 +117,11 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     LOG(INFO) << "map-resolution: " << map_resolution_from_subscription << " m/cell";
     LOG(INFO) << "map-origin: " << map_origin << " m";
     LOG(INFO) << "starting-point: (" << robotPosition << " px";
-    LOG(INFO) << "robot-radius: " << robot_radius << " m   (" << (robot_radius / map_resolution_from_subscription)
+
+
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    LOG(INFO) << "robot-radius: " << plan.robot_radius << " m   ("
+              << (plan.robot_radius / map_resolution_from_subscription)
               << " px)";
 
     int area_px = 0;
@@ -129,17 +135,17 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
 
     //Minimum area of one cell for the boustrophedon explorator. 拆分各段分割地图后的面积最小值（16）
-    double min_cell_area_ = std::max(area_px / 1000.0, 100.0);
+    double min_cell_area_ = std::max(area_px / 1000.0, plan.min_cell_area);
     //Minimal distance between two points on the generated path [pixel]. 覆盖路径中两点之间的最小距离，单位像素 px，例如 20，20 * 0.05 = 1m（8）
-    double path_eps_ = 1.0;//std::max(std::min(map.rows, map.cols) / 100.0, 8.0);
+    double path_eps_ = plan.path_eps;//1.0;//std::max(std::min(map.rows, map.cols) / 100.0, 8.0);
     //Allows to displace the grid by more than the standard half_grid_size from obstacles [m].（0.1）
-    double grid_obstacle_offset_ = 0.0;
+    double grid_obstacle_offset_ = plan.grid_obstacle_offset;//0.0;
     //Maximal allowed shift off the ideal boustrophedon track for avoiding obstacles on track, in [pixel]. For negative values max_deviation_from_track is automatically set to grid_spacing.（-1）
-    int max_deviation_from_track_ = -1;
+    int max_deviation_from_track_ = plan.max_deviation_from_track;//-1;
     LOG(INFO) << "min_cell_area_ : " << min_cell_area_ << " , path_eps_ : " << path_eps_;
     LOG(INFO) << "planning mode: planning coverage path with robot's footprint";
 
-    double grid_spacing_in_meter = robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
+    double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
     LOG(INFO) << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
     int half_grid_spacing_as_int_ = (int) std::floor(0.5 * grid_spacing_in_pixel);
@@ -157,16 +163,16 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
         cv::erode(map, map, cv::Mat(), cv::Point(-1, -1), map_prohibition_expand_size_);
 
         cv::Mat temp;
-        cv::erode(map, temp, cv::Mat(), cv::Point(-1, -1), map_correction_closing_neighborhood_size_);
-        cv::dilate(temp, map, cv::Mat(), cv::Point(-1, -1), map_correction_closing_neighborhood_size_);
+        cv::erode(map, temp, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
+        cv::dilate(temp, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
     } else if (model == ExplorationModel::SUB) {
         cv::Mat temp;
         cv::bitwise_xor(map, generate_map, temp);
         cv::bitwise_and(map, temp, temp);
         cv::bitwise_xor(map, temp, map);
 
-        cv::erode(map, temp, cv::Mat(), cv::Point(-1, -1), map_correction_closing_neighborhood_size_);
-        cv::dilate(temp, map, cv::Mat(), cv::Point(-1, -1), map_correction_closing_neighborhood_size_);
+        cv::erode(map, temp, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
+        cv::dilate(temp, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
     } else if (model == ExplorationModel::RECT) {
         min_cell_area_ = 0;
         cv::dilate(map, map, cv::Mat(), cv::Point(-1, -1), half_grid_spacing_as_int_ + grid_obstacle_offset_);
@@ -227,8 +233,8 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
     optimizePathColumn(exploration_path);
 
-    if (DISPLAY_TRAJECTORY)
-        planning_pose_path_display(room_map, map_origin, exploration_path, 2, "planning_pose_path_display");
+//    if (DISPLAY_TRAJECTORY)
+    planning_pose_path_display(room_map, map_origin, exploration_path, 2, "planning_pose_path_display");
 
     pose2CVPoint(room_map, point_path, exploration_path, map_origin);
     if (DISPLAY_TRAJECTORY)

@@ -38,7 +38,21 @@ public:
                                        make_column("perimeter", &RoomPo::perimeter),
                                        make_column("neighbor_room_ids", &RoomPo::neighbor_room_ids),
                                        make_column("name", &RoomPo::name)
-                            )
+                            ),
+                            make_table("plan_param",
+                                       make_column("map_id", &PlanPo::map_id, primary_key()),
+                                       make_column("robot_radius", &PlanPo::robot_radius),
+                                       make_column("iterations", &PlanPo::map_correction_closing_neighborhood_size),
+                                       make_column("obstacle_offset", &PlanPo::grid_obstacle_offset),
+                                       make_column("path_eps", &PlanPo::path_eps),
+                                       make_column("min_cell_area", &PlanPo::min_cell_area),
+                                       make_column("max_deviation", &PlanPo::max_deviation_from_track),
+                                       make_column("area_factor_lower", &PlanPo::room_area_factor_lower_limit),
+                                       make_column("area_factor_upper", &PlanPo::room_area_factor_upper_limit),
+                                       make_column("neighborhood_index", &PlanPo::neighborhood_index),
+                                       make_column("max_iterations", &PlanPo::max_iterations),
+                                       make_column("min_distance_factor", &PlanPo::min_critical_point_distance_factor),
+                                       make_column("max_area_for_merging", &PlanPo::max_area_for_merging))
         );
 
     }

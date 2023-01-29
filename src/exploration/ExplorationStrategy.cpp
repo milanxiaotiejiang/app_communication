@@ -5,6 +5,7 @@
 #include "exploration/ExplorationStrategy.h"
 #include "segmentation/SegmentationCenter.h"
 #include "exploration/ExplorationCenter.h"
+#include "db/segmentation_data_base.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -75,4 +76,31 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
         result.setPointList(coverage.getPointList());
     }
     return result;
+}
+
+PlanParam PlanParamGetStrategy::handler(string params) {
+    auto planPo = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    return PlanParam(planPo.robot_radius, planPo.map_correction_closing_neighborhood_size,
+                     planPo.grid_obstacle_offset, planPo.path_eps,
+                     planPo.min_cell_area, planPo.max_deviation_from_track, planPo.room_area_factor_lower_limit,
+                     planPo.room_area_factor_upper_limit, planPo.neighborhood_index, planPo.max_iterations,
+                     planPo.min_critical_point_distance_factor, planPo.max_area_for_merging);
+}
+
+bool PlanParamSetStrategy::handler(PlanParam params) {
+    SegmentationDataBase::instance().setPlanParam(
+            SegmentationDataBase::instance().getDbMap().id,
+            params.getRobotRadius(),
+            params.getMapCorrectionClosingNeighborhoodSize(),
+            params.getGridObstacleOffset(),
+            params.getPathEps(),
+            params.getMinCellArea(),
+            params.getMaxDeviationFromTrack(),
+            params.getRoomAreaFactorLowerLimit(),
+            params.getRoomAreaFactorUpperLimit(),
+            params.getNeighborhoodIndex(),
+            params.getMaxIterations(),
+            params.getMinCriticalPointDistanceFactor(),
+            params.getMaxAreaForMerging()
+    );
 }

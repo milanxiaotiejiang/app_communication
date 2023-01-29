@@ -16,7 +16,6 @@
 #include "glog/logging.h"
 #include "model/Point.h"
 
-const double robot_radius = 0.30;//0.45;
 const double map_resolution_from_subscription = 0.05;
 
 const int VIRTUAL_WALL_DUS_COUNT = 2;
@@ -38,6 +37,21 @@ private:
 
     std::vector<std::vector<Point>> virtualWallList;
     std::vector<std::vector<Point>> penaltyZoneList;
+
+    const double robot_radius_ = 0.30;
+    const int map_correction_closing_neighborhood_size_ = 1;
+    const double grid_obstacle_offset_ = 0.0;
+    const double path_eps_ = 1.0;
+    const double min_cell_area_ = 100.0;
+    const int max_deviation_from_track_ = -1;
+
+    const double room_area_factor_lower_limit_ = 0.1;
+    const double room_area_factor_upper_limit_ = 1000000;
+    const int neighborhood_index_ = 280;
+    const int max_iterations_ = 150;
+    const double min_critical_point_distance_factor_ = 0.5;
+    const double max_area_for_merging_ = 12.5;
+
 public:
     static auto &instance() {
         static MapAttribute obj;
@@ -79,6 +93,8 @@ public:
     void loadVirtualWall();
 
     void loadPenaltyZone();
+
+    void loadPlanParam();
 
     void handleProhibition(std::vector<std::vector<Point>> &list,
                            const YAML::Node &node, int dusCount) const;

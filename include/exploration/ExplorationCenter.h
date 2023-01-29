@@ -13,8 +13,6 @@
 #include "model/RoomVo.h"
 #include "segmentation/Room.h"
 
-const int map_correction_closing_neighborhood_size_ = 1;
-
 enum ExplorationModel {
     FULL,
     SUB,

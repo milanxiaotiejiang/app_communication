@@ -49,8 +49,8 @@ void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origi
 
         cv::circle(fov_path_map, resize * startPoint, 3, cv::Scalar(160), CV_FILLED);
 
-        cv::imshow(winname, fov_path_map);
-        cv::waitKey();
+//        cv::imshow(winname, fov_path_map);
+//        cv::waitKey();
     }
     cv::imshow(winname, fov_path_map);
     cv::waitKey();

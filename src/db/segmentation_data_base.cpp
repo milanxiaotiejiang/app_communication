@@ -4,6 +4,7 @@
 
 #include "db/segmentation_data_base.h"
 
+#include <utility>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -150,3 +151,32 @@ void SegmentationDataBase::reRoomName(int targetId, const std::string &name) {
         return true;
     });
 }
+
+void SegmentationDataBase::setPlanParam(const std::string &map_id, double robot_radius,
+                                        int map_correction_closing_neighborhood_size,
+                                        double grid_obstacle_offset, double path_eps,
+                                        double min_cell_area, double max_deviation_from_track,
+                                        double room_area_factor_lower_limit,
+                                        double room_area_factor_upper_limit,
+                                        int neighborhood_index, int max_iterations,
+                                        double min_critical_point_distance_factor,
+                                        double max_area_for_merging) {
+    PlanPo planPo(map_id, robot_radius, map_correction_closing_neighborhood_size,
+                  grid_obstacle_offset, path_eps, min_cell_area, max_deviation_from_track,
+                  room_area_factor_lower_limit, room_area_factor_upper_limit,
+                  neighborhood_index, max_iterations, min_critical_point_distance_factor, max_area_for_merging);
+    segmentationStorage.replace(planPo);
+}
+
+PlanPo SegmentationDataBase::getDbPlan(std::string map_id) {
+    auto vectorPlan = segmentationStorage.get_all<PlanPo>(
+            where(c(&PlanPo::map_id) == std::move(map_id))
+    );
+    if (!vectorPlan.empty())
+        return vectorPlan.front();
+    else
+        return {};
+}
+
+
+

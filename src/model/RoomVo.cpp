@@ -246,3 +246,77 @@ bool RoomExplorationTarget::isPartition() const {
 void RoomExplorationTarget::setPartition(bool partition) {
     partition = partition;
 }
+
+PlanParam::PlanParam(double robotRadius, int mapCorrectionClosingNeighborhoodSize, double gridObstacleOffset,
+                     double pathEps, double minCellArea, double maxDeviationFromTrack, double roomAreaFactorLowerLimit,
+                     double roomAreaFactorUpperLimit, int neighborhoodIndex, int maxIterations,
+                     double minCriticalPointDistanceFactor, double maxAreaForMerging) : robot_radius(robotRadius),
+                                                                                        map_correction_closing_neighborhood_size(
+                                                                                                mapCorrectionClosingNeighborhoodSize),
+                                                                                        grid_obstacle_offset(
+                                                                                                gridObstacleOffset),
+                                                                                        path_eps(pathEps),
+                                                                                        min_cell_area(minCellArea),
+                                                                                        max_deviation_from_track(
+                                                                                                maxDeviationFromTrack),
+                                                                                        room_area_factor_lower_limit(
+                                                                                                roomAreaFactorLowerLimit),
+                                                                                        room_area_factor_upper_limit(
+                                                                                                roomAreaFactorUpperLimit),
+                                                                                        neighborhood_index(
+                                                                                                neighborhoodIndex),
+                                                                                        max_iterations(maxIterations),
+                                                                                        min_critical_point_distance_factor(
+                                                                                                minCriticalPointDistanceFactor),
+                                                                                        max_area_for_merging(
+                                                                                                maxAreaForMerging) {}
+
+double PlanParam::getRobotRadius() const {
+    return robot_radius;
+}
+
+int PlanParam::getMapCorrectionClosingNeighborhoodSize() const {
+    return map_correction_closing_neighborhood_size;
+}
+
+double PlanParam::getGridObstacleOffset() const {
+    return grid_obstacle_offset;
+}
+
+double PlanParam::getPathEps() const {
+    return path_eps;
+}
+
+double PlanParam::getMinCellArea() const {
+    return min_cell_area;
+}
+
+double PlanParam::getMaxDeviationFromTrack() const {
+    return max_deviation_from_track;
+}
+
+double PlanParam::getRoomAreaFactorLowerLimit() const {
+    return room_area_factor_lower_limit;
+}
+
+double PlanParam::getRoomAreaFactorUpperLimit() const {
+    return room_area_factor_upper_limit;
+}
+
+int PlanParam::getNeighborhoodIndex() const {
+    return neighborhood_index;
+}
+
+int PlanParam::getMaxIterations() const {
+    return max_iterations;
+}
+
+double PlanParam::getMinCriticalPointDistanceFactor() const {
+    return min_critical_point_distance_factor;
+}
+
+double PlanParam::getMaxAreaForMerging() const {
+    return max_area_for_merging;
+}
+
+PlanParam::PlanParam() {}

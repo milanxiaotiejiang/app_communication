@@ -255,6 +255,12 @@ int switch_ID(const std::string str) {
     if (str == "region_exploration") {
         return REGION_EXPLORATION;
     }
+    if (str == "get_plan_param") {
+        return GET_PLAN_PARAM;
+    }
+    if (str == "set_plan_param") {
+        return SET_PLAN_PARAM;
+    }
 
     if (str == "ota_start") {
         return OTA_CORE;
