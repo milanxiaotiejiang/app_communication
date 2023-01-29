@@ -99,6 +99,8 @@
 #include "clean_history/CleanHistoryCenter.h"
 #include "model/FullClean.h"
 #include "manager/FullCleanManager.h"
+#include "sys/wait.h"
+#include "net/WebSocketManager.h"
 
 google_breakpad::ExceptionHandler *exceptionHandler = nullptr;
 

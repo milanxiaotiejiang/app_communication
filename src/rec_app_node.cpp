@@ -1,5 +1,4 @@
 #include "rec_app.h"
-#include "sys/wait.h"
 
 /**
  * 单元测试示例代码
@@ -30,9 +29,6 @@ ViewPartManager *ViewPartManager::m_instance_ptr = nullptr;
 CombinationManager *CombinationManager::m_instance_ptr = nullptr;
 FullCleanManager *FullCleanManager::m_instance_ptr = nullptr;
 
-UdpManager *UdpManager::m_instance_ptr = nullptr;
-// WebSocketManager *WebSocketManager::m_instance_ptr = nullptr;
-MessageBusManager *MessageBusManager::m_instance_ptr = nullptr;
 internal_event::InternalEventPubManager *internal_event::InternalEventPubManager::instance_ = nullptr;
 
 ScheduleThread *sThd = nullptr;
@@ -57,7 +53,7 @@ int main(int argc, char **argv) {
     pool.init();
 
     async::TimerInitCall::instance().initialize();
-    UdpManager::get_instance()->start();
+    UdpManager::instance().start();
 
     ros::NodeHandle handle;
     handle.param("/path_planning_node/ignore_area", ignore_area, std::int32_t(8));
@@ -318,7 +314,7 @@ void release() {
     if (exceptionHandler != nullptr)
         delete exceptionHandler;
     google::ShutdownGoogleLogging(); // 全局关闭glog
-    UdpManager::get_instance()->stop();
+    UdpManager::instance().stop();
     WsServerManager::instance().stopWebSocket();
     TaskCenter::instance().uninstall();
     ExplorationCenter::instance().uninstall();
