@@ -95,20 +95,25 @@ void MapAttribute::loadPlanParam() {
     std::string &map_id = SegmentationDataBase::instance().getDbMap().id;
     auto planPo = SegmentationDataBase::instance().getDbPlan(map_id);
     if (planPo.map_id.empty()) {
-        SegmentationDataBase::instance().setPlanParam(map_id,
-                                                      robot_radius_,
-                                                      map_correction_closing_neighborhood_size_,
-                                                      grid_obstacle_offset_,
-                                                      path_eps_,
-                                                      min_cell_area_,
-                                                      max_deviation_from_track_,
-                                                      room_area_factor_lower_limit_,
-                                                      room_area_factor_upper_limit_,
-                                                      neighborhood_index_,
-                                                      max_iterations_,
-                                                      min_critical_point_distance_factor_,
-                                                      max_area_for_merging_);
+        loadDefaultPlanParam();
     }
+}
+
+void MapAttribute::loadDefaultPlanParam() {
+    std::string &map_id = SegmentationDataBase::instance().getDbMap().id;
+    SegmentationDataBase::instance().setPlanParam(map_id,
+                                                  robot_radius_,
+                                                  map_correction_closing_neighborhood_size_,
+                                                  grid_obstacle_offset_,
+                                                  path_eps_,
+                                                  min_cell_area_,
+                                                  max_deviation_from_track_,
+                                                  room_area_factor_lower_limit_,
+                                                  room_area_factor_upper_limit_,
+                                                  neighborhood_index_,
+                                                  max_iterations_,
+                                                  min_critical_point_distance_factor_,
+                                                  max_area_for_merging_);
 }
 
 void

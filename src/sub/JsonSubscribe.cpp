@@ -260,6 +260,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case SET_PLAN_PARAM:
             messageStrategy = new PlanParamSetStrategy();
             break;
+        case RESET_PLAN_PARAM:
+            messageStrategy = new PlanParamResetStrategy();
+            break;
         case MANUAL_PUSH_START:
             messageStrategy = new ManualPushStartStrategy();
             break;

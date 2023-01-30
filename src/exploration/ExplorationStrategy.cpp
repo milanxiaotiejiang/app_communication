@@ -104,3 +104,13 @@ bool PlanParamSetStrategy::handler(PlanParam params) {
             params.getMaxAreaForMerging()
     );
 }
+
+PlanParam PlanParamResetStrategy::handler(string params) {
+    MapAttribute::instance().loadDefaultPlanParam();
+    auto planPo = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    return PlanParam(planPo.robot_radius, planPo.map_correction_closing_neighborhood_size,
+                     planPo.grid_obstacle_offset, planPo.path_eps,
+                     planPo.min_cell_area, planPo.max_deviation_from_track, planPo.room_area_factor_lower_limit,
+                     planPo.room_area_factor_upper_limit, planPo.neighborhood_index, planPo.max_iterations,
+                     planPo.min_critical_point_distance_factor, planPo.max_area_for_merging);
+}

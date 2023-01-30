@@ -682,6 +682,6 @@ void WsServerManager::sendRequestData(const string &key, const std::string &data
 
 void WsServerManager::sendMessageBusTopic(const string &message) {
     LOG(INFO) << "sendMessageBusTopic : " << message;
-    MessageBusManager::get_instance()->getMessageBus()->sendReq<void, string>(
+    MessageBusManager::instance().getMessageBus()->sendReq<void, string>(
             message.data(), MESSAGE_BUS_TOPIC);
 }

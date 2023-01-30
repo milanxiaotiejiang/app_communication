@@ -96,6 +96,8 @@ public:
 
     void loadPlanParam();
 
+    void loadDefaultPlanParam();
+
     void handleProhibition(std::vector<std::vector<Point>> &list,
                            const YAML::Node &node, int dusCount) const;
 

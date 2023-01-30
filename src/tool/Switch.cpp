@@ -261,6 +261,9 @@ int switch_ID(const std::string str) {
     if (str == "set_plan_param") {
         return SET_PLAN_PARAM;
     }
+    if (str == "reset_plan_param") {
+        return RESET_PLAN_PARAM;
+    }
 
     if (str == "ota_start") {
         return OTA_CORE;
