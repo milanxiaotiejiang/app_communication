@@ -1247,10 +1247,10 @@ void AsyncTaskCall::peculiarDisposeBasePoint(const RealPoint &point,
     bool isInBasePoint =
             ((abs(current_pose.x + 0.3) < 0.5) && (abs(current_pose.y) < 0.5) &&
              (abs(current_pose.theta) < 1.0));
-    if (isInBasePoint == false) {
-        LOG(INFO) << "没有完全返回摆渡点，误报！！！！！！！！";
+    if (!isInBasePoint) {
+        LOG(INFO) << "没有完全返回摆渡点 " << current_pose.x << " " << current_pose.y << " " << current_pose.theta;
     }
-    if (point.realError.arrive && isInBasePoint) {
+    if (point.realError.arrive) {
         //记录成功到达摆渡点
         clean_history_db::CleanHistoryCenter::instance().setBackBasePointArrived(
                 clean_history_db::SUCCEED);
