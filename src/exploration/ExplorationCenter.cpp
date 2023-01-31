@@ -233,8 +233,8 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
     optimizePathColumn(exploration_path);
 
-//    if (DISPLAY_TRAJECTORY)
-    planning_pose_path_display(room_map, map_origin, exploration_path, 2, "planning_pose_path_display");
+    if (DISPLAY_TRAJECTORY)
+        planning_pose_path_display(room_map, map_origin, exploration_path, 2, "planning_pose_path_display");
 
     pose2CVPoint(room_map, point_path, exploration_path, map_origin);
     if (DISPLAY_TRAJECTORY)
