@@ -152,7 +152,7 @@ void AsyncTaskCall::execute() {
 void AsyncTaskCall::handleStop() {
     if (urgencyStopState) {
         LOG(INFO) << "急停了 ... ";
-        setFlow(event::flow::force_task_pause);//如果是急停，flow设置为force_task_pause
+        setFlow(event::flow::urgency_stop_pause);//如果是急停，flow设置为force_task_pause
         PointPlanner::instance().cancelGoal();//取消当前点导航
         async::TimerCall::instance().baseLoop()->cancelAny();//判断超时的计时器取消
         clean_history_db::CleanHistoryCenter::instance().addUrgencyStop();//历史记录增加，急停一次
@@ -169,56 +169,63 @@ void AsyncTaskCall::handleStop() {
             //没有任务，收回所有清洁机构
             MechanismManager::instance().resetWorkStatus();
         } else {
-            //设置 recordLockState 的状态和点位
-            LOG(INFO) << "解除急停的时候还没有推回基站...";
-            //要先进入暂停模式，解除暂停模式后才能继续运行
-            if (manualClean() ||
-                currentInterception() ||
-                plannerQueue.empty() ||
-                (event_flow == event::flow::waiting_for_task ||
-                 event_flow == event::flow::out_base_station ||
-                 event_flow == event::flow::switch_node_work_mode ||
-                 event_flow == event::flow::preliminary_preparation_completed ||
-                 event_flow == event::flow::arrive_base_point_success ||
-                 event_flow == event::flow::try_recharging_again ||
-                 event_flow == event::flow::arrive_base_station_success ||
-                 event_flow == event::flow::manual_mechanism_close_and_charging ||
-                 event_flow == event::flow::force_base_point_and_close_mechanism ||
-                 event_flow == event::flow::force_mechanism_close_and_charging ||
-                 event_flow == event::flow::manual_control_base_point_and_charging ||
-                 event_flow == event::flow::manual_control_over_success ||
-                 event_flow == event::flow::hardware_interrupt_task ||
-                 event_flow == event::flow::software_interrupt_task)
-                    ) {
-                //手动模式没法暂停
-                //已经暂停的情况没法进入暂停状态
-                //没有在自动清扫任务中，不支持暂停
-                //没有完成出站等前期工作不支持暂停
-                int noticeCode = 6666;
-                time_t t;
-                t = time(NULL);
-                long noticeTime = t;
-                std::string noticeTitle = "pause";
-                std::string noticeMessage = "unsupport pause mode";
-                std::string solution = "";
-                NoticeManager::get_instance()->sendNotice(noticeCode, noticeTime, noticeTitle, noticeMessage, solution);
-                // set to front point
-                setFlow(stopEventFlow());
-                event_status = stopStatus();
-                pointDeque.push_back(stopPoint());
-            } else {
-                LOG(INFO) << "handlePoint flow : 手动暂停任务，增加暂停拦截 ...";
-                event_status = event::status::MANUAL_STATE; //修改状态到MANUAL_STATE
-                setPauseInterception(true);      //暂停标志位置为true
-                PointPlanner::instance().cancelGoal(); //先取消当前的导航点
-                async::TimerCall::instance().baseLoop()->cancelAny(); //停止超时计时器计时
-                if (!plannerQueue.empty()) {
-                    auto currentPoint = findFrontPoint(); //取消的的导航点再继续放入队列
-                    plannerQueue.push_front(currentPoint);
-                }
+            //注意：解急停时需要考虑暂停后的急停状态，本次为有任务时触发
+            //1. 正常状态（未暂停）需要考虑是否能恢复到暂停状态，称之为流水线的点支持暂停，其余可不支持
+            //1.1 （拦截）手动模式拦截、规划队列为空拦截、不是前期的任务流程拦截（注意此处的 event_flow 已变为急停状态，需要获取上次记录的 flow，此处取 urgencyStopEventFlow）
+            //1.2 （变暂停）需要改变四个数值 event_status、pauseInterception、currentPoint、event_flow
+            //2. 暂停状态下拍急停，需要找到暂停前的状态
+            if (currentInterception()) {
                 setFlow(event::flow::manual_task_pause); //流程置回暂停
                 //重新打开所有清洁机构
                 MechanismManager::instance().forceControlWorkStatus(workTask.getWorkStatus());
+            } else {
+                //设置 recordLockState 的状态和点位
+                LOG(INFO) << "解除急停的时候还没有推回基站...";
+                //要先进入暂停模式，解除暂停模式后才能继续运行
+                if (manualClean() ||
+                    plannerQueue.empty() ||
+                    (urgencyStopEventFlow == event::flow::waiting_for_task ||
+                     urgencyStopEventFlow == event::flow::out_base_station ||
+                     urgencyStopEventFlow == event::flow::switch_node_work_mode ||
+                     urgencyStopEventFlow == event::flow::preliminary_preparation_completed ||
+                     urgencyStopEventFlow == event::flow::arrive_base_point_success ||
+                     urgencyStopEventFlow == event::flow::try_recharging_again ||
+                     urgencyStopEventFlow == event::flow::arrive_base_station_success ||
+                     urgencyStopEventFlow == event::flow::manual_mechanism_close_and_charging ||
+                     urgencyStopEventFlow == event::flow::force_base_point_and_close_mechanism ||
+                     urgencyStopEventFlow == event::flow::force_mechanism_close_and_charging ||
+                     urgencyStopEventFlow == event::flow::manual_control_base_point_and_charging ||
+                     urgencyStopEventFlow == event::flow::manual_control_over_success ||
+                     urgencyStopEventFlow == event::flow::hardware_interrupt_task ||
+                     urgencyStopEventFlow == event::flow::software_interrupt_task)
+                        ) {
+                    int noticeCode = 6666;
+                    time_t t;
+                    t = time(NULL);
+                    long noticeTime = t;
+                    std::string noticeTitle = "pause";
+                    std::string noticeMessage = "unsupport pause mode";
+                    std::string solution = "";
+                    NoticeManager::get_instance()->sendNotice(noticeCode, noticeTime, noticeTitle, noticeMessage,
+                                                              solution);
+                    // set to front point
+                    setFlow(stopEventFlow());
+                    event_status = stopStatus();
+                    pointDeque.push_back(stopPoint());
+                } else {
+                    LOG(INFO) << "handlePoint flow : 手动暂停任务，增加暂停拦截 ...";
+                    event_status = event::status::MANUAL_STATE; //修改状态到MANUAL_STATE
+                    setPauseInterception(true);      //暂停标志位置为true
+                    PointPlanner::instance().cancelGoal(); //先取消当前的导航点
+                    async::TimerCall::instance().baseLoop()->cancelAny(); //停止超时计时器计时
+                    if (!plannerQueue.empty()) {
+                        auto currentPoint = findFrontPoint(); //取消的的导航点再继续放入队列
+                        plannerQueue.push_front(currentPoint);
+                    }
+                    setFlow(event::flow::manual_task_pause); //流程置回暂停
+                    //重新打开所有清洁机构
+                    MechanismManager::instance().forceControlWorkStatus(workTask.getWorkStatus());
+                }
             }
         }
     }
@@ -589,7 +596,7 @@ void AsyncTaskCall::goodGame() {
             LOG(ERROR) << "goodGame -> force_over_success";
             break;
         }
-        case event::flow::force_task_pause: {
+        case event::flow::urgency_stop_pause: {
             LOG(ERROR) << "goodGame -> force_task_pause";
             break;
         }
@@ -927,7 +934,7 @@ void AsyncTaskCall::forceBackToBase(int force_type) {
             event_flow == event::flow::manual_control_base_point_and_charging ||
             event_flow == event::flow::manual_task_pause ||
             event_flow == event::flow::manual_cleaning ||
-            event_flow == event::flow::force_task_pause) {
+            event_flow == event::flow::urgency_stop_pause) {
             return;
         }
         if (ZooInnerStatus::instance().getUrgencyStopStatus()) {

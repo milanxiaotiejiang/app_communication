@@ -40,7 +40,7 @@ namespace event {
         force_base_point_and_close_mechanism,//强制返回基站成功，准备收起清洁机构
         force_mechanism_close_and_charging,//强制返回后收起完清洁机构，准备回充
         force_over_success,//强制结束成功
-        force_task_pause,//急停中
+        urgency_stop_pause,//急停中
 
         manual_control_over_and_move_base_point,//手动控制强制返回基站点位，一般用于开机后不在基站位置
         manual_control_back_try_move_base_point,//手动控制返回基站点位有误差，重试
