@@ -87,7 +87,7 @@ class PlanPo {
 public:
     std::string map_id;
     double robot_radius;//机器人半径 0.1-0.3
-    int map_correction_closing_neighborhood_size;//外围区域闭合邻域大小 0-5
+    int map_correction_closing_neighborhood_size;//外围区域闭合邻域大小 0-10
     double grid_obstacle_offset;//障碍物的额外偏移 0-0.3
     double path_eps;//路径规划时两点间距  1-10
     double min_cell_area;//最小规划面积 30-500
