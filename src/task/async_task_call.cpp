@@ -19,6 +19,7 @@
 #include "model/CleanHistory.h"
 #include "manager/InternalEventPubManager.h"
 #include "manager/NoticeManager.h"
+#include "model/Station.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -1008,7 +1009,8 @@ void AsyncTaskCall::handleSpecialPoint(const RealPoint &point) {
         peculiarTriggerBack([this]() {
             event_status = event::status::FORCE_STATE;
             setFlow(event::flow::force_over_and_move_base_point);
-            LOG(INFO) << "handlePoint flow : "                         "污水箱满/清水箱空/电机堵转导致需要强制返回基站点 ...";
+            LOG(INFO)
+                    << "handlePoint flow : "                         "污水箱满/清水箱空/电机堵转导致需要强制返回基站点 ...";
         });
         //清洁记录
         if (point.getSpecialInfo().clean_water_level_check_failed_) {
@@ -1245,7 +1247,7 @@ void AsyncTaskCall::peculiarDisposeBasePoint(const RealPoint &point,
     geometry_msgs::Pose2D current_pose = MapAttribute::instance().getRobotPositionPose();
     //判断一下是否真的在基站点
     bool isInBasePoint =
-            ((abs(current_pose.x + 0.3) < 0.5) && (abs(current_pose.y) < 0.5) &&
+            ((abs(current_pose.x - RETURN_POINT_X_) < 0.5) && (abs(current_pose.y) < 0.5) &&
              (abs(current_pose.theta) < 1.0));
     if (isInBasePoint == false) {
         LOG(INFO) << "没有完全返回摆渡点，误报！！！！！！！！";

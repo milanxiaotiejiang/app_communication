@@ -8,6 +8,7 @@
 #include "RealPoint.h"
 #include <actionlib/client/simple_action_client.h>
 #include "move_base_msgs/MoveBaseAction.h"
+#include "model/Station.h"
 
 class PointPlanner {
 private:
