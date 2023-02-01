@@ -90,47 +90,45 @@ void SelfCheckSubscribe::ThreadHandle() {
 //                  << " laser_scan:" << laser_scan_->isValid() << std::endl;
         checkEnable();
         if (cameras_[0]->checkEnabled()) {
-            if (cameras_[0]->isValid() == false) {
+            if (cameras_[0]->needPublish()) {
                 pubError(CAMERA2_NO_DATA); // down inu
             }
-            if (cameras_[1]->isValid() == false) {
+            if (cameras_[1]->needPublish()) {
                 pubError(CAMERA1_NO_DATA); // up inu
             }
         }
-        if (imu_->isValid() == false) {
+        if (imu_->needPublish()) {
             pubError(IMU_NO_DATA);
         }
-        if (laser_scan_->isValid() == false) {
-            pubError(LASER_NO_DATA);
-        }
-        if (odom_->isValid() == false) {
+        if (odom_->needPublish()) {
             pubError(ODOM_NO_DATA);
         }
         //检查超声传感器自检功能是否使能
         if (ultraSonic_->check_enabled()) {
-            if (ultraSonic_->is_ultra_1_valid() == false) {
+            if (ultraSonic_->is_ultra_1_need_publish()) {
                 pubError(ULTRASONIC1_ABNORMAL_OVER_30_SECOND);
             }
-            if (ultraSonic_->is_ultra_2_valid() == false) {
+            if (ultraSonic_->is_ultra_2_need_publish()) {
                 pubError(ULTRASONIC2_ABNORMAL_OVER_30_SECOND);
             }
         }
-        if (bump_->is_bump_0_valid() == false) {
+        if (bump_->is_bump_0_need_publish()) {
             pubError(BUMP1_ABNORMAL_OVER_30_SECOND);
         }
-        if (bump_->is_bump_1_valid() == false) {
+        if (bump_->is_bump_1_need_publish()) {
             pubError(BUMP2_ABNORMAL_OVER_30_SECOND);
         }
-        if (bump_->is_bump_2_valid() == false) {
+        if (bump_->is_bump_2_need_publish()) {
             pubError(BUMP3_ABNORMAL_OVER_30_SECOND);
         }
-        if (bump_->is_bump_3_valid() == false) {
+        if (bump_->is_bump_3_need_publish()) {
             pubError(BUMP4_ABNORMAL_OVER_30_SECOND);
         }
         if (bms_->isValid() == false) {
             pubError(BMS_HOP);
         }
         if (tracked_pose_->isBiasDetectValid() == false) {
+            tracked_pose_->resetBiasDetectValid();
             pubError(BIAS_DETECTED);
         }
         if (tracked_pose_->isTrackedPoseValid() == false) {
@@ -157,18 +155,19 @@ void SelfCheckSubscribe::moveBaseErrorCB(const std_msgs::Int32ConstPtr &msg) {
         case 3003:
             error_type = GLOBAL_COST_MAP_GET_FAILED;
             break;
-        case 3004:
-            error_type = GET_CURRENT_POSE_FAILED;
-            break;
-        case 3005:
-            error_type = GLOBAL_PLAN_FAILED;
-            break;
+            //太多了不上报了
+            // case 3004:
+            //     error_type = GET_CURRENT_POSE_FAILED;
+            //     break;
+            // case 3005:
+            //     error_type = GLOBAL_PLAN_FAILED;
+            //     break;
         case 3006:
             error_type = SET_LOCAL_PLAN_FAILED;
             break;
-        case 3007:
-            error_type = LOCAL_CONTROL_FAILED;
-            break;
+            // case 3007:
+            //     error_type = LOCAL_CONTROL_FAILED;
+            // break;
         case 3010:
             error_type = PLANNING_RECOVERY_FAILED_AND_SKIP;
             break;
@@ -187,6 +186,8 @@ void SelfCheckSubscribe::moveBaseErrorCB(const std_msgs::Int32ConstPtr &msg) {
         case 3015:
             error_type = SONAR_RECOVERY_TIME_OUT;
             break;
+        default:
+            return;
     }
     pubError(error_type);
 

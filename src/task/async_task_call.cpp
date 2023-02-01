@@ -19,6 +19,7 @@
 #include "model/CleanHistory.h"
 #include "manager/InternalEventPubManager.h"
 #include "manager/NoticeManager.h"
+#include "model/Station.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -597,7 +598,7 @@ void AsyncTaskCall::goodGame() {
             break;
         }
         case event::flow::urgency_stop_pause: {
-            LOG(ERROR) << "goodGame -> force_task_pause";
+            LOG(ERROR) << "goodGame -> urgency_stop_pause";
             break;
         }
         case event::flow::manual_control_over_and_move_base_point: {
@@ -1015,7 +1016,7 @@ void AsyncTaskCall::handleSpecialPoint(const RealPoint &point) {
         peculiarTriggerBack([this]() {
             event_status = event::status::FORCE_STATE;
             setFlow(event::flow::force_over_and_move_base_point);
-            LOG(INFO) << "handlePoint flow : "                         "污水箱满/清水箱空/电机堵转导致需要强制返回基站点 ...";
+            LOG(INFO) << "handlePoint flow : 污水箱满/清水箱空/电机堵转导致需要强制返回基站点 ...";
         });
         //清洁记录
         if (point.getSpecialInfo().clean_water_level_check_failed_) {
@@ -1037,8 +1038,7 @@ void AsyncTaskCall::handleSpecialPoint(const RealPoint &point) {
         peculiarTriggerBack([this]() {
             event_status = event::status::FORCE_STATE;
             setFlow(event::flow::manual_control_over_and_move_base_point);
-            LOG(INFO)
-                    << "handlePoint flow : 不在基站位置，导致需要强制返回基站点 ...";
+            LOG(INFO) << "handlePoint flow : 不在基站位置，导致需要强制返回基站点 ...";
         });
         //清洁记录
         clean_history_db::CleanHistoryCenter::instance().forceBack();
