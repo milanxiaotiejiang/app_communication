@@ -259,8 +259,8 @@ void initDump() {
                                                              true,//如果为ture，不管怎样当未捕捉异常被抛出时都会写入minidump文件，如果为false则必须明确调用了 WriteMinidump 才会写入minidump 文件
                                                              -1);//如果为-1，则使用同线程模式（in-precess），如果有一个有效的值，则使用跨线程模式（out-of-process)
 
-    volatile int *a = (int *) (NULL);
-    *a = 1;
+//    volatile int *a = (int *) (NULL);
+//    *a = 1;
 }
 
 void initTest(int argc, char **argv) {
