@@ -17,16 +17,23 @@ bool SegmentationDataBase::loadMap() {
     try {
         auto vectorMap = segmentationStorage.get_all<MapPo>(limit(1));
         if (!vectorMap.empty()) {
-            mapPo = vectorMap.front();
+            auto map = vectorMap.front();
+            auto map_verify_path = map.path + "mymap.pgm";
+            if (access(map_verify_path.c_str(), F_OK) != 0) {
+                segmentationStorage.replace(
+                        MapPo(map.id, "mymap.pgm",
+                              SEGMENTATION_PATH)
+                );
+            }
         } else {
             auto mapId = boost::uuids::to_string(boost::uuids::random_generator()());
             segmentationStorage.replace(
                     MapPo(mapId, "mymap.pgm",
                           SEGMENTATION_PATH)
             );
-            auto againMap = segmentationStorage.get_all<MapPo>(limit(1));
-            mapPo = againMap.front();
         }
+        auto againMap = segmentationStorage.get_all<MapPo>(limit(1));
+        mapPo = againMap.front();
         return true;
     } catch (const std::system_error &e) {
         LOG(ERROR) << e.what();

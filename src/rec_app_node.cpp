@@ -197,9 +197,15 @@ void initLog(char *const *argv) {
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, void *context, bool succeeded) {
     LOG(ERROR) << sys_gettid() << " " << "Dump path : " << descriptor.path() << " " << succeeded;
 
+    std::string real_program_installation_dir = "$HOME/AirCore/app/install/lib/app_communication/";
+    std::string app_ws_clion_path = "/home/admin1/app_ws/devel/lib/app_communication/rec_app_node";
+    if (access(app_ws_clion_path.c_str(), F_OK) == 0) {
+        real_program_installation_dir = "$HOME/app_ws/devel/lib/app_communication/";
+    }
+
     std::string instruct = "$HOME/app_ws/src/app_communication/scripts/parse_crash.sh";
     std::string program_installation_dir = isRealEnvironment ?
-                                           "$HOME/AirCore/app/install/lib/app_communication/"
+                                           real_program_installation_dir
                                                              :
                                            "$HOME/app_ws/devel/lib/app_communication/";
     std::string crash_file_path = descriptor.path();
@@ -245,6 +251,7 @@ static bool filterCallback(void *context) {
 
 void initDump() {
     std::string dumpDirStr = isRealEnvironment ? "/home/admin1/app_dump" : "/home/lijiang/app_dump";
+
     LOG(INFO) << "dumpDirStr  " << dumpDirStr;
     mkdir(dumpDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
     google_breakpad::MinidumpDescriptor descriptor(dumpDirStr);
