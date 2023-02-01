@@ -122,6 +122,9 @@ public:
         laser_sub_ = private_nh_.subscribe<sensor_msgs::LaserScan>(laser_name_, 10, &RplidarLaserScan::LaserScanCB,
                                                                    this);
         last_laser_ = ros::Time::now();
+
+        valid_ = true;
+        last_valid_ = true;
     }
 
     void LaserScanCB(const sensor_msgs::LaserScanConstPtr &laser_msg) {
@@ -129,14 +132,22 @@ public:
     }
 
     bool isValid() {
-        return ros::Time::now() - last_laser_ < ros::Duration(5);
+        last_valid_ = valid_;
+        valid_ = ros::Time::now() - last_laser_ < ros::Duration(5);
+        return valid_;
     }
+
+    //原本是好的变坏了需要发一下
+    bool needPublish() { return (last_valid_ && !valid_); }
 
 private:
     ros::NodeHandle private_nh_;
     ros::Subscriber laser_sub_;
     std::string laser_name_;
     ros::Time last_laser_;
+
+    bool valid_;
+    bool last_valid_;
 };
 
 //imu自检，只需要检查是否有数据
