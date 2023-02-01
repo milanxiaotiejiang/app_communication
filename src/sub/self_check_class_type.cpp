@@ -155,18 +155,19 @@ void SelfCheckSubscribe::moveBaseErrorCB(const std_msgs::Int32ConstPtr &msg) {
         case 3003:
             error_type = GLOBAL_COST_MAP_GET_FAILED;
             break;
-        case 3004:
-            error_type = GET_CURRENT_POSE_FAILED;
-            break;
-        case 3005:
-            error_type = GLOBAL_PLAN_FAILED;
-            break;
+            //太多了不上报了
+            // case 3004:
+            //     error_type = GET_CURRENT_POSE_FAILED;
+            //     break;
+            // case 3005:
+            //     error_type = GLOBAL_PLAN_FAILED;
+            //     break;
         case 3006:
             error_type = SET_LOCAL_PLAN_FAILED;
             break;
-        case 3007:
-            error_type = LOCAL_CONTROL_FAILED;
-            break;
+            // case 3007:
+            //     error_type = LOCAL_CONTROL_FAILED;
+            // break;
         case 3010:
             error_type = PLANNING_RECOVERY_FAILED_AND_SKIP;
             break;
@@ -185,6 +186,8 @@ void SelfCheckSubscribe::moveBaseErrorCB(const std_msgs::Int32ConstPtr &msg) {
         case 3015:
             error_type = SONAR_RECOVERY_TIME_OUT;
             break;
+        default:
+            return;
     }
     pubError(error_type);
 
