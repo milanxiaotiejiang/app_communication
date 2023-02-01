@@ -160,6 +160,9 @@ public:
         imu_sub_ = private_nh_.subscribe<sensor_msgs::Imu>(imu_name_, 10, &IMU::IMUCB, this);
 
         last_imu_ = ros::Time::now();
+
+        valid_ = true;
+        last_valid_ = true;
     }
 
     void IMUCB(const sensor_msgs::ImuConstPtr &imu_msg) {
@@ -167,8 +170,13 @@ public:
     }
 
     bool isValid() {
-        return ros::Time::now() - last_imu_ < ros::Duration(5);
+        last_valid_ = valid_;
+        valid_ = ros::Time::now() - last_imu_ < ros::Duration(5);
+        return valid_;
     }
+
+    //原本是好的变坏了需要发一下
+    bool needPublish() { return (last_valid_ && !valid_); }
 
 private:
     ros::NodeHandle private_nh_;
@@ -177,6 +185,9 @@ private:
 
     std::string imu_name_;
     ros::Time last_imu_;
+
+    bool valid_;
+    bool last_valid_;
 };
 
 class TrackedPose {
@@ -252,7 +263,8 @@ public:
     Odom(ros::NodeHandle &n) {
         private_nh_ = n;
         private_nh_.param("odom_name", odom_name_, std::string("/wheel_odom"));
-        odom_valid = true;
+        valid_ = true;
+        last_valid_ = true;
         odom_sub_ = private_nh_.subscribe<nav_msgs::Odometry>(odom_name_, 10, &Odom::OdomCB, this);
     }
 
@@ -267,25 +279,31 @@ public:
         //里程计两帧之间跳变超过阈值
         if ((abs(last_odom_pose_x - current_odom_pose_x) >= ODOM_THRESHOLD) ||
             (abs(last_odom_pose_y - current_odom_pose_y) >= ODOM_THRESHOLD)) {
-            if (odom_valid == true) {
-                odom_valid = false;
+            if (valid_ == true) {
+                last_valid_ = valid_;
+                valid_ = false;
             }
         } else {
-            odom_valid = true;
+            last_valid_ = valid_;
+            valid_ = true;
         }
         last_wheel_odom.pose = odom_msg->pose;
     }
 
     bool isValid() {
-        return odom_valid;
+        return valid_;
     }
+
+    //原本是好的变坏了需要发一下
+    bool needPublish() { return (last_valid_ && !valid_); }
 
 private:
     ros::NodeHandle private_nh_;
     ros::Subscriber odom_sub_;
     std::string odom_name_;
 
-    bool odom_valid;
+    bool valid_;
+    bool last_valid_;
     nav_msgs::Odometry last_wheel_odom;
 };
 

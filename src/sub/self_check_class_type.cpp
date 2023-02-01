@@ -97,10 +97,10 @@ void SelfCheckSubscribe::ThreadHandle() {
                 pubError(CAMERA1_NO_DATA); // up inu
             }
         }
-        if (imu_->isValid() == false) {
+        if (imu_->needPublish()) {
             pubError(IMU_NO_DATA);
         }
-        if (odom_->isValid() == false) {
+        if (odom_->needPublish()) {
             pubError(ODOM_NO_DATA);
         }
         //检查超声传感器自检功能是否使能
