@@ -350,6 +350,8 @@ public:
         private_nh_.param("bump_name", bump_name_, std::string("/mrrobot/bump_sensor"));
 
         bump_0_valid = bump_1_valid = bump_2_valid = bump_3_valid = true;
+        bump_0_last_valid = bump_1_last_valid = bump_2_last_valid =
+        bump_3_last_valid = true;
         bump_sensor_trigger_time_0 = bump_sensor_trigger_time_1 = bump_sensor_trigger_time_2 = bump_sensor_trigger_time_3 = ros::Time::now();
 
         bump_sub_ = private_nh_.subscribe<std_msgs::UInt8MultiArray>(bump_name_, 10, &Bump::bumpCB, this);
@@ -363,18 +365,22 @@ public:
 
         if (temp_bump_0 == 0) {
             bump_sensor_trigger_time_0 = ros::Time::now();
+            bump_0_last_valid = bump_0_valid;
             bump_0_valid = true;
         }
         if (temp_bump_1 == 0) {
             bump_sensor_trigger_time_1 = ros::Time::now();
+            bump_1_last_valid = bump_1_valid;
             bump_1_valid = true;
         }
         if (temp_bump_2 == 0) {
             bump_sensor_trigger_time_2 = ros::Time::now();
+            bump_2_last_valid = bump_2_valid;
             bump_2_valid = true;
         }
         if (temp_bump_3 == 0) {
             bump_sensor_trigger_time_3 = ros::Time::now();
+            bump_3_last_valid = bump_3_valid;
             bump_3_valid = true;
         }
 
@@ -384,6 +390,7 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_0.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_0_valid) {
+                    bump_0_last_valid = bump_0_valid;
                     bump_0_valid = false;
                 }
             }
@@ -393,6 +400,7 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_1.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_1_valid) {
+                    bump_1_last_valid = bump_1_valid;
                     bump_1_valid = false;
                 }
             }
@@ -402,6 +410,7 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_2.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_2_valid) {
+                    bump_2_last_valid = bump_2_valid;
                     bump_2_valid = false;
                 }
             }
@@ -411,6 +420,7 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_3.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_3_valid) {
+                    bump_3_last_valid = bump_3_valid;
                     bump_3_valid = false;
                 }
             }
@@ -421,16 +431,30 @@ public:
         return bump_0_valid;
     }
 
+    bool is_bump_0_need_publish() { return (bump_0_last_valid && !bump_0_valid); }
+
     bool is_bump_1_valid() {
         return bump_1_valid;
+    }
+
+    bool is_bump_1_need_publish() {
+        return (bump_1_last_valid && !bump_1_valid);
     }
 
     bool is_bump_2_valid() {
         return bump_2_valid;
     }
 
+    bool is_bump_2_need_publish() {
+        return (bump_2_last_valid && !bump_2_valid);
+    }
+
     bool is_bump_3_valid() {
         return bump_3_valid;
+    }
+
+    bool is_bump_3_need_publish() {
+        return (bump_3_last_valid && !bump_3_valid);
     }
 
 private:
@@ -448,6 +472,11 @@ private:
     bool bump_1_valid;
     bool bump_2_valid;
     bool bump_3_valid;
+
+    bool bump_0_last_valid;
+    bool bump_1_last_valid;
+    bool bump_2_last_valid;
+    bool bump_3_last_valid;
 };
 
 class UltraSonic {

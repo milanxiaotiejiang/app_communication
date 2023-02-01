@@ -112,16 +112,16 @@ void SelfCheckSubscribe::ThreadHandle() {
                 pubError(ULTRASONIC2_ABNORMAL_OVER_30_SECOND);
             }
         }
-        if (bump_->is_bump_0_valid() == false) {
+        if (bump_->is_bump_0_need_publish()) {
             pubError(BUMP1_ABNORMAL_OVER_30_SECOND);
         }
-        if (bump_->is_bump_1_valid() == false) {
+        if (bump_->is_bump_1_need_publish()) {
             pubError(BUMP2_ABNORMAL_OVER_30_SECOND);
         }
-        if (bump_->is_bump_2_valid() == false) {
+        if (bump_->is_bump_2_need_publish()) {
             pubError(BUMP3_ABNORMAL_OVER_30_SECOND);
         }
-        if (bump_->is_bump_3_valid() == false) {
+        if (bump_->is_bump_3_need_publish()) {
             pubError(BUMP4_ABNORMAL_OVER_30_SECOND);
         }
         if (bms_->isValid() == false) {
