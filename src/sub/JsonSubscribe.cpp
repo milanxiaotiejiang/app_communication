@@ -28,7 +28,7 @@
 #include <utility>
 
 #include "glog/logging.h"
-#include "task/simulation.h"
+#include "simulation.h"
 
 JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
     sub_json_ = handle.subscribe(APP_JSON, 3, &JsonSubscribe::subscribeCallback, this);

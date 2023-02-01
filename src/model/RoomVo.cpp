@@ -247,29 +247,41 @@ void RoomExplorationTarget::setPartition(bool partition) {
     partition = partition;
 }
 
+PlanParam::PlanParam() {}
+
 PlanParam::PlanParam(double robotRadius, int mapCorrectionClosingNeighborhoodSize, double gridObstacleOffset,
-                     double pathEps, double minCellArea, double maxDeviationFromTrack, double roomAreaFactorLowerLimit,
-                     double roomAreaFactorUpperLimit, int neighborhoodIndex, int maxIterations,
-                     double minCriticalPointDistanceFactor, double maxAreaForMerging) : robot_radius(robotRadius),
-                                                                                        map_correction_closing_neighborhood_size(
-                                                                                                mapCorrectionClosingNeighborhoodSize),
-                                                                                        grid_obstacle_offset(
-                                                                                                gridObstacleOffset),
-                                                                                        path_eps(pathEps),
-                                                                                        min_cell_area(minCellArea),
-                                                                                        max_deviation_from_track(
-                                                                                                maxDeviationFromTrack),
-                                                                                        room_area_factor_lower_limit(
-                                                                                                roomAreaFactorLowerLimit),
-                                                                                        room_area_factor_upper_limit(
-                                                                                                roomAreaFactorUpperLimit),
-                                                                                        neighborhood_index(
-                                                                                                neighborhoodIndex),
-                                                                                        max_iterations(maxIterations),
-                                                                                        min_critical_point_distance_factor(
-                                                                                                minCriticalPointDistanceFactor),
-                                                                                        max_area_for_merging(
-                                                                                                maxAreaForMerging) {}
+                     double pathEps, double minCellArea, double maxDeviationFromTrack, int rangeNearBaseStation,
+                     double roomAreaFactorLowerLimit, double roomAreaFactorUpperLimit, int neighborhoodIndex,
+                     int maxIterations, double minCriticalPointDistanceFactor, double maxAreaForMerging,
+                     int distanceFromObstacles, int numberExtension, int multipleContourSpacing) : robot_radius(
+        robotRadius), map_correction_closing_neighborhood_size(mapCorrectionClosingNeighborhoodSize),
+                                                                                                   grid_obstacle_offset(
+                                                                                                           gridObstacleOffset),
+                                                                                                   path_eps(pathEps),
+                                                                                                   min_cell_area(
+                                                                                                           minCellArea),
+                                                                                                   max_deviation_from_track(
+                                                                                                           maxDeviationFromTrack),
+                                                                                                   range_near_base_station(
+                                                                                                           rangeNearBaseStation),
+                                                                                                   room_area_factor_lower_limit(
+                                                                                                           roomAreaFactorLowerLimit),
+                                                                                                   room_area_factor_upper_limit(
+                                                                                                           roomAreaFactorUpperLimit),
+                                                                                                   neighborhood_index(
+                                                                                                           neighborhoodIndex),
+                                                                                                   max_iterations(
+                                                                                                           maxIterations),
+                                                                                                   min_critical_point_distance_factor(
+                                                                                                           minCriticalPointDistanceFactor),
+                                                                                                   max_area_for_merging(
+                                                                                                           maxAreaForMerging),
+                                                                                                   distance_from_obstacles(
+                                                                                                           distanceFromObstacles),
+                                                                                                   number_extension(
+                                                                                                           numberExtension),
+                                                                                                   multiple_contour_spacing(
+                                                                                                           multipleContourSpacing) {}
 
 double PlanParam::getRobotRadius() const {
     return robot_radius;
@@ -293,6 +305,10 @@ double PlanParam::getMinCellArea() const {
 
 double PlanParam::getMaxDeviationFromTrack() const {
     return max_deviation_from_track;
+}
+
+int PlanParam::getRangeNearBaseStation() const {
+    return range_near_base_station;
 }
 
 double PlanParam::getRoomAreaFactorLowerLimit() const {
@@ -319,4 +335,14 @@ double PlanParam::getMaxAreaForMerging() const {
     return max_area_for_merging;
 }
 
-PlanParam::PlanParam() {}
+int PlanParam::getDistanceFromObstacles() const {
+    return distance_from_obstacles;
+}
+
+int PlanParam::getNumberExtension() const {
+    return number_extension;
+}
+
+int PlanParam::getMultipleContourSpacing() const {
+    return multiple_contour_spacing;
+}

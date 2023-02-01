@@ -1,4 +1,5 @@
 #include "rec_app.h"
+#include "simulation.h"
 
 /**
  * 单元测试示例代码
@@ -36,7 +37,6 @@ ScheduleThread *sThd = nullptr;
 MessageBus *MessageBusManager::getMessageBus() const { return messageBus; }
 
 ThreadPool pool(3);
-bool isRealEnvironment;
 
 int main(int argc, char **argv) {
 
@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
 
 void judgeEnvironment() {
     DIR *pAdmin = opendir("/home/admin1");
-    isRealEnvironment = pAdmin != nullptr;
+    Environment::instance().isRealEnvironment = pAdmin != nullptr;
     if (pAdmin != nullptr) {
         closedir(pAdmin);
     }
@@ -156,7 +156,8 @@ void judgeEnvironment() {
 
 void initLog(char *const *argv) {
     // sudo apt-get install libgoogle-glog-dev
-    std::string logDirStr = isRealEnvironment ? "/home/admin1/app_log" : "/home/lijiang/app_log";
+    std::string logDirStr = Environment::instance().isRealEnvironment ?
+                            "/home/admin1/app_log" : "/home/lijiang/app_log";
     mkdir(logDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
     FLAGS_logtostderr = false; //设置日志消息是否转到标准输出而不是日志文件(false)
@@ -204,9 +205,9 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
     }
 
     std::string instruct = "$HOME/app_ws/src/app_communication/scripts/parse_crash.sh";
-    std::string program_installation_dir = isRealEnvironment ?
+    std::string program_installation_dir = Environment::instance().isRealEnvironment ?
                                            real_program_installation_dir
-                                                             :
+                                                                                     :
                                            "$HOME/app_ws/devel/lib/app_communication/";
     std::string crash_file_path = descriptor.path();
     unsigned long start = crash_file_path.find("app_dump/") + 9;
@@ -250,7 +251,8 @@ static bool filterCallback(void *context) {
 }
 
 void initDump() {
-    std::string dumpDirStr = isRealEnvironment ? "/home/admin1/app_dump" : "/home/lijiang/app_dump";
+    std::string dumpDirStr = Environment::instance().isRealEnvironment ? "/home/admin1/app_dump"
+                                                                       : "/home/lijiang/app_dump";
 
     LOG(INFO) << "dumpDirStr  " << dumpDirStr;
     mkdir(dumpDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
@@ -267,7 +269,7 @@ void initDump() {
 }
 
 void initTest(int argc, char **argv) {
-    if (!isRealEnvironment) {
+    if (!Environment::instance().isRealEnvironment) {
         Catch::Session().run(argc, argv);
     }
 }

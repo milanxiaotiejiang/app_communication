@@ -11,7 +11,7 @@
 #include "task/manager/MechanismManager.h"
 #include "segmentation/map_attribute.h"
 #include "geometry_msgs/Pose2D.h"
-#include "task/simulation.h"
+#include "simulation.h"
 #include "task/model/PointProgressVo.h"
 #include "task/manager/PointProgressPublish.h"
 #include "task/manager/SwitchModePublish.h"
@@ -1112,7 +1112,7 @@ void AsyncTaskCall::callSwitchWorkMode() {
                 ->scheduleLater(std::chrono::seconds(WAITING_TIME_OF_NODE_WORK_MODE), [this]() {
                     sleepTimeout = true;
                 });
-        if (isSimulation) {
+        if (!Environment::instance().isRealEnvironment) {
             async::TimerCall::instance().baseLoop()
                     ->scheduleLater(std::chrono::seconds(5), [this]() {
                         NodeWorkModeManager::instance().setWorkMode(2);

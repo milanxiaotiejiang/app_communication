@@ -5,7 +5,7 @@
 #include "task/manager/StationManager.h"
 #include "manager/PublishInnerManager.h"
 #include "future/timer_call.h"
-#include "task/simulation.h"
+#include "simulation.h"
 
 const int STOP_IN_STATION = 0;
 const int FLAG_IN_STATION = 1;
@@ -23,7 +23,7 @@ void StationManager::outStation() {
     std_msgs::Int32 flag;
     flag.data = FLAG_OUT_STATION;
     pub_flag_out.publish(flag);
-    if (isSimulation) {
+    if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(3), [this]() {
             StationManager::instance().stationOutResult(FLAG_RESULT_SUCCESS);
         });
@@ -38,7 +38,7 @@ void StationManager::backStation() {
     std_msgs::Int32 flag;
     flag.data = FLAG_IN_STATION;
     pub_flag_in.publish(flag);
-    if (isSimulation) {
+    if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(3), [this]() {
             StationManager::instance().stationInResult(FLAG_RESULT_SUCCESS);
 //            StationManager::instance().stationInResult(FLAG_RESULT_FAIL);

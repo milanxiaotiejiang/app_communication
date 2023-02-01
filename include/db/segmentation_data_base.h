@@ -33,19 +33,23 @@ public:
 
     void reRoomName(int targetId, const std::string &name);
 
-    void setPlanParam(const std::string &map_id,
-                      double robot_radius,
-                      int map_correction_closing_neighborhood_size,
-                      double grid_obstacle_offset,
-                      double path_eps,
-                      double min_cell_area,
-                      double max_deviation_from_track,
-                      double room_area_factor_lower_limit,
-                      double room_area_factor_upper_limit,
-                      int neighborhood_index,
-                      int max_iterations,
-                      double min_critical_point_distance_factor,
-                      double max_area_for_merging);
+    void setPlanParam(const std::string &mapId,
+                      double robotRadius,
+                      int mapCorrectionClosingNeighborhoodSize,
+                      double gridObstacleOffset,
+                      double pathEps,
+                      double minCellArea,
+                      double maxDeviationFromTrack,
+                      int rangeNearBaseStation,
+                      double roomAreaFactorLowerLimit,
+                      double roomAreaFactorUpperLimit,
+                      int neighborhoodIndex,
+                      int maxIterations,
+                      double minCriticalPointDistanceFactor,
+                      double maxAreaForMerging,
+                      int distanceFromObstacles,
+                      int numberExtension,
+                      int multipleContourSpacing);
 
     PlanPo getDbPlan(std::string map_id);
 };

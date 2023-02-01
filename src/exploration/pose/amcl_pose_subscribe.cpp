@@ -5,7 +5,7 @@
 #include "exploration/pose/amcl_pose_subscribe.h"
 #include "segmentation/map_attribute.h"
 #include "tf/transform_listener.h"
-#include "task/simulation.h"
+#include "simulation.h"
 #include <geometry_msgs/Pose2D.h>
 
 AmclPoseSubscribe::AmclPoseSubscribe(ros::NodeHandle handle) : handle(handle) {
@@ -24,7 +24,7 @@ void AmclPoseSubscribe::subscribeCallback(const geometry_msgs::PoseWithCovarianc
     pose2D.x = point.x;
     pose2D.y = point.y;
     pose2D.theta = tf::getYaw(orientation);
-    if (isSimulation)
+    if (!Environment::instance().isRealEnvironment)
         MapAttribute::instance().setRobotPositionPose(pose2D);
 }
 

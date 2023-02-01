@@ -11,7 +11,7 @@
 #include "segmentation/CvUtils.h"
 #include "BaseThrowable.h"
 #include "exploration/ExplorationCenter.h"
-#include "task/simulation.h"
+#include "simulation.h"
 
 static bool DEBUG_DISPLAYS_SHOW = false;
 

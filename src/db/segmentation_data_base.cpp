@@ -159,19 +159,20 @@ void SegmentationDataBase::reRoomName(int targetId, const std::string &name) {
     });
 }
 
-void SegmentationDataBase::setPlanParam(const std::string &map_id, double robot_radius,
-                                        int map_correction_closing_neighborhood_size,
-                                        double grid_obstacle_offset, double path_eps,
-                                        double min_cell_area, double max_deviation_from_track,
-                                        double room_area_factor_lower_limit,
-                                        double room_area_factor_upper_limit,
-                                        int neighborhood_index, int max_iterations,
-                                        double min_critical_point_distance_factor,
-                                        double max_area_for_merging) {
-    PlanPo planPo(map_id, robot_radius, map_correction_closing_neighborhood_size,
-                  grid_obstacle_offset, path_eps, min_cell_area, max_deviation_from_track,
-                  room_area_factor_lower_limit, room_area_factor_upper_limit,
-                  neighborhood_index, max_iterations, min_critical_point_distance_factor, max_area_for_merging);
+void SegmentationDataBase::setPlanParam(const std::string &mapId, double robotRadius,
+                                        int mapCorrectionClosingNeighborhoodSize,
+                                        double gridObstacleOffset, double pathEps, double minCellArea,
+                                        double maxDeviationFromTrack,
+                                        int rangeNearBaseStation, double roomAreaFactorLowerLimit,
+                                        double roomAreaFactorUpperLimit,
+                                        int neighborhoodIndex, int maxIterations, double minCriticalPointDistanceFactor,
+                                        double maxAreaForMerging, int distanceFromObstacles, int numberExtension,
+                                        int multipleContourSpacing) {
+    PlanPo planPo(mapId, robotRadius, mapCorrectionClosingNeighborhoodSize,
+                  gridObstacleOffset, pathEps, minCellArea, maxDeviationFromTrack,
+                  rangeNearBaseStation, roomAreaFactorLowerLimit, roomAreaFactorUpperLimit,
+                  neighborhoodIndex, maxIterations, minCriticalPointDistanceFactor, maxAreaForMerging,
+                  distanceFromObstacles, numberExtension, multipleContourSpacing);
     segmentationStorage.replace(planPo);
 }
 

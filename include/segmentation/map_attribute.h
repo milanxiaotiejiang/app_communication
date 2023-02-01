@@ -44,6 +44,7 @@ private:
     const double path_eps_ = 1.0;
     const double min_cell_area_ = 100.0;
     const int max_deviation_from_track_ = -1;
+    const int range_near_base_station_ = 5;
 
     const double room_area_factor_lower_limit_ = 0.1;
     const double room_area_factor_upper_limit_ = 1000000;
@@ -51,6 +52,10 @@ private:
     const int max_iterations_ = 150;
     const double min_critical_point_distance_factor_ = 0.5;
     const double max_area_for_merging_ = 12.5;
+
+    const int distance_from_obstacles_ = 1;
+    const int number_extension_ = 1;
+    const int multiple_contour_spacing_ = 1;
 
 public:
     static auto &instance() {

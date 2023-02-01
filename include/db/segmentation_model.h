@@ -92,6 +92,7 @@ public:
     double path_eps;//路径规划时两点间距  1-10
     double min_cell_area;//最小规划面积 30-500
     double max_deviation_from_track;//轨道最大允许偏移量 -1-5
+    int range_near_base_station;//基站范围 0-10
 
     double room_area_factor_lower_limit;//临界线分隔的区域允许具有的最小面积 0.1-20
     double room_area_factor_upper_limit;//临界线分隔的区域允许具有的最大面积 100-1000000
@@ -100,12 +101,17 @@ public:
     double min_critical_point_distance_factor;//消除临界点与之前两个临界点之间的最小距离 0-1.3
     double max_area_for_merging;//与其周围房间合并的房间的最大面积 3-1000
 
+    int distance_from_obstacles;//与障碍物的间距 1-3
+    int number_extension;//生成贴边轮廓的个数
+    int multiple_contour_spacing;//多个贴边轮廓的间距
+
     PlanPo();
 
     PlanPo(const std::string &mapId, double robotRadius, int mapCorrectionClosingNeighborhoodSize,
            double gridObstacleOffset, double pathEps, double minCellArea, double maxDeviationFromTrack,
-           const double roomAreaFactorLowerLimit, const double roomAreaFactorUpperLimit, const int neighborhoodIndex,
-           const int maxIterations, const double minCriticalPointDistanceFactor, const double maxAreaForMerging);
+           int rangeNearBaseStation, double roomAreaFactorLowerLimit, double roomAreaFactorUpperLimit,
+           int neighborhoodIndex, int maxIterations, double minCriticalPointDistanceFactor, double maxAreaForMerging,
+           int distanceFromObstacles, int numberExtension, int multipleContourSpacing);
 };
 
 

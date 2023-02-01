@@ -108,12 +108,16 @@ void MapAttribute::loadDefaultPlanParam() {
                                                   path_eps_,
                                                   min_cell_area_,
                                                   max_deviation_from_track_,
+                                                  range_near_base_station_,
                                                   room_area_factor_lower_limit_,
                                                   room_area_factor_upper_limit_,
                                                   neighborhood_index_,
                                                   max_iterations_,
                                                   min_critical_point_distance_factor_,
-                                                  max_area_for_merging_);
+                                                  max_area_for_merging_,
+                                                  distance_from_obstacles_,
+                                                  number_extension_,
+                                                  multiple_contour_spacing_);
 }
 
 void

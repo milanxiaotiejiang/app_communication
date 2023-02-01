@@ -182,7 +182,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
         cv::bitwise_xor(map, temp, map);
     }
 
-    cv::circle(map, stationPoint, 4, cv::Scalar(0), CV_FILLED);
+    cv::circle(map, stationPoint, plan.range_near_base_station, cv::Scalar(0), CV_FILLED);
 
     cv::Mat latelyMap;
     if (model == ExplorationModel::FULL) {
