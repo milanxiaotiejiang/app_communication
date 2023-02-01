@@ -90,18 +90,15 @@ void SelfCheckSubscribe::ThreadHandle() {
 //                  << " laser_scan:" << laser_scan_->isValid() << std::endl;
         checkEnable();
         if (cameras_[0]->checkEnabled()) {
-            if (cameras_[0]->isValid() == false) {
+            if (cameras_[0]->needPublish()) {
                 pubError(CAMERA2_NO_DATA); // down inu
             }
-            if (cameras_[1]->isValid() == false) {
+            if (cameras_[1]->needPublish()) {
                 pubError(CAMERA1_NO_DATA); // up inu
             }
         }
         if (imu_->isValid() == false) {
             pubError(IMU_NO_DATA);
-        }
-        if (laser_scan_->isValid() == false) {
-            pubError(LASER_NO_DATA);
         }
         if (odom_->isValid() == false) {
             pubError(ODOM_NO_DATA);

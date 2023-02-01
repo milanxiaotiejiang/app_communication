@@ -65,6 +65,8 @@ public:
         pointcloud_sub_ = private_nh_.subscribe<sensor_msgs::PointCloud2>(pointcloud_name_, 10, &Camera::PointCloudCB,
                                                                           this);
         enabled_ = false;
+        valid_ = true;
+        last_valid_ = true;
     }
 
     void ImageCB(const sensor_msgs::ImageConstPtr &depth_msg) {
@@ -77,10 +79,15 @@ public:
 
     bool isValid() {
         ros::Time now = ros::Time::now();
-        return (now - last_image_ < ros::Duration(5) && now - last_pointcloud_ < ros::Duration(5));
+        last_valid_ = valid_;
+        valid_ = (now - last_image_ < ros::Duration(5) && now - last_pointcloud_ < ros::Duration(5));
+        return valid_;
     }
 
     bool checkEnabled() { return enabled_; }
+
+    //原本是好的变坏了需要发一下
+    bool needPublish() { return (last_valid_ && !valid_); }
 
     bool setEnabled(bool enabled) {
         enabled_ = enabled;
@@ -97,6 +104,9 @@ private:
     std::string pointcloud_name_;
     ros::Time last_image_;
     ros::Time last_pointcloud_;
+
+    bool valid_;
+    bool last_valid_;
 
     bool enabled_;
 
