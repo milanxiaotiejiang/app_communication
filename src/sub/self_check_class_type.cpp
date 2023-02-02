@@ -104,10 +104,10 @@ void SelfCheckSubscribe::ThreadHandle() {
         }
         //imu
         imu_->isValid();
-                    if (imu_->publishFlag()) {
-                        pubError(IMU_NO_DATA);
-                        imu_->resetPublish();
-                    }
+        if (imu_->publishFlag()) {
+            pubError(IMU_NO_DATA);
+            imu_->resetPublish();
+        }
         //odom
         if (odom_->publishFlag()) {
             pubError(ODOM_NO_DATA);
