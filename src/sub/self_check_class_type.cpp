@@ -95,13 +95,18 @@ void SelfCheckSubscribe::ThreadHandle() {
             cameras_[1]->isValid();
             if (cameras_[0]->publishFlag()) {
               pubError(CAMERA2_NO_DATA); // down inu
+              cameras_[0]->resetPublish();
             }
             if (cameras_[1]->publishFlag()) {
                 pubError(CAMERA1_NO_DATA); // up inu
+                cameras_[1]->resetPublish();
             }
         }
-        if (imu_->needPublish()) {
+        //imu
+        imu_->isValid();
+        if (imu_->publishFlag()){
             pubError(IMU_NO_DATA);
+            imu_->resetPublish();
         }
         if (odom_->needPublish()) {
             pubError(ODOM_NO_DATA);

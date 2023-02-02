@@ -185,6 +185,7 @@ public:
 
         valid_ = true;
         last_valid_ = true;
+        publish_flag_ = false;
     }
 
     void IMUCB(const sensor_msgs::ImuConstPtr &imu_msg) {
@@ -194,13 +195,22 @@ public:
     bool isValid() {
         last_valid_ = valid_;
         valid_ = ros::Time::now() - last_imu_ < ros::Duration(5);
+        if (needPublish()) {
+          setPublish();
+        }
         return valid_;
     }
 
     //原本是好的变坏了需要发一下
     bool needPublish() { return (last_valid_ && !valid_); }
 
-private:
+    void setPublish() { publish_flag_ = true; }
+
+    void resetPublish() { publish_flag_ = false; }
+
+    bool publishFlag() { return publish_flag_; }
+
+  private:
     ros::NodeHandle private_nh_;
     ros::Subscriber imu_sub_;
     ros::Subscriber imu_error_pub_;
@@ -210,6 +220,7 @@ private:
 
     bool valid_;
     bool last_valid_;
+    bool publish_flag_;
 };
 
 class TrackedPose {
