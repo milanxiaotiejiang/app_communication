@@ -67,6 +67,7 @@ public:
         enabled_ = false;
         valid_ = true;
         last_valid_ = true;
+        publish_flag_ = false;
     }
 
     void ImageCB(const sensor_msgs::ImageConstPtr &depth_msg) {
@@ -81,6 +82,9 @@ public:
         ros::Time now = ros::Time::now();
         last_valid_ = valid_;
         valid_ = (now - last_image_ < ros::Duration(5) && now - last_pointcloud_ < ros::Duration(5));
+        if(needPublish()){
+            setPublish();
+        }
         return valid_;
     }
 
@@ -88,6 +92,12 @@ public:
 
     //原本是好的变坏了需要发一下
     bool needPublish() { return (last_valid_ && !valid_); }
+
+    void setPublish() { publish_flag_ = true; }
+
+    void resetPublish() { publish_flag_ = false; }
+
+    bool publishFlag() { return publish_flag_; }
 
     bool setEnabled(bool enabled) {
         enabled_ = enabled;
@@ -107,6 +117,7 @@ private:
 
     bool valid_;
     bool last_valid_;
+    bool publish_flag_;
 
     bool enabled_;
 
@@ -139,6 +150,8 @@ public:
 
     //原本是好的变坏了需要发一下
     bool needPublish() { return (last_valid_ && !valid_); }
+
+
 
 private:
     ros::NodeHandle private_nh_;

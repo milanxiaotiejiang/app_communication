@@ -90,10 +90,13 @@ void SelfCheckSubscribe::ThreadHandle() {
 //                  << " laser_scan:" << laser_scan_->isValid() << std::endl;
         checkEnable();
         if (cameras_[0]->checkEnabled()) {
-            if (cameras_[0]->needPublish()) {
-                pubError(CAMERA2_NO_DATA); // down inu
+            //更新后判断是否需要发送
+            cameras_[0]->isValid();
+            cameras_[1]->isValid();
+            if (cameras_[0]->publishFlag()) {
+              pubError(CAMERA2_NO_DATA); // down inu
             }
-            if (cameras_[1]->needPublish()) {
+            if (cameras_[1]->publishFlag()) {
                 pubError(CAMERA1_NO_DATA); // up inu
             }
         }
