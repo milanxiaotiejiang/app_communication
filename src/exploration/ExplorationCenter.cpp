@@ -19,6 +19,7 @@
 #include "exploration/line.h"
 #include "segmentation/SegmentationCenter.h"
 #include "db/segmentation_data_base.h"
+#include "exploration/infinitely_near_boundary.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 
@@ -62,12 +63,12 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 //    const cv::Mat &map = SegmentationCenter::instance().generateMat();
 //    generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0),
 //                         exploration_path, point_path);
-//
-//    pathPublish(exploration_path);
 
     //4
 //    const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//    infinitelyNearBoundary(map);
+//    infinitelyNearBoundary(map, exploration_path, point_path);
+//
+//    pathPublish(exploration_path);
 }
 
 void ExplorationCenter::uninstall() {
@@ -75,12 +76,16 @@ void ExplorationCenter::uninstall() {
     delete poseSubscribe;
 }
 
-void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map) {
+void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
+                                               std::vector<geometry_msgs::Pose2D> &pose_path,
+                                               std::vector<cv::Point> &point_path) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
     }
 
     cv::Mat map = room_map.clone();
+
+    cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
     const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
 
     //禁区虚拟墙
@@ -92,40 +97,53 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map) {
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
     double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
-    int map_prohibition_expand_size_ = (int) std::floor(grid_spacing_in_pixel);
+    int half_grid_spacing_as_int_ = (int) std::floor(0.5 * grid_spacing_in_pixel);
 
-    if (!baseStationAvailable(map, stationPoint)) {
-        LOG(ERROR)
-                << "RoomExplorationServer::exploreRoom: Warning: Obstacles around the base station.";
-        throw app::exception(make_error_code(error::exploration_obstacles_around_the_base_station));
-    }
-    cv::erode(map, map, cv::Mat(), cv::Point(-1, -1), map_prohibition_expand_size_);
+    int distance_from_obstacles = plan.distance_from_obstacles > 0 ? plan.distance_from_obstacles : 1;
+    int number_extension = plan.number_extension > 0 ? plan.number_extension : 1;
+    int multiple_contour_spacing = plan.multiple_contour_spacing > 0 ? plan.multiple_contour_spacing : 1;
+    LOG(INFO) << "(infinitely near boundary) distance_from_obstacles: " << distance_from_obstacles;
+    LOG(INFO) << "(infinitely near boundary) number_extension: " << number_extension;
+    LOG(INFO) << "(infinitely near boundary) multiple_contour_spacing: " << multiple_contour_spacing;
 
-    cv::Mat temp;
-    cv::erode(map, temp, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
-    cv::dilate(temp, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
+//    cv::Mat temp;
+//    cv::erode(map, temp, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
+//    cv::dilate(temp, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
+
     cv::circle(map, stationPoint, plan.range_near_base_station, cv::Scalar(0), CV_FILLED);
+
     cv::Mat latelyMap = findClosestPointRoom(map, stationPoint);
 
-    auto normMap = latelyMap.clone();
-
-    auto borderMat = latelyMap.clone();
-    cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(1, 1), 2);
-    std::vector<std::vector<cv::Point>> borderContours;
-    cv::findContours(borderMat, borderContours, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
-
-    int num = 0;
-    for (const auto &vector: borderContours) {
-        for (const auto &point: vector) {
-            cv::circle(normMap, point, 1, cv::Scalar(160), CV_FILLED);
-            if (num % 10 == 0) {
-
-            }
-            num++;
-        }
+    if (!removeUnconnectedRoomParts(latelyMap)) {
+        LOG(ERROR)
+                << "RoomExplorationServer::infinitelyNearBoundary: Warning: the requested room is too small for generating exploration trajectories.";
+        throw app::exception(make_error_code(error::exploration_room_is_too_small));
     }
-    cv::imshow("normMap", normMap);
-    cv::waitKey();
+
+    if (!detectionTooSmallRoom(latelyMap, half_grid_spacing_as_int_ + plan.grid_obstacle_offset)) {
+        throw app::exception(make_error_code(error::room_has_too_small_room));
+    }
+
+    InfinitelyNearBoundary infinitelyNearBoundary;
+    infinitelyNearBoundary.getExplorationPath(latelyMap, pose_path, point_path,
+                                              map_resolution_from_subscription,
+                                              map_origin,
+                                              number_extension,
+                                              distance_from_obstacles,
+                                              multiple_contour_spacing
+    );
+
+    if (pose_path.empty()) {
+        throw app::exception(make_error_code(error::exploration_path_planning_failed));
+    }
+
+//    if (DISPLAY_TRAJECTORY)
+    planning_pose_path_display(room_map, map_origin, pose_path, 2, "planning_pose_path_display");
+
+//    pose2CVPoint(room_map, point_path, pose_path, map_origin);
+//    if (DISPLAY_TRAJECTORY)
+//        planning_point_path_display(room_map, point_path, 1, "planning_point_path_display");
+
 }
 
 void
@@ -554,6 +572,21 @@ void ExplorationCenter::pose2CVPoint(const cv::Mat &room_map, std::vector<cv::Po
         cv::Point point(cols - (item.x - map_origin.x) / map_resolution_from_subscription,
                         rows - (item.y - map_origin.y) / map_resolution_from_subscription);
         pointList.push_back(point);
+    }
+}
+
+void ExplorationCenter::cvPoint2Pose(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &postList,
+                                     const std::vector<cv::Point> &pointList, const cv::Point2d &map_origin) {
+    if (pointList.empty()) {
+        return;
+    }
+    int cols = room_map.cols;
+    int rows = room_map.rows;
+    for (const auto &item: pointList) {
+        geometry_msgs::Pose2D pose;
+        pose.x = (cols - item.x) * map_resolution_from_subscription + map_origin.x;
+        pose.y = (cols - item.y) * map_resolution_from_subscription + map_origin.y;
+        postList.push_back(pose);
     }
 }
 

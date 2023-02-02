@@ -40,6 +40,9 @@ private:
                       const std::vector<geometry_msgs::Pose2D> &postList,
                       const cv::Point2d &map_origin);
 
+    void cvPoint2Pose(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &postList,
+                      const std::vector<cv::Point> &pointList, const cv::Point2d &map_origin);
+
     cv::Mat loadGenerateMap(int grid_spacing_in_pixel);
 
     void optimizePathColumn(std::vector<geometry_msgs::Pose2D> &vector);
@@ -59,7 +62,8 @@ public:
 
     void uninstall();
 
-    void infinitelyNearBoundary(const cv::Mat &room_map);
+    void infinitelyNearBoundary(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
+                                std::vector<cv::Point> &point_path);
 
     void generatePlanningPath(const cv::Mat &room_map, ExplorationModel model,
                               std::vector<geometry_msgs::Pose2D> &exploration_path,

@@ -93,7 +93,9 @@ void AsyncTaskCall::execute() {
 
         if (handle == EXECUTE_HANDLE_UNRECOVERABLE_ERROR) {
             setFlow(event::flow::hardware_interrupt_task);
-            if (event_flow != event::flow::waiting_for_task || !workTask.getId().empty()) {
+            if (
+//                    event_flow != event::flow::waiting_for_task ||
+                    !workTask.getId().empty()) {
                 waitTaskQueue.clear();
                 PointPlanner::instance().cancelGoal();               //先取消当前的导航点
                 async::TimerCall::instance().baseLoop()->cancelAny();//停止超时计时器计时
@@ -151,6 +153,9 @@ void AsyncTaskCall::execute() {
 }
 
 void AsyncTaskCall::handleStop() {
+    if (unrecoverableErrorState) {
+        return;
+    }
     if (urgencyStopState) {
         LOG(INFO) << "急停了 ... ";
         setFlow(event::flow::urgency_stop_pause);//如果是急停，flow设置为force_task_pause
