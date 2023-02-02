@@ -108,8 +108,10 @@ void SelfCheckSubscribe::ThreadHandle() {
             pubError(IMU_NO_DATA);
             imu_->resetPublish();
         }
-        if (odom_->needPublish()) {
+        //odom
+        if (odom_->publishFlag()) {
             pubError(ODOM_NO_DATA);
+            odom_->resetPublish();
         }
         //检查超声传感器自检功能是否使能
         if (ultraSonic_->check_enabled()) {
@@ -135,12 +137,13 @@ void SelfCheckSubscribe::ThreadHandle() {
         if (bms_->isValid() == false) {
             pubError(BMS_HOP);
         }
-        if (tracked_pose_->isBiasDetectValid() == false) {
+        if (!tracked_pose_->isBiasDetectValid()) {
             tracked_pose_->resetBiasDetectValid();
             pubError(BIAS_DETECTED);
         }
-        if (tracked_pose_->isTrackedPoseValid() == false) {
+        if (tracked_pose_->publishFlag()) {
             pubError(TRACKED_POSE_HOP);
+            tracked_pose_->resetPublish();
         }
 
         r.sleep();

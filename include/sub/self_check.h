@@ -231,6 +231,7 @@ public:
         private_nh_.param("bias_detect_name", bias_detect_name_, std::string("/bias_detect"));
 
         tracked_pose_valid = true;
+        tracked_pose_publish_flag_ = false;
         bias_detect_valid = true;
 
         tracked_pose_sub_ = private_nh_.subscribe<geometry_msgs::PoseStamped>(tracked_pose_name_, 10,
@@ -252,6 +253,7 @@ public:
             (abs(last_tracked_pose_y - current_tracked_pose_y) >= POSE_THRESHOLD)) {
             if (tracked_pose_valid == true) {
                 tracked_pose_valid = false;
+                setPublish();
             }
         } else {
             tracked_pose_valid = true;
@@ -279,7 +281,13 @@ public:
         return tracked_pose_valid;
     }
 
-private:
+    void setPublish() { tracked_pose_publish_flag_ = true; }
+
+    void resetPublish() { tracked_pose_publish_flag_ = false; }
+
+    bool publishFlag() { return tracked_pose_publish_flag_; }
+
+  private:
     ros::NodeHandle private_nh_;
     ros::Subscriber bias_detect_sub_;
     ros::Subscriber tracked_pose_sub_;
@@ -288,6 +296,7 @@ private:
     std::string bias_detect_name_;
 
     bool tracked_pose_valid;
+    bool tracked_pose_publish_flag_;
     bool bias_detect_valid;
 
     geometry_msgs::PoseStamped last_tracked_pose;
@@ -301,7 +310,7 @@ public:
         private_nh_ = n;
         private_nh_.param("odom_name", odom_name_, std::string("/wheel_odom"));
         valid_ = true;
-        last_valid_ = true;
+        publish_flag_ = false;
         odom_sub_ = private_nh_.subscribe<nav_msgs::Odometry>(odom_name_, 10, &Odom::OdomCB, this);
     }
 
@@ -317,11 +326,10 @@ public:
         if ((abs(last_odom_pose_x - current_odom_pose_x) >= ODOM_THRESHOLD) ||
             (abs(last_odom_pose_y - current_odom_pose_y) >= ODOM_THRESHOLD)) {
             if (valid_ == true) {
-                last_valid_ = valid_;
                 valid_ = false;
+                setPublish();
             }
         } else {
-            last_valid_ = valid_;
             valid_ = true;
         }
         last_wheel_odom.pose = odom_msg->pose;
@@ -331,8 +339,12 @@ public:
         return valid_;
     }
 
-    //原本是好的变坏了需要发一下
-    bool needPublish() { return (last_valid_ && !valid_); }
+    void setPublish() { publish_flag_ = true; }
+
+    void resetPublish() { publish_flag_ = false; }
+
+    bool publishFlag() { return publish_flag_; }
+
 
 private:
     ros::NodeHandle private_nh_;
@@ -340,7 +352,7 @@ private:
     std::string odom_name_;
 
     bool valid_;
-    bool last_valid_;
+    bool publish_flag_;
     nav_msgs::Odometry last_wheel_odom;
 };
 
