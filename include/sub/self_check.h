@@ -541,7 +541,7 @@ public:
         ul_sensor_trigger_time_1 = ul_sensor_trigger_time_2 = ros::Time::now();
 
         ultra_1_is_valid = ultra_2_is_valid = true;
-        ultra_1_last_valid = ultra_2_last_valid = true;
+        ultra_1_need_publish = ultra_2_need_publish = false;
         ul_sensor_sub_1 = private_nh_.subscribe<sensor_msgs::Range>(ul_sensor_name_1, 10, &UltraSonic::ultrasonicCB_1,
                                                                     this);
         ul_sensor_sub_2 = private_nh_.subscribe<sensor_msgs::Range>(ul_sensor_name_2, 10, &UltraSonic::ultrasonicCB_2,
@@ -554,7 +554,6 @@ public:
             //        std::cout<<"temp_range1  "<<temp_range<<std::endl;
             if (temp_range >= RANGE_THRESHOLD) {
                 ul_sensor_trigger_time_1 = ros::Time::now();
-                ultra_1_last_valid = ultra_1_is_valid;
                 ultra_1_is_valid = true;
             }
 
@@ -562,12 +561,14 @@ public:
                 if ((ul_msg_1->header.stamp.toSec() -
                      ul_sensor_trigger_time_1.toSec()) > 30.0) {
                     // ul_sensor_1_error
-                    ultra_1_last_valid = ultra_1_is_valid;
-                    ultra_1_is_valid = false;
+                    if (ultra_1_is_valid){
+                        ultra_1_need_publish = true;
+                        ultra_1_is_valid = false;
+                    }
+
                 }
             }
         } else {
-          ultra_1_last_valid = ultra_1_is_valid;
           ultra_1_is_valid = true;
         }
     }
@@ -577,7 +578,6 @@ public:
             float temp_range = ul_msg_2->range;
             if (temp_range >= RANGE_THRESHOLD) {
                 ul_sensor_trigger_time_2 = ros::Time::now();
-                ultra_2_last_valid = ultra_2_is_valid;
                 ultra_2_is_valid = true;
             }
 
@@ -588,12 +588,14 @@ public:
                 if ((ul_msg_2->header.stamp.toSec() -
                      ul_sensor_trigger_time_2.toSec()) > 30.0) {
                     // ul_sensor_2_error
-                    ultra_2_last_valid = ultra_2_is_valid;
-                    ultra_2_is_valid = false;
+                    if (ultra_2_is_valid){
+                      ultra_2_need_publish = true;
+                      ultra_2_is_valid = false;
+                    }
+
                 }
             }
         } else {
-          ultra_2_last_valid = ultra_2_is_valid;
           ultra_2_is_valid = true;
         }
     }
@@ -602,15 +604,20 @@ public:
         return ultra_1_is_valid;
     }
 
-    bool is_ultra_1_need_publish() { return (ultra_1_last_valid && !ultra_1_is_valid); }
+    bool is_ultra_1_need_publish() {
+         return (ultra_1_need_publish ); 
+    }
+    void reset_ultra_1_need_publish() { ultra_1_need_publish = false; }
 
     bool is_ultra_2_valid() {
         return ultra_2_is_valid;
     }
 
     bool is_ultra_2_need_publish() {
-      return (ultra_2_last_valid && !ultra_2_is_valid);
+      return (ultra_2_need_publish);
     }
+
+    void reset_ultra_2_need_publish() { ultra_2_need_publish = false; }
 
     bool check_enabled() {
         return enabled_;
@@ -636,8 +643,8 @@ private:
     bool ultra_1_is_valid;
     bool ultra_2_is_valid;
 
-    bool ultra_1_last_valid;
-    bool ultra_2_last_valid;
+    bool ultra_1_need_publish;
+    bool ultra_2_need_publish;
 
     bool enabled_;
 };

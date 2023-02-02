@@ -116,10 +116,12 @@ void SelfCheckSubscribe::ThreadHandle() {
         //检查超声传感器自检功能是否使能
         if (ultraSonic_->check_enabled()) {
             if (ultraSonic_->is_ultra_1_need_publish()) {
+                ultraSonic_->reset_ultra_1_need_publish();
                 pubError(ULTRASONIC1_ABNORMAL_OVER_30_SECOND);
             }
             if (ultraSonic_->is_ultra_2_need_publish()) {
-                pubError(ULTRASONIC2_ABNORMAL_OVER_30_SECOND);
+              ultraSonic_->reset_ultra_2_need_publish();
+              pubError(ULTRASONIC2_ABNORMAL_OVER_30_SECOND);
             }
         }
         if (bump_->is_bump_0_need_publish()) {
