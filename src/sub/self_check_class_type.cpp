@@ -124,18 +124,23 @@ void SelfCheckSubscribe::ThreadHandle() {
         }
         if (bump_->is_bump_0_need_publish()) {
             pubError(BUMP1_ABNORMAL_OVER_30_SECOND);
+            bump_->reset_bump_0_publish_flag();
         }
         if (bump_->is_bump_1_need_publish()) {
             pubError(BUMP2_ABNORMAL_OVER_30_SECOND);
+            bump_->reset_bump_1_publish_flag();
         }
         if (bump_->is_bump_2_need_publish()) {
             pubError(BUMP3_ABNORMAL_OVER_30_SECOND);
+            bump_->reset_bump_2_publish_flag();
         }
         if (bump_->is_bump_3_need_publish()) {
             pubError(BUMP4_ABNORMAL_OVER_30_SECOND);
+            bump_->reset_bump_3_publish_flag();
         }
-        if (bms_->isValid() == false) {
+        if (bms_->publishFlag()) {
             pubError(BMS_HOP);
+            bms_->resetPublish();
         }
         if (!tracked_pose_->isBiasDetectValid()) {
             tracked_pose_->resetBiasDetectValid();
