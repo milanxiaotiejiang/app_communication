@@ -64,11 +64,68 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 //                         exploration_path, point_path);
 //
 //    pathPublish(exploration_path);
+
+    //4
+//    const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//    infinitelyNearBoundary(map);
 }
 
 void ExplorationCenter::uninstall() {
     delete trackedSubscribe;
     delete poseSubscribe;
+}
+
+void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map) {
+    if (!initialize_finish) {
+        throw app::exception(make_error_code(error::exploration_initialize_fail));
+    }
+
+    cv::Mat map = room_map.clone();
+    const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
+
+    //禁区虚拟墙
+    cv::Mat prohibition_image = prohibitionMat(map);
+    cv::Mat andMat;
+    cv::bitwise_and(map, prohibition_image, andMat);
+    cv::bitwise_xor(map, andMat, map);
+
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
+    double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
+    int map_prohibition_expand_size_ = (int) std::floor(grid_spacing_in_pixel);
+
+    if (!baseStationAvailable(map, stationPoint)) {
+        LOG(ERROR)
+                << "RoomExplorationServer::exploreRoom: Warning: Obstacles around the base station.";
+        throw app::exception(make_error_code(error::exploration_obstacles_around_the_base_station));
+    }
+    cv::erode(map, map, cv::Mat(), cv::Point(-1, -1), map_prohibition_expand_size_);
+
+    cv::Mat temp;
+    cv::erode(map, temp, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
+    cv::dilate(temp, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
+    cv::circle(map, stationPoint, plan.range_near_base_station, cv::Scalar(0), CV_FILLED);
+    cv::Mat latelyMap = findClosestPointRoom(map, stationPoint);
+
+    auto normMap = latelyMap.clone();
+
+    auto borderMat = latelyMap.clone();
+    cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(1, 1), 2);
+    std::vector<std::vector<cv::Point>> borderContours;
+    cv::findContours(borderMat, borderContours, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+
+    int num = 0;
+    for (const auto &vector: borderContours) {
+        for (const auto &point: vector) {
+            cv::circle(normMap, point, 1, cv::Scalar(160), CV_FILLED);
+            if (num % 10 == 0) {
+
+            }
+            num++;
+        }
+    }
+    cv::imshow("normMap", normMap);
+    cv::waitKey();
 }
 
 void

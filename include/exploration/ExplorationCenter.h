@@ -59,6 +59,8 @@ public:
 
     void uninstall();
 
+    void infinitelyNearBoundary(const cv::Mat &room_map);
+
     void generatePlanningPath(const cv::Mat &room_map, ExplorationModel model,
                               std::vector<geometry_msgs::Pose2D> &exploration_path,
                               std::vector<cv::Point> &point_path);
