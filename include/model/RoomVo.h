@@ -414,6 +414,7 @@ public:
                 {"robot_radius",                             planParam.robot_radius},
                 {"map_correction_closing_neighborhood_size", planParam.map_correction_closing_neighborhood_size},
                 {"grid_obstacle_offset",                     planParam.grid_obstacle_offset},
+                {"path_eps",                                 planParam.path_eps},
                 {"min_cell_area",                            planParam.min_cell_area},
                 {"max_deviation_from_track",                 planParam.max_deviation_from_track},
                 {"range_near_base_station",                  planParam.range_near_base_station},
