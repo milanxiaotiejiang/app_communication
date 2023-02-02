@@ -136,6 +136,7 @@ public:
 
         valid_ = true;
         last_valid_ = true;
+        publish_flag_ = false;
     }
 
     void LaserScanCB(const sensor_msgs::LaserScanConstPtr &laser_msg) {
@@ -145,19 +146,27 @@ public:
     bool isValid() {
         last_valid_ = valid_;
         valid_ = ros::Time::now() - last_laser_ < ros::Duration(5);
+        if (needPublish()) {
+          setPublish();
+        }
         return valid_;
     }
 
     //原本是好的变坏了需要发一下
     bool needPublish() { return (last_valid_ && !valid_); }
 
+    void setPublish() { publish_flag_ = true; }
 
+    void resetPublish() { publish_flag_ = false; }
 
-private:
+    bool publishFlag() { return publish_flag_; }
+
+  private:
     ros::NodeHandle private_nh_;
     ros::Subscriber laser_sub_;
     std::string laser_name_;
     ros::Time last_laser_;
+    bool publish_flag_;
 
     bool valid_;
     bool last_valid_;
