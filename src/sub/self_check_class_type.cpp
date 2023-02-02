@@ -94,8 +94,8 @@ void SelfCheckSubscribe::ThreadHandle() {
             cameras_[0]->isValid();
             cameras_[1]->isValid();
             if (cameras_[0]->publishFlag()) {
-              pubError(CAMERA2_NO_DATA); // down inu
-              cameras_[0]->resetPublish();
+                pubError(CAMERA2_NO_DATA); // down inu
+                cameras_[0]->resetPublish();
             }
             if (cameras_[1]->publishFlag()) {
                 pubError(CAMERA1_NO_DATA); // up inu
@@ -104,10 +104,10 @@ void SelfCheckSubscribe::ThreadHandle() {
         }
         //imu
         imu_->isValid();
-        if (imu_->publishFlag()){
-            pubError(IMU_NO_DATA);
-            imu_->resetPublish();
-        }
+                    if (imu_->publishFlag()) {
+                        pubError(IMU_NO_DATA);
+                        imu_->resetPublish();
+                    }
         //odom
         if (odom_->publishFlag()) {
             pubError(ODOM_NO_DATA);
@@ -120,8 +120,8 @@ void SelfCheckSubscribe::ThreadHandle() {
                 pubError(ULTRASONIC1_ABNORMAL_OVER_30_SECOND);
             }
             if (ultraSonic_->is_ultra_2_need_publish()) {
-              ultraSonic_->reset_ultra_2_need_publish();
-              pubError(ULTRASONIC2_ABNORMAL_OVER_30_SECOND);
+                ultraSonic_->reset_ultra_2_need_publish();
+                pubError(ULTRASONIC2_ABNORMAL_OVER_30_SECOND);
             }
         }
         if (bump_->is_bump_0_need_publish()) {
