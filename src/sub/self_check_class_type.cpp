@@ -229,8 +229,10 @@ void SelfCheckSubscribe::checkEnable() {
     if (machine_code == 10001 || machine_code == 10005 ||
         machine_code == 10008 || machine_code == 10009) {//只在清洁中，转场中，回充中，低电量回充中报
         ultraSonic_->set_enabled(true);
+        odom_->setEnabled(true);
     } else {
         ultraSonic_->set_enabled(false);
+        odom_->setEnabled(false);
     }
     if (!camera_check_enable_) {
         handle.getParam("/node_controller/start_finish", camera_check_enable_);

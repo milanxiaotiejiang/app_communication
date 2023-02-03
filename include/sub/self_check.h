@@ -312,6 +312,7 @@ public:
         valid_ = true;
         publish_flag_ = false;
         odom_sub_ = private_nh_.subscribe<nav_msgs::Odometry>(odom_name_, 10, &Odom::OdomCB, this);
+        enabled_ = false;
     }
 
     void OdomCB(const nav_msgs::OdometryConstPtr &odom_msg) {
@@ -321,15 +322,18 @@ public:
 
         double current_odom_pose_x = odom_msg->pose.pose.position.x;
         double current_odom_pose_y = odom_msg->pose.pose.position.y;
-
-        //里程计两帧之间跳变超过阈值
-        if ((abs(last_odom_pose_x - current_odom_pose_x) >= ODOM_THRESHOLD) ||
-            (abs(last_odom_pose_y - current_odom_pose_y) >= ODOM_THRESHOLD)) {
+        if(enabled_){
+          //里程计两帧之间跳变超过阈值
+          if ((abs(last_odom_pose_x - current_odom_pose_x) >= ODOM_THRESHOLD) ||
+              (abs(last_odom_pose_y - current_odom_pose_y) >= ODOM_THRESHOLD)) {
             if (valid_ == true) {
-                valid_ = false;
-                setPublish();
+              valid_ = false;
+              setPublish();
             }
-        } else {
+          } else {
+            valid_ = true;
+          }
+        }else{
             valid_ = true;
         }
         last_wheel_odom.pose = odom_msg->pose;
@@ -345,6 +349,9 @@ public:
 
     bool publishFlag() { return publish_flag_; }
 
+    bool setEnabled(bool enable){
+        enabled_ = enable;
+    }
 
 private:
     ros::NodeHandle private_nh_;
@@ -353,6 +360,7 @@ private:
 
     bool valid_;
     bool publish_flag_;
+    bool enabled_;
     nav_msgs::Odometry last_wheel_odom;
 };
 
