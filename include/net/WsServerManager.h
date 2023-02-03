@@ -97,7 +97,7 @@ public:
 
     static void setMapApp(const nav_msgs::OccupancyGrid &occupancyGrid);
 
-    static void setOdomApp(const nav_msgs::Odometry &odometry);
+    static void setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr);
 
     static void sendRequestData(const string &key, const std::string &data);
 

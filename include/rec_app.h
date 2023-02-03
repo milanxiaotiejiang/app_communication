@@ -44,7 +44,6 @@
 #include "model/TeachModePoint.h"
 
 #include "prohibition.h"
-#include "sub/OdomInnerSubscribe.h"
 #include "sub/ScanInnerSubscribe.h"
 #include "sub/self_check.h"
 #include "tool/CalcArea.h"
@@ -59,7 +58,6 @@
 #include <sub/JsonSubscribeCloud.h>
 #include <sub/MapInnerSubscribe.h>
 #include <sub/MoveBaseRecoveryFailureSubscribe.h>
-#include <sub/OdomSubscribe.h>
 #include <tool/Variable.h>
 
 #include "manager/CleanHistoryManager.h"

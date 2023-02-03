@@ -476,6 +476,8 @@ cv::Mat SegmentationCenter::generateMat() const {
     }
 
     auto type = map.type();
+    auto cols = map.cols;//width
+    auto rows = map.rows;//height
 
     return map;
 }

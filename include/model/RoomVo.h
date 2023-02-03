@@ -398,6 +398,8 @@ private:
     int distance_from_obstacles;
     int number_extension;
     int multiple_contour_spacing;
+    int random_number_generation_ratio;
+    int boundary_min_area;
 
 public:
 
@@ -407,7 +409,9 @@ public:
               double minCellArea, double maxDeviationFromTrack, int rangeNearBaseStation,
               double roomAreaFactorLowerLimit, double roomAreaFactorUpperLimit, int neighborhoodIndex,
               int maxIterations, double minCriticalPointDistanceFactor, double maxAreaForMerging,
-              int distanceFromObstacles, int numberExtension, int multipleContourSpacing);
+              int distanceFromObstacles, int numberExtension, int multipleContourSpacing,
+              int randomNumberGenerationRatio, int boundaryMinArea);
+
 
     friend void to_json(json &j, const PlanParam &planParam) {
         j = json{
@@ -426,7 +430,9 @@ public:
                 {"max_area_for_merging",                     planParam.max_area_for_merging},
                 {"distance_from_obstacles",                  planParam.distance_from_obstacles},
                 {"number_extension",                         planParam.number_extension},
-                {"multiple_contour_spacing",                 planParam.multiple_contour_spacing}
+                {"multiple_contour_spacing",                 planParam.multiple_contour_spacing},
+                {"random_number_generation_ratio",           planParam.random_number_generation_ratio},
+                {"boundary_min_area",                        planParam.boundary_min_area}
         };
     }
 
@@ -447,6 +453,8 @@ public:
         j.at("distance_from_obstacles").get_to(planParam.distance_from_obstacles);
         j.at("number_extension").get_to(planParam.number_extension);
         j.at("multiple_contour_spacing").get_to(planParam.multiple_contour_spacing);
+        j.at("random_number_generation_ratio").get_to(planParam.random_number_generation_ratio);
+        j.at("boundary_min_area").get_to(planParam.boundary_min_area);
     }
 
     double getRobotRadius() const;
@@ -480,6 +488,11 @@ public:
     int getNumberExtension() const;
 
     int getMultipleContourSpacing() const;
+
+    int getRandomNumberGenerationRatio() const;
+
+    int getBoundaryMinArea() const;
+
 };
 
 #endif //APP_COMMUNICATION_ROOMVO_H

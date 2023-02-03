@@ -13,13 +13,14 @@ void MapAttribute::setRobotPositionPose(geometry_msgs::Pose2D positionPose) {
 }
 
 cv::Point MapAttribute::getRobotPositionPoint(const cv::Mat &room_map) const {
-    double rows = room_map.rows * map_resolution_from_subscription;
-    double x = starting_position_pose.x - map_origin_pose.position.x;
-    double y = rows - (starting_position_pose.y - map_origin_pose.position.y);
-    LOG(INFO) << "robot position (" << x << ", " << y << ")";
+    auto cols = room_map.cols;//width
+    auto rows = room_map.rows;//height
     cv::Point starting_position;
-    starting_position.x = x / map_resolution_from_subscription;
-    starting_position.y = y / map_resolution_from_subscription;
+    starting_position.x =
+            cols - (starting_position_pose.y - map_origin_pose.position.x) / map_resolution_from_subscription;
+    starting_position.y =
+            rows - (starting_position_pose.x - map_origin_pose.position.y) / map_resolution_from_subscription;
+    LOG(INFO) << "current robot position (" << starting_position.x << ", " << starting_position.y << ")";
     return starting_position;
 }
 
@@ -117,7 +118,9 @@ void MapAttribute::loadDefaultPlanParam() {
                                                   max_area_for_merging_,
                                                   distance_from_obstacles_,
                                                   number_extension_,
-                                                  multiple_contour_spacing_);
+                                                  multiple_contour_spacing_,
+                                                  random_number_generation_ratio_,
+                                                  boundary_min_area_);
 }
 
 void

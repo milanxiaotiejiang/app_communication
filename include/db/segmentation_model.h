@@ -101,9 +101,11 @@ public:
     double min_critical_point_distance_factor;//消除临界点与之前两个临界点之间的最小距离 0-1.3
     double max_area_for_merging;//与其周围房间合并的房间的最大面积 3-1000
 
-    int distance_from_obstacles;//与障碍物的间距 1-3
-    int number_extension;//生成贴边轮廓的个数
-    int multiple_contour_spacing;//多个贴边轮廓的间距
+    int distance_from_obstacles;//与障碍物的间距 0-10
+    int number_extension;//生成贴边轮廓的个数 1-3
+    int multiple_contour_spacing;//多个贴边轮廓的间距 -3-3
+    int random_number_generation_ratio;//可达点的计算比例 50-200
+    int boundary_min_area;//贴边范围的最小面积
 
     PlanPo();
 
@@ -111,7 +113,8 @@ public:
            double gridObstacleOffset, double pathEps, double minCellArea, double maxDeviationFromTrack,
            int rangeNearBaseStation, double roomAreaFactorLowerLimit, double roomAreaFactorUpperLimit,
            int neighborhoodIndex, int maxIterations, double minCriticalPointDistanceFactor, double maxAreaForMerging,
-           int distanceFromObstacles, int numberExtension, int multipleContourSpacing);
+           int distanceFromObstacles, int numberExtension, int multipleContourSpacing, int randomNumberGenerationRatio,
+           int boundaryMinArea);
 };
 
 

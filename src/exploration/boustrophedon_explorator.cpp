@@ -27,8 +27,8 @@ static bool DISPLAY_TRAJECTORY_RESULT = false;
  * @param max_deviation_from_track 为避免轨道上的障碍物，最大允许偏离轨道两侧的理想距离
  */
 void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
-                                               const float map_resolution, const cv::Point starting_position,
-                                               const cv::Point2d map_origin, const double grid_spacing_in_pixel,
+                                               const float map_resolution, const cv::Point& starting_position,
+                                               const cv::Point2d& map_origin, const double grid_spacing_in_pixel,
                                                const double grid_obstacle_offset, const double path_eps,
                                                const double min_cell_area, const int max_deviation_from_track,
                                                int tsp_solver) {

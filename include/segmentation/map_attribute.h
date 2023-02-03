@@ -40,7 +40,7 @@ private:
 
     const double robot_radius_ = 0.30;
     const int map_correction_closing_neighborhood_size_ = 1;
-    const double grid_obstacle_offset_ = 0.1;
+    const double grid_obstacle_offset_ = 0.2;
     const double path_eps_ = 1.0;
     const double min_cell_area_ = 100.0;
     const int max_deviation_from_track_ = -1;
@@ -53,9 +53,11 @@ private:
     const double min_critical_point_distance_factor_ = 0.5;
     const double max_area_for_merging_ = 12.5;
 
-    const int distance_from_obstacles_ = 1;
+    const int distance_from_obstacles_ = 2;
     const int number_extension_ = 1;
-    const int multiple_contour_spacing_ = 1;
+    const int multiple_contour_spacing_ = 0;
+    const int random_number_generation_ratio_ = 100;
+    const int boundary_min_area_ = 1;
 
 public:
     static auto &instance() {

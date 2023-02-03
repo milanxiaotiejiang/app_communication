@@ -86,7 +86,8 @@ PlanParam PlanParamGetStrategy::handler(string params) {
                      planPo.room_area_factor_lower_limit, planPo.room_area_factor_upper_limit,
                      planPo.neighborhood_index, planPo.max_iterations,
                      planPo.min_critical_point_distance_factor, planPo.max_area_for_merging,
-                     planPo.distance_from_obstacles, planPo.number_extension, planPo.multiple_contour_spacing);
+                     planPo.distance_from_obstacles, planPo.number_extension, planPo.multiple_contour_spacing,
+                     planPo.random_number_generation_ratio, planPo.boundary_min_area);
 }
 
 bool PlanParamSetStrategy::handler(PlanParam params) {
@@ -107,7 +108,9 @@ bool PlanParamSetStrategy::handler(PlanParam params) {
             params.getMaxAreaForMerging(),
             params.getDistanceFromObstacles(),
             params.getNumberExtension(),
-            params.getMultipleContourSpacing()
+            params.getMultipleContourSpacing(),
+            params.getRandomNumberGenerationRatio(),
+            params.getBoundaryMinArea()
     );
 }
 
@@ -120,5 +123,6 @@ PlanParam PlanParamResetStrategy::handler(string params) {
                      planPo.room_area_factor_lower_limit, planPo.room_area_factor_upper_limit,
                      planPo.neighborhood_index, planPo.max_iterations,
                      planPo.min_critical_point_distance_factor, planPo.max_area_for_merging,
-                     planPo.distance_from_obstacles, planPo.number_extension, planPo.multiple_contour_spacing);
+                     planPo.distance_from_obstacles, planPo.number_extension, planPo.multiple_contour_spacing,
+                     planPo.random_number_generation_ratio, planPo.boundary_min_area);
 }

@@ -49,7 +49,10 @@ public:
                       double maxAreaForMerging,
                       int distanceFromObstacles,
                       int numberExtension,
-                      int multipleContourSpacing);
+                      int multipleContourSpacing,
+                      int random_number_generation_ratio,
+                      int boundary_min_area
+    );
 
     PlanPo getDbPlan(std::string map_id);
 };

@@ -6,8 +6,7 @@
 #define APP_COMMUNICATION_EXPLORATIONCENTER_H
 
 #include <ros/ros.h>
-#include "exploration/pose/tracked_pose_subscribe.h"
-#include "exploration/pose/amcl_pose_subscribe.h"
+#include "odom_subscribe.h"
 #include "segmentation/map_attribute.h"
 #include "lru_cache.h"
 #include "model/RoomVo.h"
@@ -23,8 +22,7 @@ class ExplorationCenter {
 private:
     bool initialize_finish = false;
 
-    AmclPoseSubscribe *poseSubscribe;
-    TrackedSubscribe *trackedSubscribe;
+    OdomSubscribe *poseSubscribe;
 
     cache::lru_cache<std::string, RoomCoverage> coverageCache = cache::lru_cache<std::string, RoomCoverage>(3);
 
@@ -35,6 +33,10 @@ private:
     bool removeUnconnectedRoomParts(cv::Mat &room_map);
 
     cv::Mat prohibitionMat(const cv::Mat &room_map) const;
+
+    void morphologicalEdging(cv::Mat &room_map, int map_correction_closing_neighborhood_size) const;
+
+    void drawBaseStation(cv::Mat &room_map, const cv::Point &stationPoint, int radius) const;
 
     void pose2CVPoint(const cv::Mat &room_map, std::vector<cv::Point> &pointList,
                       const std::vector<geometry_msgs::Pose2D> &postList,

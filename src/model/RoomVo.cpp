@@ -253,35 +253,34 @@ PlanParam::PlanParam(double robotRadius, int mapCorrectionClosingNeighborhoodSiz
                      double pathEps, double minCellArea, double maxDeviationFromTrack, int rangeNearBaseStation,
                      double roomAreaFactorLowerLimit, double roomAreaFactorUpperLimit, int neighborhoodIndex,
                      int maxIterations, double minCriticalPointDistanceFactor, double maxAreaForMerging,
-                     int distanceFromObstacles, int numberExtension, int multipleContourSpacing) : robot_radius(
-        robotRadius), map_correction_closing_neighborhood_size(mapCorrectionClosingNeighborhoodSize),
-                                                                                                   grid_obstacle_offset(
-                                                                                                           gridObstacleOffset),
-                                                                                                   path_eps(pathEps),
-                                                                                                   min_cell_area(
-                                                                                                           minCellArea),
-                                                                                                   max_deviation_from_track(
-                                                                                                           maxDeviationFromTrack),
-                                                                                                   range_near_base_station(
-                                                                                                           rangeNearBaseStation),
-                                                                                                   room_area_factor_lower_limit(
-                                                                                                           roomAreaFactorLowerLimit),
-                                                                                                   room_area_factor_upper_limit(
-                                                                                                           roomAreaFactorUpperLimit),
-                                                                                                   neighborhood_index(
-                                                                                                           neighborhoodIndex),
-                                                                                                   max_iterations(
-                                                                                                           maxIterations),
-                                                                                                   min_critical_point_distance_factor(
-                                                                                                           minCriticalPointDistanceFactor),
-                                                                                                   max_area_for_merging(
-                                                                                                           maxAreaForMerging),
-                                                                                                   distance_from_obstacles(
-                                                                                                           distanceFromObstacles),
-                                                                                                   number_extension(
-                                                                                                           numberExtension),
-                                                                                                   multiple_contour_spacing(
-                                                                                                           multipleContourSpacing) {}
+                     int distanceFromObstacles, int numberExtension, int multipleContourSpacing,
+                     int randomNumberGenerationRatio, int boundaryMinArea) : robot_radius(robotRadius),
+                                                                             map_correction_closing_neighborhood_size(
+                                                                                     mapCorrectionClosingNeighborhoodSize),
+                                                                             grid_obstacle_offset(gridObstacleOffset),
+                                                                             path_eps(pathEps),
+                                                                             min_cell_area(minCellArea),
+                                                                             max_deviation_from_track(
+                                                                                     maxDeviationFromTrack),
+                                                                             range_near_base_station(
+                                                                                     rangeNearBaseStation),
+                                                                             room_area_factor_lower_limit(
+                                                                                     roomAreaFactorLowerLimit),
+                                                                             room_area_factor_upper_limit(
+                                                                                     roomAreaFactorUpperLimit),
+                                                                             neighborhood_index(neighborhoodIndex),
+                                                                             max_iterations(maxIterations),
+                                                                             min_critical_point_distance_factor(
+                                                                                     minCriticalPointDistanceFactor),
+                                                                             max_area_for_merging(maxAreaForMerging),
+                                                                             distance_from_obstacles(
+                                                                                     distanceFromObstacles),
+                                                                             number_extension(numberExtension),
+                                                                             multiple_contour_spacing(
+                                                                                     multipleContourSpacing),
+                                                                             random_number_generation_ratio(
+                                                                                     randomNumberGenerationRatio),
+                                                                             boundary_min_area(boundaryMinArea) {}
 
 double PlanParam::getRobotRadius() const {
     return robot_radius;
@@ -345,4 +344,12 @@ int PlanParam::getNumberExtension() const {
 
 int PlanParam::getMultipleContourSpacing() const {
     return multiple_contour_spacing;
+}
+
+int PlanParam::getRandomNumberGenerationRatio() const {
+    return random_number_generation_ratio;
+}
+
+int PlanParam::getBoundaryMinArea() const {
+    return boundary_min_area;
 }

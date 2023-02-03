@@ -167,12 +167,14 @@ void SegmentationDataBase::setPlanParam(const std::string &mapId, double robotRa
                                         double roomAreaFactorUpperLimit,
                                         int neighborhoodIndex, int maxIterations, double minCriticalPointDistanceFactor,
                                         double maxAreaForMerging, int distanceFromObstacles, int numberExtension,
-                                        int multipleContourSpacing) {
+                                        int multipleContourSpacing, int random_number_generation_ratio,
+                                        int boundary_min_area) {
     PlanPo planPo(mapId, robotRadius, mapCorrectionClosingNeighborhoodSize,
                   gridObstacleOffset, pathEps, minCellArea, maxDeviationFromTrack,
                   rangeNearBaseStation, roomAreaFactorLowerLimit, roomAreaFactorUpperLimit,
                   neighborhoodIndex, maxIterations, minCriticalPointDistanceFactor, maxAreaForMerging,
-                  distanceFromObstacles, numberExtension, multipleContourSpacing);
+                  distanceFromObstacles, numberExtension, multipleContourSpacing,
+                  random_number_generation_ratio, boundary_min_area);
     segmentationStorage.replace(planPo);
 }
 
