@@ -20,10 +20,9 @@
 #include "segmentation/SegmentationCenter.h"
 #include "db/segmentation_data_base.h"
 #include "exploration/infinitely_near_boundary.h"
+#include "simulation.h"
 
 static bool DISPLAY_TRAJECTORY = false;
-
-const int BOUSTROPHEDON_EXPLORER_MODE = 1;
 
 void ExplorationCenter::initialize(ros::NodeHandle handle) {
     ros::Time::init();
@@ -597,12 +596,23 @@ void ExplorationCenter::cacheRoomCoverage(const RoomCoverage &coverage) {
     coverageCache.put(coverage.getCoverageId(), coverage);
 }
 
-RoomCoverage ExplorationCenter::findRoomCoverage(const std::string &coverageId) {
+RoomCoverage ExplorationCenter::findRoomCoverage(const std::string &coverageId, bool latest) {
+    if (coverageCache.size() <= 0) {
+        throw std::range_error("No cached Room Coverage Path ...");
+    }
     if (coverageCache.exists(coverageId)) {
         return coverageCache.get(coverageId);
-    } else {
-        throw std::range_error("There is no find key : " + coverageId + " in coverageCache");
     }
+
+    if (latest) {
+        if (!Environment::instance().room_coverage_uuid.empty()) {
+            if (coverageCache.exists(Environment::instance().room_coverage_uuid)) {
+                return coverageCache.get(Environment::instance().room_coverage_uuid);
+            }
+        }
+    }
+
+    throw std::range_error("There is no find key : " + coverageId + " in coverageCache");
 }
 
 cv::Mat ExplorationCenter::loadGenerateMap(int grid_spacing_in_pixel) {

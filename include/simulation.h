@@ -5,6 +5,8 @@
 #ifndef APP_COMMUNICATION_SIMULATION_H
 #define APP_COMMUNICATION_SIMULATION_H
 
+#include "string"
+
 const bool isTimely = false;
 const bool isTestCrash = false;
 
@@ -17,6 +19,7 @@ public:
     }
 
     bool isRealEnvironment = true;
+    std::string room_coverage_uuid = "";
 };
 
 

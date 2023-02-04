@@ -12,6 +12,8 @@
 #include "model/RoomVo.h"
 #include "segmentation/Room.h"
 
+const int BOUSTROPHEDON_EXPLORER_MODE = 1;
+
 enum ExplorationModel {
     FULL,
     SUB,
@@ -85,7 +87,7 @@ public:
 
     void cacheRoomCoverage(const RoomCoverage &coverage);
 
-    RoomCoverage findRoomCoverage(const std::string &coverageId);
+    RoomCoverage findRoomCoverage(const std::string &coverageId, bool latest);
 };
 
 #endif //APP_COMMUNICATION_EXPLORATIONCENTER_H

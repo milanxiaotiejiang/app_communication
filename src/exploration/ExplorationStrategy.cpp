@@ -35,8 +35,7 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
         if (targetId == -1) {
             if (rooms.empty()) {
                 explorationCenter.generatePlanningPath(baseMap, ExplorationModel::FULL, explorerMode, false,
-                                                       cv::Point(0, 0),
-                                                       exploration_path, point_path);
+                                                       cv::Point(0, 0), exploration_path, point_path);
             } else {
                 explorationCenter.generatePlanningSegmentationPath(baseMap, segmented_map, rooms, explorerMode,
                                                                    exploration_path, point_path);
