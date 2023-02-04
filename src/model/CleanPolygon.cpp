@@ -9,7 +9,7 @@
  * 
  */
 
-#include "CleanPolygon.h"
+#include "model/CleanPolygon.h"
 
 CleanPolygon::~CleanPolygon() {
 

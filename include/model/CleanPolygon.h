@@ -2,7 +2,7 @@
 #define C_PTHREAD_CLEANPOLYGONTTASK_H
 
 #include "model/Polygon_info.h"
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 using namespace std;
 

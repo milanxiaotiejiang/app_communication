@@ -6,7 +6,7 @@
 #define C_PTHREAD_CLEANCONTINUITYTASK_H
 
 #include "model/Continuity_info.h"
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 using namespace std;
 

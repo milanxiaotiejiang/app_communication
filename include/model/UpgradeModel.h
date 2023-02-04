@@ -7,8 +7,8 @@
 
 #include <nlohmann/json.hpp>
 #include "model/Point.h"
-#include <CleanContinuity.h>
-#include <CleanPolygon.h>
+#include "CleanContinuity.h"
+#include "CleanPolygon.h"
 #include "TeachModePoint.h"
 #include "FullPath.h"
 #include "Task.h"
