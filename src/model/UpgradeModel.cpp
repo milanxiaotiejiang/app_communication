@@ -51,19 +51,19 @@ void CombinationBriefUpgrade::setPartIdList(const vector<string> &partIdList) {
 
 CombinationBriefUpgrade::CombinationBriefUpgrade() {}
 
-CombinationBriefUpgradeList::CombinationBriefUpgradeList(const vector<CombinationBriefUpgrade> &mCombinationBriefList)
-        : m_combination_brief_list(mCombinationBriefList) {}
-
-const vector<CombinationBriefUpgrade> &CombinationBriefUpgradeList::getMCombinationBriefList() const {
-    return m_combination_brief_list;
-}
-
-void
-CombinationBriefUpgradeList::setMCombinationBriefList(const vector<CombinationBriefUpgrade> &mCombinationBriefList) {
-    m_combination_brief_list = mCombinationBriefList;
-}
-
-CombinationBriefUpgradeList::CombinationBriefUpgradeList() {}
+//CombinationBriefUpgradeList::CombinationBriefUpgradeList(const vector<CombinationBriefUpgrade> &mCombinationBriefList)
+//        : m_combination_brief_list(mCombinationBriefList) {}
+//
+//const vector<CombinationBriefUpgrade> &CombinationBriefUpgradeList::getMCombinationBriefList() const {
+//    return m_combination_brief_list;
+//}
+//
+//void
+//CombinationBriefUpgradeList::setMCombinationBriefList(const vector<CombinationBriefUpgrade> &mCombinationBriefList) {
+//    m_combination_brief_list = mCombinationBriefList;
+//}
+//
+//CombinationBriefUpgradeList::CombinationBriefUpgradeList() {}
 
 WorkStatusUpgrade::WorkStatusUpgrade(int sweepStatus, int dragStatus, int absorbStatus, int pushStatus, int aromStatus)
         : sweep_status(
@@ -199,18 +199,18 @@ void ViewPartUpgrade::setZoned(const vector<Point> &zoned) {
     ViewPartUpgrade::zoned = zoned;
 }
 
-ViewPartListUpgrade::ViewPartListUpgrade() {}
-
-ViewPartListUpgrade::ViewPartListUpgrade(const vector<ViewPartUpgrade> &mViewPartList) : m_view_part_list(
-        mViewPartList) {}
-
-const vector<ViewPartUpgrade> &ViewPartListUpgrade::getMViewPartList() const {
-    return m_view_part_list;
-}
-
-void ViewPartListUpgrade::setMViewPartList(const vector<ViewPartUpgrade> &mViewPartList) {
-    m_view_part_list = mViewPartList;
-}
+//ViewPartListUpgrade::ViewPartListUpgrade() {}
+//
+//ViewPartListUpgrade::ViewPartListUpgrade(const vector<ViewPartUpgrade> &mViewPartList) : m_view_part_list(
+//        mViewPartList) {}
+//
+//const vector<ViewPartUpgrade> &ViewPartListUpgrade::getMViewPartList() const {
+//    return m_view_part_list;
+//}
+//
+//void ViewPartListUpgrade::setMViewPartList(const vector<ViewPartUpgrade> &mViewPartList) {
+//    m_view_part_list = mViewPartList;
+//}
 
 bool CleanHistoryUpgrade::isBaseComplete() const {
     return m_base_complete;

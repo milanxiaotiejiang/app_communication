@@ -19,13 +19,9 @@ int Factorial(int number) {
 
 int ignore_area;//面积小于此百分比面积的分区区域将被忽略
 
-Error_log *Error_log::m_instance_ptr = nullptr;
 NoticeManager *NoticeManager::m_instance_ptr = nullptr;
 Variable *Variable::m_instance_ptr = nullptr;
-Timer_tool *Timer_tool::m_instance_ptr = nullptr;
 TeachModePoint *TeachModePoint::m_instance_ptr = nullptr;
-CalcAreaClass *CalcAreaClass::m_instance_ptr = nullptr;
-CleanHistoryManager *CleanHistoryManager::m_instance_ptr = nullptr;
 ViewPartManager *ViewPartManager::m_instance_ptr = nullptr;
 CombinationManager *CombinationManager::m_instance_ptr = nullptr;
 FullCleanManager *FullCleanManager::m_instance_ptr = nullptr;
@@ -72,26 +68,19 @@ int main(int argc, char **argv) {
     JsonSubscribe jsonSubscribe(handle);
     JsonSubscribeCloud jsonSubscribeCloud(handle, pubInner, pubOut);
     BeforeJsonSubscribe beforeJsonSubscribe(handle, pubInner, pubOut);
-    Error_Core err_Core(handle, pubInner, pubOut);
     MapInnerSubscribe mapInnerSubscribe(handle, pubInner, pubOut);
     DSVersionSubscribe dsVersionSubscribe(handle, pubInner, pubOut);
 
-    FullPathSubscribe fullPathSubscribe(handle, pubInner, pubOut);
     SelfCheckSubscribe selfCheckSubscribe(handle, pubInner, pubOut);
     MoveBaseRecoveryFailureSubscribe moveBaseRecoveryFailureSubscribe(handle);
 
     SegmentationSubscribe SegmentationSubscribe(handle);
-    BiasDetectSubscribe bias_detect_subscribe(handle);
-    //启动计时
-    Timer_tool::get_instance()->startRunTimer();
     NoticeManager::get_instance()->setPubOut(&pubOut);
 
     std_msgs::String test;
     /////////////////////////////////
     ////////////////////////////////////////////
 
-    UpgradeManager::instance().updateCombinationPrincipal();
-    UpgradeManager::instance().updateViewPartPrincipal();
     UpgradeManager::instance().updateCleanHistoryPrincipal();
     UpgradeManager::instance().updateCombinationBase64();
     UpgradeManager::instance().updateViewPartBase64();
@@ -106,33 +95,16 @@ int main(int argc, char **argv) {
     initNodeParams(nh);
 
     ros::Publisher pub_current = nh.advertise<std_msgs::Int32>("/current_flag", 10);
-    Error_log::get_instance()->start();
     WsServerManager::instance().startWebSocket(pubInner, pubOut);
 
     string last_task;
     nh.param<string>("last_task", last_task, "");//上次执行的任务
     restartAfterCrash(last_task);
     ///////////////////////////////////////////////
-    sThd = new ScheduleThread(handle, pubInner, pubOut);
+    sThd = new ScheduleThread(handle);
     sThd->start();
     sThd->detach();
 
-    //查看最后一条清洁历史如果开始时间和结束时间相同则说明未完成
-    CleanHistory clean_history_temp;
-    if (CleanHistoryManager::get_instance()->GetLatestCleanHistory(clean_history_temp)) {
-        if (clean_history_temp.getExecuteTime() == clean_history_temp.getEndTime() ||
-            (clean_history_temp.getIsComplete() == false &&
-             clean_history_temp.getErrorCode() != 20001)) {
-            clean_history_temp.setIsComplete(false);
-            // Ewen change begin
-            clean_history_temp.setBaseComplete(false);
-            ///clean_history_temp.setErrorCode(20001);
-            ///clean_history_temp.setErrorMessage("中断");
-            // Ewen change end
-            CleanHistoryManager::get_instance()->ResetCleanHistory(clean_history_temp,
-                                                                   clean_history_temp.getTaskID());
-        }
-    }
     ///////////////////////////////////////////////////////////////////////////////////////////
     unsigned int count = 0;
     ros::Rate loop(5); // 5Hz循环分频

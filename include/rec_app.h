@@ -1,12 +1,3 @@
-/***
- * @brief: prihibition areas
- * @author: jiang
- * @date: 20210904
-***/
-
-// #ifndef REC_APP_H
-// #define REC_APP_H
-
 #include "dirent.h"
 #include "yaml-cpp/yaml.h"
 #include <fstream>
@@ -44,23 +35,18 @@
 #include "model/TeachModePoint.h"
 
 #include "prohibition.h"
-#include "sub/ScanInnerSubscribe.h"
 #include "sub/self_check.h"
-#include "tool/CalcArea.h"
 #include "tool/Switch.h"
 #include "tool/write_file.hpp"
-#include <Timer_tool.h>
 #include <actionlib/client/simple_action_client.h>
 #include <pub/PubOut.h>
 #include <sub/BeforeJsonSubscribe.h>
-#include <sub/FullPathSubscribe.h>
 #include <sub/JsonSubscribe.h>
 #include <sub/JsonSubscribeCloud.h>
 #include <sub/MapInnerSubscribe.h>
 #include <sub/MoveBaseRecoveryFailureSubscribe.h>
 #include <tool/Variable.h>
 
-#include "manager/CleanHistoryManager.h"
 #include "manager/CombinationManager.h"
 #include "manager/NoticeManager.h"
 #include "manager/ViewPartManager.h"
@@ -75,8 +61,6 @@
 #include "sys/stat.h"
 #include "sys/types.h"
 #include "schedule/ScheduleThread.h"
-#include "error_log/Error_log.h"
-#include "error_log/err_core.h"
 #include "sub/DSVersionSubscribe.h"
 #include "tool/Msg.hpp"
 #include "tool/Queue.hpp"

@@ -15,7 +15,6 @@
 #include "task/model/PointProgressVo.h"
 #include "task/manager/PointProgressPublish.h"
 #include "task/manager/SwitchModePublish.h"
-#include "manager/CleanHistoryManager.h"
 #include "model/CleanHistory.h"
 #include "manager/InternalEventPubManager.h"
 #include "manager/NoticeManager.h"
@@ -1429,47 +1428,3 @@ void AsyncTaskCall::recordLaserError(std::string error_event) {
                 SelfCheckErrorType::LASER_RESTART_SUCCEED);
     }
 }
-
-/*
-void AsyncTaskCall::addNewCleanHistory(const RealTask &task) {
-    float clean_area = 0;
-    time_t timep;
-    time(&timep);
-    timep = timep * 1000;//毫秒
-    //    cout<<"任务开始时间"<<timep<<endl;
-
-    CleanHistory M_H_temp(false,
-                          false,
-                          timep,
-                          timep,
-                          timep,
-                          task.getMode(),
-                          task.getId(),
-                          task.getWorkStatus(),
-                          clean_area,
-                          0,
-                          0,
-                          "",
-                          1);
-    CleanHistoryManager::get_instance()->AddCleanHistory(M_H_temp);
-}
-
-void AsyncTaskCall::resetCleanHistory() {
-
-    time_t end_time;
-    time(&end_time);
-    end_time = end_time * 1000;//毫秒
-
-    CleanHistory M_H_temp;
-    CleanHistoryManager::get_instance()->GetCleanHistory(M_H_temp,
-runTaskId());
-
-    M_H_temp.setCleanTime((end_time - M_H_temp.getExecuteTime()) / 60000);
-    if (M_H_temp.getCleanTime() > 0) {
-        M_H_temp.setCleanArea(M_H_temp.getCleanTime() * 60 * 0.25 * 0.4);
-    }
-    M_H_temp.setIsComplete(true);
-    M_H_temp.setEndTime(end_time);
-    CleanHistoryManager::get_instance()->ResetCleanHistory(M_H_temp,
-runTaskId());
-}*/

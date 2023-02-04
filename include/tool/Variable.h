@@ -15,7 +15,6 @@ private:
     nav_msgs::OccupancyGrid map_App;
     nav_msgs::OccupancyGrid grid_map_App;
     int planner_type;
-    vector<Point> Full_path = {};
     bool flag_is_start_teach_mode;
     geometry_msgs::Pose current_pose;
     bool scan_flag;

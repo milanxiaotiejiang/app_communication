@@ -29,14 +29,6 @@ void Variable::setPlannerType(int plannerType) {
     planner_type = plannerType;
 }
 
-const vector<Point> &Variable::getFullPath() const {
-    return Full_path;
-}
-
-void Variable::setFullPath(const vector<Point> &fullPath) {
-    Full_path = fullPath;
-}
-
 bool Variable::isFlagIsStartTeachMode() const {
     return flag_is_start_teach_mode;
 }

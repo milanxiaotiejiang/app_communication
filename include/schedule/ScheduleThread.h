@@ -16,19 +16,15 @@ using namespace std;
 class ScheduleThread : public CThread {
 
 public:
-    ScheduleThread(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut);
+    ScheduleThread(ros::NodeHandle handle);
 
-    virtual ~ScheduleThread();
+    ~ScheduleThread() override;
 
     croncpp::Cron<croncpp::LocalClock, croncpp::NullLock> cron;
 
     void startScheduleCheck();
 
-    void init();
-
     ros::NodeHandle handle;
-    PubInner pubInner;
-    PubOut pubOut;
     ros::Subscriber sub_json_;
     string stimer_list;
 

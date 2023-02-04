@@ -4,160 +4,160 @@
 
 #include "manager/UpgradeManager.h"
 
-void UpgradeManager::updateCombinationPrincipal() {
-    auto dataBasePath = ros::package::getPath("data_base");
-    std::string lastFilePath;
-    lastFilePath.append(dataBasePath);
-    lastFilePath.append("/config/combination_list.txt");
+//void UpgradeManager::updateCombinationPrincipal() {
+//    auto dataBasePath = ros::package::getPath("data_base");
+//    std::string lastFilePath;
+//    lastFilePath.append(dataBasePath);
+//    lastFilePath.append("/config/combination_list.txt");
+//
+//    if (!sh::File::exists(lastFilePath)) {
+//        LOG(INFO) << lastFilePath << " not exists";
+//        return;
+//    }
+//
+//    std::string content;
+//    std::unique_ptr<sh::File> lastFilePtr(new sh::File(lastFilePath));
+//    if (lastFilePtr->open(std::ios::in)) {
+//        content = lastFilePtr->readAll();
+//        lastFilePtr->close();
+//    } else {
+//        std::remove(lastFilePath.c_str());
+//        LOG(INFO) << lastFilePath << " open fail";
+//        return;
+//    }
+//
+//    if (content.empty()) {
+//        std::remove(lastFilePath.c_str());
+//        LOG(INFO) << lastFilePath << " content is empty " << "and remove this file";
+//        return;
+//    }
+//
+//    auto decode = base64_decode(content);
+//    auto jdecode = json::parse(decode);
+//    auto lastList = jdecode.get<CombinationBriefUpgradeList>();
+//
+//    std::string currentFilePath;
+//    currentFilePath.append(dataBasePath);
+//    currentFilePath.append("/config/combination_list_principal.txt");
+//
+//    if (sh::File::exists(currentFilePath)) {
+//        if (!sh::File::saveTextTo(currentFilePath, "")) {
+//            LOG(ERROR) << currentFilePath << " save empty text fail !";
+//            return;
+//        }
+//    } else {
+//        unique_ptr<sh::File> cFilePtr(new sh::File(currentFilePath));
+//        if (!cFilePtr->create(currentFilePath)) {
+//            LOG(ERROR) << currentFilePath << " create fail !";
+//            return;
+//        }
+//    }
+//
+//    std::vector<CombinationBrief> vector;
+//    for (const auto &item: lastList.getMCombinationBriefList()) {
+//        auto combination = CombinationBrief();
+//        combination.setCombinationID(item.getCombinationId());
+//        combination.setName(item.getName());
+//        combination.setRate(item.getRate());
+//        combination.setPartIDList(item.getPartIdList());
+//        combination.setPrincipal(false);
+//        vector.push_back(combination);
+//    }
+//    CombinationBriefList combinationBriefList;
+//    combinationBriefList.setCombinationBriefList(vector);
+//
+//    json currentJson = combinationBriefList;
+//    auto jencode = base64_encode(currentJson.dump());
+//
+//    if (!sh::File::saveTextTo(currentFilePath, jencode)) {
+//        LOG(ERROR) << currentFilePath << " save new combination fail !";
+//    }
+//
+//    std::remove(lastFilePath.c_str());
+//
+//}
 
-    if (!sh::File::exists(lastFilePath)) {
-        LOG(INFO) << lastFilePath << " not exists";
-        return;
-    }
-
-    std::string content;
-    std::unique_ptr<sh::File> lastFilePtr(new sh::File(lastFilePath));
-    if (lastFilePtr->open(std::ios::in)) {
-        content = lastFilePtr->readAll();
-        lastFilePtr->close();
-    } else {
-        std::remove(lastFilePath.c_str());
-        LOG(INFO) << lastFilePath << " open fail";
-        return;
-    }
-
-    if (content.empty()) {
-        std::remove(lastFilePath.c_str());
-        LOG(INFO) << lastFilePath << " content is empty " << "and remove this file";
-        return;
-    }
-
-    auto decode = base64_decode(content);
-    auto jdecode = json::parse(decode);
-    auto lastList = jdecode.get<CombinationBriefUpgradeList>();
-
-    std::string currentFilePath;
-    currentFilePath.append(dataBasePath);
-    currentFilePath.append("/config/combination_list_principal.txt");
-
-    if (sh::File::exists(currentFilePath)) {
-        if (!sh::File::saveTextTo(currentFilePath, "")) {
-            LOG(ERROR) << currentFilePath << " save empty text fail !";
-            return;
-        }
-    } else {
-        unique_ptr<sh::File> cFilePtr(new sh::File(currentFilePath));
-        if (!cFilePtr->create(currentFilePath)) {
-            LOG(ERROR) << currentFilePath << " create fail !";
-            return;
-        }
-    }
-
-    std::vector<CombinationBrief> vector;
-    for (const auto &item: lastList.getMCombinationBriefList()) {
-        auto combination = CombinationBrief();
-        combination.setCombinationID(item.getCombinationId());
-        combination.setName(item.getName());
-        combination.setRate(item.getRate());
-        combination.setPartIDList(item.getPartIdList());
-        combination.setPrincipal(false);
-        vector.push_back(combination);
-    }
-    CombinationBriefList combinationBriefList;
-    combinationBriefList.setCombinationBriefList(vector);
-
-    json currentJson = combinationBriefList;
-    auto jencode = base64_encode(currentJson.dump());
-
-    if (!sh::File::saveTextTo(currentFilePath, jencode)) {
-        LOG(ERROR) << currentFilePath << " save new combination fail !";
-    }
-
-    std::remove(lastFilePath.c_str());
-
-}
-
-void UpgradeManager::updateViewPartPrincipal() {
-    auto dataBasePath = ros::package::getPath("data_base");
-    std::string lastFilePath;
-    lastFilePath.append(dataBasePath);
-    lastFilePath.append("/config/view_part.txt");
-
-    if (!sh::File::exists(lastFilePath)) {
-        LOG(INFO) << lastFilePath << " not exists";
-        return;
-    }
-
-    std::string content;
-    std::unique_ptr<sh::File> lastFilePtr(new sh::File(lastFilePath));
-    if (lastFilePtr->open(std::ios::in)) {
-        content = lastFilePtr->readAll();
-        lastFilePtr->close();
-    } else {
-        std::remove(lastFilePath.c_str());
-        LOG(INFO) << lastFilePath << " open fail";
-        return;
-    }
-
-    if (content.empty()) {
-        std::remove(lastFilePath.c_str());
-        LOG(INFO) << lastFilePath << " content is empty " << "and remove this file";
-        return;
-    }
-
-    auto decode = base64_decode(content);
-    auto jdecode = json::parse(decode);
-    auto lastList = jdecode.get<ViewPartListUpgrade>();
-
-    std::string currentFilePath;
-    currentFilePath.append(dataBasePath);
-    currentFilePath.append("/config/view_part_principal.txt");
-
-    if (sh::File::exists(currentFilePath)) {
-        if (!sh::File::saveTextTo(currentFilePath, "")) {
-            LOG(ERROR) << currentFilePath << " save empty text fail !";
-            return;
-        }
-    } else {
-        unique_ptr<sh::File> cFilePtr(new sh::File(currentFilePath));
-        if (!cFilePtr->create(currentFilePath)) {
-            LOG(ERROR) << currentFilePath << " create fail !";
-            return;
-        }
-    }
-
-    std::vector<ViewPart> vector;
-    for (const auto &item: lastList.getMViewPartList()) {
-        WorkStatus ws;
-        ws.setSweepStatus(item.getWorkStatus().getSweepStatus());
-        ws.setMopStatus(item.getWorkStatus().getDragStatus());
-        ws.setVacuumStatus(item.getWorkStatus().getAbsorbStatus());
-        ws.setPushStatus(item.getWorkStatus().getPushStatus());
-        //  ws.setStationDryStatus(item.getWorkStatus().setStationDryStatus());
-        auto viewPart = ViewPart();
-        viewPart.setMode(item.getMode());
-        viewPart.setName(item.getName());
-        viewPart.setPartID(item.getPartId());
-        viewPart.setPolygon(item.getPolygon());
-        viewPart.setRate(item.getRate());
-        viewPart.setTeach(item.getTeach());
-        viewPart.setPathID(item.getPathId());
-        viewPart.setWorkStatus(ws);
-        viewPart.setZoned(item.getZoned());
-        vector.push_back(viewPart);
-    }
-    ViewPartList viewPartList;
-    viewPartList.SetViewPartList(vector);
-
-    json currentJson = viewPartList;
-    auto jencode = base64_encode(currentJson.dump());
-
-    if (!sh::File::saveTextTo(currentFilePath, jencode)) {
-        LOG(ERROR) << currentFilePath << " save new combination fail !";
-    }
-
-    std::remove(lastFilePath.c_str());
-}
+//void UpgradeManager::updateViewPartPrincipal() {
+//    auto dataBasePath = ros::package::getPath("data_base");
+//    std::string lastFilePath;
+//    lastFilePath.append(dataBasePath);
+//    lastFilePath.append("/config/view_part.txt");
+//
+//    if (!sh::File::exists(lastFilePath)) {
+//        LOG(INFO) << lastFilePath << " not exists";
+//        return;
+//    }
+//
+//    std::string content;
+//    std::unique_ptr<sh::File> lastFilePtr(new sh::File(lastFilePath));
+//    if (lastFilePtr->open(std::ios::in)) {
+//        content = lastFilePtr->readAll();
+//        lastFilePtr->close();
+//    } else {
+//        std::remove(lastFilePath.c_str());
+//        LOG(INFO) << lastFilePath << " open fail";
+//        return;
+//    }
+//
+//    if (content.empty()) {
+//        std::remove(lastFilePath.c_str());
+//        LOG(INFO) << lastFilePath << " content is empty " << "and remove this file";
+//        return;
+//    }
+//
+//    auto decode = base64_decode(content);
+//    auto jdecode = json::parse(decode);
+//    auto lastList = jdecode.get<ViewPartListUpgrade>();
+//
+//    std::string currentFilePath;
+//    currentFilePath.append(dataBasePath);
+//    currentFilePath.append("/config/view_part_principal.txt");
+//
+//    if (sh::File::exists(currentFilePath)) {
+//        if (!sh::File::saveTextTo(currentFilePath, "")) {
+//            LOG(ERROR) << currentFilePath << " save empty text fail !";
+//            return;
+//        }
+//    } else {
+//        unique_ptr<sh::File> cFilePtr(new sh::File(currentFilePath));
+//        if (!cFilePtr->create(currentFilePath)) {
+//            LOG(ERROR) << currentFilePath << " create fail !";
+//            return;
+//        }
+//    }
+//
+//    std::vector<ViewPart> vector;
+//    for (const auto &item: lastList.getMViewPartList()) {
+//        WorkStatus ws;
+//        ws.setSweepStatus(item.getWorkStatus().getSweepStatus());
+//        ws.setMopStatus(item.getWorkStatus().getDragStatus());
+//        ws.setVacuumStatus(item.getWorkStatus().getAbsorbStatus());
+//        ws.setPushStatus(item.getWorkStatus().getPushStatus());
+//        //  ws.setStationDryStatus(item.getWorkStatus().setStationDryStatus());
+//        auto viewPart = ViewPart();
+//        viewPart.setMode(item.getMode());
+//        viewPart.setName(item.getName());
+//        viewPart.setPartID(item.getPartId());
+//        viewPart.setPolygon(item.getPolygon());
+//        viewPart.setRate(item.getRate());
+//        viewPart.setTeach(item.getTeach());
+//        viewPart.setPathID(item.getPathId());
+//        viewPart.setWorkStatus(ws);
+//        viewPart.setZoned(item.getZoned());
+//        vector.push_back(viewPart);
+//    }
+//    ViewPartList viewPartList;
+//    viewPartList.SetViewPartList(vector);
+//
+//    json currentJson = viewPartList;
+//    auto jencode = base64_encode(currentJson.dump());
+//
+//    if (!sh::File::saveTextTo(currentFilePath, jencode)) {
+//        LOG(ERROR) << currentFilePath << " save new combination fail !";
+//    }
+//
+//    std::remove(lastFilePath.c_str());
+//}
 
 void UpgradeManager::updateCleanHistoryPrincipal() {
     auto dataBasePath = ros::package::getPath("data_base");

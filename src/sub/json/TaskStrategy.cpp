@@ -3,7 +3,6 @@
 //
 
 #include "task/TaskCenter.h"
-#include "manager/CleanHistoryManager.h"
 #include "task/manager/manual.h"
 #include "task/model/PointProgressVo.h"
 #include "sub/json/TaskStrategy.h"
@@ -98,38 +97,6 @@ void GetFullPlanStrategy::dateProgressing(int source, json &jdecode) {
     auto command = jdecode.get<RequestModel<BaseMethod<vector<int>>>>();
     auto commandMsg = command.getMsg();
     auto params = commandMsg.getParams();
-    //操作
-//    vector<int> temp = params;
-//
-//    for (int i = 0; i < temp.size(); i++) {
-//        cout << temp[i] << endl;
-//    }
-//
-//    std_msgs::Int32MultiArray msg;
-//    msg.data = temp;
-//    PublishInnerManager::instance().getPubInner()->publishStartPlan(msg);
-//    int Id = commandMsg.getId();
-//
-//    extern ThreadPool pool;
-//    Task param;//数据内容，结构体格式
-//    auto answerFullPath = [](Task &param, int id) {
-//        extern std::condition_variable fullPathCV;
-//        extern std::mutex fullPathLock;
-//        std::unique_lock<std::mutex> lck(fullPathLock);
-//        fullPathCV.wait_for(lck, std::chrono::milliseconds(7000));
-//        vector<Point> full_path = Variable::get_instance()->getFullPath();
-//        param.setFullPath(full_path);
-//        //回复给APP用于显示全覆盖路径
-//        std_msgs::String result;
-//        BaseResult<Task> success(id, param);//这里尖括号里不写类型会编译不过去
-//        RequestModel<BaseResult<Task>> requestModel(
-//                "publish", "/response_json", success
-//        );
-//        json jsonResult = requestModel;
-//        PublishOutManager::instance().getPubOut()->publishJson(jsonResult.dump());                            //回应app
-//    };
-//    pool.submit(answerFullPath, param, Id);
-
 
     std::vector<geometry_msgs::Pose2D> exploration_path;
     std::vector<cv::Point> point_path;
@@ -157,6 +124,7 @@ void GetFullPlanStrategy::dateProgressing(int source, json &jdecode) {
 
 
     Environment::instance().room_coverage_uuid = uuid_string;
+
     std::vector<Point> full;
     for (const auto &item: poseList) {
         full.emplace_back(item.getX(), item.getY());

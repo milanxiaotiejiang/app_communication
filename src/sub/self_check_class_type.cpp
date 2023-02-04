@@ -4,7 +4,6 @@
     描述：本文件为定义自检主线类SelfCheckService中的各个成员函数以及自检消息类SelfCheckStatus的各个成员函数而设立。
     最终定稿日期：2022.2.22
 */
-#include "error_log/Error_log.h"
 #include "glog/logging.h"
 #include "sub/self_check.h"
 #include "task/subscribe/async_machine.h"

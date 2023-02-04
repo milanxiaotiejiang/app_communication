@@ -384,30 +384,6 @@ std::vector<RealPoint> CombinationPointGenerator::taskGeneratePointList(RealTask
 }
 
 std::vector<RealPoint> FullPointGenerator::taskGeneratePointList(RealTask task) {
-//    vector<Point> path = Variable::get_instance()->getFullPath();
-//    LOG(ERROR) << " path  " << path.size();
-//    std::vector<PoseVo> pointList;
-//    for (const auto &item: path) {
-//        pointList.emplace_back(item.getX(), item.getY(), 0);
-//    }
-//
-//    std::vector<PoseVo> poseList;
-//    for (const auto &item: path) {
-//        poseList.emplace_back(item.getY(), item.getX(), 0);
-//    }
-//
-//    std::vector<geometry_msgs::Pose2D> exploration_path;
-//    for (const auto &item: poseList) {
-//        geometry_msgs::Pose2D pose;
-//        pose.x = item.getX();
-//        pose.y = item.getY();
-//        exploration_path.push_back(pose);
-//    }
-//    ExplorationCenter::instance().pathPublish(exploration_path);
-//
-//    std::vector<RealPoint> realPoints;
-//    pose2RealPoint(task, pointList, realPoints);
-
     std::vector<RealPoint> taskPointList;
     auto taskId = task.getId();
     auto roomCoverage = ExplorationCenter::instance().findRoomCoverage(taskId, true);

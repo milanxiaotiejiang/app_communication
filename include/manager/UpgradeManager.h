@@ -24,10 +24,6 @@ public:
         return obj;
     }
 
-    static void updateCombinationPrincipal();
-
-    static void updateViewPartPrincipal();
-
     static void updateCleanHistoryPrincipal();
 
     static void updateCombinationBase64();
