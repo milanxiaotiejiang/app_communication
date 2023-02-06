@@ -67,6 +67,7 @@ public:
         enabled_ = false;
         valid_ = true;
         last_valid_ = true;
+        publish_flag_ = false;
     }
 
     void ImageCB(const sensor_msgs::ImageConstPtr &depth_msg) {
@@ -81,6 +82,9 @@ public:
         ros::Time now = ros::Time::now();
         last_valid_ = valid_;
         valid_ = (now - last_image_ < ros::Duration(5) && now - last_pointcloud_ < ros::Duration(5));
+        if(needPublish()){
+            setPublish();
+        }
         return valid_;
     }
 
@@ -88,6 +92,12 @@ public:
 
     //原本是好的变坏了需要发一下
     bool needPublish() { return (last_valid_ && !valid_); }
+
+    void setPublish() { publish_flag_ = true; }
+
+    void resetPublish() { publish_flag_ = false; }
+
+    bool publishFlag() { return publish_flag_; }
 
     bool setEnabled(bool enabled) {
         enabled_ = enabled;
@@ -107,6 +117,7 @@ private:
 
     bool valid_;
     bool last_valid_;
+    bool publish_flag_;
 
     bool enabled_;
 
@@ -125,6 +136,7 @@ public:
 
         valid_ = true;
         last_valid_ = true;
+        publish_flag_ = false;
     }
 
     void LaserScanCB(const sensor_msgs::LaserScanConstPtr &laser_msg) {
@@ -134,17 +146,27 @@ public:
     bool isValid() {
         last_valid_ = valid_;
         valid_ = ros::Time::now() - last_laser_ < ros::Duration(5);
+        if (needPublish()) {
+          setPublish();
+        }
         return valid_;
     }
 
     //原本是好的变坏了需要发一下
     bool needPublish() { return (last_valid_ && !valid_); }
 
-private:
+    void setPublish() { publish_flag_ = true; }
+
+    void resetPublish() { publish_flag_ = false; }
+
+    bool publishFlag() { return publish_flag_; }
+
+  private:
     ros::NodeHandle private_nh_;
     ros::Subscriber laser_sub_;
     std::string laser_name_;
     ros::Time last_laser_;
+    bool publish_flag_;
 
     bool valid_;
     bool last_valid_;
@@ -163,6 +185,7 @@ public:
 
         valid_ = true;
         last_valid_ = true;
+        publish_flag_ = false;
     }
 
     void IMUCB(const sensor_msgs::ImuConstPtr &imu_msg) {
@@ -172,13 +195,22 @@ public:
     bool isValid() {
         last_valid_ = valid_;
         valid_ = ros::Time::now() - last_imu_ < ros::Duration(5);
+        if (needPublish()) {
+          setPublish();
+        }
         return valid_;
     }
 
     //原本是好的变坏了需要发一下
     bool needPublish() { return (last_valid_ && !valid_); }
 
-private:
+    void setPublish() { publish_flag_ = true; }
+
+    void resetPublish() { publish_flag_ = false; }
+
+    bool publishFlag() { return publish_flag_; }
+
+  private:
     ros::NodeHandle private_nh_;
     ros::Subscriber imu_sub_;
     ros::Subscriber imu_error_pub_;
@@ -188,6 +220,7 @@ private:
 
     bool valid_;
     bool last_valid_;
+    bool publish_flag_;
 };
 
 class TrackedPose {
@@ -198,6 +231,7 @@ public:
         private_nh_.param("bias_detect_name", bias_detect_name_, std::string("/bias_detect"));
 
         tracked_pose_valid = true;
+        tracked_pose_publish_flag_ = false;
         bias_detect_valid = true;
 
         tracked_pose_sub_ = private_nh_.subscribe<geometry_msgs::PoseStamped>(tracked_pose_name_, 10,
@@ -219,6 +253,7 @@ public:
             (abs(last_tracked_pose_y - current_tracked_pose_y) >= POSE_THRESHOLD)) {
             if (tracked_pose_valid == true) {
                 tracked_pose_valid = false;
+                setPublish();
             }
         } else {
             tracked_pose_valid = true;
@@ -246,7 +281,13 @@ public:
         return tracked_pose_valid;
     }
 
-private:
+    void setPublish() { tracked_pose_publish_flag_ = true; }
+
+    void resetPublish() { tracked_pose_publish_flag_ = false; }
+
+    bool publishFlag() { return tracked_pose_publish_flag_; }
+
+  private:
     ros::NodeHandle private_nh_;
     ros::Subscriber bias_detect_sub_;
     ros::Subscriber tracked_pose_sub_;
@@ -255,6 +296,7 @@ private:
     std::string bias_detect_name_;
 
     bool tracked_pose_valid;
+    bool tracked_pose_publish_flag_;
     bool bias_detect_valid;
 
     geometry_msgs::PoseStamped last_tracked_pose;
@@ -268,8 +310,9 @@ public:
         private_nh_ = n;
         private_nh_.param("odom_name", odom_name_, std::string("/wheel_odom"));
         valid_ = true;
-        last_valid_ = true;
+        publish_flag_ = false;
         odom_sub_ = private_nh_.subscribe<nav_msgs::Odometry>(odom_name_, 10, &Odom::OdomCB, this);
+        enabled_ = false;
     }
 
     void OdomCB(const nav_msgs::OdometryConstPtr &odom_msg) {
@@ -279,16 +322,18 @@ public:
 
         double current_odom_pose_x = odom_msg->pose.pose.position.x;
         double current_odom_pose_y = odom_msg->pose.pose.position.y;
-
-        //里程计两帧之间跳变超过阈值
-        if ((abs(last_odom_pose_x - current_odom_pose_x) >= ODOM_THRESHOLD) ||
-            (abs(last_odom_pose_y - current_odom_pose_y) >= ODOM_THRESHOLD)) {
+        if(enabled_){
+          //里程计两帧之间跳变超过阈值
+          if ((abs(last_odom_pose_x - current_odom_pose_x) >= ODOM_THRESHOLD) ||
+              (abs(last_odom_pose_y - current_odom_pose_y) >= ODOM_THRESHOLD)) {
             if (valid_ == true) {
-                last_valid_ = valid_;
-                valid_ = false;
+              valid_ = false;
+              setPublish();
             }
-        } else {
-            last_valid_ = valid_;
+          } else {
+            valid_ = true;
+          }
+        }else{
             valid_ = true;
         }
         last_wheel_odom.pose = odom_msg->pose;
@@ -298,8 +343,15 @@ public:
         return valid_;
     }
 
-    //原本是好的变坏了需要发一下
-    bool needPublish() { return (last_valid_ && !valid_); }
+    void setPublish() { publish_flag_ = true; }
+
+    void resetPublish() { publish_flag_ = false; }
+
+    bool publishFlag() { return publish_flag_; }
+
+    bool setEnabled(bool enable){
+        enabled_ = enable;
+    }
 
 private:
     ros::NodeHandle private_nh_;
@@ -307,7 +359,8 @@ private:
     std::string odom_name_;
 
     bool valid_;
-    bool last_valid_;
+    bool publish_flag_;
+    bool enabled_;
     nav_msgs::Odometry last_wheel_odom;
 };
 
@@ -317,6 +370,7 @@ public:
         private_nh_ = n;
         private_nh_.param("battery_name", battery_name_, std::string("/battery_status"));
         battery_valid = true;
+        publish_flag_ = false;
         battery_sub_ = private_nh_.subscribe<std_msgs::Char>(battery_name_, 10, &BMS::batteryCB, this);
     }
 
@@ -326,6 +380,7 @@ public:
         if (abs(last_battery - battery) >= BATTERY_THRESHOLD) {
             if (battery_valid == true) {
                 battery_valid = false;
+                setPublish();
             }
         } else {
             battery_valid = true;
@@ -337,12 +392,19 @@ public:
         return battery_valid;
     }
 
-private:
+    void setPublish() { publish_flag_ = true; }
+
+    void resetPublish() { publish_flag_ = false; }
+
+    bool publishFlag() { return publish_flag_; }
+
+  private:
     ros::NodeHandle private_nh_;
     ros::Subscriber battery_sub_;
     std::string battery_name_;
 
     u_char last_battery;
+    bool publish_flag_;
 
     bool battery_valid;
 };
@@ -354,8 +416,8 @@ public:
         private_nh_.param("bump_name", bump_name_, std::string("/mrrobot/bump_sensor"));
 
         bump_0_valid = bump_1_valid = bump_2_valid = bump_3_valid = true;
-        bump_0_last_valid = bump_1_last_valid = bump_2_last_valid =
-        bump_3_last_valid = true;
+        bump_0_publish_flag_ = bump_1_publish_flag_ = bump_2_publish_flag_ =
+        bump_3_publish_flag_ = false;
         bump_sensor_trigger_time_0 = bump_sensor_trigger_time_1 = bump_sensor_trigger_time_2 = bump_sensor_trigger_time_3 = ros::Time::now();
 
         bump_sub_ = private_nh_.subscribe<std_msgs::UInt8MultiArray>(bump_name_, 10, &Bump::bumpCB, this);
@@ -369,22 +431,18 @@ public:
 
         if (temp_bump_0 == 0) {
             bump_sensor_trigger_time_0 = ros::Time::now();
-            bump_0_last_valid = bump_0_valid;
             bump_0_valid = true;
         }
         if (temp_bump_1 == 0) {
             bump_sensor_trigger_time_1 = ros::Time::now();
-            bump_1_last_valid = bump_1_valid;
             bump_1_valid = true;
         }
         if (temp_bump_2 == 0) {
             bump_sensor_trigger_time_2 = ros::Time::now();
-            bump_2_last_valid = bump_2_valid;
             bump_2_valid = true;
         }
         if (temp_bump_3 == 0) {
             bump_sensor_trigger_time_3 = ros::Time::now();
-            bump_3_last_valid = bump_3_valid;
             bump_3_valid = true;
         }
 
@@ -394,8 +452,9 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_0.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_0_valid) {
-                    bump_0_last_valid = bump_0_valid;
-                    bump_0_valid = false;
+                  bump_0_publish_flag_ = true;
+                  bump_0_valid = false;
+
                 }
             }
         }
@@ -404,8 +463,8 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_1.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_1_valid) {
-                    bump_1_last_valid = bump_1_valid;
-                    bump_1_valid = false;
+                  bump_1_publish_flag_ = true;
+                  bump_1_valid = false;
                 }
             }
         }
@@ -414,8 +473,8 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_2.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_2_valid) {
-                    bump_2_last_valid = bump_2_valid;
-                    bump_2_valid = false;
+                  bump_2_publish_flag_ = true;
+                  bump_2_valid = false;
                 }
             }
         }
@@ -424,8 +483,8 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_3.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_3_valid) {
-                    bump_3_last_valid = bump_3_valid;
-                    bump_3_valid = false;
+                  bump_3_publish_flag_ = true;
+                  bump_3_valid = false;
                 }
             }
         }
@@ -435,33 +494,30 @@ public:
         return bump_0_valid;
     }
 
-    bool is_bump_0_need_publish() { return (bump_0_last_valid && !bump_0_valid); }
+    bool is_bump_0_need_publish() { return bump_0_publish_flag_; }
+
+    void reset_bump_0_publish_flag() { bump_0_publish_flag_ = false; }
 
     bool is_bump_1_valid() {
         return bump_1_valid;
     }
 
-    bool is_bump_1_need_publish() {
-        return (bump_1_last_valid && !bump_1_valid);
-    }
-
+    bool is_bump_1_need_publish() { return bump_1_publish_flag_; }
+    void reset_bump_1_publish_flag() { bump_1_publish_flag_ = false; }
     bool is_bump_2_valid() {
         return bump_2_valid;
     }
 
-    bool is_bump_2_need_publish() {
-        return (bump_2_last_valid && !bump_2_valid);
-    }
-
+    bool is_bump_2_need_publish() { return bump_2_publish_flag_; }
+    void reset_bump_2_publish_flag() { bump_2_publish_flag_ = false; }
     bool is_bump_3_valid() {
         return bump_3_valid;
     }
 
-    bool is_bump_3_need_publish() {
-        return (bump_3_last_valid && !bump_3_valid);
-    }
+    bool is_bump_3_need_publish() { return bump_3_publish_flag_; }
+    void reset_bump_3_publish_flag() { bump_3_publish_flag_ = false; }
 
-private:
+  private:
     ros::NodeHandle private_nh_;
     ros::Subscriber bump_sub_;
 
@@ -477,10 +533,10 @@ private:
     bool bump_2_valid;
     bool bump_3_valid;
 
-    bool bump_0_last_valid;
-    bool bump_1_last_valid;
-    bool bump_2_last_valid;
-    bool bump_3_last_valid;
+    bool bump_0_publish_flag_;
+    bool bump_1_publish_flag_;
+    bool bump_2_publish_flag_;
+    bool bump_3_publish_flag_;
 };
 
 class UltraSonic {
@@ -493,7 +549,7 @@ public:
         ul_sensor_trigger_time_1 = ul_sensor_trigger_time_2 = ros::Time::now();
 
         ultra_1_is_valid = ultra_2_is_valid = true;
-        ultra_1_last_valid = ultra_2_last_valid = true;
+        ultra_1_need_publish = ultra_2_need_publish = false;
         ul_sensor_sub_1 = private_nh_.subscribe<sensor_msgs::Range>(ul_sensor_name_1, 10, &UltraSonic::ultrasonicCB_1,
                                                                     this);
         ul_sensor_sub_2 = private_nh_.subscribe<sensor_msgs::Range>(ul_sensor_name_2, 10, &UltraSonic::ultrasonicCB_2,
@@ -506,7 +562,6 @@ public:
             //        std::cout<<"temp_range1  "<<temp_range<<std::endl;
             if (temp_range >= RANGE_THRESHOLD) {
                 ul_sensor_trigger_time_1 = ros::Time::now();
-                ultra_1_last_valid = ultra_1_is_valid;
                 ultra_1_is_valid = true;
             }
 
@@ -514,12 +569,14 @@ public:
                 if ((ul_msg_1->header.stamp.toSec() -
                      ul_sensor_trigger_time_1.toSec()) > 30.0) {
                     // ul_sensor_1_error
-                    ultra_1_last_valid = ultra_1_is_valid;
-                    ultra_1_is_valid = false;
+                    if (ultra_1_is_valid){
+                        ultra_1_need_publish = true;
+                        ultra_1_is_valid = false;
+                    }
+
                 }
             }
         } else {
-          ultra_1_last_valid = ultra_1_is_valid;
           ultra_1_is_valid = true;
         }
     }
@@ -529,7 +586,6 @@ public:
             float temp_range = ul_msg_2->range;
             if (temp_range >= RANGE_THRESHOLD) {
                 ul_sensor_trigger_time_2 = ros::Time::now();
-                ultra_2_last_valid = ultra_2_is_valid;
                 ultra_2_is_valid = true;
             }
 
@@ -540,12 +596,14 @@ public:
                 if ((ul_msg_2->header.stamp.toSec() -
                      ul_sensor_trigger_time_2.toSec()) > 30.0) {
                     // ul_sensor_2_error
-                    ultra_2_last_valid = ultra_2_is_valid;
-                    ultra_2_is_valid = false;
+                    if (ultra_2_is_valid){
+                      ultra_2_need_publish = true;
+                      ultra_2_is_valid = false;
+                    }
+
                 }
             }
         } else {
-          ultra_2_last_valid = ultra_2_is_valid;
           ultra_2_is_valid = true;
         }
     }
@@ -554,15 +612,20 @@ public:
         return ultra_1_is_valid;
     }
 
-    bool is_ultra_1_need_publish() { return (ultra_1_last_valid && !ultra_1_is_valid); }
+    bool is_ultra_1_need_publish() {
+         return (ultra_1_need_publish );
+    }
+    void reset_ultra_1_need_publish() { ultra_1_need_publish = false; }
 
     bool is_ultra_2_valid() {
         return ultra_2_is_valid;
     }
 
     bool is_ultra_2_need_publish() {
-      return (ultra_2_last_valid && !ultra_2_is_valid);
+      return (ultra_2_need_publish);
     }
+
+    void reset_ultra_2_need_publish() { ultra_2_need_publish = false; }
 
     bool check_enabled() {
         return enabled_;
@@ -588,8 +651,8 @@ private:
     bool ultra_1_is_valid;
     bool ultra_2_is_valid;
 
-    bool ultra_1_last_valid;
-    bool ultra_2_last_valid;
+    bool ultra_1_need_publish;
+    bool ultra_2_need_publish;
 
     bool enabled_;
 };

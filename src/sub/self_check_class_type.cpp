@@ -89,49 +89,67 @@ void SelfCheckSubscribe::ThreadHandle() {
 //                  << " laser_scan:" << laser_scan_->isValid() << std::endl;
         checkEnable();
         if (cameras_[0]->checkEnabled()) {
-            if (cameras_[0]->needPublish()) {
+            //更新后判断是否需要发送
+            cameras_[0]->isValid();
+            cameras_[1]->isValid();
+            if (cameras_[0]->publishFlag()) {
                 pubError(CAMERA2_NO_DATA); // down inu
+                cameras_[0]->resetPublish();
             }
-            if (cameras_[1]->needPublish()) {
+            if (cameras_[1]->publishFlag()) {
                 pubError(CAMERA1_NO_DATA); // up inu
+                cameras_[1]->resetPublish();
             }
         }
-        if (imu_->needPublish()) {
+        //imu
+        imu_->isValid();
+        if (imu_->publishFlag()) {
             pubError(IMU_NO_DATA);
+            imu_->resetPublish();
         }
-        if (odom_->needPublish()) {
+        //odom
+        if (odom_->publishFlag()) {
             pubError(ODOM_NO_DATA);
+            odom_->resetPublish();
         }
         //检查超声传感器自检功能是否使能
         if (ultraSonic_->check_enabled()) {
             if (ultraSonic_->is_ultra_1_need_publish()) {
+                ultraSonic_->reset_ultra_1_need_publish();
                 pubError(ULTRASONIC1_ABNORMAL_OVER_30_SECOND);
             }
             if (ultraSonic_->is_ultra_2_need_publish()) {
+                ultraSonic_->reset_ultra_2_need_publish();
                 pubError(ULTRASONIC2_ABNORMAL_OVER_30_SECOND);
             }
         }
         if (bump_->is_bump_0_need_publish()) {
             pubError(BUMP1_ABNORMAL_OVER_30_SECOND);
+            bump_->reset_bump_0_publish_flag();
         }
         if (bump_->is_bump_1_need_publish()) {
             pubError(BUMP2_ABNORMAL_OVER_30_SECOND);
+            bump_->reset_bump_1_publish_flag();
         }
         if (bump_->is_bump_2_need_publish()) {
             pubError(BUMP3_ABNORMAL_OVER_30_SECOND);
+            bump_->reset_bump_2_publish_flag();
         }
         if (bump_->is_bump_3_need_publish()) {
             pubError(BUMP4_ABNORMAL_OVER_30_SECOND);
+            bump_->reset_bump_3_publish_flag();
         }
-        if (bms_->isValid() == false) {
+        if (bms_->publishFlag()) {
             pubError(BMS_HOP);
+            bms_->resetPublish();
         }
-        if (tracked_pose_->isBiasDetectValid() == false) {
+        if (!tracked_pose_->isBiasDetectValid()) {
             tracked_pose_->resetBiasDetectValid();
             pubError(BIAS_DETECTED);
         }
-        if (tracked_pose_->isTrackedPoseValid() == false) {
+        if (tracked_pose_->publishFlag()) {
             pubError(TRACKED_POSE_HOP);
+            tracked_pose_->resetPublish();
         }
 
         r.sleep();
@@ -210,8 +228,10 @@ void SelfCheckSubscribe::checkEnable() {
     if (machine_code == 10001 || machine_code == 10005 ||
         machine_code == 10008 || machine_code == 10009) {//只在清洁中，转场中，回充中，低电量回充中报
         ultraSonic_->set_enabled(true);
+        odom_->setEnabled(true);
     } else {
         ultraSonic_->set_enabled(false);
+        odom_->setEnabled(false);
     }
     if (!camera_check_enable_) {
         handle.getParam("/node_controller/start_finish", camera_check_enable_);
