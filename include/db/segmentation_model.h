@@ -82,30 +82,52 @@ voronoi_neighborhood_index: 280         #larger value sets a larger neighborhood
 max_iterations: 150                     #设置搜索邻域的最大迭代次数，也用于vrf分割-->int
 min_critical_point_distance_factor: 0.5 #1.6#消除其中一个临界点之前两个临界点之间的最小距离因子-->双
 max_area_for_merging: 12.5              #应与其周围房间合并的房间的最大面积[m²]，也用于voronoi随机场分割
+
+ /**
+     const double robot_radius_ = 0.30;
+    const int map_correction_closing_neighborhood_size_ = 1;
+    const double grid_obstacle_offset_ = 0.2;
+    const double path_eps_ = 1.0;
+    const double min_cell_area_ = 100.0;
+    const int max_deviation_from_track_ = -1;
+    const int range_near_base_station_ = 5;
+
+    const double room_area_factor_lower_limit_ = 0.1;
+    const double room_area_factor_upper_limit_ = 1000000;
+    const int neighborhood_index_ = 280;
+    const int max_iterations_ = 150;
+    const double min_critical_point_distance_factor_ = 0.5;
+    const double max_area_for_merging_ = 12.5;
+
+    const int distance_from_obstacles_ = 2;
+    const int number_extension_ = 1;
+    const int multiple_contour_spacing_ = 0;
+    const int random_number_generation_ratio_ = 100;
+    const int boundary_min_area_ = 1;
  */
 class PlanPo {
 public:
     std::string map_id;
-    double robot_radius;//机器人半径 0.1-0.3
-    int map_correction_closing_neighborhood_size;//外围区域闭合邻域大小 0-10
-    double grid_obstacle_offset;//障碍物的额外偏移 0-0.3
-    double path_eps;//路径规划时两点间距  1-10
-    double min_cell_area;//最小规划面积 30-500
-    double max_deviation_from_track;//轨道最大允许偏移量 -1-5
-    int range_near_base_station;//基站范围 0-10
+    double robot_radius;//机器人半径 0.1-0.3（0.30）影响来回间距、贴边距离，数值越大间距越大，反之间距变小
+    int map_correction_closing_neighborhood_size;//外围区域闭合邻域大小 0-10（1）去除噪点，使地图更加圆润，数值越大规划越整齐，数值越小规划越真实
+    double grid_obstacle_offset;//障碍物的额外偏移 0-0.3（0.2）数值越大偏离障碍物越大
+    double path_eps;//路径规划时两点间距  1-10（1.0）数值越小规划越精准
+    double min_cell_area;//最小规划面积 30-500100）抛弃的最小面积
+    double max_deviation_from_track;//轨道最大允许偏移量 -1-5（-1则计算取机器人半径，大于0取当前值）
+    int range_near_base_station;//基站范围 0-105）基站的范围不规划路径
 
-    double room_area_factor_lower_limit;//临界线分隔的区域允许具有的最小面积 0.1-20
-    double room_area_factor_upper_limit;//临界线分隔的区域允许具有的最大面积 100-1000000
-    int neighborhood_index;//搜索临界点 70-600
-    int max_iterations;//搜索邻域的最大迭代次数 60-240
-    double min_critical_point_distance_factor;//消除临界点与之前两个临界点之间的最小距离 0-1.3
-    double max_area_for_merging;//与其周围房间合并的房间的最大面积 3-1000
+    double room_area_factor_lower_limit;//临界线分隔的区域允许具有的最小面积 0.1-20（0.1）
+    double room_area_factor_upper_limit;//临界线分隔的区域允许具有的最大面积 100-1000000（1000000）
+    int neighborhood_index;//搜索临界点 70-600（280）
+    int max_iterations;//搜索邻域的最大迭代次数 60-240（150）
+    double min_critical_point_distance_factor;//消除临界点与之前两个临界点之间的最小距离 0-1.3（0.5）
+    double max_area_for_merging;//与其周围房间合并的房间的最大面积 3-1000（12.5）
 
-    int distance_from_obstacles;//与障碍物的间距 0-10
-    int number_extension;//生成贴边轮廓的个数 1-3
-    int multiple_contour_spacing;//多个贴边轮廓的间距 -3-3
-    int random_number_generation_ratio;//可达点的计算比例 50-200
-    int boundary_min_area;//贴边范围的最小面积
+    int distance_from_obstacles;//与障碍物的间距 0-10（2）贴边距离障碍物的间距
+    int number_extension;//生成贴边轮廓的个数 1-3（1）可覆盖几条贴边
+    int multiple_contour_spacing;//多个贴边轮廓的间距 -3-3（0）多条贴边的间距
+    int random_number_generation_ratio;//可达点的计算比例 50-200（100）路径生成后的点位可达计算率
+    int boundary_min_area;//贴边范围的最小面积（1）地图障碍物小于此值不规划贴边
 
     PlanPo();
 
