@@ -273,8 +273,8 @@ public:
         return bias_detect_valid;
     }
 
-    bool resetBiasDetectValid() {  
-        bias_detect_valid = true; 
+    bool resetBiasDetectValid() {
+        bias_detect_valid = true;
     }
 
     bool isTrackedPoseValid() {
@@ -454,7 +454,7 @@ public:
                 if (bump_0_valid) {
                   bump_0_publish_flag_ = true;
                   bump_0_valid = false;
-                
+
                 }
             }
         }
@@ -613,7 +613,7 @@ public:
     }
 
     bool is_ultra_1_need_publish() {
-         return (ultra_1_need_publish ); 
+         return (ultra_1_need_publish );
     }
     void reset_ultra_1_need_publish() { ultra_1_need_publish = false; }
 

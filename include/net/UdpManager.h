@@ -62,17 +62,13 @@ class UdpManager {
 
     UdpManager &operator=(const UdpManager &) = delete;
 
-    static UdpManager *m_instance_ptr;
-
     UdpThread *udpThread;
 public:
     ~UdpManager() = default;
 
-    static UdpManager *get_instance() {
-        if (m_instance_ptr == nullptr) {
-            m_instance_ptr = new UdpManager;
-        }
-        return m_instance_ptr;
+    static auto &instance() {
+        static UdpManager obj;
+        return obj;
     }
 
     void start();

@@ -11,20 +11,20 @@
 #include "segmentation/CvUtils.h"
 #include "BaseThrowable.h"
 #include "exploration/ExplorationCenter.h"
-#include "task/simulation.h"
+#include "simulation.h"
 
 static bool DEBUG_DISPLAYS_SHOW = false;
 
-bool SegmentationCenter::detectionTooSmallRoom(const cv::Mat &segmented_map, Room room) const {
+bool SegmentationCenter::detectionTooSmallRoom(const cv::Mat &segmented_map, Room room, PlanPo plan) const {
     auto room_map = segmented_map.clone();
     cv::Mat zero_map = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
     cv::drawContours(zero_map, std::vector<std::vector<cv::Point> >(1, room.getMembers()),
                      -1, cv::Scalar(255), CV_FILLED);
     cv::Mat temp, compute_map;
-    cv::erode(zero_map, temp, cv::Mat(), cv::Point(-1, -1), map_correction_closing_neighborhood_size_);
-    cv::dilate(temp, zero_map, cv::Mat(), cv::Point(-1, -1), map_correction_closing_neighborhood_size_);
+    cv::erode(zero_map, temp, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
+    cv::dilate(temp, zero_map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
 
-    double grid_spacing_in_meter = robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
+    double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
     int map_prohibition_expand_size_ = (int) std::floor(grid_spacing_in_pixel);
 
@@ -113,6 +113,8 @@ void SegmentationCenter::initialize() {
     MapAttribute::instance().loadVirtualWall();
     // 5.禁区（生成全覆盖路径时需要）
     MapAttribute::instance().loadPenaltyZone();
+    // 6.加载参数
+    MapAttribute::instance().loadPlanParam();
 
     // test
 //    resetSegmentation();
@@ -225,6 +227,8 @@ void SegmentationCenter::handSegmentation(cv::Mat &segmented_map, std::vector<Ro
         throw app::exception(make_error_code(error::room_array_out_of_bounds));
     }
 
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+
     // 1.移除要分割的房间
     auto base_room = rooms[target_index];
 
@@ -266,7 +270,8 @@ void SegmentationCenter::handSegmentation(cv::Mat &segmented_map, std::vector<Ro
     rooms.push_back(roomStart);
     rooms.push_back(roomEnd);
 
-    if (!detectionTooSmallRoom(segmented_map, roomStart) || !detectionTooSmallRoom(segmented_map, roomEnd)) {
+    if (!detectionTooSmallRoom(segmented_map, roomStart, plan) ||
+        !detectionTooSmallRoom(segmented_map, roomEnd, plan)) {
         throw app::exception(make_error_code(error::room_has_too_small_room));
     }
 
@@ -406,17 +411,19 @@ void SegmentationCenter::automaticSegmentation(cv::Mat &segmented_map, std::vect
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
 
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+
     int start_time = ros::Time::now().sec;
 
     cv::Mat map = generateMat();
 
     VoronoiSegmentation voronoi_segmentation; //voronoi segmentation method
     voronoi_segmentation.segmentMap(map, segmented_map, rooms, map_resolution_from_subscription,
-                                    room_area_factor_lower_limit, room_area_factor_upper_limit,
-                                    neighborhood_index, max_iterations,
-                                    min_critical_point_distance_factor, max_area_for_merging);
+                                    plan.room_area_factor_lower_limit, plan.room_area_factor_upper_limit,
+                                    plan.neighborhood_index, plan.max_iterations,
+                                    plan.min_critical_point_distance_factor, plan.max_area_for_merging);
 
-    calculation_center_point(segmented_map, rooms, robot_radius, map_resolution_from_subscription);
+    calculation_center_point(segmented_map, rooms, plan.robot_radius, map_resolution_from_subscription);
 
     int end_time = ros::Time::now().sec;
     std::cout << "cost handSegmentation : " << end_time - start_time << " s " << std::endl;
@@ -469,6 +476,8 @@ cv::Mat SegmentationCenter::generateMat() const {
     }
 
     auto type = map.type();
+    auto cols = map.cols;//width
+    auto rows = map.rows;//height
 
     return map;
 }

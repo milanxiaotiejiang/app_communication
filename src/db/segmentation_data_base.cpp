@@ -4,6 +4,7 @@
 
 #include "db/segmentation_data_base.h"
 
+#include <utility>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -16,16 +17,23 @@ bool SegmentationDataBase::loadMap() {
     try {
         auto vectorMap = segmentationStorage.get_all<MapPo>(limit(1));
         if (!vectorMap.empty()) {
-            mapPo = vectorMap.front();
+            auto map = vectorMap.front();
+            auto map_verify_path = map.path + "mymap.pgm";
+            if (access(map_verify_path.c_str(), F_OK) != 0) {
+                segmentationStorage.replace(
+                        MapPo(map.id, "mymap.pgm",
+                              SEGMENTATION_PATH)
+                );
+            }
         } else {
             auto mapId = boost::uuids::to_string(boost::uuids::random_generator()());
             segmentationStorage.replace(
                     MapPo(mapId, "mymap.pgm",
                           SEGMENTATION_PATH)
             );
-            auto againMap = segmentationStorage.get_all<MapPo>(limit(1));
-            mapPo = againMap.front();
         }
+        auto againMap = segmentationStorage.get_all<MapPo>(limit(1));
+        mapPo = againMap.front();
         return true;
     } catch (const std::system_error &e) {
         LOG(ERROR) << e.what();
@@ -150,3 +158,35 @@ void SegmentationDataBase::reRoomName(int targetId, const std::string &name) {
         return true;
     });
 }
+
+void SegmentationDataBase::setPlanParam(const std::string &mapId, double robotRadius,
+                                        int mapCorrectionClosingNeighborhoodSize,
+                                        double gridObstacleOffset, double pathEps, double minCellArea,
+                                        double maxDeviationFromTrack,
+                                        int rangeNearBaseStation, double roomAreaFactorLowerLimit,
+                                        double roomAreaFactorUpperLimit,
+                                        int neighborhoodIndex, int maxIterations, double minCriticalPointDistanceFactor,
+                                        double maxAreaForMerging, int distanceFromObstacles, int numberExtension,
+                                        int multipleContourSpacing, int random_number_generation_ratio,
+                                        int boundary_min_area) {
+    PlanPo planPo(mapId, robotRadius, mapCorrectionClosingNeighborhoodSize,
+                  gridObstacleOffset, pathEps, minCellArea, maxDeviationFromTrack,
+                  rangeNearBaseStation, roomAreaFactorLowerLimit, roomAreaFactorUpperLimit,
+                  neighborhoodIndex, maxIterations, minCriticalPointDistanceFactor, maxAreaForMerging,
+                  distanceFromObstacles, numberExtension, multipleContourSpacing,
+                  random_number_generation_ratio, boundary_min_area);
+    segmentationStorage.replace(planPo);
+}
+
+PlanPo SegmentationDataBase::getDbPlan(std::string map_id) {
+    auto vectorPlan = segmentationStorage.get_all<PlanPo>(
+            where(c(&PlanPo::map_id) == std::move(map_id))
+    );
+    if (!vectorPlan.empty())
+        return vectorPlan.front();
+    else
+        return {};
+}
+
+
+

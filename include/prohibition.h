@@ -24,16 +24,4 @@ int reset_prohibition(void);
 bool get_prohibition(vector<vector<float>> &prohibition_position);
 
 
-int set_partition(vector<float> &point, int);
-
-int reset_partition(void);
-
-bool get_partition(vector<vector<float>> &partition);
-
-// int set_clean_zone(float * );
-// int reset_clean_zone(void);
-// bool get_clean_zone(vector<vector<float>>& clean_zone );
-
-string read_from_file(char const *fileName);
-
 bool write_into_file(char const *fileName, char const *content);

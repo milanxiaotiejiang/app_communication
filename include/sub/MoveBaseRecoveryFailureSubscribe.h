@@ -15,6 +15,7 @@
 #include "tool/Variable.h"
 #include <ros/ros.h>
 
+//todo 脱空跳点
 class MoveBaseRecoveryFailureSubscribe {
 private:
     ros::NodeHandle m_handle;

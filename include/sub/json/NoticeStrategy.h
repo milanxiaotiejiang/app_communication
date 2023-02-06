@@ -6,7 +6,6 @@
 #define APP_COMMUNICATION_NOTICESTRATEGY_H
 
 #include "MessageStrategy.h"
-#include "tool/read_partion_file.h"
 #include "tool/write_file.hpp"
 #include "model/Notice.h"
 #include "manager/NoticeManager.h"

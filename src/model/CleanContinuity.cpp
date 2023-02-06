@@ -2,7 +2,7 @@
 // Created by milan on 2021/12/15.
 //
 
-#include "CleanContinuity.h"
+#include "model/CleanContinuity.h"
 
 CleanContinuity::~CleanContinuity() {
 

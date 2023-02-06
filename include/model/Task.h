@@ -9,8 +9,8 @@
 #include "WorkStatus.h"
 #include "vector"
 #include "FullPath.h"
-#include <CleanContinuity.h>
-#include <CleanPolygon.h>
+#include "CleanContinuity.h"
+#include "CleanPolygon.h"
 #include <ostream>
 #include <stdlib.h>
 #include <string>

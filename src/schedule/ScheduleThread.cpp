@@ -1,10 +1,8 @@
 #include "schedule/ScheduleThread.h"
 #include "model/TimerInfo.h"
 #include "net/WsServerManager.h"
-#include "sub/json/TaskStrategy.h"
 #include "glog/logging.h"
 #include "ros/package.h"
-#include "tool/Variable.h"
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -14,14 +12,14 @@
 #include "manager/CombinationManager.h"
 #include "manager/ViewPartManager.h"
 
-//
-PubInner *pubInnerStatic = nullptr;
+#include "exploration/ExplorationStrategy.h"
+#include "segmentation/SegmentationCenter.h"
+#include "exploration/ExplorationCenter.h"
+#include "db/segmentation_data_base.h"
+#include "simulation.h"
 
-ScheduleThread::ScheduleThread(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut) : handle(handle),
-                                                                                           pubInner(pubInner),
-                                                                                           pubOut(pubOut) {
+ScheduleThread::ScheduleThread(ros::NodeHandle handle) : handle(handle) {
     sub_json_ = handle.subscribe(APP_SCHEDULE, 1, &ScheduleThread::subscribeCallback, this);
-    pubInnerStatic = &pubInner; // new PubInner(handle);
 }
 
 ScheduleThread::~ScheduleThread() {
@@ -33,37 +31,29 @@ std::string fixWeek(std::string strin) {
     std::size_t found = ss.find("*");
     std::size_t f2 = ss.find("*", found + 1, 1);
     std::string s1 = ss.substr(0, f2 + 1);
-    // std::cout<<"   s1   "<<s1<<"  "<<f2<<endl;
     std::string s2 = ss.substr(f2 + 2);
     std::string s3 = s2.substr(0, 1);
     std::string s5 = "*";
     std::size_t found1 = 0;
-    // std::cout<<"   s2   "<<s2<<endl;
     while (found1 < s2.size()) {
 
         s3 = s2.substr(found1, 1);
 
-        int a; //=atoi(str.c_str());
+        int a;
         if (s3 != " " && s3 != "*" && s3 != ",") {
             a = (atoi(s3.c_str()) + 1) % 7;
             std::string s4 = std::to_string(a);
-            //s1 += " " + s4;  
 
             if (s5 == "*") s1 += " ";
-            // std::cout <<"111   "<<" s5 "<<s5<<"  s3 "<<s3<<"  s1 "<< s1 << endl;
             s1 += s4;
         } else if (s3 == "*") {
             s1 += " " + s3;
-            // std::cout <<"222  "<< s1 << endl;
         } else if (s3 == "," || s3 == " ") {
-            // std::cout <<"333  "<< s1 << endl;
             s1 += s3;
         }
         found1 += 1;
         s5 = s3;
-        // if(found1 < s2.size() && s3 != ",") s1 += ",";
     }
-    //  std::cout << s1 << endl;
     return s1;
 }
 
@@ -71,8 +61,10 @@ void execTask(TimerInfo &tsk) {
     std::shared_ptr<Task> tk = make_shared<Task>();
     std::string st = croncpp::Cron<croncpp::LocalClock, croncpp::NullLock>::get_timestring();
     LOG(INFO) << "execTask  taskid  " << st;
-    tk->setTaskId(st);//(tsk.getTaskId()+tsk.getTimerRule());
-    if (tsk.getTaskId() == "") {
+
+    tk->setTaskId(st);
+
+    if (tsk.getTaskId().empty()) {
         //如果没有模式，默认全覆盖
         tk->setMode(6);
     } else {
@@ -97,33 +89,50 @@ void execTask(TimerInfo &tsk) {
     tk->setRate(tsk.getRate());
     tk->setLaunchPeople("admin1");
     //任务运行中，不分配任务
-    if (ManualManager::instance().runTaskId() != "") {
+    if (!ManualManager::instance().runTaskId().empty()) {
         LOG(INFO) << "当前有任务在执行，定时清扫被取消";
     } else {
         if (tk->getMode() == 6) {
-            cout << "!!!!!!Full path  45  : " << ManualManager::instance().runTaskId() << endl;
-            //pub to clean robot to get full plan
-            std_msgs::Int32MultiArray msg;
-            vector<int> temp;
-            temp.push_back(-1);
-            cout << "!!!!!!Full path  133  : " << endl;
-            msg.data = temp;
-            PublishInnerManager::instance().getPubInner()->publishStartPlan(msg);
-            cout << "!!!!!!Full path  135  : " << endl;
 
-            extern std::condition_variable fullPathCV;
-            extern std::mutex fullPathLock;
-            std::unique_lock<std::mutex> lck(fullPathLock);
-            fullPathCV.wait_for(lck, std::chrono::milliseconds(7000));
-            cout << "!!!!!!Full path  140  : " << endl;
-            vector<Point> full_path = Variable::get_instance()->getFullPath();
-            if (full_path.size() > 0) {
+            std::vector<geometry_msgs::Pose2D> exploration_path;
+            std::vector<cv::Point> point_path;
+            const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
+            ExplorationCenter::instance().generatePlanningPath(baseMap, ExplorationModel::FULL,
+                                                               BOUSTROPHEDON_EXPLORER_MODE, false,
+                                                               cv::Point(0, 0),
+                                                               exploration_path, point_path);
+
+            ExplorationCenter::instance().pathPublish(exploration_path);
+            boost::uuids::uuid uuid = boost::uuids::random_generator()();
+            string uuid_string = boost::uuids::to_string(uuid);
+
+            std::vector<PoseVo> poseList;
+            std::vector<PointVo> pointList;
+            for (const auto &item: exploration_path) {
+                poseList.emplace_back(item.y, item.x, item.theta);
+            }
+            for (const auto &item: point_path) {
+                pointList.emplace_back(item.x, item.y);
+            }
+
+            auto coverage = RoomCoverage(uuid_string, pointList, poseList);
+            ExplorationCenter::instance().cacheRoomCoverage(coverage);
+
+
+            Environment::instance().room_coverage_uuid = uuid_string;
+
+
+            if (!poseList.empty()) {
                 std_msgs::String result;
-                tk->setFullPath(full_path);
-                cout << "!!!!!!Full path  147  : " << endl;
+
+                std::vector<Point> full;
+                for (const auto &item: poseList) {
+                    full.emplace_back(item.getX(), item.getY());
+                }
+                FullPath fullPath(full);
+                tk->setFullPath(full);
                 try {
                     TaskCenter::instance().executeTask(*tk);
-
                 } catch (app::exception const &e) {
                     LOG(INFO) << "定时全局清扫失败!!!";
                 }
@@ -142,21 +151,17 @@ void execTask(TimerInfo &tsk) {
 }
 
 void ScheduleThread::startScheduleCheck() {
-    int nstate = 0;
     string fileName;
     string sss;
     fileName.append(ros::package::getPath("data_base"));
     fileName.append("/config/timer_info_json.txt");
     //设置清扫计时器
-    // sh::File *fff = new sh::File(fileName);
 
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
     cout << "timeinfo file  " << fileName << endl;
     if (!fff->open(std::ios::in)) {
         if (!fff->create(fileName)) {
             cout << "fail to create timeinfo file" << endl;
-            //   parseError(pubOut, params.getId(), 10001, "创建定时器文件失败11");
-
             return;
         }
     } else {

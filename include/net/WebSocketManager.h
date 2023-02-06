@@ -14,23 +14,10 @@
 #include "WebClientSubscriber.h"
 
 class WebSocketManager {
-
-    WebSocketManager() = default;
-
-    WebSocketManager(WebSocketManager &) = delete;
-
-    WebSocketManager &operator=(const WebSocketManager &) = delete;
-
-    static WebSocketManager *m_instance_ptr;
-
 public:
-    ~WebSocketManager() = default;
-
-    static WebSocketManager *get_instance() {
-        if (m_instance_ptr == nullptr) {
-            m_instance_ptr = new WebSocketManager;
-        }
-        return m_instance_ptr;
+    static auto &instance() {
+        static WebSocketManager obj;
+        return obj;
     }
 
     void start();
@@ -38,11 +25,6 @@ public:
 };
 
 void WebSocketManager::start() {
-//    WebServer *webServer = new WebServer();
-//    webServer->start();
-//    webServer->detach();
-
-//    sleep(2);
 
     WebClientSubscriber *webClientSubscriber = new WebClientSubscriber();
     webClientSubscriber->start();

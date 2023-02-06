@@ -116,7 +116,7 @@ target_link_libraries(rec_app_node
         ${OpenCV_LIBRARIES}
         ${GLOG_LIBRARIES}
         python2.7
-#                ${ZLIB_LIBRARIES}
+        #                ${ZLIB_LIBRARIES}
         eventpp::eventpp
         sqlite_orm::sqlite_orm sqlite3
         ${BREAK_PAD_LIBRARIES}

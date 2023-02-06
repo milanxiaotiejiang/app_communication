@@ -13,5 +13,20 @@ public:
     RoomCoverage handler(RoomExplorationTarget params) override;
 };
 
+class PlanParamGetStrategy : public MessageStrategy<string, PlanParam> {
+public:
+    PlanParam handler(string params) override;
+};
+
+class PlanParamSetStrategy : public MessageStrategy<PlanParam, bool> {
+public:
+    bool handler(PlanParam params) override;
+};
+
+class PlanParamResetStrategy : public MessageStrategy<string, PlanParam> {
+public:
+    PlanParam handler(string params) override;
+};
+
 
 #endif //APP_COMMUNICATION_EXPLORATIONSTRATEGY_H

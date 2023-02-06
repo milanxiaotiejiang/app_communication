@@ -7,8 +7,8 @@
 
 #include <nlohmann/json.hpp>
 #include "model/Point.h"
-#include <CleanContinuity.h>
-#include <CleanPolygon.h>
+#include "CleanContinuity.h"
+#include "CleanPolygon.h"
 #include "TeachModePoint.h"
 #include "FullPath.h"
 #include "Task.h"
@@ -68,28 +68,28 @@ public:
     }
 };
 
-class CombinationBriefUpgradeList {//简化路径组合列表
-private:
-    std::vector<CombinationBriefUpgrade> m_combination_brief_list;
-public:
-    CombinationBriefUpgradeList();
-
-    CombinationBriefUpgradeList(const vector<CombinationBriefUpgrade> &mCombinationBriefList);
-
-    const vector<CombinationBriefUpgrade> &getMCombinationBriefList() const;
-
-    void setMCombinationBriefList(const vector<CombinationBriefUpgrade> &mCombinationBriefList);
-
-    friend void to_json(json &j, const CombinationBriefUpgradeList &b) {
-        j = json{
-                {"m_combination_brief_list", b.m_combination_brief_list},
-        };
-    }
-
-    friend void from_json(const json &j, CombinationBriefUpgradeList &b) {
-        j.at("m_combination_brief_list").get_to(b.m_combination_brief_list);
-    }
-};
+//class CombinationBriefUpgradeList {//简化路径组合列表
+//private:
+//    std::vector<CombinationBriefUpgrade> m_combination_brief_list;
+//public:
+//    CombinationBriefUpgradeList();
+//
+//    CombinationBriefUpgradeList(const vector<CombinationBriefUpgrade> &mCombinationBriefList);
+//
+//    const vector<CombinationBriefUpgrade> &getMCombinationBriefList() const;
+//
+//    void setMCombinationBriefList(const vector<CombinationBriefUpgrade> &mCombinationBriefList);
+//
+//    friend void to_json(json &j, const CombinationBriefUpgradeList &b) {
+//        j = json{
+//                {"m_combination_brief_list", b.m_combination_brief_list},
+//        };
+//    }
+//
+//    friend void from_json(const json &j, CombinationBriefUpgradeList &b) {
+//        j.at("m_combination_brief_list").get_to(b.m_combination_brief_list);
+//    }
+//};
 
 class WorkStatusUpgrade {
 private:
@@ -231,28 +231,28 @@ public:
     }
 };
 
-class ViewPartListUpgrade {
-private:
-    std::vector<ViewPartUpgrade> m_view_part_list;
-public:
-    ViewPartListUpgrade();
-
-    ViewPartListUpgrade(const vector<ViewPartUpgrade> &mViewPartList);
-
-    const vector<ViewPartUpgrade> &getMViewPartList() const;
-
-    void setMViewPartList(const vector<ViewPartUpgrade> &mViewPartList);
-
-    friend void to_json(json &j, const ViewPartListUpgrade &b) {
-        j = json{
-                {"m_view_part_list", b.m_view_part_list},
-        };
-    }
-
-    friend void from_json(const json &j, ViewPartListUpgrade &b) {
-        j.at("m_view_part_list").get_to(b.m_view_part_list);
-    }
-};
+//class ViewPartListUpgrade {
+//private:
+//    std::vector<ViewPartUpgrade> m_view_part_list;
+//public:
+//    ViewPartListUpgrade();
+//
+//    ViewPartListUpgrade(const vector<ViewPartUpgrade> &mViewPartList);
+//
+//    const vector<ViewPartUpgrade> &getMViewPartList() const;
+//
+//    void setMViewPartList(const vector<ViewPartUpgrade> &mViewPartList);
+//
+//    friend void to_json(json &j, const ViewPartListUpgrade &b) {
+//        j = json{
+//                {"m_view_part_list", b.m_view_part_list},
+//        };
+//    }
+//
+//    friend void from_json(const json &j, ViewPartListUpgrade &b) {
+//        j.at("m_view_part_list").get_to(b.m_view_part_list);
+//    }
+//};
 
 class CleanHistoryUpgrade {
 private:

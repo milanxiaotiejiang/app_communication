@@ -3,6 +3,7 @@
 //
 
 #include "segmentation/map_attribute.h"
+#include "db/segmentation_data_base.h"
 
 /**
  * map_origin_pose.position (0,0) 为显示地图的左下角，即 starting_position_pose.x 越大，机器人越靠右；starting_position_pose.y 越大，机器人越考上
@@ -12,13 +13,14 @@ void MapAttribute::setRobotPositionPose(geometry_msgs::Pose2D positionPose) {
 }
 
 cv::Point MapAttribute::getRobotPositionPoint(const cv::Mat &room_map) const {
-    double rows = room_map.rows * map_resolution_from_subscription;
-    double x = starting_position_pose.x - map_origin_pose.position.x;
-    double y = rows - (starting_position_pose.y - map_origin_pose.position.y);
-    LOG(INFO) << "robot position (" << x << ", " << y << ")";
+    auto cols = room_map.cols;//width
+    auto rows = room_map.rows;//height
     cv::Point starting_position;
-    starting_position.x = x / map_resolution_from_subscription;
-    starting_position.y = y / map_resolution_from_subscription;
+    starting_position.x =
+            cols - (starting_position_pose.y - map_origin_pose.position.x) / map_resolution_from_subscription;
+    starting_position.y =
+            rows - (starting_position_pose.x - map_origin_pose.position.y) / map_resolution_from_subscription;
+    LOG(INFO) << "current robot position (" << starting_position.x << ", " << starting_position.y << ")";
     return starting_position;
 }
 
@@ -88,6 +90,37 @@ void MapAttribute::loadPenaltyZone() {
             handleProhibition(penaltyZoneList, childNode, PENALTY_ZONE_DUS_COUNT);
         }
     }
+}
+
+void MapAttribute::loadPlanParam() {
+    std::string &map_id = SegmentationDataBase::instance().getDbMap().id;
+    auto planPo = SegmentationDataBase::instance().getDbPlan(map_id);
+    if (planPo.map_id.empty()) {
+        loadDefaultPlanParam();
+    }
+}
+
+void MapAttribute::loadDefaultPlanParam() {
+    std::string &map_id = SegmentationDataBase::instance().getDbMap().id;
+    SegmentationDataBase::instance().setPlanParam(map_id,
+                                                  robot_radius_,
+                                                  map_correction_closing_neighborhood_size_,
+                                                  grid_obstacle_offset_,
+                                                  path_eps_,
+                                                  min_cell_area_,
+                                                  max_deviation_from_track_,
+                                                  range_near_base_station_,
+                                                  room_area_factor_lower_limit_,
+                                                  room_area_factor_upper_limit_,
+                                                  neighborhood_index_,
+                                                  max_iterations_,
+                                                  min_critical_point_distance_factor_,
+                                                  max_area_for_merging_,
+                                                  distance_from_obstacles_,
+                                                  number_extension_,
+                                                  multiple_contour_spacing_,
+                                                  random_number_generation_ratio_,
+                                                  boundary_min_area_);
 }
 
 void

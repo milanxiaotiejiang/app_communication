@@ -6,7 +6,6 @@
 #define APP_COMMUNICATION_STATUSSTRATEGY_H
 
 #include "MessageStrategy.h"
-#include "manager/CleanHistoryManager.h"
 #include "ros/ros.h"
 #include <nlohmann/json.hpp>
 

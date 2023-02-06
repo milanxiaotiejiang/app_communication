@@ -17,28 +17,17 @@
 
 class MessageBusManager {
 
-//    MessageBusManager() = default;
+private:
     MessageBusManager() {
         messageBus = new MessageBus();
     };
 
-    MessageBusManager(MessageBusManager &) = delete;
-
-    MessageBusManager &operator=(const MessageBusManager &) = delete;
-
-    static MessageBusManager *m_instance_ptr;
-
-private:
     MessageBus *messageBus = nullptr;
 
 public:
-    ~MessageBusManager() = default;
-
-    static MessageBusManager *get_instance() {
-        if (m_instance_ptr == nullptr) {
-            m_instance_ptr = new MessageBusManager;
-        }
-        return m_instance_ptr;
+    static auto &instance() {
+        static MessageBusManager obj;
+        return obj;
     }
 
     MessageBus *getMessageBus() const;

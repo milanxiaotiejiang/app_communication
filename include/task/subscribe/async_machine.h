@@ -129,7 +129,7 @@ public:
                 return 10010;
             case event::flow::manual_task_pause:
                 return 10007;
-            case event::flow::force_task_pause:
+            case event::flow::urgency_stop_pause:
                 return 10004;
             case event::flow::manual_cleaning:
                 return 10013;

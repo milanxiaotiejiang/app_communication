@@ -1,5 +1,5 @@
 #include "rec_app.h"
-#include "sys/wait.h"
+#include "simulation.h"
 
 /**
  * 单元测试示例代码
@@ -19,20 +19,13 @@ int Factorial(int number) {
 
 int ignore_area;//面积小于此百分比面积的分区区域将被忽略
 
-Error_log *Error_log::m_instance_ptr = nullptr;
 NoticeManager *NoticeManager::m_instance_ptr = nullptr;
 Variable *Variable::m_instance_ptr = nullptr;
-Timer_tool *Timer_tool::m_instance_ptr = nullptr;
 TeachModePoint *TeachModePoint::m_instance_ptr = nullptr;
-CalcAreaClass *CalcAreaClass::m_instance_ptr = nullptr;
-CleanHistoryManager *CleanHistoryManager::m_instance_ptr = nullptr;
 ViewPartManager *ViewPartManager::m_instance_ptr = nullptr;
 CombinationManager *CombinationManager::m_instance_ptr = nullptr;
 FullCleanManager *FullCleanManager::m_instance_ptr = nullptr;
 
-UdpManager *UdpManager::m_instance_ptr = nullptr;
-// WebSocketManager *WebSocketManager::m_instance_ptr = nullptr;
-MessageBusManager *MessageBusManager::m_instance_ptr = nullptr;
 internal_event::InternalEventPubManager *internal_event::InternalEventPubManager::instance_ = nullptr;
 
 ScheduleThread *sThd = nullptr;
@@ -40,7 +33,6 @@ ScheduleThread *sThd = nullptr;
 MessageBus *MessageBusManager::getMessageBus() const { return messageBus; }
 
 ThreadPool pool(3);
-bool isRealEnvironment;
 
 int main(int argc, char **argv) {
 
@@ -57,7 +49,7 @@ int main(int argc, char **argv) {
     pool.init();
 
     async::TimerInitCall::instance().initialize();
-    UdpManager::get_instance()->start();
+    UdpManager::instance().start();
 
     ros::NodeHandle handle;
     handle.param("/path_planning_node/ignore_area", ignore_area, std::int32_t(8));
@@ -76,28 +68,19 @@ int main(int argc, char **argv) {
     JsonSubscribe jsonSubscribe(handle);
     JsonSubscribeCloud jsonSubscribeCloud(handle, pubInner, pubOut);
     BeforeJsonSubscribe beforeJsonSubscribe(handle, pubInner, pubOut);
-    Error_Core err_Core(handle, pubInner, pubOut);
     MapInnerSubscribe mapInnerSubscribe(handle, pubInner, pubOut);
-    OdomInnerSubscribe odomInnerSubscribe(handle, pubInner, pubOut);
     DSVersionSubscribe dsVersionSubscribe(handle, pubInner, pubOut);
 
-    OdomSubscribe odomSubscribe(handle, pubInner, pubOut);
-    FullPathSubscribe fullPathSubscribe(handle, pubInner, pubOut);
     SelfCheckSubscribe selfCheckSubscribe(handle, pubInner, pubOut);
     MoveBaseRecoveryFailureSubscribe moveBaseRecoveryFailureSubscribe(handle);
 
     SegmentationSubscribe SegmentationSubscribe(handle);
-    BiasDetectSubscribe bias_detect_subscribe(handle);
-    //启动计时
-    Timer_tool::get_instance()->startRunTimer();
     NoticeManager::get_instance()->setPubOut(&pubOut);
 
     std_msgs::String test;
     /////////////////////////////////
     ////////////////////////////////////////////
 
-    UpgradeManager::instance().updateCombinationPrincipal();
-    UpgradeManager::instance().updateViewPartPrincipal();
     UpgradeManager::instance().updateCleanHistoryPrincipal();
     UpgradeManager::instance().updateCombinationBase64();
     UpgradeManager::instance().updateViewPartBase64();
@@ -112,32 +95,16 @@ int main(int argc, char **argv) {
     initNodeParams(nh);
 
     ros::Publisher pub_current = nh.advertise<std_msgs::Int32>("/current_flag", 10);
-    Error_log::get_instance()->start();
     WsServerManager::instance().startWebSocket(pubInner, pubOut);
 
     string last_task;
     nh.param<string>("last_task", last_task, "");//上次执行的任务
     restartAfterCrash(last_task);
     ///////////////////////////////////////////////
-    sThd = new ScheduleThread(handle, pubInner, pubOut);
+    sThd = new ScheduleThread(handle);
     sThd->start();
     sThd->detach();
-    //查看最后一条清洁历史如果开始时间和结束时间相同则说明未完成
-    CleanHistory clean_history_temp;
-    if (CleanHistoryManager::get_instance()->GetLatestCleanHistory(clean_history_temp)) {
-        if (clean_history_temp.getExecuteTime() == clean_history_temp.getEndTime() ||
-            (clean_history_temp.getIsComplete() == false &&
-             clean_history_temp.getErrorCode() != 20001)) {
-            clean_history_temp.setIsComplete(false);
-            // Ewen change begin
-            clean_history_temp.setBaseComplete(false);
-            ///clean_history_temp.setErrorCode(20001);
-            ///clean_history_temp.setErrorMessage("中断");
-            // Ewen change end
-            CleanHistoryManager::get_instance()->ResetCleanHistory(clean_history_temp,
-                                                                   clean_history_temp.getTaskID());
-        }
-    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     unsigned int count = 0;
     ros::Rate loop(5); // 5Hz循环分频
@@ -152,7 +119,7 @@ int main(int argc, char **argv) {
 
 void judgeEnvironment() {
     DIR *pAdmin = opendir("/home/admin1");
-    isRealEnvironment = pAdmin != nullptr;
+    Environment::instance().isRealEnvironment = pAdmin != nullptr;
     if (pAdmin != nullptr) {
         closedir(pAdmin);
     }
@@ -160,7 +127,8 @@ void judgeEnvironment() {
 
 void initLog(char *const *argv) {
     // sudo apt-get install libgoogle-glog-dev
-    std::string logDirStr = isRealEnvironment ? "/home/admin1/app_log" : "/home/lijiang/app_log";
+    std::string logDirStr = Environment::instance().isRealEnvironment ?
+                            "/home/admin1/app_log" : "/home/lijiang/app_log";
     mkdir(logDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
     FLAGS_logtostderr = false; //设置日志消息是否转到标准输出而不是日志文件(false)
@@ -199,17 +167,26 @@ void initLog(char *const *argv) {
 //    minidump_stackwalk b0b3ee65-051a-414a-84065a83-9c8461c2.dmp symbols > b0b3ee65-051a-414a-84065a83-9c8461c2.txt
  */
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, void *context, bool succeeded) {
-    LOG(ERROR) << sys_gettid() << " " << "Dump path : " << descriptor.path() << " " << succeeded;
+    std::string crash_file_path = descriptor.path();
+    LOG(ERROR) << sys_gettid() << " " << "Dump path : " << crash_file_path << " " << succeeded;
+
+    std::string real_program_installation_dir = "$HOME/AirCore/app/install/lib/app_communication/";
+    std::string app_ws_clion_path = "/home/admin1/app_ws/devel/lib/app_communication/rec_app_node";
+    if (access(app_ws_clion_path.c_str(), F_OK) == 0) {
+        real_program_installation_dir = "$HOME/app_ws/devel/lib/app_communication/";
+    }
 
     std::string instruct = "$HOME/app_ws/src/app_communication/scripts/parse_crash.sh";
-    std::string program_installation_dir = isRealEnvironment ?
-                                           "$HOME/AirCore/app/install/lib/app_communication/"
-                                                             :
+    std::string program_installation_dir = Environment::instance().isRealEnvironment ?
+                                           real_program_installation_dir
+                                                                                     :
                                            "$HOME/app_ws/devel/lib/app_communication/";
-    std::string crash_file_path = descriptor.path();
+
     unsigned long start = crash_file_path.find("app_dump/") + 9;
     auto crash_file = crash_file_path.substr(start);
-    std::system((instruct + " " + program_installation_dir + " " + crash_file).c_str());
+    auto CMD = instruct + " " + program_installation_dir + " " + crash_file;
+    LOG(INFO) << "CMD : " << CMD;
+    std::system(CMD.c_str());
     LOG(INFO) << ("upload ... ");
 
 
@@ -225,18 +202,14 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
 //        ros::init(argc, &argv, "catch_upload");
 //        ros::NodeHandle handle;
 //
-//        ros::Rate loop(5); // 5Hz循环分频
-//        while (ros::ok()) {
-//            ros::spinOnce();
-//            loop.sleep();
-//        }
+////        ros::Duration(10).sleep();
 //
-//        exit(0);
+////        exit(0);
 //    }
 //
 //    LOG(INFO) << "son process" << " " << pid;
-
-//    if (waitpid(pid, NULL, 0) != pid) {
+//
+//    if (waitpid(pid, nullptr, 0) != pid) {
 //        LOG(ERROR) << "fork error2";
 //    }
 
@@ -248,7 +221,9 @@ static bool filterCallback(void *context) {
 }
 
 void initDump() {
-    std::string dumpDirStr = isRealEnvironment ? "/home/admin1/app_dump" : "/home/lijiang/app_dump";
+    std::string dumpDirStr = Environment::instance().isRealEnvironment ? "/home/admin1/app_dump"
+                                                                       : "/home/lijiang/app_dump";
+
     LOG(INFO) << "dumpDirStr  " << dumpDirStr;
     mkdir(dumpDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
     google_breakpad::MinidumpDescriptor descriptor(dumpDirStr);
@@ -264,7 +239,7 @@ void initDump() {
 }
 
 void initTest(int argc, char **argv) {
-    if (!isRealEnvironment) {
+    if (!Environment::instance().isRealEnvironment) {
         Catch::Session().run(argc, argv);
     }
 }
@@ -318,7 +293,7 @@ void release() {
     if (exceptionHandler != nullptr)
         delete exceptionHandler;
     google::ShutdownGoogleLogging(); // 全局关闭glog
-    UdpManager::get_instance()->stop();
+    UdpManager::instance().stop();
     WsServerManager::instance().stopWebSocket();
     TaskCenter::instance().uninstall();
     ExplorationCenter::instance().uninstall();

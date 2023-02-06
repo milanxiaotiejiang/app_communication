@@ -32,6 +32,29 @@ public:
     void storage2Memory(cv::Mat &mat, std::vector<Room> &rooms, double map_resolution_from_subscription);
 
     void reRoomName(int targetId, const std::string &name);
+
+    void setPlanParam(const std::string &mapId,
+                      double robotRadius,
+                      int mapCorrectionClosingNeighborhoodSize,
+                      double gridObstacleOffset,
+                      double pathEps,
+                      double minCellArea,
+                      double maxDeviationFromTrack,
+                      int rangeNearBaseStation,
+                      double roomAreaFactorLowerLimit,
+                      double roomAreaFactorUpperLimit,
+                      int neighborhoodIndex,
+                      int maxIterations,
+                      double minCriticalPointDistanceFactor,
+                      double maxAreaForMerging,
+                      int distanceFromObstacles,
+                      int numberExtension,
+                      int multipleContourSpacing,
+                      int random_number_generation_ratio,
+                      int boundary_min_area
+    );
+
+    PlanPo getDbPlan(std::string map_id);
 };
 
 

@@ -11,7 +11,7 @@
 #include "task/manager/StationManager.h"
 #include "task/call/timely_call.h"
 #include "task/call/head_tail_call.h"
-#include "task/simulation.h"
+#include "simulation.h"
 #include "task/manager/PointProgressPublish.h"
 #include "task/manager/SwitchModePublish.h"
 #include "task/manager/manual.h"
@@ -59,7 +59,7 @@ void TaskCenter::realExecuteTask(const Task &task) {
     }
 
     //建图模式下，不能够分发任务
-    if (!isSimulation) {
+    if (Environment::instance().isRealEnvironment) {
         auto workMode = NodeWorkModeManager::instance().getWorkMode();
         if (workMode == WorkMode::MAPPING) {
             throw app::exception(make_error_code(error::dispatcher_task_work_mode_mapping));
@@ -123,7 +123,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
     //进站管理类
     flagInSubscribe = new FlagInSubscribe(handle);
 
-    if (isSimulation) {
+    if (!Environment::instance().isRealEnvironment) {
         std::thread moveBaseThread([]() {
             sleep(10);
             int last_machine_code = 10006;
@@ -153,7 +153,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
         moveBaseThread.detach();
     }
 
-    if (isSimulation) {
+    if (!Environment::instance().isRealEnvironment) {
         ZooInnerStatus::instance().setRsoc(60);
     }
 }

@@ -5,6 +5,7 @@
 #include "exploration/ExplorationStrategy.h"
 #include "segmentation/SegmentationCenter.h"
 #include "exploration/ExplorationCenter.h"
+#include "db/segmentation_data_base.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -34,8 +35,7 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
         if (targetId == -1) {
             if (rooms.empty()) {
                 explorationCenter.generatePlanningPath(baseMap, ExplorationModel::FULL, explorerMode, false,
-                                                       cv::Point(0, 0),
-                                                       exploration_path, point_path);
+                                                       cv::Point(0, 0), exploration_path, point_path);
             } else {
                 explorationCenter.generatePlanningSegmentationPath(baseMap, segmented_map, rooms, explorerMode,
                                                                    exploration_path, point_path);
@@ -75,4 +75,53 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
         result.setPointList(coverage.getPointList());
     }
     return result;
+}
+
+PlanParam PlanParamGetStrategy::handler(string params) {
+    auto planPo = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    return PlanParam(planPo.robot_radius, planPo.map_correction_closing_neighborhood_size,
+                     planPo.grid_obstacle_offset, planPo.path_eps, planPo.min_cell_area,
+                     planPo.max_deviation_from_track, planPo.range_near_base_station,
+                     planPo.room_area_factor_lower_limit, planPo.room_area_factor_upper_limit,
+                     planPo.neighborhood_index, planPo.max_iterations,
+                     planPo.min_critical_point_distance_factor, planPo.max_area_for_merging,
+                     planPo.distance_from_obstacles, planPo.number_extension, planPo.multiple_contour_spacing,
+                     planPo.random_number_generation_ratio, planPo.boundary_min_area);
+}
+
+bool PlanParamSetStrategy::handler(PlanParam params) {
+    SegmentationDataBase::instance().setPlanParam(
+            SegmentationDataBase::instance().getDbMap().id,
+            params.getRobotRadius(),
+            params.getMapCorrectionClosingNeighborhoodSize(),
+            params.getGridObstacleOffset(),
+            params.getPathEps(),
+            params.getMinCellArea(),
+            params.getMaxDeviationFromTrack(),
+            params.getRangeNearBaseStation(),
+            params.getRoomAreaFactorLowerLimit(),
+            params.getRoomAreaFactorUpperLimit(),
+            params.getNeighborhoodIndex(),
+            params.getMaxIterations(),
+            params.getMinCriticalPointDistanceFactor(),
+            params.getMaxAreaForMerging(),
+            params.getDistanceFromObstacles(),
+            params.getNumberExtension(),
+            params.getMultipleContourSpacing(),
+            params.getRandomNumberGenerationRatio(),
+            params.getBoundaryMinArea()
+    );
+}
+
+PlanParam PlanParamResetStrategy::handler(string params) {
+    MapAttribute::instance().loadDefaultPlanParam();
+    auto planPo = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    return PlanParam(planPo.robot_radius, planPo.map_correction_closing_neighborhood_size,
+                     planPo.grid_obstacle_offset, planPo.path_eps, planPo.min_cell_area,
+                     planPo.max_deviation_from_track, planPo.range_near_base_station,
+                     planPo.room_area_factor_lower_limit, planPo.room_area_factor_upper_limit,
+                     planPo.neighborhood_index, planPo.max_iterations,
+                     planPo.min_critical_point_distance_factor, planPo.max_area_for_merging,
+                     planPo.distance_from_obstacles, planPo.number_extension, planPo.multiple_contour_spacing,
+                     planPo.random_number_generation_ratio, planPo.boundary_min_area);
 }

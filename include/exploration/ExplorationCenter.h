@@ -6,14 +6,13 @@
 #define APP_COMMUNICATION_EXPLORATIONCENTER_H
 
 #include <ros/ros.h>
-#include "exploration/pose/tracked_pose_subscribe.h"
-#include "exploration/pose/amcl_pose_subscribe.h"
+#include "odom_subscribe.h"
 #include "segmentation/map_attribute.h"
 #include "lru_cache.h"
 #include "model/RoomVo.h"
 #include "segmentation/Room.h"
 
-const int map_correction_closing_neighborhood_size_ = 1;
+const int BOUSTROPHEDON_EXPLORER_MODE = 1;
 
 enum ExplorationModel {
     FULL,
@@ -25,8 +24,7 @@ class ExplorationCenter {
 private:
     bool initialize_finish = false;
 
-    AmclPoseSubscribe *poseSubscribe;
-    TrackedSubscribe *trackedSubscribe;
+    OdomSubscribe *poseSubscribe;
 
     cache::lru_cache<std::string, RoomCoverage> coverageCache = cache::lru_cache<std::string, RoomCoverage>(3);
 
@@ -38,9 +36,16 @@ private:
 
     cv::Mat prohibitionMat(const cv::Mat &room_map) const;
 
+    void morphologicalEdging(cv::Mat &room_map, int map_correction_closing_neighborhood_size) const;
+
+    void drawBaseStation(cv::Mat &room_map, const cv::Point &stationPoint, int radius) const;
+
     void pose2CVPoint(const cv::Mat &room_map, std::vector<cv::Point> &pointList,
                       const std::vector<geometry_msgs::Pose2D> &postList,
                       const cv::Point2d &map_origin);
+
+    void cvPoint2Pose(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &postList,
+                      const std::vector<cv::Point> &pointList, const cv::Point2d &map_origin);
 
     cv::Mat loadGenerateMap(int grid_spacing_in_pixel);
 
@@ -61,6 +66,9 @@ public:
 
     void uninstall();
 
+    void infinitelyNearBoundary(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
+                                std::vector<cv::Point> &point_path);
+
     void generatePlanningPath(const cv::Mat &room_map, ExplorationModel model,
                               std::vector<geometry_msgs::Pose2D> &exploration_path,
                               std::vector<cv::Point> &point_path);
@@ -79,7 +87,7 @@ public:
 
     void cacheRoomCoverage(const RoomCoverage &coverage);
 
-    RoomCoverage findRoomCoverage(const std::string &coverageId);
+    RoomCoverage findRoomCoverage(const std::string &coverageId, bool latest);
 };
 
 #endif //APP_COMMUNICATION_EXPLORATIONCENTER_H

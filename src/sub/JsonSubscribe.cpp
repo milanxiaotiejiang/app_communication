@@ -28,7 +28,7 @@
 #include <utility>
 
 #include "glog/logging.h"
-#include "task/simulation.h"
+#include "simulation.h"
 
 JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
     sub_json_ = handle.subscribe(APP_JSON, 3, &JsonSubscribe::subscribeCallback, this);
@@ -253,6 +253,15 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case REGION_EXPLORATION:
             messageStrategy = new ExplorationRoomStrategy();
+            break;
+        case GET_PLAN_PARAM:
+            messageStrategy = new PlanParamGetStrategy();
+            break;
+        case SET_PLAN_PARAM:
+            messageStrategy = new PlanParamSetStrategy();
+            break;
+        case RESET_PLAN_PARAM:
+            messageStrategy = new PlanParamResetStrategy();
             break;
         case MANUAL_PUSH_START:
             messageStrategy = new ManualPushStartStrategy();
