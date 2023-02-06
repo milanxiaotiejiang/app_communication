@@ -76,26 +76,21 @@ void ZooRobotStatusSubscribe::subscribeCallback(const zoo_bringup::robot_status 
     //如果此时湿拖托头下放
     if (ZooInnerStatus::instance().getMopStatus() == 1) {
         //清水箱空或者污水箱满
-        int mode = 0;
-        if (clean_water_level == 0) {
-            mode += 1;
+        if (clean_water_level == 0 && dirty_water_level == 100) {
+            NativeSystemManager::instance().waterLevelToBackBase(
+                    loop::special_epoll::special_branch_sewage_water);
+        } else if (clean_water_level == 0) {
+            NativeSystemManager::instance().waterLevelToBackBase(loop::special_epoll::special_branch_water);
         } else if (dirty_water_level == 100) {
-            mode += 2;
-        }
-        if (mode > 0) {
-            NativeSystemManager::instance().waterLevelToBackBase(mode);
+            NativeSystemManager::instance().waterLevelToBackBase(loop::special_epoll::special_sewage_water);
         }
     }
 
     //如果此时开启了扫吸模式
     if (ZooInnerStatus::instance().getVacuumStatus() == 1) {
         //污水箱满
-        int mode = 0;
         if (dirty_water_level == 100) {
-            mode += 2;
-        }
-        if (mode > 0) {
-            NativeSystemManager::instance().waterLevelToBackBase(mode);
+            NativeSystemManager::instance().waterLevelToBackBase(loop::special_epoll::special_sewage_water);
         }
     }
 

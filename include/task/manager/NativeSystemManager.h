@@ -25,7 +25,7 @@ public:
 
     void lowBatteryToBackBase();
 
-    void waterLevelToBackBase(int event);
+    void waterLevelToBackBase(loop::special_epoll operation);
 
     void urgencyStopAndCharge();
 

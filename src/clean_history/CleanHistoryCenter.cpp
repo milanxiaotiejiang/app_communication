@@ -651,7 +651,7 @@ namespace clean_history_db {
                 return make_tuple(3323, "强制返回基站时被关机", "CCR_323");
             case event::flow::force_over_success:
                 return make_tuple(3324, "强制返回基站时被关机", "CCR_324");
-            case event::flow::urgency_stop_pause:
+            case event::flow::force_task_pause:
                 return make_tuple(3325, "急停时被关机", "CCR_325");
             case event::flow::manual_control_over_and_move_base_point:
                 return make_tuple(3326, "手动返回基站时被关机", "CCR_326");

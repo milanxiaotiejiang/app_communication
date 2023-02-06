@@ -87,12 +87,16 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
             break;
         }
         case event::flow::switch_node_work_mode: {
-            callSwitchWorkMode();
+            callSwitchWorkMode([](bool work) {
+
+            });
             break;
         }
         case event::flow::preliminary_preparation_completed: {
             LOG(INFO) << "handlePoint flow : 前期的出站、睡眠等流程执行成功，现在启动清洁机构 ...";
-            callOpenMechanism(point);
+            callOpenMechanism(point.getWorkStatus(), []() {
+
+            });
             break;
         }
         case event::flow::cleaning_mechanism_ready: {
@@ -109,7 +113,9 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
             } else {
                 callRetryFirstPoint([this, point]() {
                     LOG(INFO) << "handlePoint flow : 第一个点位不能到达，收起清洁机构 ...";
-                    callCloseMechanism();
+                    callCloseMechanism([]() {
+
+                    });
                 });
             }
             break;
@@ -129,7 +135,9 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
         }
         case event::flow::arrive_base_point_success: {
             LOG(INFO) << "handlePoint flow : 成功到达基站前点位，收起清洁机构 ...";
-            callCloseMechanism();
+            callCloseMechanism([]() {
+
+            });
             break;
         }
         case event::flow::flowing_water_execution_completed: {

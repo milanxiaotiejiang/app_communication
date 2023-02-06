@@ -40,7 +40,7 @@ namespace event {
         force_base_point_and_close_mechanism,//强制返回基站成功，准备收起清洁机构
         force_mechanism_close_and_charging,//强制返回后收起完清洁机构，准备回充
         force_over_success,//强制结束成功
-        urgency_stop_pause,//急停中
+        force_task_pause,//急停中
 
         manual_control_over_and_move_base_point,//手动控制强制返回基站点位，一般用于开机后不在基站位置
         manual_control_back_try_move_base_point,//手动控制返回基站点位有误差，重试
@@ -68,6 +68,57 @@ namespace event {
         LOST,
         TIMEOUT
     };
+
+}
+
+namespace loop {
+
+    enum execute_handle {
+        handle_manual,
+        handle_special,
+        handle_error,
+        handle_stop,
+        handle_task,
+        handle_point,
+        handle_unknown
+    };
+
+    enum manual_epoll {
+        manual_normal,
+        manual_resume,//手动继续
+        manual_pause,//手动暂停
+        manual_back,//手动返回
+        manual_force_back,//手动强制返回基站
+        manual_unknown,
+    };
+
+    enum special_epoll {
+        special_normal,
+        special_low_battery,//低电量回充
+        special_branch_water,//清水箱空回充
+        special_sewage_water,//污水箱满回充
+        special_branch_sewage_water,//清水箱污水箱满回充
+        special_dust_push_anomaly,//尘推滚异常返回基站
+        special_unknown,
+    };
+
+    enum error_epoll {
+        error_normal,
+        error_manual_clean_start,//手动模式开启
+        error_manual_clean_end,//手动模式结束
+        error_unrecoverable,//统一处理错误点位（需要拆分）
+        error_unknown
+    };
+
+    enum urgency_stop {
+        urgency_normal,
+        trigger_urgency_stop,
+        release_urgency_stop,
+        recovery_urgency_stop,
+        urgency_stop_unknown
+    };
+
+
 }
 
 
