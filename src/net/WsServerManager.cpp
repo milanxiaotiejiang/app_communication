@@ -112,8 +112,9 @@ void on_open(server *s, websocketpp::connection_hdl hdl) {
     auto headers = request.get_headers();
     string osVersion = headers["os-version"];
     string osSystem = headers["os-system"];
+    string osModel = headers["os-model"];
     LOG(INFO) << "Connected to remote : " << remoteEndPoint
-              << " , osVersion : " + osVersion + " , osSystem : " + osSystem;
+              << " , osVersion : " + osVersion + " , osSystem : " + osSystem + " , osModel : " + osModel;
 
     Ask ask = Ask();
     ask.hdl = hdl;
