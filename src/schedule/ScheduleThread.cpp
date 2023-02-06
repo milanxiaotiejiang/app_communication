@@ -134,6 +134,10 @@ void execTask(TimerInfo &tsk) {
                 try {
                     TaskCenter::instance().executeTask(*tk);
                 } catch (app::exception const &e) {
+                    LOG(ERROR) << e.what();
+                    LOG(INFO) << "定时全局清扫失败!!!";
+                } catch (const std::exception &e) {
+                    LOG(ERROR) << e.what();
                     LOG(INFO) << "定时全局清扫失败!!!";
                 }
             }
@@ -141,6 +145,10 @@ void execTask(TimerInfo &tsk) {
             try {
                 TaskCenter::instance().executeTask(*tk);
             } catch (app::exception const &e) {
+                LOG(ERROR) << e.what();
+                LOG(INFO) << "定时组合路径执行失败!!!";
+            } catch (const std::exception &e) {
+                LOG(ERROR) << e.what();
                 LOG(INFO) << "定时组合路径执行失败!!!";
             }
         } else {
