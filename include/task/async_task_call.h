@@ -36,9 +36,12 @@ class AsyncTaskCall : public AsyncTaskRecord {
 private:
 
     event::flow event_flow = event::flow::waiting_for_task;
-    event::status event_status = event::status::AUTO_STATE;
 
 protected:
+
+    atomic<int> firstRetryCount;
+    atomic<int> backBaseRetryCount;
+    atomic<int> rechargeRetryCount;
 
     RealPoint flowSeizeSeatPoint;
     RealPoint flowOpenMechanismPoint;
@@ -77,53 +80,48 @@ protected:
 
     void handleAutoPoint(const RealPoint &point);
 
-    void handleManualPoint(const RealPoint &point);
+    void handlePointManualControl(const RealPoint &point);
 
-    void handleForcePoint(const RealPoint &point);
-
-    RealPoint findFrontPoint();
-
-    RealPoint findFrontNextPoint();
+    void handlePointSpecialDevice(const RealPoint &point);
 
     void goodGame();
+
+    void garbage();
 
     void reset();
 
     virtual void handleFlowPoint(const RealPoint &point) = 0;
 
+    virtual void processControl(const RealPoint &point) = 0;
+
     void handlePlannerPoint(const RealPoint &point);
 
-    virtual void processControl(const RealPoint &point) = 0;
+    RealPoint findFrontPoint();
+
+    RealPoint findFrontNextPoint();
 
     bool isBasePointReached(float disAccuracy, float angleAccuracy);
 
+    bool isNormalOperation();
 
 
     void callGoNextPoint(const RealPoint &nextPoint);
 
     void callPointComplete(const std::function<void()> &f);
 
-
-    void callTaskInterrupt(const RealPoint &point);
-
     void callManualCleanStart();
 
     void callManualCleanEnd();
 
-    void callPause();
-
     void callResume();
+
+    void callPause();
 
     void callStopUrgentInBase();
 
-    void peculiarTriggerBack(const std::function<void()> &f);
+    void cancelTask(bool isBack);
 
-    void peculiarDisposeBasePoint(const RealPoint &point, event::flow needFlow, bool whetherDisposeMechanism);
-
-    void peculiarDisposeMechanism(const RealPoint &point, event::flow needFlow);
-
-    void peculiarDisposeStation(const RealPoint &point, event::flow arriveFlow,
-                                event::flow retryFlow);
+    void triggerSuspend();
 
 public:
     AsyncTaskCall();
@@ -140,7 +138,6 @@ public:
 
     void executeInStation(bool result);
 
-    void exchangeFrontPoint(const RealPoint &point);
 
     void manualBackToBase(bool force);
 
@@ -148,11 +145,17 @@ public:
 
     void manualPause();
 
+
     void enterManual();
 
     void quitManual();
 
+
     void urgencyStopAndCharge();
+
+
+    void forceBackToBase(loop::special_epoll operation);
+
 
     std::string runTaskId();
 
@@ -160,7 +163,6 @@ public:
 
     std::vector<RealPoint> runTaskPoint();
 
-    void forceBackToBase(loop::special_epoll operation);
 
     std::tuple<int, std::string, std::string> generateErrorByRealPoint(const RealPoint &real_point);
 

@@ -11,9 +11,10 @@
 #include "task/RealPoint.h"
 
 class TaskStack {
+public:
     event::flow flow;
     RealPoint suspendPoint;
-public:
+
     TaskStack(event::flow flow, const RealPoint &suspendPoint);
 
     friend std::ostream &operator<<(std::ostream &os, const TaskStack &stack);

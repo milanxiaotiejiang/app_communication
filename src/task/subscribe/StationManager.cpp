@@ -40,8 +40,11 @@ void StationManager::backStation() {
     pub_flag_in.publish(flag);
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(3), [this]() {
-            StationManager::instance().stationInResult(FLAG_RESULT_SUCCESS);
-//            StationManager::instance().stationInResult(FLAG_RESULT_FAIL);
+            if (!Environment::instance().will()) {
+                StationManager::instance().stationInResult(FLAG_RESULT_SUCCESS);
+            } else {
+                StationManager::instance().stationInResult(FLAG_RESULT_FAIL);
+            }
         });
     }
 }

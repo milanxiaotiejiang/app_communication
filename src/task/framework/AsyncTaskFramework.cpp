@@ -101,6 +101,7 @@ loop::execute_handle AsyncTaskFramework::function_manual_epoll() {
             epoll_manual = loop::manual_epoll::manual_unknown;
             break;
     }
+    AsyncMachine::instance().setEpoll(epoll_manual, epoll_special, epoll_error, urgency_stop);
     manualEpollDeque.clear();
     return loop::execute_handle::handle_manual;
 }
@@ -130,6 +131,7 @@ loop::execute_handle AsyncTaskFramework::function_special_epoll() {
             epoll_special = loop::special_epoll::special_unknown;
             break;
     }
+    AsyncMachine::instance().setEpoll(epoll_manual, epoll_special, epoll_error, urgency_stop);
     specialEpollDeque.clear();
     return loop::execute_handle::handle_special;
 }
@@ -156,6 +158,7 @@ loop::execute_handle AsyncTaskFramework::function_error_epoll() {
             epoll_error = loop::error_epoll::error_unknown;
             break;
     }
+    AsyncMachine::instance().setEpoll(epoll_manual, epoll_special, epoll_error, urgency_stop);
     errorEpollDeque.clear();
     return loop::execute_handle::handle_error;
 }
@@ -179,6 +182,7 @@ loop::execute_handle AsyncTaskFramework::function_urgency_stop() {
             urgency_stop = loop::urgency_stop::urgency_stop_unknown;
             break;
     }
+    AsyncMachine::instance().setEpoll(epoll_manual, epoll_special, epoll_error, urgency_stop);
     urgencyStopDeque.clear();
     return loop::execute_handle::handle_stop;
 }
@@ -189,7 +193,7 @@ void AsyncTaskFramework::callOutBaseStation() {
 }
 
 void AsyncTaskFramework::callBackStation() {
-    LOG(INFO) << "handlePoint flow : 任务结束，准备返回基站充电啦 ...";
+//    LOG(INFO) << "handlePoint flow : 任务结束，准备返回基站充电啦 ...";
     StationManager::instance().backStation();
 }
 
@@ -283,23 +287,41 @@ bool AsyncTaskFramework::isWorkMode() {
 }
 
 bool AsyncTaskFramework::isUrgencyStop() {
-    return urgency_stop != loop::urgency_stop::urgency_normal;
+    return urgency_stop == loop::urgency_stop::trigger_urgency_stop ||
+           urgency_stop == loop::urgency_stop::release_urgency_stop;
 }
 
 bool AsyncTaskFramework::isManualMode() {
-    return epoll_error == loop::error_epoll::error_manual_clean_start;
+    return epoll_error == loop::error_epoll::error_manual_clean_start ||
+           epoll_error == loop::error_epoll::error_manual_clean_end;
 }
 
 bool AsyncTaskFramework::isUnrecoverableError() {
-    return epoll_error == loop::error_epoll::error_unrecoverable
-           && epoll_manual == loop::manual_epoll::manual_unknown
-           && epoll_special == loop::special_epoll::special_unknown
-           && epoll_error == loop::error_epoll::error_unknown
-           && urgency_stop == loop::urgency_stop::urgency_stop_unknown;
+    return epoll_error == loop::error_epoll::error_unrecoverable &&
+           epoll_manual == loop::manual_epoll::manual_unknown &&
+           epoll_special == loop::special_epoll::special_unknown &&
+           epoll_error == loop::error_epoll::error_unknown &&
+           urgency_stop == loop::urgency_stop::urgency_stop_unknown;
+}
+
+bool AsyncTaskFramework::isManualControl() {
+    return epoll_manual == loop::manual_epoll::manual_resume ||
+           epoll_manual == loop::manual_epoll::manual_pause ||
+           epoll_manual == loop::manual_epoll::manual_back ||
+           epoll_manual == loop::manual_epoll::manual_force_back ||
+           epoll_manual == loop::manual_epoll::manual_task_over;
+}
+
+bool AsyncTaskFramework::isSpecialDevice() {
+    return epoll_special == loop::special_epoll::special_low_battery ||
+           epoll_special == loop::special_epoll::special_branch_water ||
+           epoll_special == loop::special_epoll::special_sewage_water ||
+           epoll_special == loop::special_epoll::special_branch_sewage_water ||
+           epoll_special == loop::special_epoll::special_dust_push_anomaly;
 }
 
 void AsyncTaskFramework::callBackBasePoint() {
-    LOG(INFO) << "handlePoint flow : 准备返回摆渡点了 ...";
+//    LOG(INFO) << "handlePoint flow : 准备返回摆渡点了 ...";
     PointPlanner::instance().backBasePoint();
 }
 

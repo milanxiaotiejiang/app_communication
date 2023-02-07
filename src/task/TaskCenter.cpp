@@ -9,7 +9,6 @@
 #include "task/subscribe/zoo_inner_status.h"
 #include "task/manager/NodeWorkModeManager.h"
 #include "task/manager/StationManager.h"
-#include "task/call/timely_call.h"
 #include "task/call/head_tail_call.h"
 #include "simulation.h"
 #include "task/manager/PointProgressPublish.h"
@@ -70,12 +69,15 @@ void TaskCenter::realExecuteTask(const Task &task) {
     //todo /imu /scan /odom without any data reject
     //todo /knob
     //当前在手动模式中
-    if (AsyncMachine::instance().getFlow() == event::flow::manual_cleaning) {
-        throw app::exception(make_error_code(error::current_in_manual_clean_mode));
-    }
+//    if (AsyncMachine::instance().getFlow() == event::flow::manual_cleaning) {
+//        throw app::exception(make_error_code(error::current_in_manual_clean_mode));
+//    }
     //当前任务还未结束，不能下发新的任务
     if (AsyncMachine::instance().getFlow() != event::flow::waiting_for_task) {
-        throw app::exception(make_error_code(error::the_current_task_is_not_completed));
+        const std::string &launchPeople = task.getLaunchPeople();
+        if (launchPeople != "App" && launchPeople != "Pad") {
+            throw app::exception(make_error_code(error::the_current_task_is_not_completed));
+        }
     }
 
     //先验条件全部满足，可以下发任务，先将task转换成realtask，再通过TaskDtcher分发
@@ -87,11 +89,7 @@ void TaskCenter::realExecuteTask(const Task &task) {
 
 void TaskCenter::initialize(ros::NodeHandle handle) {
 
-    if (isTimely) {
-        asyncTaskCall = new TimelyPointCall();
-    } else {
-        asyncTaskCall = new HeadTailPointCall();
-    }
+    asyncTaskCall = new HeadTailPointCall();
 
     PointProgressPublish::instance().initialize(handle);
 

@@ -23,38 +23,9 @@ namespace event {
         try_recharging_again,//回充失败时，再次尝试回充
         try_move_base_point_again,//返回基站点位失败后重试
 
-
-        again_move_to_start_point,//再次移动到第一个点位
-        again_prepare_cleaning_mechanism,//准备开启清洁机构//todo
-
-        manual_over_and_move_base_point,//手动返回基站点位//todo
-        manual_back_try_move_base_point,//返回基站点位有误差，重试//todo
-        manual_base_point_and_close_mechanism,//返回基站成功，准备收起清洁机构//todo
-        manual_mechanism_close_and_charging,//收起完清洁机构，准备回充//todo
-        manual_over_success,//手动结束成功//todo
-        manual_task_pause,//手动暂停中//todo
-        manual_cleaning,//手动模式//todo
-
-        force_over_and_move_base_point,//强制返回基站点位，用于电量到达一定数值后，程序强制切换//todo
-        force_back_try_move_base_point,//强制返回基站点位有误差，重试//todo
-        force_base_point_and_close_mechanism,//强制返回基站成功，准备收起清洁机构//todo
-        force_mechanism_close_and_charging,//强制返回后收起完清洁机构，准备回充//todo
-        force_over_success,//强制结束成功//todo
-        force_task_pause,//急停中//todo
-
-        manual_control_over_and_move_base_point,//手动控制强制返回基站点位，一般用于开机后不在基站位置
-        manual_control_back_try_move_base_point,//手动控制返回基站点位有误差，重试
-        manual_control_base_point_and_charging,//手动控制返回基站过程中，已经到达基站点，准备充电
-        manual_control_over_success,//手动控制返回基站结束成功
-
         hardware_interrupt_task,//清洁机构出错导致，一般直接返回基站，但任务是否继续也可控制
-        software_interrupt_task//程序出现严重错误，不可恢复
-    };
+        software_interrupt_task,//程序出现严重错误，不可恢复
 
-    enum status {
-        AUTO_STATE,
-        MANUAL_STATE,
-        FORCE_STATE
     };
 
     enum error {

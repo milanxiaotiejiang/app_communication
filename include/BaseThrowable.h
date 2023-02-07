@@ -91,6 +91,8 @@ namespace error {
         not_paused_status,
         the_current_state_is_uncontrollable,
         machine_is_in_emergency_stop_command_not_supported,
+        machine_is_in_manual_mode_command_not_supported,
+        operation_failure_please_restart_the_machine,
         the_current_task_is_not_completed,
         not_supported_temporarily,
         already_in_manual_clean_mode,
@@ -255,7 +257,11 @@ namespace error {
                 case error::the_current_state_is_uncontrollable:
                     return "当前状态不可控制";
                 case error::machine_is_in_emergency_stop_command_not_supported:
-                    return "机器处于急停状态，不支持本次指令";
+                    return "急停状态，不支持本次指令";
+                case error::machine_is_in_manual_mode_command_not_supported:
+                    return "手动模式，不支持本次指令";
+                case error::operation_failure_please_restart_the_machine:
+                    return "运行故障，请重启机器";
                 case error::the_current_task_is_not_completed:
                     return "当前任务未执行完成";
                 case error::not_supported_temporarily:

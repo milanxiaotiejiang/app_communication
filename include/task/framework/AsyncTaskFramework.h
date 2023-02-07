@@ -93,6 +93,10 @@ protected:
 
     bool isUnrecoverableError();
 
+    bool isManualControl();
+
+    bool isSpecialDevice();
+
     virtual void release() = 0;
 
     void pushManual(loop::manual_epoll data);

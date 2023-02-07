@@ -31,7 +31,7 @@ public:
 
     void motorErrorEvent(int error_event);
 
-    void laserErrorEvent(std::string error_event);
+    void laserErrorEvent(const std::string& error_event);
 };
 
 #endif //APP_COMMUNICATION_NATIVESYSTEMMANAGER_H

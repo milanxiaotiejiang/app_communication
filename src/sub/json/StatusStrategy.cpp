@@ -4,9 +4,11 @@
 
 #include "sub/json/StatusStrategy.h"
 #include "task/manager/manual.h"
+#include "task/manager/NativeSystemManager.h"
 
 void StatusPauseStrategy::handler() {
     ManualManager::instance().pause();
+//    NativeSystemManager::instance().laserErrorEvent("laser_scan_4016");
 }
 
 void StatusResumeStrategy::handler() {

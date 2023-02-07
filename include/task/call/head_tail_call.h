@@ -11,6 +11,8 @@ class HeadTailPointCall : public AsyncTaskCall {
 private:
     void callGoFirstPoint(RealPoint point);
 
+    void exchangeFrontPoint(const RealPoint &point);
+
 public:
     void handleFlowPoint(const RealPoint &point) override;
 

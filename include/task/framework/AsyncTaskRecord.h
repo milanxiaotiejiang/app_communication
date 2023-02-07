@@ -11,30 +11,25 @@
 const int MAX_RECORD_TASK_STACK_SIZE = 3;
 
 class AsyncTaskRecord : public AsyncTaskFramework {
-private:
-
-    atomic<bool> pauseInterception;
-
 protected:
+
     std::deque<TaskStack> stopStack;
     std::deque<TaskStack> suspendStack;
 
     std::deque<RealTask> waitTaskQueue;
     std::deque<RealPoint> plannerQueue;
 
-    atomic<int> firstRetryCount;
-    atomic<int> backBaseRetryCount;
-    atomic<int> rechargeRetryCount;
-
     RealTask runTask;
 
-    bool isPause(const TaskStack &stack);
+    bool isPause();
 
-    bool isFlowingWater(const TaskStack &stack);
+    bool isPreparation(event::flow flow);
 
-    bool isReturningBase(const TaskStack &stack);
+    bool isFlowingWater(event::flow flow);
 
-    bool isContinueWork(const TaskStack &stack);
+    bool isReturningBase(event::flow flow);
+
+    bool isContinueWork(event::flow flow);
 
     void recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint);
 

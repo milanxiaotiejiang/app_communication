@@ -16,7 +16,7 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
             clean_history_db::CleanHistoryCenter::instance().setOutStation(clean_history_db::SUCCEED);
         } else {
             clean_history_db::CleanHistoryCenter::instance().setOutStation(clean_history_db::FAIL);
-            pushError(loop::error_epoll::error_attempt_recover);
+            setFlow(event::flow::software_interrupt_task);
         }
     } else if (point.getId() == FLOW_END_SLEEP) {
         if (point.realError.arrive) {
@@ -24,7 +24,7 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
             clean_history_db::CleanHistoryCenter::instance().setEndSleep(clean_history_db::SUCCEED);
         } else {
             clean_history_db::CleanHistoryCenter::instance().setEndSleep(clean_history_db::FAIL);
-            pushError(loop::error_epoll::error_attempt_recover);
+            setFlow(event::flow::software_interrupt_task);
         }
     } else if (point.getId() == FLOW_IN_BASE_POINT) {
         if (point.realError.arrive) {
@@ -40,11 +40,10 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
                 backBaseRetryCount++;
                 //返回摆渡点重试次数
                 clean_history_db::CleanHistoryCenter::instance().setBackBaseRetries(backBaseRetryCount);
-                LOG(INFO) << "handlePoint flow : 返回基站点位失败，重试中 ...";
                 setFlow(event::flow::try_move_base_point_again);
             } else {
                 clean_history_db::CleanHistoryCenter::instance().setBackBasePointArrived(clean_history_db::FAIL);
-                pushError(loop::error_epoll::error_attempt_recover);
+                setFlow(event::flow::software_interrupt_task);
             }
         }
     } else if (point.getId() == FLOW_IN_STATION) {
@@ -58,7 +57,7 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
                 setFlow(event::flow::try_recharging_again);
             } else {
                 clean_history_db::CleanHistoryCenter::instance().setStationArrived(clean_history_db::FAIL);
-                pushError(loop::error_epoll::error_attempt_recover);
+                setFlow(event::flow::software_interrupt_task);
             }
         }
     } else if (point.getId() == FLOW_CLOSE_MECHANISM) {
@@ -134,12 +133,6 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
                 LOG(INFO) << "handlePoint flow : 清扫结束，准备回基站点 ...";
                 callPointComplete([this]() {
                     callBackBasePoint();
-                    if (!Environment::instance().isRealEnvironment && Environment::instance().will()) {
-                        async::TimerCall::instance().baseLoop()
-                                ->scheduleLater(std::chrono::seconds(1), [this]() {
-                                    executeOnNext(event::error::TIMEOUT);
-                                });
-                    }
                 });
             } else {
                 auto nextPoint = findFrontNextPoint();
@@ -166,12 +159,13 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
             break;
         }
         case event::flow::try_recharging_again: {
-            LOG(INFO) << "handlePoint flow : 回充失败，再次返回基站点位置 ...";
+            LOG(INFO) << "handlePoint flow : 回充失败 rechargeRetryCount : " << rechargeRetryCount << " , 再次返回基站点位置 ...";
             backBaseRetryCount = 0;
             callBackBasePoint();
             break;
         }
         case event::flow::try_move_base_point_again: {
+            LOG(INFO) << "handlePoint flow : 返回基站点位失败 backBaseRetryCount : " << backBaseRetryCount << " , 重试中 ...";
             callBackBasePoint();
             break;
         }
@@ -181,7 +175,8 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
             break;
         }
         case event::flow::software_interrupt_task: {
-            callTaskInterrupt(point);
+//            callTaskInterrupt(point);
+            pushError(loop::error_epoll::error_attempt_recover);
             break;
         }
     }
@@ -189,21 +184,16 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
 
 void HeadTailPointCall::callGoFirstPoint(RealPoint point) {
     PointPlanner::instance().gotoPlannerPoint(point);
-    if (!Environment::instance().isRealEnvironment && firstRetryCount == 0) {
-        async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::seconds(1), [this, &point]() {
-                    auto currentPoint = findFrontPoint();
-                    if (currentPoint.getId() == point.id) {
-                        executeOnNext(event::error::TIMEOUT);
-                    }
-                });
-    } else {
-        async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::seconds(point.realError.timeout), [this, &point]() {
-                    auto currentPoint = findFrontPoint();
-                    if (currentPoint.getId() == point.id) {
-                        executeOnNext(event::error::TIMEOUT);
-                    }
-                });
-    }
+    async::TimerCall::instance().baseLoop()
+            ->scheduleLater(std::chrono::seconds(point.realError.timeout), [this, &point]() {
+                auto currentPoint = findFrontPoint();
+                if (currentPoint.getId() == point.id) {
+                    executeOnNext(event::error::TIMEOUT);
+                }
+            });
+}
+
+void HeadTailPointCall::exchangeFrontPoint(const RealPoint &point) {
+    plannerQueue.pop_front();
+    plannerQueue.push_front(point);
 }
