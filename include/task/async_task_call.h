@@ -14,8 +14,8 @@
 #include "task/status/state_machine.h"
 #include "task/subscribe/async_machine.h"
 
-const int MAX_FIRST_RETRY_COUNT = 1;
-const int MAX_BASE_POINT_RETRY_COUNT = 5;
+const int MAX_FIRST_RETRY_COUNT = 2;
+const int MAX_BASE_POINT_RETRY_COUNT = 3;
 const int MAX_RECHARGE_RETRY_COUNT = 5;
 
 const int FLOW_SEIZE_SEAT = -10;
@@ -36,13 +36,9 @@ class AsyncTaskCall : public AsyncTaskRecord {
 private:
 
     event::flow event_flow = event::flow::waiting_for_task;
-
     event::status event_status = event::status::AUTO_STATE;
 
-
 protected:
-
-
 
     RealPoint flowSeizeSeatPoint;
     RealPoint flowOpenMechanismPoint;
@@ -65,6 +61,20 @@ protected:
     }
 
 protected:
+
+    void handleManualOperation() override;
+
+    void handleSpecialOperation() override;
+
+    void handleErrorOperation() override;
+
+    void handleStop() override;
+
+    void handleTask(const RealTask &task) override;
+
+    void handlePoint(const RealPoint &point) override;
+
+
     void handleAutoPoint(const RealPoint &point);
 
     void handleManualPoint(const RealPoint &point);
@@ -88,9 +98,6 @@ protected:
     bool isBasePointReached(float disAccuracy, float angleAccuracy);
 
 
-    void callGoFirstPoint();
-
-    void callRetryFirstPoint(const std::function<void()> &f);
 
     void callGoNextPoint(const RealPoint &nextPoint);
 
@@ -117,18 +124,6 @@ protected:
 
     void peculiarDisposeStation(const RealPoint &point, event::flow arriveFlow,
                                 event::flow retryFlow);
-
-    void handleManualOperation() override;
-
-    void handleSpecialOperation() override;
-
-    void handleErrorOperation() override;
-
-    void handleStop() override;
-
-    void handleTask(const RealTask &task) override;
-
-    void handlePoint(const RealPoint &point) override;
 
 public:
     AsyncTaskCall();

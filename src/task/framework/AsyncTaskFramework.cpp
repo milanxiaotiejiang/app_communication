@@ -94,6 +94,9 @@ loop::execute_handle AsyncTaskFramework::function_manual_epoll() {
         case loop::manual_epoll::manual_force_back:
             epoll_manual = loop::manual_epoll::manual_force_back;
             break;
+        case loop::manual_epoll::manual_task_over:
+            epoll_manual = loop::manual_epoll::manual_task_over;
+            break;
         default:
             epoll_manual = loop::manual_epoll::manual_unknown;
             break;
@@ -143,6 +146,9 @@ loop::execute_handle AsyncTaskFramework::function_error_epoll() {
         case loop::error_epoll::error_manual_clean_end:
             epoll_error = loop::error_epoll::error_manual_clean_end;
             break;
+        case loop::error_epoll::error_attempt_recover:
+            epoll_error = loop::error_epoll::error_attempt_recover;
+            break;
         case loop::error_epoll::error_unrecoverable:
             epoll_error = loop::error_epoll::error_unrecoverable;
             break;
@@ -188,6 +194,9 @@ void AsyncTaskFramework::callBackStation() {
 }
 
 void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> workingMode) {
+    if (!Environment::instance().isRealEnvironment) {
+        NodeWorkModeManager::instance().setWorkMode(0);
+    }
     LOG(INFO) << "handlePoint flow : 出站成功，查看当前是否处于工作状态 ...";
     if (!isWorkMode()) {
         LOG(INFO) << "handlePoint flow : 不是工作状态，准备启动工作状态 ...";
@@ -212,7 +221,7 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> work
                 });
         if (!Environment::instance().isRealEnvironment) {
             async::TimerCall::instance().baseLoop()
-                    ->scheduleLater(std::chrono::seconds(5), [this]() {
+                    ->scheduleLater(std::chrono::seconds(2), [this]() {
                         NodeWorkModeManager::instance().setWorkMode(2);
                     });
         }
@@ -227,26 +236,46 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> work
 void AsyncTaskFramework::callOpenMechanism(const WorkStatus &status, const function<void()> openMechanism) {
     LOG(INFO) << "handlePoint flow : 准备打开相应的清洁机构 " << status << " ...";
     MechanismManager::instance().controlWorkStatus(status);
-    async::TimerCall::instance().baseLoop()->scheduleLater(
-            std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this, &openMechanism]() {
-                LOG(INFO) << "handlePoint flow : 相应的清洁机构已打开 ...";
-                notify_one([openMechanism]() {
-                    openMechanism();
+    if (!Environment::instance().isRealEnvironment) {
+        async::TimerCall::instance().baseLoop()->scheduleLater(
+                std::chrono::seconds(1), [this, &openMechanism]() {
+                    LOG(INFO) << "handlePoint flow : 相应的清洁机构已打开 ...";
+                    notify_one([openMechanism]() {
+                        openMechanism();
+                    });
                 });
-            });
+    } else {
+        async::TimerCall::instance().baseLoop()->scheduleLater(
+                std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this, &openMechanism]() {
+                    LOG(INFO) << "handlePoint flow : 相应的清洁机构已打开 ...";
+                    notify_one([openMechanism]() {
+                        openMechanism();
+                    });
+                });
+    }
 }
 
 void AsyncTaskFramework::callCloseMechanism(const function<void()> resetMechanism) {
     LOG(INFO) << "handlePoint flow : 准备关闭相应的清洁机构 ...";
     //这个函数里面关闭所有清洁机构
     MechanismManager::instance().resetWorkStatus();
-    async::TimerCall::instance().baseLoop()
-            ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this, &resetMechanism]() {
-                LOG(INFO) << "handlePoint flow : 相应的清洁机构已关闭 ...";
-                notify_one([resetMechanism]() {
-                    resetMechanism();
+    if (!Environment::instance().isRealEnvironment) {
+        async::TimerCall::instance().baseLoop()
+                ->scheduleLater(std::chrono::seconds(1), [this, &resetMechanism]() {
+                    LOG(INFO) << "handlePoint flow : 相应的清洁机构已关闭 ...";
+                    notify_one([resetMechanism]() {
+                        resetMechanism();
+                    });
                 });
-            });
+    } else {
+        async::TimerCall::instance().baseLoop()
+                ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this, &resetMechanism]() {
+                    LOG(INFO) << "handlePoint flow : 相应的清洁机构已关闭 ...";
+                    notify_one([resetMechanism]() {
+                        resetMechanism();
+                    });
+                });
+    }
 }
 
 bool AsyncTaskFramework::isWorkMode() {
@@ -254,11 +283,11 @@ bool AsyncTaskFramework::isWorkMode() {
 }
 
 bool AsyncTaskFramework::isUrgencyStop() {
-    return urgency_stop == loop::urgency_stop::trigger_urgency_stop;
+    return urgency_stop != loop::urgency_stop::urgency_normal;
 }
 
 bool AsyncTaskFramework::isManualMode() {
-    return epoll_error != loop::error_epoll::error_manual_clean_start;
+    return epoll_error == loop::error_epoll::error_manual_clean_start;
 }
 
 bool AsyncTaskFramework::isUnrecoverableError() {

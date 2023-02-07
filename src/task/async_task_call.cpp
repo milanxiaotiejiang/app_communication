@@ -88,6 +88,9 @@ void AsyncTaskCall::handleManualOperation() {
 //            //清洁记录
 //            clean_history_db::CleanHistoryCenter::instance().forceBack();
             break;
+        case loop::manual_epoll::manual_task_over:
+
+            break;
         default:
             LOG(INFO) << "handlePoint handleManualOperation : " << epoll_manual << " ...";
             break;
@@ -185,6 +188,8 @@ void AsyncTaskCall::handleErrorOperation() {
 //            setFlow(event::flow::waiting_for_task);
 //
 //            LOG(INFO) << "handlePoint flow : 退出手动模式";
+            break;
+        case loop::error_epoll::error_attempt_recover:
             break;
         case loop::error_epoll::error_unrecoverable:
             break;
@@ -324,23 +329,31 @@ void AsyncTaskCall::handleStop() {
 }
 
 void AsyncTaskCall::handleTask(const RealTask &realTask) {
-    if (epoll_error != loop::error_epoll::error_normal) {
-        LOG(INFO) << "程序达到不可恢复状态，不能接受任何数据，当前状态 " << epoll_error;
+    if (isUnrecoverableError()) {
+        LOG(INFO) << "程序达到不可恢复状态，不能接受任何数据，当前状态 "
+                  << "epoll_manual " << epoll_manual << " "
+                  << "epoll_special " << epoll_special << " "
+                  << "epoll_error " << epoll_error << " "
+                  << "urgency_stop " << urgency_stop << " ";
         return;
     }
-    if (urgency_stop != loop::urgency_stop::urgency_normal) {
+    if (isUrgencyStop()) {
+        LOG(INFO) << "急停拦截，不能接受 task 了 " << realTask.getId() << " "
+                  << "urgency_stop " << urgency_stop << " ";
+        return;
+    }
+    if (isManualMode()) {
+        LOG(INFO) << "手动模式开启，暂不接受 task " << realTask.getId() << " "
+                  << "epoll_error " << epoll_error << " ";
+        return;
+    }
 
-        LOG(INFO) << "急停拦截，不能接受 task 了，看看前面哪里有错误 " << realTask.getId();
-        return;
-    }
     if (event_flow == event::flow::waiting_for_task) {
 
         runTask = realTask;
         //记录开始执行时间
         internal_event::InternalEventPubManager::get_instance()->taskStart(realTask.getId());
         clean_history_db::CleanHistoryCenter::instance().executeTask(realTask);
-        //在这里添加一条清洁记录
-        //addNewCleanHistory(task);
         //预埋点流转循环，打开清洁机构，关闭清洁机构，出站
         runTask.assignmentPoint(flowSeizeSeatPoint, FLOW_SEIZE_SEAT);
         runTask.assignmentPoint(flowOpenMechanismPoint, FLOW_OPEN_MECHANISM);
@@ -362,51 +375,48 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
         rechargeRetryCount = 0;
 
         //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
-        handleAutoPoint(flowSeizeSeatPoint);
+        pushPoint(flowSeizeSeatPoint);
     } else {
-        waitTaskQueue.push_back(realTask);
+        const std::string &launchPeople = realTask.getLaunchPeople();
+        if (launchPeople == "App" || launchPeople == "Pad") {
+            waitTaskQueue.push_back(realTask);
+        }
+        pushManual(loop::manual_epoll::manual_task_over);
     }
 }
 
 void AsyncTaskCall::handlePoint(const RealPoint &realPoint) {
-//    if (epoll_error != loop::error_epoll::error_normal) {
-//        LOG(INFO) << "程序达到不可恢复状态，不能接受任何数据，当前状态 " << epoll_error;
-//        return;
-//    }
-//    recordLockState(realPoint);//记录当前运行状态，为了暂停或者急停后可以恢复到上一次运行状态中去
-//    if (event_status == event::status::AUTO_STATE) {
-//        handleAutoPoint(realPoint);
-//    } else if (event_status == event::status::MANUAL_STATE) {
-//        handleManualPoint(realPoint);
-//    } else if (event_status == event::status::FORCE_STATE) {
-//        handleForcePoint(realPoint);
-//    }
+    recordEmergencyStop(event_flow, realPoint);
+    if (event_status == event::status::AUTO_STATE) {
+        handleAutoPoint(realPoint);
+    } else if (event_status == event::status::MANUAL_STATE) {
+        handleManualPoint(realPoint);
+    } else if (event_status == event::status::FORCE_STATE) {
+        handleForcePoint(realPoint);
+    }
 }
 
 void AsyncTaskCall::handleAutoPoint(const RealPoint &point) {
-//    //根据ID判断执行什么样的策略
-//    //手动暂停和手动继续和手动返回基站，执行handleSpecialPoint函数，处理特殊点位
-//    switch (point.getId()) {
-//        //中断，进基站，返回摆渡点，结束睡眠模式，出站，开关清洁机构，抢占，为流程点位，执行流程工作
-//        case FLOW_INTERRUPT:
-//        case FLOW_IN_STATION:
-//        case FLOW_IN_BASE_POINT:
-//        case FLOW_END_SLEEP:
-//        case FLOW_OUT_STATION:
-//        case FLOW_CLOSE_MECHANISM:
-//        case FLOW_OPEN_MECHANISM:
-//        case FLOW_SEIZE_SEAT:
-//            recordAutoState(point); //先记录走到哪个流程
-//            handleFlowPoint(point); //随后进行处理
-//            break;
-//            //正常规划出的点位
-//        default:
-//            recordAutoState(point);
-//            handlePlannerPoint(point);
-//            break;
-//    }
-//    //流程控制
-//    processControl(point);
+    recordSuspend(event_flow, point);
+    switch (point.getId()) {
+        //中断，进基站，返回摆渡点，结束睡眠模式，出站，开关清洁机构，抢占，为流程点位，执行流程工作
+        case FLOW_INTERRUPT:
+        case FLOW_IN_STATION:
+        case FLOW_IN_BASE_POINT:
+        case FLOW_END_SLEEP:
+        case FLOW_OUT_STATION:
+        case FLOW_CLOSE_MECHANISM:
+        case FLOW_OPEN_MECHANISM:
+        case FLOW_SEIZE_SEAT:
+            handleFlowPoint(point); //随后进行处理
+            break;
+            //正常规划出的点位
+        default:
+            handlePlannerPoint(point);
+            break;
+    }
+    //流程控制
+    processControl(point);
 }
 
 void AsyncTaskCall::handleManualPoint(const RealPoint &point) {
@@ -935,24 +945,6 @@ bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
 }
 
 
-//前往第一个清扫点
-void AsyncTaskCall::callGoFirstPoint() {
-    RealPoint front = plannerQueue.front();
-    PointPlanner::instance().gotoPlannerPoint(front);
-}
-
-void AsyncTaskCall::callRetryFirstPoint(const std::function<void()> &f) {
-    auto currentPoint = findFrontPoint();
-    if (firstRetryCount < MAX_FIRST_RETRY_COUNT) {
-        LOG(INFO) << "handlePoint flow : 未到达第一个点位，重试中 ...";
-        firstRetryCount++;
-        exchangeFrontPoint(currentPoint);
-        PointPlanner::instance().gotoPlannerPoint(currentPoint);
-    } else {
-        plannerQueue.clear();
-        f();
-    }
-}
 
 void AsyncTaskCall::callGoNextPoint(const RealPoint &nextPoint) {
     PointPlanner::instance().gotoPlannerPoint(nextPoint);

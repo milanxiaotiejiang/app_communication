@@ -24,7 +24,7 @@ void StationManager::outStation() {
     flag.data = FLAG_OUT_STATION;
     pub_flag_out.publish(flag);
     if (!Environment::instance().isRealEnvironment) {
-        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(3), [this]() {
+        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this]() {
             StationManager::instance().stationOutResult(FLAG_RESULT_SUCCESS);
         });
     }

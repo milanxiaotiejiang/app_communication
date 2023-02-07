@@ -21,6 +21,10 @@ public:
     bool isRealEnvironment = true;
     std::string room_coverage_uuid = "";
 
+    static bool will() {
+        return (rand() % 10) > 5;
+    }
+
 };
 
 

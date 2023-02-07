@@ -8,6 +8,9 @@
 #include "task/async_task_call.h"
 
 class HeadTailPointCall : public AsyncTaskCall {
+private:
+    void callGoFirstPoint(RealPoint point);
+
 public:
     void handleFlowPoint(const RealPoint &point) override;
 

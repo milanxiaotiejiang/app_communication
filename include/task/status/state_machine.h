@@ -14,33 +14,33 @@ namespace event {
         out_base_station,//出站
         switch_node_work_mode,//切换工作模式
         preliminary_preparation_completed,//前期准备工作完成
-
-        ensure_move_to_start_point,//保证移动到第一个点
         cleaning_mechanism_ready,//清洁机构已就绪
+        ensure_move_to_start_point,//保证移动到第一个点
         flowing_water_production,//流水作业（轮训点位）
-        again_move_to_start_point,//再次移动到第一个点位
-        again_prepare_cleaning_mechanism,//准备开启清洁机构
-        flowing_water_execution_completed,//流水作业已完成
         arrive_base_point_success,//成功到达基站点位
+        flowing_water_execution_completed,//流水作业已完成
+        arrive_base_station_success,//成功回到基站，并且充电
         try_recharging_again,//回充失败时，再次尝试回充
         try_move_base_point_again,//返回基站点位失败后重试
 
-        arrive_base_station_success,//成功回到基站，并且充电
 
-        manual_over_and_move_base_point,//手动返回基站点位
-        manual_back_try_move_base_point,//返回基站点位有误差，重试
-        manual_base_point_and_close_mechanism,//返回基站成功，准备收起清洁机构
-        manual_mechanism_close_and_charging,//收起完清洁机构，准备回充
-        manual_over_success,//手动结束成功
-        manual_task_pause,//手动暂停中
-        manual_cleaning,//手动模式
+        again_move_to_start_point,//再次移动到第一个点位
+        again_prepare_cleaning_mechanism,//准备开启清洁机构//todo
 
-        force_over_and_move_base_point,//强制返回基站点位，用于电量到达一定数值后，程序强制切换
-        force_back_try_move_base_point,//强制返回基站点位有误差，重试
-        force_base_point_and_close_mechanism,//强制返回基站成功，准备收起清洁机构
-        force_mechanism_close_and_charging,//强制返回后收起完清洁机构，准备回充
-        force_over_success,//强制结束成功
-        force_task_pause,//急停中
+        manual_over_and_move_base_point,//手动返回基站点位//todo
+        manual_back_try_move_base_point,//返回基站点位有误差，重试//todo
+        manual_base_point_and_close_mechanism,//返回基站成功，准备收起清洁机构//todo
+        manual_mechanism_close_and_charging,//收起完清洁机构，准备回充//todo
+        manual_over_success,//手动结束成功//todo
+        manual_task_pause,//手动暂停中//todo
+        manual_cleaning,//手动模式//todo
+
+        force_over_and_move_base_point,//强制返回基站点位，用于电量到达一定数值后，程序强制切换//todo
+        force_back_try_move_base_point,//强制返回基站点位有误差，重试//todo
+        force_base_point_and_close_mechanism,//强制返回基站成功，准备收起清洁机构//todo
+        force_mechanism_close_and_charging,//强制返回后收起完清洁机构，准备回充//todo
+        force_over_success,//强制结束成功//todo
+        force_task_pause,//急停中//todo
 
         manual_control_over_and_move_base_point,//手动控制强制返回基站点位，一般用于开机后不在基站位置
         manual_control_back_try_move_base_point,//手动控制返回基站点位有误差，重试
@@ -89,6 +89,7 @@ namespace loop {
         manual_pause,//手动暂停
         manual_back,//手动返回
         manual_force_back,//手动强制返回基站
+        manual_task_over,//手动下达新任务
         manual_unknown,
     };
 
@@ -106,7 +107,8 @@ namespace loop {
         error_normal,
         error_manual_clean_start,//手动模式开启
         error_manual_clean_end,//手动模式结束
-        error_unrecoverable,//统一处理错误点位（需要拆分）
+        error_attempt_recover,//尝试恢复的错误
+        error_unrecoverable,//不可恢复的错误（需要拆分）
         error_unknown
     };
 
