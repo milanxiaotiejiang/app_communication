@@ -204,7 +204,7 @@ public:
             auto status = serverDataCollection.take(netModel);
             if (status == BlockingCollectionStatus::Ok) {
                 for (const auto &item: mMap) {
-                    server->send(item.second.hdl, netModel.value, websocketpp::frame::opcode::text);
+                    server->send(item.second.hdl, "", websocketpp::frame::opcode::text);
                     //                    server->get_alog().write(websocketpp::log::alevel::app, data);
                 }
             }

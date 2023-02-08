@@ -449,11 +449,11 @@ void AsyncTaskCall::callPause() {
 //返回基站，取消当前规划，计时器，清空队列，返回基站
 void AsyncTaskCall::cancelTask(bool isBack) {
 
-    if (isContinueWork(event_flow, false)) {
+    if (isRegularTask(event_flow)) {
         PointPlanner::instance().cancelGoal();
         async::TimerCall::instance().baseLoop()->cancelAny();
         waitTaskQueue.clear();
-        plannerQueue.clear();
+        reset();
     }
 
     if (isBack) {

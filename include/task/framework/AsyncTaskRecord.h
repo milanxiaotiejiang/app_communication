@@ -30,6 +30,8 @@ protected:
 
     bool isContinueWork(event::flow flow, bool suspend);
 
+    bool isRegularTask(event::flow flow);
+
     void recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint);
 
     bool recoverableEmergencyStop();

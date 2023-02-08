@@ -42,6 +42,22 @@ bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend) {
     }
 }
 
+bool AsyncTaskRecord::isRegularTask(event::flow flow) {
+    if (isUnrecoverableError()) {
+        return false;
+    }
+    if (flow == event::flow::waiting_for_task) {
+        return false;
+    }
+    if (flow == event::flow::hardware_interrupt_task) {
+        return false;
+    }
+    if (flow == event::flow::software_interrupt_task) {
+        return false;
+    }
+    return true;
+}
+
 void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint) {
     TaskStack stack(event_flow, realPoint);
     stopStack.push_back(stack);
