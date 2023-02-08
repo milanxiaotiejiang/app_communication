@@ -426,7 +426,7 @@ void AsyncTaskCall::callResume() {
     epoll_manual = loop::manual_epoll::manual_normal;
     if (recoverableSuspend()) {
         LOG(INFO) << "handlePoint flow : 可继续执行任务 ...";
-        auto lastStack = lastSuspend();
+        auto lastStack = lastEmergencyStop();
         LOG(INFO) << "handlePoint flow : 继续 lastStack : " << lastStack << " ...";
 
         setFlow(lastStack.flow);

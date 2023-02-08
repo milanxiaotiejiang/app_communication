@@ -38,8 +38,6 @@ protected:
 
     TaskStack lastEmergencyStop();
 
-    TaskStack lastSuspend();
-
     void release() override;
 };
 

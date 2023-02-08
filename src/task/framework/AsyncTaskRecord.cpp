@@ -53,8 +53,7 @@ void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealPoin
 bool AsyncTaskRecord::recoverableEmergencyStop() {
     if (stopStack.empty())
         return false;
-    const auto stack = lastEmergencyStop();
-    if (!isContinueWork(stack.flow, false))
+    if (!isContinueWork(lastEmergencyStop().flow, false))
         return false;
     return true;
 }
@@ -62,7 +61,7 @@ bool AsyncTaskRecord::recoverableEmergencyStop() {
 bool AsyncTaskRecord::recoverableSuspend() {
     if (stopStack.empty())
         return false;
-    return isContinueWork(lastSuspend().flow, true);
+    return isContinueWork(lastEmergencyStop().flow, true);
 }
 
 TaskStack AsyncTaskRecord::lastEmergencyStop() {
