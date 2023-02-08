@@ -371,13 +371,15 @@ public:
         private_nh_.param("battery_name", battery_name_, std::string("/battery_status"));
         battery_valid = true;
         publish_flag_ = false;
+        //初值是一个比100大的数，防止误报
+        last_battery = 255;
         battery_sub_ = private_nh_.subscribe<std_msgs::Char>(battery_name_, 10, &BMS::batteryCB, this);
     }
 
     void batteryCB(const std_msgs::CharConstPtr &battery_msg) {
         u_char battery = battery_msg->data;
         //check if go on battery jump
-        if (abs(last_battery - battery) >= BATTERY_THRESHOLD) {
+        if (last_battery != 255 && abs(last_battery - battery) >= BATTERY_THRESHOLD) {
             if (battery_valid == true) {
                 battery_valid = false;
                 setPublish();

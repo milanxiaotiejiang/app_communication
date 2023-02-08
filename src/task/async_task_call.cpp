@@ -1160,6 +1160,13 @@ void AsyncTaskCall::callCloseMechanism() {
 void AsyncTaskCall::callGoFirstPoint() {
     RealPoint front = plannerQueue.front();
     PointPlanner::instance().gotoPlannerPoint(front);
+    async::TimerCall::instance().baseLoop()
+            ->scheduleLater(std::chrono::seconds(front.realError.timeout), [this, &front]() {
+                auto currentPoint = findFrontPoint();
+                if (currentPoint.getId() == front.id) {
+                    executeOnNext(event::error::TIMEOUT);
+                }
+            });
 }
 
 void AsyncTaskCall::callRetryFirstPoint(const std::function<void()> &f) {
