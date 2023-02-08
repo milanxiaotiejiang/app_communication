@@ -102,8 +102,6 @@ protected:
 
     bool isBasePointReached(float disAccuracy, float angleAccuracy);
 
-    bool inProgressOnTask();
-
 
     void callGoNextPoint(const RealPoint &nextPoint);
 

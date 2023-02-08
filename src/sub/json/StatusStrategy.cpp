@@ -8,7 +8,6 @@
 
 void StatusPauseStrategy::handler() {
     ManualManager::instance().pause();
-//    NativeSystemManager::instance().laserErrorEvent("laser_scan_4016");
 }
 
 void StatusResumeStrategy::handler() {
@@ -33,4 +32,16 @@ void ShutDownStrategy::handler() {
 
 void RebootStrategy::handler() {
     ManualManager::instance().reboot();
+}
+
+void EmergencyStopStrategy::handler() {
+    ZooInnerStatus::instance().setUrgencyStopStatus(true);
+}
+
+void ReleaseEmergencyStopStrategy::handler() {
+    ZooInnerStatus::instance().setUrgencyStopStatus(false);
+}
+
+void UnrecoverableErrorStrategy::handler() {
+    NativeSystemManager::instance().laserErrorEvent("laser_scan_4016");
 }

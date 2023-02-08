@@ -169,11 +169,11 @@ loop::execute_handle AsyncTaskFramework::function_urgency_stop() {
         case loop::urgency_stop::trigger_urgency_stop:
             urgency_stop = loop::urgency_stop::trigger_urgency_stop;
             break;
-        case loop::urgency_stop::release_urgency_stop:
-            urgency_stop = loop::urgency_stop::release_urgency_stop;
-            break;
         case loop::urgency_stop::recovery_urgency_stop:
             urgency_stop = loop::urgency_stop::recovery_urgency_stop;
+            break;
+        case loop::urgency_stop::release_urgency_stop:
+            urgency_stop = loop::urgency_stop::release_urgency_stop;
             break;
     }
     AsyncMachine::instance().setEpoll(epoll_manual, epoll_special, epoll_error, urgency_stop);
@@ -282,7 +282,7 @@ bool AsyncTaskFramework::isWorkMode() {
 
 bool AsyncTaskFramework::isUrgencyStop() {
     return urgency_stop == loop::urgency_stop::trigger_urgency_stop ||
-           urgency_stop == loop::urgency_stop::release_urgency_stop;
+           urgency_stop == loop::urgency_stop::recovery_urgency_stop;
 }
 
 bool AsyncTaskFramework::isManualMode() {

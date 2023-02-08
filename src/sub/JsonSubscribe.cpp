@@ -304,6 +304,15 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case QUIT_MANUAL_MODE:
             messageStrategy = new QuitManualStrategy();
             break;
+        case EMERGENCY_STOP:
+            messageStrategy = new EmergencyStopStrategy();
+            break;
+        case RELEASE_EMERGENCY_STOP:
+            messageStrategy = new ReleaseEmergencyStopStrategy();
+            break;
+        case UNRECOVERABLE_ERROR:
+            messageStrategy = new UnrecoverableErrorStrategy();
+            break;
         case SHUTDOWN:
             messageStrategy = new ShutDownStrategy();
             break;

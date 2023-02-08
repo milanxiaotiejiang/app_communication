@@ -9,7 +9,8 @@ bool AsyncTaskRecord::isPause() {
 }
 
 bool AsyncTaskRecord::isPreparation(event::flow flow) {
-    return flow == event::flow::switch_node_work_mode ||
+    return flow == event::flow::out_base_station ||
+           flow == event::flow::switch_node_work_mode ||
            flow == event::flow::preliminary_preparation_completed;
 }
 
@@ -27,12 +28,18 @@ bool AsyncTaskRecord::isReturningBase(event::flow flow) {
            flow == event::flow::try_move_base_point_again;
 }
 
-bool AsyncTaskRecord::isContinueWork(event::flow flow) {
-    //todo 四个epoll
-    if (isPreparation(flow) || isFlowingWater(flow) || isReturningBase(flow)) {
-        return true;
+bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend) {
+    if (isManualMode()) {
+        return false;
     }
-    return false;
+    if (isUnrecoverableError()) {
+        return false;
+    }
+    if (suspend) {
+        return isFlowingWater(flow) || isReturningBase(flow);
+    } else {
+        return isPreparation(flow) || isFlowingWater(flow) || isReturningBase(flow);
+    }
 }
 
 void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint) {
@@ -43,44 +50,26 @@ void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealPoin
     }
 }
 
-void AsyncTaskRecord::recordSuspend(event::flow event_flow, const RealPoint &realPoint) {
-    TaskStack stack(event_flow, realPoint);
-    suspendStack.push_back(stack);
-    if (suspendStack.size() > MAX_RECORD_TASK_STACK_SIZE) {
-        suspendStack.pop_front();
-    }
-}
-
 bool AsyncTaskRecord::recoverableEmergencyStop() {
     if (stopStack.empty())
         return false;
     const auto stack = lastEmergencyStop();
-    if (!isContinueWork(stack.flow))
+    if (!isContinueWork(stack.flow, false))
         return false;
-    LOG(INFO) << "handlePoint Stack : " << stack << " ...";
     return true;
 }
 
 bool AsyncTaskRecord::recoverableSuspend() {
-    if (suspendStack.empty())
+    if (stopStack.empty())
         return false;
-    const auto stack = lastSuspend();
-    if (!isContinueWork(stack.flow))
-        return false;
-    LOG(INFO) << "handlePoint Stack : " << stack << " ...";
-    return true;
+    return isContinueWork(lastSuspend().flow, true);
 }
 
 TaskStack AsyncTaskRecord::lastEmergencyStop() {
     return stopStack.back();
 }
 
-TaskStack AsyncTaskRecord::lastSuspend() {
-    return suspendStack.back();
-}
-
 void AsyncTaskRecord::release() {
     AsyncTaskFramework::release();
     stopStack.clear();
-    suspendStack.clear();
 }

@@ -80,7 +80,7 @@ public:
         if (epoll_error == loop::error_epoll::error_manual_clean_start) {
             return 10013;
         }
-        if (urgency_stop != loop::urgency_stop::recovery_urgency_stop) {
+        if (urgency_stop != loop::urgency_stop::release_urgency_stop) {
             return 10004;
         }
         if (epoll_manual == loop::manual_epoll::manual_pause) {

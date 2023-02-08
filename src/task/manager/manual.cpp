@@ -12,13 +12,11 @@ void ManualManager::backToBase(bool force) {
 }
 
 void ManualManager::resume() {
-//    asyncTaskCall->manualResume();
-    ZooInnerStatus::instance().setUrgencyStopStatus(false);
+    asyncTaskCall->manualResume();
 }
 
 void ManualManager::pause() {
-//    asyncTaskCall->manualPause();
-    ZooInnerStatus::instance().setUrgencyStopStatus(true);
+    asyncTaskCall->manualPause();
 }
 
 void ManualManager::enter_manul_mode() {

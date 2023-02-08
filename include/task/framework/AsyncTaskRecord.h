@@ -14,7 +14,6 @@ class AsyncTaskRecord : public AsyncTaskFramework {
 protected:
 
     std::deque<TaskStack> stopStack;
-    std::deque<TaskStack> suspendStack;
 
     std::deque<RealTask> waitTaskQueue;
     std::deque<RealPoint> plannerQueue;
@@ -29,11 +28,9 @@ protected:
 
     bool isReturningBase(event::flow flow);
 
-    bool isContinueWork(event::flow flow);
+    bool isContinueWork(event::flow flow, bool suspend);
 
     void recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint);
-
-    void recordSuspend(event::flow event_flow, const RealPoint &realPoint);
 
     bool recoverableEmergencyStop();
 

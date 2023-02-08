@@ -117,6 +117,11 @@ enum MESSAGE_ID {
     ENTER_MANUAL_MODE,//进入手动模式
     QUIT_MANUAL_MODE,//退出手动模式
 
+    EMERGENCY_STOP,//急停
+    RELEASE_EMERGENCY_STOP,//解急停
+
+    UNRECOVERABLE_ERROR,
+
     SHUTDOWN,//关机
     REBOOT,//重启
 

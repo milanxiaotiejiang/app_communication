@@ -118,25 +118,22 @@ void AsyncTaskCall::handleStop() {
     switch (urgency_stop) {
         case loop::urgency_stop::trigger_urgency_stop:
             LOG(INFO) << "急停了 ... ";
-            if (inProgressOnTask()) {
-                if (!isPause()) {
-                    if (isContinueWork(event_flow)) {
-                        LOG(INFO) << "handlePoint flow : 手动暂停任务，增加暂停拦截 ...";
-                        epoll_manual = loop::manual_epoll::manual_pause;
-                        callPause();
-                    }
+            if (!isPause()) {
+                if (isContinueWork(event_flow, true)) {
+                    LOG(INFO) << "handlePoint flow : 手动暂停任务，增加暂停拦截 ...";
+                    LOG(INFO) << " event_flow : " << event_flow << "   " << recoverableEmergencyStop();
+                    recoverableSuspend();
+                    epoll_manual = loop::manual_epoll::manual_pause;
+                    callPause();
                 }
             }
             break;
-        case loop::urgency_stop::release_urgency_stop:
+        case loop::urgency_stop::recovery_urgency_stop:
             LOG(INFO) << "急停后推回基站，任务结束 ... ";
-            if (inProgressOnTask()) {
-                epoll_manual = loop::manual_epoll::manual_normal;
-                if (isContinueWork(event_flow)) {
-                    epoll_manual = loop::manual_epoll::manual_normal;
-                    waitTaskQueue.clear();
-                    goodGame();
-                }
+            epoll_manual = loop::manual_epoll::manual_normal;
+            if (recoverableSuspend()) {
+                waitTaskQueue.clear();
+                goodGame();
             }
 
             //关闭清洁机构
@@ -144,12 +141,15 @@ void AsyncTaskCall::handleStop() {
             //睡眠模式标志设置
             ZooInnerStatus::instance().setIsFirstSwitchMode(true);
             break;
-        case loop::urgency_stop::recovery_urgency_stop:
+        case loop::urgency_stop::release_urgency_stop:
             //急停解除
             LOG(INFO) << "解除急停了 ... ";
-            if (inProgressOnTask()) {
-                //重新打开所有清洁机构
-                MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
+            if (recoverableEmergencyStop()) {
+                if (isPause()) {
+                    if (recoverableSuspend()) {
+                        MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
+                    }
+                }
             } else {
                 int noticeCode = 6666;
                 time_t t;
@@ -232,7 +232,6 @@ void AsyncTaskCall::handlePoint(const RealPoint &realPoint) {
 }
 
 void AsyncTaskCall::handleAutoPoint(const RealPoint &point) {
-    recordSuspend(event_flow, point);
     switch (point.getId()) {
         //中断，进基站，返回摆渡点，结束睡眠模式，出站，开关清洁机构，抢占，为流程点位，执行流程工作
         case FLOW_INTERRUPT:
@@ -313,9 +312,6 @@ void AsyncTaskCall::garbage() {
     for (const auto &item: stopStack) {
         LOG(INFO) << "handlePoint flow stopStack : " << item;
     }
-    for (const auto &item: suspendStack) {
-        LOG(INFO) << "handlePoint flow suspendStack : " << item;
-    }
 
     LOG(INFO) << "handlePoint flow epoll_manual : " << epoll_manual;
     LOG(INFO) << "handlePoint flow epoll_special : " << epoll_special;
@@ -385,18 +381,6 @@ bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
     return (abs(dist_error) < disAccuracy) && (abs(angle_error) < angleAccuracy);
 }
 
-bool AsyncTaskCall::inProgressOnTask() {
-    if (isManualMode()) {
-        return false;
-    }
-    if (isUnrecoverableError()) {
-        return false;
-    }
-    return event_flow != event::flow::waiting_for_task &&
-           event_flow != event::flow::hardware_interrupt_task &&
-           event_flow != event::flow::software_interrupt_task;
-}
-
 
 void AsyncTaskCall::callGoNextPoint(const RealPoint &nextPoint) {
     PointPlanner::instance().gotoPlannerPoint(nextPoint);
@@ -452,7 +436,7 @@ void AsyncTaskCall::callResume() {
 
 void AsyncTaskCall::callPause() {
     epoll_manual = loop::manual_epoll::manual_pause;
-    if (isContinueWork(event_flow)) {
+    if (isContinueWork(event_flow, true)) {
         PointPlanner::instance().cancelGoal();
         async::TimerCall::instance().baseLoop()->cancelAny();
         if (!plannerQueue.empty()) {
@@ -465,7 +449,7 @@ void AsyncTaskCall::callPause() {
 //返回基站，取消当前规划，计时器，清空队列，返回基站
 void AsyncTaskCall::cancelTask(bool isBack) {
 
-    if (isContinueWork(event_flow)) {
+    if (isContinueWork(event_flow, false)) {
         PointPlanner::instance().cancelGoal();
         async::TimerCall::instance().baseLoop()->cancelAny();
         waitTaskQueue.clear();
@@ -481,7 +465,7 @@ void AsyncTaskCall::cancelTask(bool isBack) {
 
 void AsyncTaskCall::triggerSuspend() {
     LOG(INFO) << "handlePoint flow :  unrecoverable error";
-    if (isContinueWork(event_flow)) {
+    if (isContinueWork(event_flow, false)) {
         PointPlanner::instance().cancelGoal();
         async::TimerCall::instance().baseLoop()->cancelAny();
         waitTaskQueue.clear();
@@ -615,7 +599,7 @@ void AsyncTaskCall::manualPause() {
     if (isPause()) {
         throw app::exception(make_error_code(error::it_is_currently_suspended));
     }
-    if (!isContinueWork(event_flow)) {
+    if (!isContinueWork(event_flow, true)) {
         throw app::exception(make_error_code(error::pause_is_not_supported));
     }
     if (isUnrecoverableError()) {
@@ -667,18 +651,18 @@ void AsyncTaskCall::executeUrgencyStop(bool isUrgencyStop) {
         if (urgency_stop == loop::urgency_stop::trigger_urgency_stop) {
             return;
         }
-        if (urgency_stop == loop::urgency_stop::release_urgency_stop) {
+        if (urgency_stop == loop::urgency_stop::recovery_urgency_stop) {
             return;
         }
         notify_one([this]() {
             pushUrgencyStop(loop::urgency_stop::trigger_urgency_stop);
         });
     } else {
-        if (urgency_stop == loop::urgency_stop::recovery_urgency_stop) {
+        if (urgency_stop == loop::urgency_stop::release_urgency_stop) {
             return;
         }
         notify_one([this]() {
-            pushUrgencyStop(loop::urgency_stop::recovery_urgency_stop);
+            pushUrgencyStop(loop::urgency_stop::release_urgency_stop);
         });
     }
 }
@@ -694,7 +678,7 @@ void AsyncTaskCall::urgencyStopAndCharge() {
         return;
     }
     notify_one([this]() {
-        pushUrgencyStop(loop::urgency_stop::release_urgency_stop);
+        pushUrgencyStop(loop::urgency_stop::recovery_urgency_stop);
     });
 }
 
