@@ -43,7 +43,7 @@ protected:
     loop::manual_epoll epoll_manual = loop::manual_epoll::manual_normal;
     loop::special_epoll epoll_special = loop::special_epoll::special_normal;
     loop::error_epoll epoll_error = loop::error_epoll::error_normal;
-    loop::urgency_stop urgency_stop = loop::urgency_stop::urgency_normal;
+    loop::urgency_stop urgency_stop = loop::urgency_stop::trigger_urgency_stop;
 
 public:
     AsyncTaskFramework();

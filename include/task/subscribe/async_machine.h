@@ -14,7 +14,7 @@ private:
     loop::manual_epoll epoll_manual = loop::manual_epoll::manual_normal;
     loop::special_epoll epoll_special = loop::special_epoll::special_normal;
     loop::error_epoll epoll_error = loop::error_epoll::error_normal;
-    loop::urgency_stop urgency_stop = loop::urgency_stop::urgency_normal;
+    loop::urgency_stop urgency_stop = loop::urgency_stop::trigger_urgency_stop;
 
 
     event::flow flow;
@@ -80,7 +80,7 @@ public:
         if (epoll_error == loop::error_epoll::error_manual_clean_start) {
             return 10013;
         }
-        if (urgency_stop == loop::urgency_stop::trigger_urgency_stop) {
+        if (urgency_stop != loop::urgency_stop::recovery_urgency_stop) {
             return 10004;
         }
         if (epoll_manual == loop::manual_epoll::manual_pause) {

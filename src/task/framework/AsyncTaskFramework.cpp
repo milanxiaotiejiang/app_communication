@@ -166,9 +166,6 @@ loop::execute_handle AsyncTaskFramework::function_error_epoll() {
 
 loop::execute_handle AsyncTaskFramework::function_urgency_stop() {
     switch (urgencyStopDeque.back()) {
-        case loop::urgency_stop::urgency_normal:
-            urgency_stop = loop::urgency_stop::urgency_normal;
-            break;
         case loop::urgency_stop::trigger_urgency_stop:
             urgency_stop = loop::urgency_stop::trigger_urgency_stop;
             break;
@@ -177,9 +174,6 @@ loop::execute_handle AsyncTaskFramework::function_urgency_stop() {
             break;
         case loop::urgency_stop::recovery_urgency_stop:
             urgency_stop = loop::urgency_stop::recovery_urgency_stop;
-            break;
-        default:
-            urgency_stop = loop::urgency_stop::urgency_stop_unknown;
             break;
     }
     AsyncMachine::instance().setEpoll(epoll_manual, epoll_special, epoll_error, urgency_stop);
@@ -300,8 +294,7 @@ bool AsyncTaskFramework::isUnrecoverableError() {
     return epoll_error == loop::error_epoll::error_unrecoverable &&
            epoll_manual == loop::manual_epoll::manual_unknown &&
            epoll_special == loop::special_epoll::special_unknown &&
-           epoll_error == loop::error_epoll::error_unknown &&
-           urgency_stop == loop::urgency_stop::urgency_stop_unknown;
+           epoll_error == loop::error_epoll::error_unknown;
 }
 
 bool AsyncTaskFramework::isManualControl() {

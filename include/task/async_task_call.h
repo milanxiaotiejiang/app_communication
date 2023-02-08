@@ -102,7 +102,7 @@ protected:
 
     bool isBasePointReached(float disAccuracy, float angleAccuracy);
 
-    bool isNormalOperation();
+    bool inProgressOnTask();
 
 
     void callGoNextPoint(const RealPoint &nextPoint);
@@ -117,8 +117,6 @@ protected:
 
     void callPause();
 
-    void callStopUrgentInBase();
-
     void cancelTask(bool isBack);
 
     void triggerSuspend();
@@ -127,8 +125,6 @@ public:
     AsyncTaskCall();
 
     void executeUnrecoverableError();
-
-    void executeUrgencyStop(bool isUrgencyStop);
 
     void executeOneTask(const RealTask &task);
 
@@ -150,6 +146,8 @@ public:
 
     void quitManual();
 
+
+    void executeUrgencyStop(bool isUrgencyStop);
 
     void urgencyStopAndCharge();
 

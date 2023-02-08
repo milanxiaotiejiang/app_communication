@@ -105,6 +105,7 @@ void AsyncTaskCall::handleErrorOperation() {
         case loop::error_epoll::error_attempt_recover:
             break;
         case loop::error_epoll::error_unrecoverable:
+            LOG(INFO) << "handlePoint flow : 出现不可恢复的错误 ... ";
             triggerSuspend();
             break;
         default:
@@ -117,17 +118,27 @@ void AsyncTaskCall::handleStop() {
     switch (urgency_stop) {
         case loop::urgency_stop::trigger_urgency_stop:
             LOG(INFO) << "急停了 ... ";
-            if (isContinueWork(event_flow)) {
-                epoll_manual = loop::manual_epoll::manual_pause;
-                callPause();
+            if (inProgressOnTask()) {
+                if (!isPause()) {
+                    if (isContinueWork(event_flow)) {
+                        LOG(INFO) << "handlePoint flow : 手动暂停任务，增加暂停拦截 ...";
+                        epoll_manual = loop::manual_epoll::manual_pause;
+                        callPause();
+                    }
+                }
             }
             break;
         case loop::urgency_stop::release_urgency_stop:
-            LOG(INFO) << "急停后推回基站 ... ";
-            if (isContinueWork(event_flow)) {
-                waitTaskQueue.clear();
-                reset();
+            LOG(INFO) << "急停后推回基站，任务结束 ... ";
+            if (inProgressOnTask()) {
+                epoll_manual = loop::manual_epoll::manual_normal;
+                if (isContinueWork(event_flow)) {
+                    epoll_manual = loop::manual_epoll::manual_normal;
+                    waitTaskQueue.clear();
+                    goodGame();
+                }
             }
+
             //关闭清洁机构
             MechanismManager::instance().resetWorkStatus();
             //睡眠模式标志设置
@@ -136,62 +147,18 @@ void AsyncTaskCall::handleStop() {
         case loop::urgency_stop::recovery_urgency_stop:
             //急停解除
             LOG(INFO) << "解除急停了 ... ";
-            if (runTask.getId().empty()) {
-                setFlow(event::flow::waiting_for_task);
-                MechanismManager::instance().resetWorkStatus();
+            if (inProgressOnTask()) {
+                //重新打开所有清洁机构
+                MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
             } else {
-                //设置 recordLockState 的状态和点位
-                LOG(INFO) << "解除急停的时候还没有推回基站...";
-                //要先进入暂停模式，解除暂停模式后才能继续运行
-//                if (manualClean() ||
-//                    currentInterception() ||
-//                    plannerQueue.empty() ||
-//                    (event_flow == event::flow::waiting_for_task ||
-//                     event_flow == event::flow::out_base_station ||
-//                     event_flow == event::flow::switch_node_work_mode ||
-//                     event_flow == event::flow::preliminary_preparation_completed ||
-//                     event_flow == event::flow::arrive_base_point_success ||
-//                     event_flow == event::flow::try_recharging_again ||
-//                     event_flow == event::flow::arrive_base_station_success ||
-//                     event_flow == event::flow::manual_mechanism_close_and_charging ||
-//                     event_flow == event::flow::force_base_point_and_close_mechanism ||
-//                     event_flow == event::flow::force_mechanism_close_and_charging ||
-//                     event_flow == event::flow::manual_control_base_point_and_charging ||
-//                     event_flow == event::flow::manual_control_over_success ||
-//                     event_flow == event::flow::hardware_interrupt_task ||
-//                     event_flow == event::flow::software_interrupt_task)
-//                        ) {
-//                    //手动模式没法暂停
-//                    //已经暂停的情况没法进入暂停状态
-//                    //没有在自动清扫任务中，不支持暂停
-//                    //没有完成出站等前期工作不支持暂停
-//                    int noticeCode = 6666;
-//                    time_t t;
-//                    t = time(NULL);
-//                    long noticeTime = t;
-//                    std::string noticeTitle = "pause";
-//                    std::string noticeMessage = "unsupport pause mode";
-//                    std::string solution = "";
-//                    NoticeManager::get_instance()->sendNotice(noticeCode, noticeTime, noticeTitle, noticeMessage,
-//                                                              solution);
-//                    // set to front point
-//                    setFlow(stopEventFlow());
-//                    event_status = stopStatus();
-//                    pointEpollDeque.push_back(stopPoint());
-//                } else {
-//                    LOG(INFO) << "handlePoint flow : 手动暂停任务，增加暂停拦截 ...";
-//                    event_status = event::status::MANUAL_STATE; //修改状态到MANUAL_STATE
-//                    setPauseInterception(true);      //暂停标志位置为true
-//                    PointPlanner::instance().cancelGoal(); //先取消当前的导航点
-//                    async::TimerCall::instance().baseLoop()->cancelAny(); //停止超时计时器计时
-//                    if (!plannerQueue.empty()) {
-//                        auto currentPoint = findFrontPoint(); //取消的的导航点再继续放入队列
-//                        plannerQueue.push_front(currentPoint);
-//                    }
-//                    setFlow(event::flow::manual_task_pause); //流程置回暂停
-//                    //重新打开所有清洁机构
-//                    MechanismManager::instance().forceControlWorkStatus(workTask.getWorkStatus());
-//                }
+                int noticeCode = 6666;
+                time_t t;
+                t = time(NULL);
+                long noticeTime = t;
+                std::string noticeTitle = "pause";
+                std::string noticeMessage = "unsupport pause mode";
+                std::string solution = "";
+                NoticeManager::get_instance()->sendNotice(noticeCode, noticeTime, noticeTitle, noticeMessage, solution);
             }
             break;
         default:
@@ -418,7 +385,7 @@ bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
     return (abs(dist_error) < disAccuracy) && (abs(angle_error) < angleAccuracy);
 }
 
-bool AsyncTaskCall::isNormalOperation() {
+bool AsyncTaskCall::inProgressOnTask() {
     if (isManualMode()) {
         return false;
     }
@@ -495,11 +462,6 @@ void AsyncTaskCall::callPause() {
     }
 }
 
-void AsyncTaskCall::callStopUrgentInBase() {
-
-}
-
-
 //返回基站，取消当前规划，计时器，清空队列，返回基站
 void AsyncTaskCall::cancelTask(bool isBack) {
 
@@ -541,22 +503,6 @@ void AsyncTaskCall::executeUnrecoverableError() {
     }
     notify_one([this]() {
         pushError(loop::error_epoll::error_unrecoverable);
-    });
-}
-
-void AsyncTaskCall::executeUrgencyStop(bool isUrgencyStop) {
-    if (urgency_stop == loop::urgency_stop::trigger_urgency_stop) {
-        return;
-    }
-    if (urgency_stop == loop::urgency_stop::release_urgency_stop) {
-        return;
-    }
-    notify_one([&isUrgencyStop, this]() {
-        if (isUrgencyStop) {
-            pushUrgencyStop(loop::urgency_stop::trigger_urgency_stop);
-        } else {
-            pushUrgencyStop(loop::urgency_stop::recovery_urgency_stop);
-        }
     });
 }
 
@@ -714,6 +660,27 @@ void AsyncTaskCall::quitManual() {//退出手动模式接口
     notify_one([this]() {
         pushError(loop::error_epoll::error_manual_clean_end);
     });
+}
+
+void AsyncTaskCall::executeUrgencyStop(bool isUrgencyStop) {
+    if (isUrgencyStop) {
+        if (urgency_stop == loop::urgency_stop::trigger_urgency_stop) {
+            return;
+        }
+        if (urgency_stop == loop::urgency_stop::release_urgency_stop) {
+            return;
+        }
+        notify_one([this]() {
+            pushUrgencyStop(loop::urgency_stop::trigger_urgency_stop);
+        });
+    } else {
+        if (urgency_stop == loop::urgency_stop::recovery_urgency_stop) {
+            return;
+        }
+        notify_one([this]() {
+            pushUrgencyStop(loop::urgency_stop::recovery_urgency_stop);
+        });
+    }
 }
 
 void AsyncTaskCall::urgencyStopAndCharge() {

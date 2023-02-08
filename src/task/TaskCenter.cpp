@@ -128,7 +128,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
             while (1) {
                 sleep(1);
 
-//                NativeSystemManager::instance().urgencyStop(ZooInnerStatus::instance().getUrgencyStopStatus());
+                NativeSystemManager::instance().urgencyStop(ZooInnerStatus::instance().getUrgencyStopStatus());
                 long current_execute_time = clean_history_db::CleanHistoryCenter::instance().getCurrentCleanTime();
                 WorkStatus workStatus(0, 0, 0, 0, 0, 0);
                 int machineCode = AsyncMachine::instance().getMachineCode();

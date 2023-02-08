@@ -84,11 +84,9 @@ namespace loop {
     };
 
     enum urgency_stop {
-        urgency_normal,
         trigger_urgency_stop,
         release_urgency_stop,
         recovery_urgency_stop,
-        urgency_stop_unknown
     };
 
 
