@@ -32,6 +32,7 @@ struct Ask {
 
 vector<websocketpp::connection_hdl> list;
 map<void *, Ask> mMap;
+std::mutex askMutex;
 
 typedef websocketpp::server<websocketpp::config::asio> server;
 
@@ -46,6 +47,17 @@ code_machina::BlockingCollection<string> serverCollection;
 code_machina::BlockingCollection<NetModel> serverDataCollection;
 
 PolyM::Queue transformQueue;
+
+void wsServerSend(server *server, websocketpp::connection_hdl hdl, std::string const &payload, std::string tag) {
+    try {
+        server->send(hdl, payload, websocketpp::frame::opcode::text);
+//        server->get_alog().write(websocketpp::log::alevel::app, data);
+    } catch (const std::exception &e) {
+        LOG(ERROR) << "WsServerManager : " << tag << " " << e.what();
+    } catch (...) {
+        LOG(ERROR) << "WsServerManager " << tag << " other start exception";
+    }
+}
 
 bool validate(server *s, const websocketpp::connection_hdl &hdl) {
     //sleep(6);
@@ -81,13 +93,20 @@ void on_http(server *s, websocketpp::connection_hdl hdl) {
 
 void on_fail(server *s, websocketpp::connection_hdl hdl) {
     server::connection_ptr con = s->get_con_from_hdl(hdl);
-    mMap.clear();
+    {
+        std::unique_lock<std::mutex> lock(askMutex);
+        mMap.clear();
+    }
+
     LOG(ERROR) << "Fail handler: " << con->get_ec() << " " << con->get_ec().message();
 }
 
 void on_close(websocketpp::connection_hdl hdl) {
     LOG(INFO) << "Close handler";
-    mMap.erase(hdl.lock().get());
+    {
+        std::unique_lock<std::mutex> lock(askMutex);
+        mMap.erase(hdl.lock().get());
+    }
 }
 
 void on_open(server *s, websocketpp::connection_hdl hdl) {
@@ -134,7 +153,10 @@ void on_open(server *s, websocketpp::connection_hdl hdl) {
     ask.subMap[PATH_TEST] = false;
     ask.subMap[RESPONSE] = false;
     ask.subMap[RESPONSE_JSON] = false;
-    mMap[hdl.lock().get()] = ask;
+    {
+        std::unique_lock<std::mutex> lock(askMutex);
+        mMap[hdl.lock().get()] = ask;
+    }
 }
 
 // Define a callback to handle incoming messages
@@ -153,36 +175,38 @@ void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr m
     string raw = msg->get_raw_payload();
 
 //    LOG(INFO) << "on_message remote : " << remoteEndPoint << " , payload : " << payload;
+    {
+        std::unique_lock<std::mutex> lock(askMutex);
+        if (mMap.find(hdl.lock().get()) != mMap.end()) {
+            Ask *ask = &mMap[hdl.lock().get()];
+            string osSystem = ask->osSystem;
+            string osVersion = ask->osVersion;
 
-    if (mMap.find(hdl.lock().get()) != mMap.end()) {
-        Ask *ask = &mMap[hdl.lock().get()];
-        string osSystem = ask->osSystem;
-        string osVersion = ask->osVersion;
+            AcceptRequestModel entrance;
+            try {
+                json jDecode = json::parse(payload);
+                entrance = jDecode.get<AcceptRequestModel>();
+                string op = entrance.getOp();
+                string topic = entrance.getTopic();
 
-        AcceptRequestModel entrance;
-        try {
-            json jDecode = json::parse(payload);
-            entrance = jDecode.get<AcceptRequestModel>();
-            string op = entrance.getOp();
-            string topic = entrance.getTopic();
-
-            if (op == "subscribe") {
-                ask->subMap[topic] = true;
-            } else if (op == "publish") {
-                if (topic == APP_JSON) {
-                    transformQueue.put(PolyM::DataMsg<std::string>(1, payload));
-                } else if (topic == APP_COMMUNICATION) {
-                    auto data = jDecode.get<RequestModel<RequestData>>();
-                    std_msgs::String result;
-                    result.data.append(data.getMsg().data);
-                    pubOut.publishAppCommunication(result);
+                if (op == "subscribe") {
+                    ask->subMap[topic] = true;
+                } else if (op == "publish") {
+                    if (topic == APP_JSON) {
+                        transformQueue.put(PolyM::DataMsg<std::string>(1, payload));
+                    } else if (topic == APP_COMMUNICATION) {
+                        auto data = jDecode.get<RequestModel<RequestData>>();
+                        std_msgs::String result;
+                        result.data.append(data.getMsg().data);
+                        pubOut.publishAppCommunication(result);
+                    }
                 }
+            } catch (...) {
+                LOG(ERROR) << "json parse exception";
             }
-        } catch (...) {
-            LOG(ERROR) << "json parse exception";
+        } else {
+            LOG(WARNING) << "on_message remote : " << remoteEndPoint << " no find .. ";
         }
-    } else {
-        LOG(WARNING) << "on_message remote : " << remoteEndPoint << " no find .. ";
     }
 
     //    for (const auto &item: mMap) {
@@ -203,9 +227,11 @@ public:
         while (!serverDataCollection.is_completed()) {
             auto status = serverDataCollection.take(netModel);
             if (status == BlockingCollectionStatus::Ok) {
-                for (const auto &item: mMap) {
-                    server->send(item.second.hdl, "", websocketpp::frame::opcode::text);
-                    //                    server->get_alog().write(websocketpp::log::alevel::app, data);
+                {
+                    std::unique_lock<std::mutex> lock(askMutex);
+                    for (const auto &item: mMap) {
+                        wsServerSend(server, item.second.hdl, netModel.value, "WsServerMapThread");
+                    }
                 }
             }
         }
@@ -267,44 +293,44 @@ public:
 
         while (ros::ok()) {
             sleep(2);
-            for (const auto &ask: mMap) {
-                auto hdl = ask.second.hdl;
-                auto subMap = ask.second.subMap;
-                for (const auto &item: subMap) {
-                    string key = item.first;
-                    bool send = item.second;
-                    if (send) {
-                        if (key == MAP_APP) {
-                            if (!mapData.empty()) {
-                                //  LOG(INFO) << "WsServerSubThread send :" << mapData;
-                                server->send(ask.second.hdl, mapData, websocketpp::frame::opcode::text);
-                                dataMap[key] = "";
+            {
+                std::unique_lock<std::mutex> lock(askMutex);
+                for (const auto &ask: mMap) {
+                    auto hdl = ask.second.hdl;
+                    auto subMap = ask.second.subMap;
+                    for (const auto &item: subMap) {
+                        string key = item.first;
+                        bool send = item.second;
+                        if (send) {
+                            if (key == MAP_APP) {
+                                if (!mapData.empty()) {
+                                    wsServerSend(server, ask.second.hdl, mapData, key);
+                                    dataMap[key] = "";
+                                }
                             }
-                        }
-                        if (key == GRID_MAP_APP) {
-                            if (!mapGridData.empty()) {
-                                //   LOG(INFO) << "WsServerSubThread send :" << mapGridData;
-                                server->send(ask.second.hdl, mapGridData, websocketpp::frame::opcode::text);
-                                dataMap[key] = "";
+                            if (key == GRID_MAP_APP) {
+                                if (!mapGridData.empty()) {
+                                    wsServerSend(server, ask.second.hdl, mapGridData, key);
+                                    dataMap[key] = "";
+                                }
                             }
-                        }
-                        if (key == NOTICE_APP) {
-                            auto realData = dataMap[key];
-                            if (!realData.empty()) {
-                                server->send(ask.second.hdl, realData, websocketpp::frame::opcode::text);
-                                dataMap[key] = "";
-                            }
-                        } else {
-                            auto realData = dataMap[key];
-                            if (!realData.empty()) {
-                                //  LOG(INFO) << "WsServerSubThread send :" << realData;
-                                server->send(ask.second.hdl, realData, websocketpp::frame::opcode::text);
+                            if (key == NOTICE_APP) {
+                                auto realData = dataMap[key];
+                                if (!realData.empty()) {
+                                    wsServerSend(server, ask.second.hdl, realData, key);
+                                    dataMap[key] = "";
+                                }
+                            } else {
+                                auto realData = dataMap[key];
+                                if (!realData.empty()) {
+                                    wsServerSend(server, ask.second.hdl, realData, key);
 //                                dataMap[key] = "";
+                                }
                             }
                         }
                     }
+                    //                    server->get_alog().write(websocketpp::log::alevel::app, data);
                 }
-                //                    server->get_alog().write(websocketpp::log::alevel::app, data);
             }
         }
     }
@@ -323,10 +349,11 @@ public:
         while (!serverCollection.is_completed()) {
             auto status = serverCollection.take(data);
             if (status == BlockingCollectionStatus::Ok) {
-                for (const auto &item: mMap) {
-//                    LOG(INFO) << "ws send :" << data;
-                    server->send(item.second.hdl, data, websocketpp::frame::opcode::text);
-//                    server->get_alog().write(websocketpp::log::alevel::app, data);
+                {
+                    std::unique_lock<std::mutex> lock(askMutex);
+                    for (const auto &item: mMap) {
+                        wsServerSend(server, item.second.hdl, data, "WsServerDataThread");
+                    }
                 }
             }
         }
@@ -434,11 +461,14 @@ public:
         wsServerDataThread->stop();
         wsServerSubThread->stop();
         wsServerMapThread->stop();
-        for (const auto &item: mMap) {
-            websocketpp::lib::error_code ec;
-            echo_server.close(item.second.hdl, websocketpp::close::status::going_away, "", ec);
-            if (ec) {
-                LOG(INFO) << " Error closing connection " << ec.message();
+        {
+            std::unique_lock<std::mutex> lock(askMutex);
+            for (const auto &item: mMap) {
+                websocketpp::lib::error_code ec;
+                echo_server.close(item.second.hdl, websocketpp::close::status::going_away, "", ec);
+                if (ec) {
+                    LOG(INFO) << " Error closing connection " << ec.message();
+                }
             }
         }
         LOG(ERROR) << "echo_server stop 9090";
