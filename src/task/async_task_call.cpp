@@ -727,6 +727,9 @@ void AsyncTaskCall::quitManual() {//退出手动模式接口
     if (!isManualMode()) {//不在手动模式下
         throw app::exception(make_error_code(error::not_in_manual_clean_mode));
     }
+    if (!isCharging()) {
+        throw app::exception(make_error_code(error::manual_in_the_base_station));
+    }
     notify_one([this]() {
         pushError(loop::error_epoll::error_manual_clean_end);
     });

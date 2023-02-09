@@ -97,6 +97,7 @@ namespace error {
         not_supported_temporarily,
         already_in_manual_clean_mode,
         not_in_manual_clean_mode,
+        manual_in_the_base_station,
         current_in_manual_clean_mode,
         clean_water_level_check_failed,
         dirty_water_level_check_failed
@@ -272,6 +273,8 @@ namespace error {
                     return "已经在手动模式中";
                 case error::not_in_manual_clean_mode:
                     return "当前不在手动模式中";
+                case error::manual_in_the_base_station:
+                    return "请推回基站关闭手动模式";
                 case error::current_in_manual_clean_mode:
                     return "手动模式中，任务无法启动";
                 case error::clean_water_level_check_failed:
