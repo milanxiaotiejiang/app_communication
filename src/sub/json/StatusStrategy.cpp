@@ -43,5 +43,5 @@ void ReleaseEmergencyStopStrategy::handler() {
 }
 
 void UnrecoverableErrorStrategy::handler() {
-    NativeSystemManager::instance().laserErrorEvent("laser_scan_4016");
+    NativeSystemManager::instance().motorErrorEvent(2);
 }

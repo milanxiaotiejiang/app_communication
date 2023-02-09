@@ -223,6 +223,10 @@ void AsyncTaskCall::handlePoint(const RealPoint &realPoint) {
         LOG(INFO) << "AsyncTaskCall : 急停了，抛弃不需要的点 " << realPoint.getId() << " ...";
         return;
     }
+    if (isPause()) {
+        LOG(INFO) << "AsyncTaskCall : todo 停了，抛弃不需要的点 " << realPoint.getId() << " ...";
+        return;
+    }
     recordEmergencyStop(event_flow, realPoint);
     if (isManualControl()) {
         handlePointManualControl(realPoint);
@@ -506,13 +510,16 @@ void AsyncTaskCall::callPause() {
 }
 
 void AsyncTaskCall::cancelTaskAndBack() {
-    if (isRegularTask(event_flow)) {
-        PointPlanner::instance().cancelGoal();
-        async::TimerCall::instance().baseLoop()->cancelAny();
-        waitTaskQueue.clear();
-    }
-
     if (!isReturningBase(event_flow)) {
+        if (isRegularTask(event_flow)) {
+            PointPlanner::instance().cancelGoal();
+            async::TimerCall::instance().baseLoop()->cancelAny();
+            waitTaskQueue.clear();
+
+            plannerQueue.clear();
+            setFlow(event::flow::flowing_water_production);
+            recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
+        }
         callBackBasePoint();
     }
 }
@@ -615,24 +622,37 @@ void AsyncTaskCall::manualBackToBase(bool force) {
     if (isManualMode()) {
         throw app::exception(make_error_code(error::machine_is_in_manual_mode_command_not_supported));
     }
-    if (isReturningBase(event_flow)) {
-        throw app::exception(make_error_code(error::already_returning_to_the_base_station));
-    }
-    if (force) {
-        notify_one([this]() {
-            pushManual(loop::manual_epoll::manual_force_back);
-        });
-    } else {
-        if (isRegularTask(event_flow)) {
+    if (isPause()) {
+        if (isReturningBase(event_flow)) {
             notify_one([this]() {
-                pushManual(loop::manual_epoll::manual_back);
+                pushManual(loop::manual_epoll::manual_resume);
             });
         } else {
             notify_one([this]() {
                 pushManual(loop::manual_epoll::manual_force_back);
             });
         }
+    } else {
+        if (isReturningBase(event_flow)) {
+            throw app::exception(make_error_code(error::already_returning_to_the_base_station));
+        }
+        if (force) {
+            notify_one([this]() {
+                pushManual(loop::manual_epoll::manual_force_back);
+            });
+        } else {
+            if (isRegularTask(event_flow)) {
+                notify_one([this]() {
+                    pushManual(loop::manual_epoll::manual_back);
+                });
+            } else {
+                notify_one([this]() {
+                    pushManual(loop::manual_epoll::manual_force_back);
+                });
+            }
+        }
     }
+
 }
 
 //队列前方加入恢复运行的点
