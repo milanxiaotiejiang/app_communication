@@ -255,6 +255,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     }
 
     drawBaseStation(map, stationPoint, grid_spacing_in_pixel + plan.range_near_base_station);
+    findBaseNearReachable(map, robotPosition, (int) (grid_spacing_in_pixel * 2 + plan.range_near_base_station));
 
     cv::Mat latelyMap;
     if (model == ExplorationModel::FULL) {
@@ -660,4 +661,26 @@ bool ExplorationCenter::detectionTooSmallRoom(const cv::Mat &map, int iterations
         }
     }
     return count != 0;
+}
+
+cv::Point &ExplorationCenter::findBaseNearReachable(cv::Mat &map, cv::Point &reachablePoint, int range) {
+    int origin_x = reachablePoint.x;
+    int origin_y = reachablePoint.y;
+
+    if (map.at<unsigned char>(reachablePoint.y, reachablePoint.x) != 255) {
+        LOG(INFO) << "ExplorationCenter : Find available points near the base station";
+        for (int row = -range; row <= range; row++) {
+            if (map.at<unsigned char>(reachablePoint.y, reachablePoint.x) == 255)
+                break;
+            for (int col = -range; col <= range; col++) {
+                if (map.at<unsigned char>(origin_y + row, origin_x + col) == 255) {
+                    reachablePoint.x = origin_x + col;
+                    reachablePoint.y = origin_y + row;
+                    break;
+                }
+            }
+        }
+    } else {
+        LOG(INFO) << "InfinitelyNearBoundary : The location of the base station can ensure the arrival ...";
+    }
 }
