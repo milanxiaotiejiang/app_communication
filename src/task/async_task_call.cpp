@@ -15,6 +15,7 @@
 #include "manager/NoticeManager.h"
 #include "model/Station.h"
 #include "task/manager/MechanismManager.h"
+#include "manager/InternalEventPubManager.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -47,11 +48,13 @@ void AsyncTaskCall::handleManualOperation() {
             break;
         case loop::manual_epoll::manual_back:
             LOG(INFO) << "AsyncTaskCall : 手动取消任务，进入手动接管模式，手动需要返回基站点 ...";
-            cancelTask(true);
+            internal_event::InternalEventPubManager::get_instance()->pubOper(internal_event::MANUAL_BACK_TO_BASE);
+            clean_history_db::CleanHistoryCenter::instance().manualBack();
+            cancelTaskAndBack();
             break;
         case loop::manual_epoll::manual_force_back:
             LOG(INFO) << "AsyncTaskCall : 强制返回，进入强制接管模式，强制返回基站点 ...";
-            cancelTask(true);
+            cancelTaskAndBack();
             break;
         case loop::manual_epoll::manual_task_over:
             LOG(INFO) << "AsyncTaskCall : 有 App 或 Pad 下发任务，停止当前任务 ...";
@@ -67,24 +70,49 @@ void AsyncTaskCall::handleSpecialOperation() {
     switch (epoll_special) {
         case loop::special_epoll::special_low_battery:
             LOG(INFO) << "AsyncTaskCall : 低电量，低电量导致需要强制返回基站点 ...";
+            internal_event::InternalEventPubManager::get_instance()->pubOper(internal_event::LOW_BATTERY_BACK_CHARGE);
+            clean_history_db::CleanHistoryCenter::instance().lowPowerBack();
             break;
-        case loop::special_epoll::special_branch_water:
+        case loop::special_epoll::special_branch_water: {
             LOG(INFO) << "AsyncTaskCall : 清水箱空，清水箱空导致需要强制返回基站点 ...";
+            internal_event::InternalEventPubManager::get_instance()->pubOper(
+                    internal_event::CLEAN_WATER_LEVEL_CHECK_FAILED);
+            SpecialInfo si;
+            si.clean_water_level_check_failed_ = true;
+            clean_history_db::CleanHistoryCenter::instance().equipmentErrorBack(si);
             break;
-        case loop::special_epoll::special_sewage_water:
+        }
+        case loop::special_epoll::special_sewage_water: {
             LOG(INFO) << "AsyncTaskCall : 污水箱满，污水箱满导致需要强制返回基站点 ...";
+            internal_event::InternalEventPubManager::get_instance()->pubOper(
+                    internal_event::DIRTY_WATER_LEVEL_CHECK_FAILED);
+            SpecialInfo si;
+            si.dirty_water_level_check_failed_ = true;
+            clean_history_db::CleanHistoryCenter::instance().equipmentErrorBack(si);
             break;
-        case loop::special_epoll::special_branch_sewage_water:
+        }
+        case loop::special_epoll::special_branch_sewage_water: {
             LOG(INFO) << "AsyncTaskCall : 污水箱满/清水箱空，污水箱满/清水箱空导致需要强制返回基站点 ...";
+            internal_event::InternalEventPubManager::get_instance()->pubOper(
+                    internal_event::CLEAN_WATER_LEVEL_CHECK_FAILED);
+            internal_event::InternalEventPubManager::get_instance()->pubOper(
+                    internal_event::DIRTY_WATER_LEVEL_CHECK_FAILED);
+            SpecialInfo si;
+            si.clean_water_level_check_failed_ = true;
+            si.dirty_water_level_check_failed_ = true;
+            clean_history_db::CleanHistoryCenter::instance().equipmentErrorBack(si);
             break;
+        }
         case loop::special_epoll::special_dust_push_anomaly:
             LOG(INFO) << "AsyncTaskCall : 电机堵转，尘推滚异常导致需要强制返回基站点 ...";
+            internal_event::InternalEventPubManager::get_instance()->pubOper(
+                    internal_event::MOTOR_ERROR_RECOVERY_FAILED);
             break;
         default:
             LOG(INFO) << "AsyncTaskCall handleSpecialOperation : " << epoll_special << " ...";
             break;
     }
-    cancelTask(true);
+    cancelTaskAndBack();
 }
 
 void AsyncTaskCall::handleErrorOperation() {
@@ -120,13 +148,15 @@ void AsyncTaskCall::handleStop() {
                     callPause();
                 }
             }
+            clean_history_db::CleanHistoryCenter::instance().addUrgencyStop();//历史记录增加，急停一次
+            internal_event::InternalEventPubManager::get_instance()->pubOper(internal_event::URGENCY_STOP);
             break;
         case loop::urgency_stop::recovery_urgency_stop:
             LOG(INFO) << "AsyncTaskCall : 急停后推回基站，任务结束 ... ";
             setEpollManual(loop::manual_epoll::manual_normal);
-            if (recoverableSuspend()) {
-                cancelTask(false);
-            }
+            cancelTask([this]() {
+                goodGame();
+            });
             //睡眠模式标志设置
             ZooInnerStatus::instance().setIsFirstSwitchMode(true);
             break;
@@ -141,6 +171,9 @@ void AsyncTaskCall::handleStop() {
                     }
                 }
             }
+            //急停解除
+            clean_history_db::CleanHistoryCenter::instance().cancelUrgencyStop();
+            internal_event::InternalEventPubManager::get_instance()->pubOper(internal_event::CANCEL_URGENCY_STOP);
             break;
         default:
             break;
@@ -170,6 +203,10 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
     if (event_flow == event::flow::waiting_for_task) {
 
         runTask = realTask;
+
+        internal_event::InternalEventPubManager::get_instance()->taskStart(runTask.getId());
+        clean_history_db::CleanHistoryCenter::instance().executeTask(runTask);
+
         //预埋点流转循环，打开清洁机构，关闭清洁机构，出站
         runTask.assignmentPoint(flowSeizeSeatPoint, FLOW_SEIZE_SEAT);
         runTask.assignmentPoint(flowOpenMechanismPoint, FLOW_OPEN_MECHANISM);
@@ -276,11 +313,15 @@ void AsyncTaskCall::handlePointSpecialDevice(const RealPoint &point) {
 void AsyncTaskCall::goodGame() {
     LOG(ERROR) << "AsyncTaskCall : goodGame";
 
+    internal_event::InternalEventPubManager::get_instance()->taskStop(runTask.getId());
+    clean_history_db::CleanHistoryCenter::instance().complete();
     runTask;
 
     setEpollManual(loop::manual_epoll::manual_normal);
     setEpollSpecial(loop::special_epoll::special_normal);
-    setEpollError(loop::error_epoll::error_normal);
+    if (!isManualMode()) {
+        setEpollError(loop::error_epoll::error_normal);
+    }
     setUrgencyStop(loop::urgency_stop::release_urgency_stop);
 
     setFlow(event::flow::waiting_for_task);
@@ -327,6 +368,8 @@ void AsyncTaskCall::garbage() {
               << " , EndSleep : " << flowEndSleepPoint.realError.arrive
               << " , InBase : " << flowInBasePoint.realError.arrive
               << " , InStation : " << flowInStationPoint.realError.arrive;
+
+    internal_event::InternalEventPubManager::get_instance()->taskStop(runTask.getId());
 
     MechanismManager::instance().resetWorkStatus();
 
@@ -415,7 +458,11 @@ void AsyncTaskCall::callPointComplete(const std::function<void()> &f) {
 
 
 void AsyncTaskCall::callManualCleanStart() {
-    cancelTask(false);
+    cancelTask([this]() {
+        internal_event::InternalEventPubManager::get_instance()->pubOper(internal_event::ENTER_MANUAL_CLEAN_MODE);
+        clean_history_db::CleanHistoryCenter::instance().enterManualCleanMode();
+        goodGame();
+    });
     //电机失能
     MechanismManager::instance().enterManualControl();
 }
@@ -455,21 +502,24 @@ void AsyncTaskCall::callPause() {
     }
 }
 
-//返回基站，取消当前规划，计时器，清空队列，返回基站
-void AsyncTaskCall::cancelTask(bool isBack) {
-
+void AsyncTaskCall::cancelTaskAndBack() {
     if (isRegularTask(event_flow)) {
         PointPlanner::instance().cancelGoal();
         async::TimerCall::instance().baseLoop()->cancelAny();
         waitTaskQueue.clear();
     }
 
-    if (isBack) {
-        if (!isReturningBase(event_flow)) {
-            callBackBasePoint();
-        }
-    } else {
-        garbage();
+    if (!isReturningBase(event_flow)) {
+        callBackBasePoint();
+    }
+}
+
+void AsyncTaskCall::cancelTask(const function<void()> &f) {
+    if (isRegularTask(event_flow)) {
+        PointPlanner::instance().cancelGoal();
+        async::TimerCall::instance().baseLoop()->cancelAny();
+        waitTaskQueue.clear();
+        f();
     }
 }
 
@@ -482,6 +532,9 @@ void AsyncTaskCall::triggerSuspend() {
         async::TimerCall::instance().baseLoop()->cancelAny();
         waitTaskQueue.clear();
     }
+
+    internal_event::InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_FAILED);
+    clean_history_db::CleanHistoryCenter::instance().laserInterrupt();
 
     garbage();
 }
@@ -826,7 +879,15 @@ std::tuple<int, std::string, std::string> AsyncTaskCall::generateErrorByRealPoin
 }
 
 void AsyncTaskCall::recordMotorError() {
+    internal_event::InternalEventPubManager::get_instance()->pubOper(internal_event::MOTOR_ERROR_RECOVERY_SCCEED);
 }
 
 void AsyncTaskCall::recordLaserError(std::string error_event) {
+    if (error_event == "laser_scan_4014") {
+        internal_event::InternalEventPubManager::get_instance()->pubAlarm(
+                SelfCheckErrorType::LASER_RESTART_START);
+    } else if (error_event == "laser_scan_4015") {
+        internal_event::InternalEventPubManager::get_instance()->pubAlarm(
+                SelfCheckErrorType::LASER_RESTART_SUCCEED);
+    }
 }

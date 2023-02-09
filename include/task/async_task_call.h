@@ -114,7 +114,9 @@ protected:
 
     void callPause();
 
-    void cancelTask(bool isBack);
+    void cancelTaskAndBack();
+
+    void cancelTask(const std::function<void()> &f);
 
     void triggerSuspend();
 

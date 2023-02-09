@@ -6,6 +6,7 @@
 #include "task/point_planner.h"
 #include "simulation.h"
 #include "future/timer_call.h"
+#include "manager/InternalEventPubManager.h"
 
 void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
     if (point.getId() == FLOW_SEIZE_SEAT) {
@@ -175,7 +176,15 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
             break;
         }
         case event::flow::software_interrupt_task: {
-            cancelTask(false);
+            cancelTask([this, &point]() {
+                internal_event::InternalEventPubManager::get_instance()->pubAlarm(
+                        SelfCheckErrorType::SOFTWARE_INTERRUPT);
+
+                auto error_pair = generateErrorByRealPoint(point);
+                clean_history_db::CleanHistoryCenter::instance().errorComplete(
+                        std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair));
+                garbage();
+            });
             break;
         }
     }
