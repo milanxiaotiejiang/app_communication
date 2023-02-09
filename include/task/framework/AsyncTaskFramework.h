@@ -104,6 +104,8 @@ protected:
 
     bool isSpecialDevice();
 
+    bool isCharging();
+
     virtual void release() = 0;
 
     void pushManual(loop::manual_epoll data);

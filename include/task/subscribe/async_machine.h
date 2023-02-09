@@ -85,11 +85,11 @@ public:
      *
      */
     int getMachineCode() {
-        if (epoll_error == loop::error_epoll::error_manual_clean_start) {
-            return 10013;
-        }
         if (urgency_stop != loop::urgency_stop::release_urgency_stop) {
             return 10004;
+        }
+        if (epoll_error == loop::error_epoll::error_manual_clean_start) {
+            return 10013;
         }
         if (epoll_error == loop::error_epoll::error_unrecoverable) {
             return 10010;

@@ -13,6 +13,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "task/status/state_machine.h"
 #include "task/subscribe/async_machine.h"
+#include "manager/InternalEventPubManager.h"
 
 const int MAX_FIRST_RETRY_COUNT = 2;
 const int MAX_BASE_POINT_RETRY_COUNT = 3;
@@ -25,7 +26,6 @@ const int FLOW_OUT_STATION = -13;
 const int FLOW_END_SLEEP = -14;
 const int FLOW_IN_BASE_POINT = -15;
 const int FLOW_IN_STATION = -16;
-
 
 /**
  * 任务执行线程
@@ -109,6 +109,12 @@ protected:
     void callManualCleanStart();
 
     void callManualCleanEnd();
+
+    void callUrgencyStop();
+
+    void callReleaseStop();
+
+    void callRecoveryStop();
 
     void callResume();
 

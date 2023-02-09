@@ -56,10 +56,11 @@ void TaskCenter::realExecuteTask(const Task &task) {
     if (isUrgencyStopStatus) {
         throw app::exception(make_error_code(error::machine_is_in_emergency_stop));
     }
-    //如果当前电量少于10%，那么报错且不执行任务
-    auto RSOC = ZooInnerStatus::instance().getRsoc();
-    if (RSOC < LOW_RSOC) {
-        throw app::exception(make_error_code(error::dispatcher_task_low_rsoc));
+
+    //当前在手动模式中
+    if (AsyncMachine::instance().getError() == loop::error_epoll::error_manual_clean_start
+        || AsyncMachine::instance().getError() == loop::error_epoll::error_manual_clean_end) {
+        throw app::exception(make_error_code(error::current_in_manual_clean_mode));
     }
 
     //建图模式下，不能够分发任务
@@ -70,14 +71,16 @@ void TaskCenter::realExecuteTask(const Task &task) {
         }
     }
 
+    //如果当前电量少于10%，那么报错且不执行任务
+    auto RSOC = ZooInnerStatus::instance().getRsoc();
+    if (RSOC < LOW_RSOC) {
+        throw app::exception(make_error_code(error::dispatcher_task_low_rsoc));
+    }
+
     //没有传感器数据的情况下，不能够分发任务
     //todo /imu /scan /odom without any data reject
     //todo /knob
-    //当前在手动模式中
-    if (AsyncMachine::instance().getError() == loop::error_epoll::error_manual_clean_start
-        || AsyncMachine::instance().getError() == loop::error_epoll::error_manual_clean_end) {
-        throw app::exception(make_error_code(error::current_in_manual_clean_mode));
-    }
+
     //当前任务还未结束，不能下发新的任务
     if (AsyncMachine::instance().getFlow() != event::flow::waiting_for_task) {
         const std::string &launchPeople = task.getLaunchPeople();

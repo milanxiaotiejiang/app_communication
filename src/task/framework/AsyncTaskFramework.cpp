@@ -327,6 +327,10 @@ bool AsyncTaskFramework::isSpecialDevice() {
            epoll_special == loop::special_epoll::special_dust_push_anomaly;
 }
 
+bool AsyncTaskFramework::isCharging() {
+    return ZooInnerStatus::instance().getIsCharging();
+}
+
 void AsyncTaskFramework::callBackBasePoint() {
 //    LOG(INFO) << "AsyncTaskFramework : 准备返回摆渡点了 ...";
     PointPlanner::instance().backBasePoint();

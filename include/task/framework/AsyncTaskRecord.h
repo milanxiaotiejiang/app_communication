@@ -32,6 +32,8 @@ protected:
 
     bool isRegularTask(event::flow flow);
 
+    bool isManualTask(RealTask task);
+
     void recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint);
 
     bool recoverableEmergencyStop();

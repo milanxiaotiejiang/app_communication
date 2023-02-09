@@ -8,29 +8,32 @@
 #include "future/timer_call.h"
 #include "manager/InternalEventPubManager.h"
 
+using namespace internal_event;
+using namespace clean_history_db;
+
 void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
     if (point.getId() == FLOW_SEIZE_SEAT) {
         setFlow(event::flow::out_base_station);
     } else if (point.getId() == FLOW_OUT_STATION) {
         if (point.realError.arrive) {
             setFlow(event::flow::switch_node_work_mode);
-            clean_history_db::CleanHistoryCenter::instance().setOutStation(clean_history_db::SUCCEED);
+            CleanHistoryCenter::instance().setOutStation(SUCCEED);
         } else {
-            clean_history_db::CleanHistoryCenter::instance().setOutStation(clean_history_db::FAIL);
+            CleanHistoryCenter::instance().setOutStation(FAIL);
             setFlow(event::flow::software_interrupt_task);
         }
     } else if (point.getId() == FLOW_END_SLEEP) {
         if (point.realError.arrive) {
             setFlow(event::flow::preliminary_preparation_completed);
-            clean_history_db::CleanHistoryCenter::instance().setEndSleep(clean_history_db::SUCCEED);
+            CleanHistoryCenter::instance().setEndSleep(SUCCEED);
         } else {
-            clean_history_db::CleanHistoryCenter::instance().setEndSleep(clean_history_db::FAIL);
+            CleanHistoryCenter::instance().setEndSleep(FAIL);
             setFlow(event::flow::software_interrupt_task);
         }
     } else if (point.getId() == FLOW_IN_BASE_POINT) {
         if (point.realError.arrive) {
             //记录返回摆渡点成功
-            clean_history_db::CleanHistoryCenter::instance().setBackBasePointArrived(clean_history_db::SUCCEED);
+            CleanHistoryCenter::instance().setBackBasePointArrived(SUCCEED);
             if (rechargeRetryCount == 0) {
                 setFlow(event::flow::arrive_base_point_success);
             } else {
@@ -40,41 +43,41 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
             if (backBaseRetryCount < MAX_BASE_POINT_RETRY_COUNT) {
                 backBaseRetryCount++;
                 //返回摆渡点重试次数
-                clean_history_db::CleanHistoryCenter::instance().setBackBaseRetries(backBaseRetryCount);
+                CleanHistoryCenter::instance().setBackBaseRetries(backBaseRetryCount);
                 setFlow(event::flow::try_move_base_point_again);
             } else {
-                clean_history_db::CleanHistoryCenter::instance().setBackBasePointArrived(clean_history_db::FAIL);
+                CleanHistoryCenter::instance().setBackBasePointArrived(FAIL);
                 setFlow(event::flow::software_interrupt_task);
             }
         }
     } else if (point.getId() == FLOW_IN_STATION) {
         if (point.realError.arrive) {
-            clean_history_db::CleanHistoryCenter::instance().setStationArrived(clean_history_db::SUCCEED);
+            CleanHistoryCenter::instance().setStationArrived(SUCCEED);
             setFlow(event::flow::arrive_base_station_success);
         } else {
             if (rechargeRetryCount < MAX_RECHARGE_RETRY_COUNT) {
                 rechargeRetryCount++;
-                clean_history_db::CleanHistoryCenter::instance().setRechargeRetries(rechargeRetryCount);
+                CleanHistoryCenter::instance().setRechargeRetries(rechargeRetryCount);
                 setFlow(event::flow::try_recharging_again);
             } else {
-                clean_history_db::CleanHistoryCenter::instance().setStationArrived(clean_history_db::FAIL);
+                CleanHistoryCenter::instance().setStationArrived(FAIL);
                 setFlow(event::flow::software_interrupt_task);
             }
         }
     } else if (point.getId() == FLOW_CLOSE_MECHANISM) {
         if (point.realError.arrive) {
-            clean_history_db::CleanHistoryCenter::instance().setCloseMechanism(clean_history_db::SUCCEED);
+            CleanHistoryCenter::instance().setCloseMechanism(SUCCEED);
             setFlow(event::flow::flowing_water_execution_completed);
         } else {
-            clean_history_db::CleanHistoryCenter::instance().setCloseMechanism(clean_history_db::FAIL);
+            CleanHistoryCenter::instance().setCloseMechanism(FAIL);
             setFlow(event::flow::hardware_interrupt_task);
         }
     } else if (point.getId() == FLOW_OPEN_MECHANISM) {
         if (point.realError.arrive) {
-            clean_history_db::CleanHistoryCenter::instance().setOpenMechanism(clean_history_db::SUCCEED);
+            CleanHistoryCenter::instance().setOpenMechanism(SUCCEED);
             setFlow(event::flow::cleaning_mechanism_ready);
         } else {
-            clean_history_db::CleanHistoryCenter::instance().setOpenMechanism(clean_history_db::FAIL);
+            CleanHistoryCenter::instance().setOpenMechanism(FAIL);
             setFlow(event::flow::hardware_interrupt_task);
         }
     }
@@ -177,12 +180,12 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
         }
         case event::flow::software_interrupt_task: {
             cancelTask([this, &point]() {
-                internal_event::InternalEventPubManager::get_instance()->pubAlarm(
-                        SelfCheckErrorType::SOFTWARE_INTERRUPT);
+                InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::SOFTWARE_INTERRUPT);
 
                 auto error_pair = generateErrorByRealPoint(point);
-                clean_history_db::CleanHistoryCenter::instance().errorComplete(
-                        std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair));
+                CleanHistoryCenter::instance().errorComplete(
+                        std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair)
+                );
                 garbage();
             });
             break;

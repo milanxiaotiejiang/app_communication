@@ -58,6 +58,14 @@ bool AsyncTaskRecord::isRegularTask(event::flow flow) {
     return true;
 }
 
+bool AsyncTaskRecord::isManualTask(RealTask task) {
+    const std::string &launchPeople = task.getLaunchPeople();
+    if (launchPeople == "App" || launchPeople == "Pad") {
+        return true;
+    }
+    return false;
+}
+
 void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint) {
     TaskStack stack(event_flow, realPoint);
     stopStack.push_back(stack);

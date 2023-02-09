@@ -79,8 +79,7 @@ void ZooRobotStatusSubscribe::subscribeCallback(const zoo_bringup::robot_status 
     if (ZooInnerStatus::instance().getMopStatus() == 1) {
         //清水箱空或者污水箱满
         if (clean_water_level == 0 && dirty_water_level == 100) {
-            NativeSystemManager::instance().waterLevelToBackBase(
-                    loop::special_epoll::special_branch_sewage_water);
+            NativeSystemManager::instance().waterLevelToBackBase(loop::special_epoll::special_branch_sewage_water);
         } else if (clean_water_level == 0) {
             NativeSystemManager::instance().waterLevelToBackBase(loop::special_epoll::special_branch_water);
         } else if (dirty_water_level == 100) {
