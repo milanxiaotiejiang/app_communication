@@ -25,7 +25,8 @@ bool AsyncTaskRecord::isReturningBase(event::flow flow) {
            flow == event::flow::flowing_water_execution_completed ||
            flow == event::flow::arrive_base_station_success ||
            flow == event::flow::try_recharging_again ||
-           flow == event::flow::try_move_base_point_again;
+           flow == event::flow::try_move_base_point_again ||
+           (flow == event::flow::flowing_water_production && plannerQueue.empty());
 }
 
 bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend) {

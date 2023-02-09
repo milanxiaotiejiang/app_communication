@@ -62,12 +62,10 @@ void ZooRobotStatusSubscribe::subscribeCallback(const zoo_bringup::robot_status 
     ZooInnerStatus::instance().setCleanWaterLevel(clean_water_level);
     ZooInnerStatus::instance().setDirtyWaterLevel(dirty_water_level);
 
-    if (is_charging) {
-        if (urgency_stop_status) {
-            NativeSystemManager::instance().urgencyStopAndCharge();
-        }
-    } else {
-        NativeSystemManager::instance().urgencyStop(urgency_stop_status);
+    NativeSystemManager::instance().urgencyStop(urgency_stop_status);
+
+    if (is_charging && urgency_stop_status) {
+        NativeSystemManager::instance().urgencyStopAndCharge();
     }
 
     if (!is_charging && RSOC < 10) {
