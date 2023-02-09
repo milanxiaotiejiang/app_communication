@@ -25,7 +25,6 @@ const int FLOW_OUT_STATION = -13;
 const int FLOW_END_SLEEP = -14;
 const int FLOW_IN_BASE_POINT = -15;
 const int FLOW_IN_STATION = -16;
-const int FLOW_INTERRUPT = -17;
 
 
 /**

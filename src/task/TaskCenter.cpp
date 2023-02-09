@@ -47,11 +47,16 @@ void TaskCenter::realExecuteTask(const Task &task) {
     SwitchModePublish::instance().cancel();
 
     LOG(INFO) << "TASK ID : " << task.getTaskId();
+    if (AsyncMachine::instance().getError() == loop::error_epoll::error_unrecoverable) {
+        throw app::exception(make_error_code(error::operation_failure_please_restart_the_machine));
+    }
+
     //如果是急停按钮推下的状态中，那么直接报错且不执行任务
     auto isUrgencyStopStatus = ZooInnerStatus::instance().getUrgencyStopStatus();
     if (isUrgencyStopStatus) {
         throw app::exception(make_error_code(error::machine_is_in_emergency_stop));
-    }//如果当前电量少于10%，那么报错且不执行任务
+    }
+    //如果当前电量少于10%，那么报错且不执行任务
     auto RSOC = ZooInnerStatus::instance().getRsoc();
     if (RSOC < LOW_RSOC) {
         throw app::exception(make_error_code(error::dispatcher_task_low_rsoc));
@@ -69,9 +74,10 @@ void TaskCenter::realExecuteTask(const Task &task) {
     //todo /imu /scan /odom without any data reject
     //todo /knob
     //当前在手动模式中
-//    if (AsyncMachine::instance().getFlow() == event::flow::manual_cleaning) {
-//        throw app::exception(make_error_code(error::current_in_manual_clean_mode));
-//    }
+    if (AsyncMachine::instance().getError() == loop::error_epoll::error_manual_clean_start
+        || AsyncMachine::instance().getError() == loop::error_epoll::error_manual_clean_end) {
+        throw app::exception(make_error_code(error::current_in_manual_clean_mode));
+    }
     //当前任务还未结束，不能下发新的任务
     if (AsyncMachine::instance().getFlow() != event::flow::waiting_for_task) {
         const std::string &launchPeople = task.getLaunchPeople();

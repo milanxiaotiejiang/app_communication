@@ -78,7 +78,6 @@ namespace loop {
         error_normal,
         error_manual_clean_start,//手动模式开启
         error_manual_clean_end,//手动模式结束
-        error_attempt_recover,//尝试恢复的错误
         error_unrecoverable,//不可恢复的错误（需要拆分）
         error_unknown
     };

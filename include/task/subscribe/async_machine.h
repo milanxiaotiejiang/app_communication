@@ -36,6 +36,14 @@ public:
         AsyncMachine::urgency_stop = urgency_stop;
     }
 
+    loop::error_epoll getError() {
+        return epoll_error;
+    }
+
+    loop::urgency_stop getUrgencyStop() {
+        return urgency_stop;
+    }
+
     void setFlow(event::flow flow) {
         AsyncMachine::flow = flow;
     }
@@ -82,6 +90,9 @@ public:
         }
         if (urgency_stop != loop::urgency_stop::release_urgency_stop) {
             return 10004;
+        }
+        if (epoll_error == loop::error_epoll::error_unrecoverable) {
+            return 10010;
         }
         if (epoll_manual == loop::manual_epoll::manual_pause) {
             return 10007;

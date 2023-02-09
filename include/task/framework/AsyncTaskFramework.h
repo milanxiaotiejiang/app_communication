@@ -38,6 +38,9 @@ private:
 
     atomic<bool> sleepTimeout;
 
+public:
+    AsyncTaskFramework();
+
 protected:
 
     loop::manual_epoll epoll_manual = loop::manual_epoll::manual_normal;
@@ -45,10 +48,6 @@ protected:
     loop::error_epoll epoll_error = loop::error_epoll::error_normal;
     loop::urgency_stop urgency_stop = loop::urgency_stop::trigger_urgency_stop;
 
-public:
-    AsyncTaskFramework();
-
-protected:
     void execute() override;
 
     virtual void handleManualOperation() = 0;
@@ -72,6 +71,14 @@ protected:
     loop::execute_handle function_error_epoll();
 
     loop::execute_handle function_urgency_stop();
+
+    void setEpollManual(loop::manual_epoll epoll_manual);
+
+    void setEpollSpecial(loop::special_epoll epoll_special);
+
+    void setEpollError(loop::error_epoll epoll_error);
+
+    void setUrgencyStop(loop::urgency_stop urgency_stop);
 
     void callOutBaseStation();
 
