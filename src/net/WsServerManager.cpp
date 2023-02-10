@@ -664,38 +664,38 @@ void WsServerManager::setMapApp(const nav_msgs::OccupancyGrid &occupancyGrid) {
     serverDataCollection.add(netModel);
 }
 
-void WsServerManager::setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr) {
-    RosStamp stamp(odomPtr->header.stamp.nsec, odomPtr->header.stamp.sec);
-    RosHeader header(odomPtr->header.frame_id, odomPtr->header.seq, stamp);
+void WsServerManager::setOdomApp(const nav_msgs::Odometry &odometry) {
+    RosStamp stamp(odometry.header.stamp.nsec, odometry.header.stamp.sec);
+    RosHeader header(odometry.header.frame_id, odometry.header.seq, stamp);
 
-    RosOrientation orientation(odomPtr->pose.pose.orientation.w,
-                               odomPtr->pose.pose.orientation.x,
-                               odomPtr->pose.pose.orientation.y,
-                               odomPtr->pose.pose.orientation.z);
-    RosPosition position(odomPtr->pose.pose.position.x,
-                         odomPtr->pose.pose.position.y,
-                         odomPtr->pose.pose.position.z);
+    RosOrientation orientation(odometry.pose.pose.orientation.w,
+                               odometry.pose.pose.orientation.x,
+                               odometry.pose.pose.orientation.y,
+                               odometry.pose.pose.orientation.z);
+    RosPosition position(odometry.pose.pose.position.x,
+                         odometry.pose.pose.position.y,
+                         odometry.pose.pose.position.z);
     RosOrigin origin(orientation, position);
     vector<double> poseCovariance;
-    for (const auto &item: odomPtr->pose.covariance) {
+    for (const auto &item: odometry.pose.covariance) {
         poseCovariance.push_back(item);
     }
     RosPose pose(origin, poseCovariance);
 
-    RosAngular angular(odomPtr->twist.twist.angular.x,
-                       odomPtr->twist.twist.angular.y,
-                       odomPtr->twist.twist.angular.z);
-    RosLinear linear(odomPtr->twist.twist.linear.x,
-                     odomPtr->twist.twist.linear.y,
-                     odomPtr->twist.twist.linear.z);
+    RosAngular angular(odometry.twist.twist.angular.x,
+                       odometry.twist.twist.angular.y,
+                       odometry.twist.twist.angular.z);
+    RosLinear linear(odometry.twist.twist.linear.x,
+                     odometry.twist.twist.linear.y,
+                     odometry.twist.twist.linear.z);
     RosTwistX twistX(angular, linear);
     vector<double> twistCovariance;
-    for (const auto &item: odomPtr->twist.covariance) {
+    for (const auto &item: odometry.twist.covariance) {
         twistCovariance.push_back(item);
     }
     RosTwist twist(twistX, twistCovariance);
 
-    RosOdom odom(odomPtr->child_frame_id, header, pose, twist);
+    RosOdom odom(odometry.child_frame_id, header, pose, twist);
 
     RequestModel<RosOdom> requestModel;
     requestModel.setOp("publish");
@@ -713,6 +713,6 @@ void WsServerManager::sendRequestData(const string &key, const std::string &data
 
 void WsServerManager::sendMessageBusTopic(const string &message) {
     LOG(INFO) << "sendMessageBusTopic : " << message;
-    MessageBusManager::instance().getMessageBus()->sendReq<void, string>(
+    MessageBusManager::get_instance()->getMessageBus()->sendReq<void, string>(
             message.data(), MESSAGE_BUS_TOPIC);
 }

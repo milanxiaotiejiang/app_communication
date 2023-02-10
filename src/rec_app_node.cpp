@@ -19,7 +19,7 @@ int Factorial(int number) {
 
 int ignore_area;//面积小于此百分比面积的分区区域将被忽略
 
-Error_log *Error_log::m_instance_ptr = nullptr;
+//Error_log *Error_log::m_instance_ptr = nullptr;
 NoticeManager *NoticeManager::m_instance_ptr = nullptr;
 Variable *Variable::m_instance_ptr = nullptr;
 Timer_tool *Timer_tool::m_instance_ptr = nullptr;
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     JsonSubscribe jsonSubscribe(handle);
     JsonSubscribeCloud jsonSubscribeCloud(handle, pubInner, pubOut);
     BeforeJsonSubscribe beforeJsonSubscribe(handle, pubInner, pubOut);
-    Error_Core err_Core(handle, pubInner, pubOut);
+//    Error_Core err_Core(handle, pubInner, pubOut);
     MapInnerSubscribe mapInnerSubscribe(handle, pubInner, pubOut);
     OdomInnerSubscribe odomInnerSubscribe(handle, pubInner, pubOut);
     DSVersionSubscribe dsVersionSubscribe(handle, pubInner, pubOut);
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
     initNodeParams(nh);
 
     ros::Publisher pub_current = nh.advertise<std_msgs::Int32>("/current_flag", 10);
-    Error_log::get_instance()->start();
+//    Error_log::get_instance()->start();
     WsServerManager::instance().startWebSocket(pubInner, pubOut);
 
     string last_task;
