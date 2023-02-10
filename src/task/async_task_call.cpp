@@ -134,9 +134,9 @@ void AsyncTaskCall::handleStop() {
     switch (urgency_stop) {
         case loop::urgency_stop::trigger_urgency_stop:
             LOG(INFO) << "AsyncTaskCall : 急停了 ... ";
-            callUrgencyStop();
             CleanHistoryCenter::instance().addUrgencyStop();//历史记录增加，急停一次
             InternalEventPubManager::get_instance()->pubOper(URGENCY_STOP);
+            callUrgencyStop();
             break;
         case loop::urgency_stop::recovery_urgency_stop:
             LOG(INFO) << "AsyncTaskCall : 急停后推回基站，任务结束 ... ";
@@ -144,10 +144,10 @@ void AsyncTaskCall::handleStop() {
             break;
         case loop::urgency_stop::release_urgency_stop:
             LOG(INFO) << "AsyncTaskCall : 解除急停了 ... ";
-            callReleaseStop();
             //急停解除
             CleanHistoryCenter::instance().cancelUrgencyStop();
             InternalEventPubManager::get_instance()->pubOper(CANCEL_URGENCY_STOP);
+            callReleaseStop();
             break;
         default:
             break;
@@ -224,7 +224,7 @@ void AsyncTaskCall::handlePoint(const RealPoint &realPoint) {
         return;
     }
     if (isPause()) {
-        LOG(INFO) << "AsyncTaskCall : todo 停了，抛弃不需要的点 " << realPoint.getId() << " ...";
+        LOG(INFO) << "AsyncTaskCall : 暂停了，抛弃不需要的点 " << realPoint.getId() << " ...";
         return;
     }
     recordEmergencyStop(event_flow, realPoint);
@@ -444,6 +444,7 @@ void AsyncTaskCall::callManualCleanStart() {
 }
 
 void AsyncTaskCall::callManualCleanEnd() {//退出手动模式
+    setEpollError(loop::error_epoll::error_normal);
     //电机使能
     MechanismManager::instance().quitManualControl();
     //睡眠模式标志设置
@@ -521,6 +522,8 @@ void AsyncTaskCall::cancelTaskAndBack() {
             recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
         }
         callBackBasePoint();
+    } else {
+        LOG(INFO) << "AsyncTaskCall : 已经触发返回基站的动作了 ...";
     }
 }
 
@@ -812,41 +815,6 @@ std::tuple<int, std::string, std::string> AsyncTaskCall::generateErrorByRealPoin
     int error_code;
     std::string error_code2;
     switch (real_point.getId()) {
-//        case SPECIAL_MANUAL_RESUME:
-//            error_string = "解除暂停时出错";
-//            error_code = 3201;
-//            error_code2 = "CCR_201";
-//            break;
-//        case SPECIAL_MANUAL_PAUSE:
-//            error_string = "暂停时出错";
-//            error_code = 3202;
-//            error_code2 = "CCR_202";
-//            break;
-//        case SPECIAL_MANUAL_CLEAN_START:
-//            error_string = "手动接管";
-//            error_code = 3204;
-//            error_code2 = "CCR_204";
-//            break;
-//        case SPECIAL_MANUAL_BACK:
-//            error_string = "手动返回基站失败";
-//            error_code = 3203;
-//            error_code2 = "CCR_203";
-//            break;
-//        case SPECIAL_FORCE_LOW_BATTERY:
-//            error_string = "低电量返回基站失败";
-//            error_code = 3206;
-//            error_code2 = "CCR_206";
-//            break;
-//        case SPECIAL_EQUIPMENT_ERROR_BACK:
-//            error_string = "强制返回基站失败";
-//            error_code = 3208;
-//            error_code2 = "CCR_208";
-//            break;
-//        case SPECIAL_MANUAL_CONTROL_FORCE_BACK:
-//            error_string = "模式切换强制返回基站失败";
-//            error_code = 3207;
-//            error_code2 = "CCR_207";
-//            break;
         case FLOW_SEIZE_SEAT:
             error_string = "默认状态下出错";
             error_code = 3210;
@@ -882,11 +850,6 @@ std::tuple<int, std::string, std::string> AsyncTaskCall::generateErrorByRealPoin
             error_code = 3216;
             error_code2 = "CCR_216";
             break;
-//        case FLOW_INTERRUPT:
-//            error_string = "程序中断";
-//            error_code = 3217;
-//            error_code2 = "CCR_217";
-//            break;
         default:
             error_string = "未知错误";
             error_code = 3200 - real_point.getId();

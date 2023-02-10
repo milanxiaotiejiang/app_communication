@@ -30,6 +30,7 @@ bool AsyncTaskRecord::isReturningBase(event::flow flow) {
 }
 
 bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend) {
+    LOG(INFO) << "AsyncTaskRecord : lastEmergencyStop : " << lastEmergencyStop();
     if (isManualMode()) {
         return false;
     }
@@ -61,6 +62,7 @@ bool AsyncTaskRecord::isRegularTask(event::flow flow) {
 
 bool AsyncTaskRecord::isManualTask(RealTask task) {
     const std::string &launchPeople = task.getLaunchPeople();
+    LOG(INFO) << "AsyncTaskRecord : launchPeople : " << launchPeople;
     if (launchPeople == "App" || launchPeople == "Pad") {
         return true;
     }
