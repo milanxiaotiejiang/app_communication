@@ -107,10 +107,13 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
                 setFlow(event::flow::flowing_water_production);
                 handleAutoPoint(point);
             } else {
-                callRetryFirstPoint([this, point]() {
-                    LOG(INFO) << "handlePoint flow : 第一个点位不能到达，收起清洁机构 ...";
-                    callCloseMechanism();
-                });
+//                callRetryFirstPoint([this, point]() {
+//                    LOG(INFO) << "handlePoint flow : 第一个点位不能到达，收起清洁机构 ...";
+//                    callCloseMechanism();
+//                });
+                LOG(INFO) << "handlePoint flow : 第一个点位超时，开始流水线作业 ...";
+                setFlow(event::flow::flowing_water_production);
+                handleAutoPoint(point);
             }
             break;
         }

@@ -199,17 +199,26 @@ void initLog(char *const *argv) {
 //    minidump_stackwalk b0b3ee65-051a-414a-84065a83-9c8461c2.dmp symbols > b0b3ee65-051a-414a-84065a83-9c8461c2.txt
  */
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, void *context, bool succeeded) {
-    LOG(ERROR) << sys_gettid() << " " << "Dump path : " << descriptor.path() << " " << succeeded;
+    std::string crash_file_path = descriptor.path();
+    LOG(ERROR) << sys_gettid() << " " << "Dump path : " << crash_file_path << " " << succeeded;
+
+    std::string real_program_installation_dir = "$HOME/AirCore/app/install/lib/app_communication/";
+    std::string app_ws_clion_path = "/home/admin1/app_ws/devel/lib/app_communication/rec_app_node";
+    if (access(app_ws_clion_path.c_str(), F_OK) == 0) {
+        real_program_installation_dir = "$HOME/app_ws/devel/lib/app_communication/";
+    }
 
     std::string instruct = "$HOME/app_ws/src/app_communication/scripts/parse_crash.sh";
     std::string program_installation_dir = isRealEnvironment ?
-                                           "$HOME/AirCore/app/install/lib/app_communication/"
-                                                             :
+                                           real_program_installation_dir
+                                                                                     :
                                            "$HOME/app_ws/devel/lib/app_communication/";
-    std::string crash_file_path = descriptor.path();
+
     unsigned long start = crash_file_path.find("app_dump/") + 9;
     auto crash_file = crash_file_path.substr(start);
-    std::system((instruct + " " + program_installation_dir + " " + crash_file).c_str());
+    auto CMD = instruct + " " + program_installation_dir + " " + crash_file;
+    LOG(INFO) << "CMD : " << CMD;
+    std::system(CMD.c_str());
     LOG(INFO) << ("upload ... ");
 
 
@@ -225,18 +234,14 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
 //        ros::init(argc, &argv, "catch_upload");
 //        ros::NodeHandle handle;
 //
-//        ros::Rate loop(5); // 5Hz循环分频
-//        while (ros::ok()) {
-//            ros::spinOnce();
-//            loop.sleep();
-//        }
+////        ros::Duration(10).sleep();
 //
-//        exit(0);
+////        exit(0);
 //    }
 //
 //    LOG(INFO) << "son process" << " " << pid;
-
-//    if (waitpid(pid, NULL, 0) != pid) {
+//
+//    if (waitpid(pid, nullptr, 0) != pid) {
 //        LOG(ERROR) << "fork error2";
 //    }
 
