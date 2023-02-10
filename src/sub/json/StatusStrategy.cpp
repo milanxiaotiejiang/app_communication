@@ -4,6 +4,7 @@
 
 #include "sub/json/StatusStrategy.h"
 #include "task/manager/manual.h"
+#include "task/manager/NativeSystemManager.h"
 
 void StatusPauseStrategy::handler() {
     ManualManager::instance().pause();
@@ -31,4 +32,16 @@ void ShutDownStrategy::handler() {
 
 void RebootStrategy::handler() {
     ManualManager::instance().reboot();
+}
+
+void EmergencyStopStrategy::handler() {
+    ZooInnerStatus::instance().setUrgencyStopStatus(true);
+}
+
+void ReleaseEmergencyStopStrategy::handler() {
+    ZooInnerStatus::instance().setUrgencyStopStatus(false);
+}
+
+void UnrecoverableErrorStrategy::handler() {
+    NativeSystemManager::instance().motorErrorEvent(2);
 }

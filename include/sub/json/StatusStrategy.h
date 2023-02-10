@@ -38,6 +38,21 @@ public:
     void handler() override;
 };
 
+class EmergencyStopStrategy : public MessageStringStrategy {
+public:
+    void handler() override;
+};
+
+class ReleaseEmergencyStopStrategy : public MessageStringStrategy {
+public:
+    void handler() override;
+};
+
+class UnrecoverableErrorStrategy : public MessageStringStrategy {
+public:
+    void handler() override;
+};
+
 class ShutDownStrategy : public MessageStringStrategy {
 public:
     void handler() override;

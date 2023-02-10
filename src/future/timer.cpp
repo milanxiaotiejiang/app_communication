@@ -12,7 +12,7 @@ namespace async {
 
         void TimerManager::update() {
             {
-//                std::unique_lock<std::mutex> lock(cv_mut);
+                std::unique_lock<std::mutex> lock(cv_mut);
 
                 const auto now = std::chrono::steady_clock::now();
 
@@ -37,7 +37,7 @@ namespace async {
 
         bool TimerManager::cancel(TimerId id) {
             {
-//                std::unique_lock<std::mutex> lock(cv_mut);
+                std::unique_lock<std::mutex> lock(cv_mut);
 
                 if (timers_.empty())
                     return true;
@@ -60,7 +60,7 @@ namespace async {
 
         void TimerManager::cancelAny() {
             {
-//                std::unique_lock<std::mutex> lock(cv_mut);
+                std::unique_lock<std::mutex> lock(cv_mut);
 
                 if (timers_.empty())
                     return;
@@ -71,15 +71,19 @@ namespace async {
         }
 
         DurationMs TimerManager::nearestTimer() const {
-            if (timers_.empty())
-                return DurationMs::max();
+            {
+//                std::unique_lock<std::mutex> lock(cv_mut);
 
-            const auto &timer = timers_.begin()->second;
-            auto now = std::chrono::steady_clock::now();
-            if (now > timer.id()->first)
-                return DurationMs::min();
-            else
-                return std::chrono::duration_cast<DurationMs>(timer.id()->first - now);
+                if (timers_.empty())
+                    return DurationMs::max();
+
+                const auto &timer = timers_.begin()->second;
+                auto now = std::chrono::steady_clock::now();
+                if (now > timer.id()->first)
+                    return DurationMs::min();
+                else
+                    return std::chrono::duration_cast<DurationMs>(timer.id()->first - now);
+            }
         }
 
 

@@ -128,21 +128,24 @@ namespace async {
         template<int RepeatCount, typename Duration, typename F, typename... Args>
         TimerId TimerManager::scheduleAtWithRepeat(const TimePoint &triggerTime, const Duration &period, F &&f,
                                                    Args &&... args) {
-//            std::unique_lock<std::mutex> lock(cv_mut);
+            {
+                std::unique_lock<std::mutex> lock(cv_mut);
 
-            static_assert(RepeatCount != 0, "Why you add a timer with zero count?");
+                static_assert(RepeatCount != 0, "Why you add a timer with zero count?");
 
-            using namespace std::chrono;
+                using namespace std::chrono;
 
-            Timer t(triggerTime);
+                Timer t(triggerTime);
 
-            t.interval_ = std::max(DurationMs(1), duration_cast<DurationMs>(period));
-            t.count_ = RepeatCount;
-            TimerId id = t.id();
+                t.interval_ = std::max(DurationMs(1), duration_cast<DurationMs>(period));
+                t.count_ = RepeatCount;
+                TimerId id = t.id();
 
-            t.template setCallback(std::forward<F>(f), std::forward<Args>(args)...);
-            timers_.insert(std::make_pair(triggerTime, std::move(t)));
-            return id;
+                t.template setCallback(std::forward<F>(f), std::forward<Args>(args)...);
+                timers_.insert(std::make_pair(triggerTime, std::move(t)));
+                return id;
+            }
+
         }
 
         template<int RepeatCount, typename Duration, typename F, typename... Args>
