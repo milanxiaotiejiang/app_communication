@@ -92,11 +92,7 @@ deque<PointProgressVo> GetFinishedPointStrategy::handler(string params) {
     return finished_point_list;
 }
 
-void GetFullPlanStrategy::dateProgressing(int source, json &jdecode) {
-
-    auto command = jdecode.get<RequestModel<BaseMethod<vector<int>>>>();
-    auto commandMsg = command.getMsg();
-    auto params = commandMsg.getParams();
+Task GetFullPlanStrategy::handler(vector<int> params) {
 
     std::vector<geometry_msgs::Pose2D> exploration_path;
     std::vector<cv::Point> point_path;
@@ -133,14 +129,5 @@ void GetFullPlanStrategy::dateProgressing(int source, json &jdecode) {
     Task param;
     param.setFullPath(fullPath);
 
-
-    int id = commandMsg.getId();
-    //回复给APP用于显示全覆盖路径
-    std_msgs::String result;
-    BaseResult<Task> success(id, param);//这里尖括号里不写类型会编译不过去
-    RequestModel<BaseResult<Task>> requestModel(
-            "publish", "/response_json", success
-    );
-    json jsonResult = requestModel;
-    PublishOutManager::instance().getPubOut()->publishJson(jsonResult.dump());
+    return param;
 }

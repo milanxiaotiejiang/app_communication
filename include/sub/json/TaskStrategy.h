@@ -68,9 +68,9 @@ public:
     deque<PointProgressVo> handler(string params) override;
 };
 
-class GetFullPlanStrategy : public MessageBaseStrategy {
+class GetFullPlanStrategy : public MessageStrategy<vector<int>, Task> {
 public:
-    void dateProgressing(int source, json &jdecode) override;
+    Task handler(vector<int> params) override;
 };
 
 #endif// APP_COMMUNICATION_TASKSTRATEGY_H

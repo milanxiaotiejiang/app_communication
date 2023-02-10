@@ -601,34 +601,34 @@ namespace clean_history_db {
         int error_code;
         std::string error_msg;
         switch (flow) {
-//            case event::flow::waiting_for_task:
-//                return make_tuple(3300, "等待时被关机", "CCR_300");
-//            case event::flow::out_base_station:
-//                return make_tuple(3301, "出站时被关机", "CCR_301");
-//            case event::flow::switch_node_work_mode:
-//                return make_tuple(3302, "切换工作模式时被关机", "CCR_302");
-//            case event::flow::preliminary_preparation_completed:
-//                return make_tuple(3303, "转场时被关机", "CCR_303");
-//            case event::flow::ensure_move_to_start_point:
-//                return make_tuple(3304, "转场时被关机", "CCR_304");
-//            case event::flow::cleaning_mechanism_ready:
-//                return make_tuple(3305, "转场时被关机", "CCR_305");
+            case event::flow::waiting_for_task:
+                return make_tuple(3300, "等待时被关机", "CCR_300");
+            case event::flow::out_base_station:
+                return make_tuple(3301, "出站时被关机", "CCR_301");
+            case event::flow::switch_node_work_mode:
+                return make_tuple(3302, "切换工作模式时被关机", "CCR_302");
+            case event::flow::preliminary_preparation_completed:
+                return make_tuple(3303, "转场时被关机", "CCR_303");
+            case event::flow::ensure_move_to_start_point:
+                return make_tuple(3304, "转场时被关机", "CCR_304");
+            case event::flow::cleaning_mechanism_ready:
+                return make_tuple(3305, "转场时被关机", "CCR_305");
 //            case event::flow::again_move_to_start_point:
 //                return make_tuple(3307, "转场时被关机", "CCR_307");
 //            case event::flow::again_prepare_cleaning_mechanism:
 //                return make_tuple(3308, "转场时被关机", "CCR_308");
-//            case event::flow::flowing_water_production:
-//                return make_tuple(3306, "清洁时被关机", "CCR_306");
-//            case event::flow::flowing_water_execution_completed:
-//                return make_tuple(3309, "清洁时被关机", "CCR_309");
-//            case event::flow::arrive_base_point_success:
-//                return make_tuple(3310, "自动返回基站时被关机", "CCR_310");
-//            case event::flow::try_recharging_again:
-//                return make_tuple(3311, "自动返回基站时被关机", "CCR_311");
-//            case event::flow::try_move_base_point_again:
-//                return make_tuple(3312, "自动返回基站时被关机", "CCR_312");
-//            case event::flow::arrive_base_station_success:
-//                return make_tuple(3313, "自动返回基站时被关机", "CCR_313");
+            case event::flow::flowing_water_production:
+                return make_tuple(3306, "清洁时被关机", "CCR_306");
+            case event::flow::flowing_water_execution_completed:
+                return make_tuple(3309, "清洁时被关机", "CCR_309");
+            case event::flow::arrive_base_point_success:
+                return make_tuple(3310, "自动返回基站时被关机", "CCR_310");
+            case event::flow::try_recharging_again:
+                return make_tuple(3311, "自动返回基站时被关机", "CCR_311");
+            case event::flow::try_move_base_point_again:
+                return make_tuple(3312, "自动返回基站时被关机", "CCR_312");
+            case event::flow::arrive_base_station_success:
+                return make_tuple(3313, "自动返回基站时被关机", "CCR_313");
 //            case event::flow::manual_over_and_move_base_point:
 //                return make_tuple(3314, "手动返回基站时被关机", "CCR_314");
 //            case event::flow::manual_back_try_move_base_point:
@@ -661,10 +661,10 @@ namespace clean_history_db {
 //                return make_tuple(3328, "手动返回基站时被关机", "CCR_328");
 //            case event::flow::manual_control_over_success:
 //                return make_tuple(3329, "手动返回基站时被关机", "CCR_329");
-//            case event::flow::hardware_interrupt_task:
-//                return make_tuple(3330, "硬件出错后被关机", "CCR_330");
-//            case event::flow::software_interrupt_task:
-//                return make_tuple(3331, "程序错误后被关机", "CCR_331");
+            case event::flow::hardware_interrupt_task:
+                return make_tuple(3330, "硬件出错后被关机", "CCR_330");
+            case event::flow::software_interrupt_task:
+                return make_tuple(3331, "程序错误后被关机", "CCR_331");
             default:
                 std::string base_string = "CCR_";
                 std::string flow_string = to_string(300 + flow);
