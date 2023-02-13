@@ -81,12 +81,9 @@ void TaskCenter::realExecuteTask(const Task &task) {
     //todo /imu /scan /odom without any data reject
     //todo /knob
 
-    //当前任务还未结束，不能下发新的任务
-    if (AsyncMachine::instance().getFlow() != event::flow::waiting_for_task) {
-        const std::string &launchPeople = task.getLaunchPeople();
-        if (launchPeople != "App" && launchPeople != "Pad") {
-            throw app::exception(make_error_code(error::the_current_task_is_not_completed));
-        }
+    const std::string &launchPeople = task.getLaunchPeople();
+    if (!asyncTaskCall->canIssuedTask(launchPeople)) {
+        throw app::exception(make_error_code(error::the_current_task_is_not_completed));
     }
 
     //先验条件全部满足，可以下发任务，先将task转换成realtask，再通过TaskDtcher分发

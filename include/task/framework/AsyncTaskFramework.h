@@ -102,6 +102,8 @@ protected:
 
     bool isManualControl();
 
+    bool isExchangeTask();
+
     bool isSpecialDevice();
 
     bool isCharging();

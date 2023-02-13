@@ -4,6 +4,10 @@
 
 #include "task/framework/AsyncTaskRecord.h"
 
+bool AsyncTaskRecord::isWaitTask(event::flow flow) {
+    return flow == event::flow::waiting_for_task;
+}
+
 bool AsyncTaskRecord::isPause() {
     return epoll_manual == loop::manual_epoll::manual_pause;
 }
@@ -60,8 +64,7 @@ bool AsyncTaskRecord::isRegularTask(event::flow flow) {
     return true;
 }
 
-bool AsyncTaskRecord::isManualTask(RealTask task) {
-    const std::string &launchPeople = task.getLaunchPeople();
+bool AsyncTaskRecord::isManualTask(const std::string &launchPeople) {
     LOG(INFO) << "AsyncTaskRecord : launchPeople : " << launchPeople;
     if (launchPeople == "App" || launchPeople == "Pad") {
         return true;

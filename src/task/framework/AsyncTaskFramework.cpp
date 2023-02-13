@@ -178,19 +178,22 @@ loop::execute_handle AsyncTaskFramework::function_urgency_stop() {
     return loop::execute_handle::handle_stop;
 }
 
-void AsyncTaskFramework::setEpollManual(loop::manual_epoll epoll_manual){
+void AsyncTaskFramework::setEpollManual(loop::manual_epoll epoll_manual) {
     AsyncTaskFramework::epoll_manual = epoll_manual;
     AsyncMachine::instance().setEpoll(epoll_manual, epoll_special, epoll_error, urgency_stop);
 }
-void AsyncTaskFramework::setEpollSpecial(loop::special_epoll epoll_special){
+
+void AsyncTaskFramework::setEpollSpecial(loop::special_epoll epoll_special) {
     AsyncTaskFramework::epoll_special = epoll_special;
     AsyncMachine::instance().setEpoll(epoll_manual, epoll_special, epoll_error, urgency_stop);
 }
-void AsyncTaskFramework::setEpollError(loop::error_epoll epoll_error){
+
+void AsyncTaskFramework::setEpollError(loop::error_epoll epoll_error) {
     AsyncTaskFramework::epoll_error = epoll_error;
     AsyncMachine::instance().setEpoll(epoll_manual, epoll_special, epoll_error, urgency_stop);
 }
-void AsyncTaskFramework::setUrgencyStop(loop::urgency_stop urgency_stop){
+
+void AsyncTaskFramework::setUrgencyStop(loop::urgency_stop urgency_stop) {
     AsyncTaskFramework::urgency_stop = urgency_stop;
     AsyncMachine::instance().setEpoll(epoll_manual, epoll_special, epoll_error, urgency_stop);
 }
@@ -315,8 +318,11 @@ bool AsyncTaskFramework::isManualControl() {
     return epoll_manual == loop::manual_epoll::manual_resume ||
            epoll_manual == loop::manual_epoll::manual_pause ||
            epoll_manual == loop::manual_epoll::manual_back ||
-           epoll_manual == loop::manual_epoll::manual_force_back ||
-           epoll_manual == loop::manual_epoll::manual_task_over;
+           epoll_manual == loop::manual_epoll::manual_force_back;
+}
+
+bool AsyncTaskFramework::isExchangeTask() {
+    return epoll_manual == loop::manual_epoll::manual_task_over;
 }
 
 bool AsyncTaskFramework::isSpecialDevice() {

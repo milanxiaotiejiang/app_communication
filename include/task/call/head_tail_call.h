@@ -17,6 +17,10 @@ public:
     void handleFlowPoint(const RealPoint &point) override;
 
     void processControl(const RealPoint &point) override;
+
+    bool canIssuedTask(const std::string &launchPeople);
+
+    bool taskRunning();
 };
 
 

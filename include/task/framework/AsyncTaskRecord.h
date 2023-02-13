@@ -20,6 +20,8 @@ protected:
 
     RealTask runTask;
 
+    bool isWaitTask(event::flow flow);
+
     bool isPause();
 
     bool isPreparation(event::flow flow);
@@ -32,7 +34,7 @@ protected:
 
     bool isRegularTask(event::flow flow);
 
-    bool isManualTask(RealTask task);
+    bool isManualTask(const std::string &launchPeople);
 
     void recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint);
 
@@ -43,6 +45,7 @@ protected:
     TaskStack lastEmergencyStop();
 
     void release() override;
+
 };
 
 

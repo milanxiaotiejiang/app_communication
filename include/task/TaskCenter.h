@@ -10,7 +10,7 @@
 #include "task/RealTask.h"
 #include "task/subscribe/ZooRobotStatusSubscribe.h"
 #include "task/subscribe/FlagResultSubscribe.h"
-#include "task/async_task_call.h"
+#include "task/call/head_tail_call.h"
 
 const int LOW_RSOC = 10;
 
@@ -21,7 +21,7 @@ class TaskCenter {
 private:
     ros::NodeHandle nodeHandle;
 
-    AsyncTaskCall *asyncTaskCall = nullptr;
+    HeadTailPointCall *asyncTaskCall = nullptr;
 
     ZooRobotStatusSubscribe *zooRobotStatusSubscribe;
     FlagOutSubscribe *flagOutSubscribe;

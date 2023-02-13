@@ -264,7 +264,7 @@ namespace error {
                 case error::operation_failure_please_restart_the_machine:
                     return "运行故障，请重启机器";
                 case error::the_current_task_is_not_completed:
-                    return "当前任务未执行完成";
+                    return "暂不支持任务下发";
                 case error::not_supported_temporarily:
                     return "暂不支持";
                 case error::fullclean_brief_get_fail:

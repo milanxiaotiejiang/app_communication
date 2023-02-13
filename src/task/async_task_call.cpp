@@ -58,6 +58,8 @@ void AsyncTaskCall::handleManualOperation() {
             break;
         case loop::manual_epoll::manual_task_over:
             LOG(INFO) << "AsyncTaskCall : 有 App 或 Pad 下发任务，停止当前任务 ...";
+            PointPlanner::instance().cancelGoal();
+            async::TimerCall::instance().baseLoop()->cancelAny();
             goodGame();
             break;
         default:
@@ -174,7 +176,7 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
         return;
     }
 
-    if (event_flow == event::flow::waiting_for_task) {
+    if (isWaitTask(event_flow)) {
 
         runTask = realTask;
 
@@ -203,10 +205,13 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
         //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
         pushPoint(flowSeizeSeatPoint);
     } else {
-        if (isManualTask(realTask)) {
+        const std::string &launchPeople = realTask.getLaunchPeople();
+        if (isManualTask(launchPeople) && isFlowingWater(event_flow)) {
             waitTaskQueue.push_back(realTask);
+            pushManual(loop::manual_epoll::manual_task_over);
+        } else {
+            LOG(INFO) << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : " << event_flow;
         }
-        pushManual(loop::manual_epoll::manual_task_over);
     }
 }
 
@@ -225,6 +230,10 @@ void AsyncTaskCall::handlePoint(const RealPoint &realPoint) {
     }
     if (isPause()) {
         LOG(INFO) << "AsyncTaskCall : 暂停了，抛弃不需要的点 " << realPoint.getId() << " ...";
+        return;
+    }
+    if (isExchangeTask()) {
+        LOG(INFO) << "AsyncTaskCall : 切换新的任务中，抛弃不需要的点 " << realPoint.getId() << " ...";
         return;
     }
     recordEmergencyStop(event_flow, realPoint);
@@ -361,6 +370,8 @@ void AsyncTaskCall::garbage() {
 void AsyncTaskCall::reset() {
 
     AsyncTaskRecord::release();
+
+    runTask.setId("");
 
     plannerQueue.clear();
     firstRetryCount = 0;
