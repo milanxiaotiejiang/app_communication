@@ -95,7 +95,18 @@ bool AsyncTaskRecord::recoverableSuspend() {
 }
 
 TaskStack AsyncTaskRecord::lastEmergencyStop() {
+    if (stopStack.empty()) {
+        return TaskStack(event::flow::waiting_for_task, flowSeizeSeatPoint);
+    }
     return stopStack.back();
+}
+
+void AsyncTaskRecord::makeSurePause(event::flow flow) {
+    if (isContinueWork(flow, true) && !recoverableSuspend()) {
+        LOG(ERROR) << "AsyncTaskRecord : 不一定非在此处逻辑判断 "
+                  << " lastEmergencyStop().flow : " << lastEmergencyStop().flow
+                  << " flow : " << flow;
+    }
 }
 
 void AsyncTaskRecord::release() {

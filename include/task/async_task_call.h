@@ -9,23 +9,13 @@
 
 #include "task/framework/AsyncTaskRecord.h"
 
-#include "clean_history/CleanHistoryCenter.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "task/status/state_machine.h"
 #include "task/subscribe/async_machine.h"
-#include "manager/InternalEventPubManager.h"
 
 const int MAX_FIRST_RETRY_COUNT = 2;
 const int MAX_BASE_POINT_RETRY_COUNT = 3;
 const int MAX_RECHARGE_RETRY_COUNT = 5;
-
-const int FLOW_SEIZE_SEAT = -10;
-const int FLOW_OPEN_MECHANISM = -11;
-const int FLOW_CLOSE_MECHANISM = -12;
-const int FLOW_OUT_STATION = -13;
-const int FLOW_END_SLEEP = -14;
-const int FLOW_IN_BASE_POINT = -15;
-const int FLOW_IN_STATION = -16;
 
 /**
  * 任务执行线程
@@ -42,20 +32,9 @@ protected:
     atomic<int> backBaseRetryCount;
     atomic<int> rechargeRetryCount;
 
-    RealPoint flowSeizeSeatPoint;
-    RealPoint flowOpenMechanismPoint;
-    RealPoint flowCloseMechanismPoint;
-    RealPoint flowOutStationPoint;
-
-    RealPoint flowEndSleepPoint;
-    RealPoint flowInBasePoint;
-    RealPoint flowInStationPoint;
-    RealPoint flowInterruptPoint;
-
     void setFlow(event::flow flow) {
         event_flow = flow;
         AsyncMachine::instance().setFlow(flow);
-        clean_history_db::CleanHistoryCenter::instance().setCurrentFlow(flow);
     }
 
     event::flow currentFlow() {
@@ -77,15 +56,17 @@ protected:
     void handlePoint(const RealPoint &point) override;
 
 
+    virtual void handleExecuteTask(const RealTask &task);
+
     void handleAutoPoint(const RealPoint &point);
 
     void handlePointManualControl(const RealPoint &point);
 
     void handlePointSpecialDevice(const RealPoint &point);
 
-    void goodGame();
+    virtual void goodGame();
 
-    void garbage();
+    virtual void garbage();
 
     void reset();
 
@@ -93,7 +74,7 @@ protected:
 
     virtual void processControl(const RealPoint &point) = 0;
 
-    void handlePlannerPoint(const RealPoint &point);
+    virtual void handlePlannerPoint(const RealPoint &point);
 
     RealPoint findFrontPoint();
 
@@ -165,13 +146,6 @@ public:
     std::vector<RealTask> runTaskList();
 
     std::vector<RealPoint> runTaskPoint();
-
-
-    std::tuple<int, std::string, std::string> generateErrorByRealPoint(const RealPoint &real_point);
-
-    void recordMotorError();
-
-    void recordLaserError(std::string error_event);
 
 };
 

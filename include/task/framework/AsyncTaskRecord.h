@@ -8,6 +8,14 @@
 #include "AsyncTaskFramework.h"
 #include "task/model/TaskStack.h"
 
+const int FLOW_SEIZE_SEAT = -10;
+const int FLOW_OPEN_MECHANISM = -11;
+const int FLOW_CLOSE_MECHANISM = -12;
+const int FLOW_OUT_STATION = -13;
+const int FLOW_END_SLEEP = -14;
+const int FLOW_IN_BASE_POINT = -15;
+const int FLOW_IN_STATION = -16;
+
 const int MAX_RECORD_TASK_STACK_SIZE = 3;
 
 class AsyncTaskRecord : public AsyncTaskFramework {
@@ -19,6 +27,15 @@ protected:
     std::deque<RealPoint> plannerQueue;
 
     RealTask runTask;
+
+    RealPoint flowSeizeSeatPoint;
+    RealPoint flowOpenMechanismPoint;
+    RealPoint flowCloseMechanismPoint;
+    RealPoint flowOutStationPoint;
+
+    RealPoint flowEndSleepPoint;
+    RealPoint flowInBasePoint;
+    RealPoint flowInStationPoint;
 
     bool isWaitTask(event::flow flow);
 
@@ -43,6 +60,8 @@ protected:
     bool recoverableSuspend();
 
     TaskStack lastEmergencyStop();
+
+    void makeSurePause(event::flow flow);
 
     void release() override;
 

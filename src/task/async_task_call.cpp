@@ -14,9 +14,6 @@
 #include "task/manager/SwitchModePublish.h"
 #include "task/manager/MechanismManager.h"
 
-using namespace internal_event;
-using namespace clean_history_db;
-
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
  */
@@ -48,8 +45,6 @@ void AsyncTaskCall::handleManualOperation() {
             break;
         case loop::manual_epoll::manual_back:
             LOG(INFO) << "AsyncTaskCall : 手动取消任务，进入手动接管模式，手动需要返回基站点 ...";
-            InternalEventPubManager::get_instance()->pubOper(MANUAL_BACK_TO_BASE);
-            CleanHistoryCenter::instance().manualBack();
             cancelTaskAndBack();
             break;
         case loop::manual_epoll::manual_force_back:
@@ -72,38 +67,21 @@ void AsyncTaskCall::handleSpecialOperation() {
     switch (epoll_special) {
         case loop::special_epoll::special_low_battery:
             LOG(INFO) << "AsyncTaskCall : 低电量，低电量导致需要强制返回基站点 ...";
-            InternalEventPubManager::get_instance()->pubOper(LOW_BATTERY_BACK_CHARGE);
-            CleanHistoryCenter::instance().lowPowerBack();
             break;
         case loop::special_epoll::special_branch_water: {
             LOG(INFO) << "AsyncTaskCall : 清水箱空，清水箱空导致需要强制返回基站点 ...";
-            InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
-            SpecialInfo si;
-            si.clean_water_level_check_failed_ = true;
-            CleanHistoryCenter::instance().equipmentErrorBack(si);
             break;
         }
         case loop::special_epoll::special_sewage_water: {
             LOG(INFO) << "AsyncTaskCall : 污水箱满，污水箱满导致需要强制返回基站点 ...";
-            InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
-            SpecialInfo si;
-            si.dirty_water_level_check_failed_ = true;
-            CleanHistoryCenter::instance().equipmentErrorBack(si);
             break;
         }
         case loop::special_epoll::special_branch_sewage_water: {
             LOG(INFO) << "AsyncTaskCall : 污水箱满/清水箱空，污水箱满/清水箱空导致需要强制返回基站点 ...";
-            InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
-            InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
-            SpecialInfo si;
-            si.clean_water_level_check_failed_ = true;
-            si.dirty_water_level_check_failed_ = true;
-            CleanHistoryCenter::instance().equipmentErrorBack(si);
             break;
         }
         case loop::special_epoll::special_dust_push_anomaly:
             LOG(INFO) << "AsyncTaskCall : 电机堵转，尘推滚异常导致需要强制返回基站点 ...";
-            InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_FAILED);
             break;
         default:
             LOG(INFO) << "AsyncTaskCall handleSpecialOperation : " << epoll_special << " ...";
@@ -136,8 +114,6 @@ void AsyncTaskCall::handleStop() {
     switch (urgency_stop) {
         case loop::urgency_stop::trigger_urgency_stop:
             LOG(INFO) << "AsyncTaskCall : 急停了 ... ";
-            CleanHistoryCenter::instance().addUrgencyStop();//历史记录增加，急停一次
-            InternalEventPubManager::get_instance()->pubOper(URGENCY_STOP);
             callUrgencyStop();
             break;
         case loop::urgency_stop::recovery_urgency_stop:
@@ -146,9 +122,6 @@ void AsyncTaskCall::handleStop() {
             break;
         case loop::urgency_stop::release_urgency_stop:
             LOG(INFO) << "AsyncTaskCall : 解除急停了 ... ";
-            //急停解除
-            CleanHistoryCenter::instance().cancelUrgencyStop();
-            InternalEventPubManager::get_instance()->pubOper(CANCEL_URGENCY_STOP);
             callReleaseStop();
             break;
         default:
@@ -178,32 +151,7 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
 
     if (isWaitTask(event_flow)) {
 
-        runTask = realTask;
-
-        InternalEventPubManager::get_instance()->taskStart(runTask.getId());
-        CleanHistoryCenter::instance().executeTask(runTask);
-
-        //预埋点流转循环，打开清洁机构，关闭清洁机构，出站
-        runTask.assignmentPoint(flowSeizeSeatPoint, FLOW_SEIZE_SEAT);
-        runTask.assignmentPoint(flowOpenMechanismPoint, FLOW_OPEN_MECHANISM);
-        runTask.assignmentPoint(flowCloseMechanismPoint, FLOW_CLOSE_MECHANISM);
-        runTask.assignmentPoint(flowOutStationPoint, FLOW_OUT_STATION);
-        //结束睡眠模式，抵达摆渡点，进站
-        runTask.assignmentPoint(flowEndSleepPoint, FLOW_END_SLEEP);
-        runTask.assignmentPoint(flowInBasePoint, FLOW_IN_BASE_POINT);
-        runTask.assignmentPoint(flowInStationPoint, FLOW_IN_STATION);
-        //清扫队列中的正常点全部加入
-        plannerQueue.clear();
-        for (const auto &point: runTask.getPlanPoints()) {
-            plannerQueue.push_back(point);
-        }
-
-        firstRetryCount = 0;
-        backBaseRetryCount = 0;
-        rechargeRetryCount = 0;
-
-        //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
-        pushPoint(flowSeizeSeatPoint);
+        handleExecuteTask(realTask);
     } else {
         const std::string &launchPeople = realTask.getLaunchPeople();
         if (isManualTask(launchPeople) && isFlowingWater(event_flow)) {
@@ -216,16 +164,16 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
 }
 
 void AsyncTaskCall::handlePoint(const RealPoint &realPoint) {
-    if (isManualMode()) {
-        LOG(INFO) << "AsyncTaskCall : 手动模式抛弃不需要的点 " << realPoint.getId() << " ...";
-        return;
-    }
     if (isUnrecoverableError()) {
         LOG(INFO) << "AsyncTaskCall : 程序运行异常，抛弃不需要的点 " << realPoint.getId() << " ...";
         return;
     }
     if (isUrgencyStop()) {
         LOG(INFO) << "AsyncTaskCall : 急停了，抛弃不需要的点 " << realPoint.getId() << " ...";
+        return;
+    }
+    if (isManualMode()) {
+        LOG(INFO) << "AsyncTaskCall : 手动模式抛弃不需要的点 " << realPoint.getId() << " ...";
         return;
     }
     if (isPause()) {
@@ -244,6 +192,32 @@ void AsyncTaskCall::handlePoint(const RealPoint &realPoint) {
     } else {
         handleAutoPoint(realPoint);
     }
+}
+
+void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
+    runTask = task;
+
+    //预埋点流转循环，打开清洁机构，关闭清洁机构，出站
+    runTask.assignmentPoint(flowSeizeSeatPoint, FLOW_SEIZE_SEAT);
+    runTask.assignmentPoint(flowOpenMechanismPoint, FLOW_OPEN_MECHANISM);
+    runTask.assignmentPoint(flowCloseMechanismPoint, FLOW_CLOSE_MECHANISM);
+    runTask.assignmentPoint(flowOutStationPoint, FLOW_OUT_STATION);
+    //结束睡眠模式，抵达摆渡点，进站
+    runTask.assignmentPoint(flowEndSleepPoint, FLOW_END_SLEEP);
+    runTask.assignmentPoint(flowInBasePoint, FLOW_IN_BASE_POINT);
+    runTask.assignmentPoint(flowInStationPoint, FLOW_IN_STATION);
+    //清扫队列中的正常点全部加入
+    plannerQueue.clear();
+    for (const auto &point: runTask.getPlanPoints()) {
+        plannerQueue.push_back(point);
+    }
+
+    firstRetryCount = 0;
+    backBaseRetryCount = 0;
+    rechargeRetryCount = 0;
+
+    //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
+    pushPoint(flowSeizeSeatPoint);
 }
 
 void AsyncTaskCall::handleAutoPoint(const RealPoint &point) {
@@ -299,10 +273,6 @@ void AsyncTaskCall::handlePointSpecialDevice(const RealPoint &point) {
 void AsyncTaskCall::goodGame() {
     LOG(ERROR) << "AsyncTaskCall : goodGame";
 
-    InternalEventPubManager::get_instance()->taskStop(runTask.getId());
-    CleanHistoryCenter::instance().complete();
-    runTask;
-
     setEpollManual(loop::manual_epoll::manual_normal);
     setEpollSpecial(loop::special_epoll::special_normal);
     if (!isManualMode()) {
@@ -354,8 +324,6 @@ void AsyncTaskCall::garbage() {
               << " , InBase : " << flowInBasePoint.realError.arrive
               << " , InStation : " << flowInStationPoint.realError.arrive;
 
-    InternalEventPubManager::get_instance()->taskStop(runTask.getId());
-
     MechanismManager::instance().resetWorkStatus();
 
     reset();
@@ -384,7 +352,6 @@ void AsyncTaskCall::reset() {
     flowEndSleepPoint.realError.arrive = false;
     flowInBasePoint.realError.arrive = false;
     flowInStationPoint.realError.arrive = false;
-    flowInterruptPoint.realError.arrive = false;
 }
 
 void AsyncTaskCall::handlePlannerPoint(const RealPoint &point) {
@@ -446,8 +413,6 @@ void AsyncTaskCall::callPointComplete(const std::function<void()> &f) {
 
 void AsyncTaskCall::callManualCleanStart() {
     cancelTask([this]() {
-        InternalEventPubManager::get_instance()->pubOper(ENTER_MANUAL_CLEAN_MODE);
-        CleanHistoryCenter::instance().enterManualCleanMode();
         goodGame();
     });
     //电机失能
@@ -512,6 +477,7 @@ void AsyncTaskCall::callResume() {
 
 void AsyncTaskCall::callPause() {
     if (isContinueWork(event_flow, true)) {
+        makeSurePause(event_flow);
         PointPlanner::instance().cancelGoal();
         async::TimerCall::instance().baseLoop()->cancelAny();
         if (!plannerQueue.empty()) {
@@ -556,9 +522,6 @@ void AsyncTaskCall::triggerSuspend() {
         async::TimerCall::instance().baseLoop()->cancelAny();
         waitTaskQueue.clear();
     }
-
-    InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_FAILED);
-    CleanHistoryCenter::instance().laserInterrupt();
 
     garbage();
 }
@@ -635,6 +598,9 @@ void AsyncTaskCall::manualBackToBase(bool force) {
     }
     if (isManualMode()) {
         throw app::exception(make_error_code(error::machine_is_in_manual_mode_command_not_supported));
+    }
+    if (isPreparation(event_flow)) {
+        throw app::exception(make_error_code(error::operation_not_allowed_in_outbound));
     }
     if (isPause()) {
         if (isReturningBase(event_flow)) {
@@ -819,68 +785,4 @@ std::vector<RealPoint> AsyncTaskCall::runTaskPoint() {
         }
     }
     return result;
-}
-
-std::tuple<int, std::string, std::string> AsyncTaskCall::generateErrorByRealPoint(const RealPoint &real_point) {
-    std::string error_string;
-    int error_code;
-    std::string error_code2;
-    switch (real_point.getId()) {
-        case FLOW_SEIZE_SEAT:
-            error_string = "默认状态下出错";
-            error_code = 3210;
-            error_code2 = "CCR_210";
-            break;
-        case FLOW_OPEN_MECHANISM:
-            error_string = "开启清洁机构失败";
-            error_code = 3211;
-            error_code2 = "CCR_211";
-            break;
-        case FLOW_CLOSE_MECHANISM:
-            error_string = "关闭清洁机失败";
-            error_code = 3212;
-            error_code2 = "CCR_212";
-            break;
-        case FLOW_OUT_STATION:
-            error_string = "出站时失败";
-            error_code = 3213;
-            error_code2 = "CCR_213";
-            break;
-        case FLOW_END_SLEEP:
-            error_string = "结束睡眠模式失败";
-            error_code = 3214;
-            error_code2 = "CCR_214";
-            break;
-        case FLOW_IN_BASE_POINT:
-            error_string = "返回基站摆渡点失败";
-            error_code = 3215;
-            error_code2 = "CCR_215";
-            break;
-        case FLOW_IN_STATION:
-            error_string = "基站对接失败";
-            error_code = 3216;
-            error_code2 = "CCR_216";
-            break;
-        default:
-            error_string = "未知错误";
-            error_code = 3200 - real_point.getId();
-            std::string base_string = "CCR_";
-            std::string flow_string = to_string(200 - real_point.getId());
-            error_code2 = base_string + flow_string;
-
-            break;
-    }
-    return make_tuple(error_code, error_string, error_code2);
-}
-
-void AsyncTaskCall::recordMotorError() {
-    InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_SCCEED);
-}
-
-void AsyncTaskCall::recordLaserError(std::string error_event) {
-    if (error_event == "laser_scan_4014") {
-        InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_START);
-    } else if (error_event == "laser_scan_4015") {
-        InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_SUCCEED);
-    }
 }

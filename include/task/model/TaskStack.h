@@ -5,7 +5,6 @@
 #ifndef APP_COMMUNICATION_TASKSTACK_H
 #define APP_COMMUNICATION_TASKSTACK_H
 
-
 #include <ostream>
 #include "task/status/state_machine.h"
 #include "task/RealPoint.h"

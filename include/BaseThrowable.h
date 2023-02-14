@@ -100,7 +100,9 @@ namespace error {
         manual_in_the_base_station,
         current_in_manual_clean_mode,
         clean_water_level_check_failed,
-        dirty_water_level_check_failed
+        dirty_water_level_check_failed,
+        operation_is_not_allowed_in_the_station,
+        operation_not_allowed_in_outbound,
     };// enum value
 
     class category : public std::error_category {
@@ -281,6 +283,10 @@ namespace error {
                     return "清水箱空，任务无法启动";
                 case error::dirty_water_level_check_failed:
                     return "污水箱满，任务无法启动";
+                case error::operation_is_not_allowed_in_the_station:
+                    return "进站中不允许操作";
+                case error::operation_not_allowed_in_outbound:
+                    return "出站中不允许操作";
                 default:
                     return "Unknown";
             }

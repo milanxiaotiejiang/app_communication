@@ -7,6 +7,7 @@
 
 #include "task/status/state_machine.h"
 #include "task/subscribe/zoo_inner_status.h"
+#include "clean_history/CleanHistoryCenter.h"
 
 class AsyncMachine {
 private:
@@ -45,6 +46,7 @@ public:
     }
 
     void setFlow(event::flow flow) {
+        clean_history_db::CleanHistoryCenter::instance().setCurrentFlow(flow);
         AsyncMachine::flow = flow;
     }
 

@@ -95,7 +95,7 @@ void TaskCenter::realExecuteTask(const Task &task) {
 
 void TaskCenter::initialize(ros::NodeHandle handle) {
 
-    asyncTaskCall = new HeadTailPointCall();
+    asyncTaskCall = new ReservedCall();
 
     PointProgressPublish::instance().initialize(handle);
 

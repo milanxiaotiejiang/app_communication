@@ -6,18 +6,18 @@
 #define APP_COMMUNICATION_NATIVESYSTEMMANAGER_H
 
 
-#include "task/async_task_call.h"
+#include "task/call/reserved_call.h"
 
 class NativeSystemManager {
 private:
-    AsyncTaskCall *asyncTaskCall;
+    ReservedCall *asyncTaskCall;
 public:
     static auto &instance() {
         static NativeSystemManager obj;
         return obj;
     }
 
-    void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
+    void setAsyncTaskCall(ReservedCall *asyncTaskCall) {
         NativeSystemManager::asyncTaskCall = asyncTaskCall;
     }
 
