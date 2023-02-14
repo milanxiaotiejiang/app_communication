@@ -29,8 +29,6 @@ private:
     //雷达故障
     void laserErrorCallback(const std_msgs::StringConstPtr &laser_error);
 
-    std::atomic<bool> isFirstSwitchMode;
-
 public:
     ZooRobotStatusSubscribe(ros::NodeHandle handle);
 

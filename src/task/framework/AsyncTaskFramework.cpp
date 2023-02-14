@@ -342,6 +342,11 @@ void AsyncTaskFramework::callBackBasePoint() {
     PointPlanner::instance().backBasePoint();
 }
 
+void AsyncTaskFramework::callNeedPublishSleep() {
+    LOG(INFO) << "AsyncTaskFramework : 等待充电成功即可发布睡眠模式 ...";
+    ZooInnerStatus::instance().setNeedSleep(true);
+}
+
 void AsyncTaskFramework::release() {
     sleepTimeout = false;
 }

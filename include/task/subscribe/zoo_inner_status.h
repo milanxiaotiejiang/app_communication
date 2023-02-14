@@ -39,7 +39,7 @@ private:
 
     int dirty_water_level;
 
-    bool is_first_switch_mode{true};
+    bool need_sleep;
 public:
     static auto &instance() {
         static ZooInnerStatus obj;
@@ -151,12 +151,12 @@ public:
         knob_task = knobTask;
     }
 
-    void setIsFirstSwitchMode(bool isFirstSwitchMode) {
-        is_first_switch_mode = isFirstSwitchMode;
+    void setNeedSleep(bool needSleep) {
+        need_sleep = needSleep;
     }
 
-    bool getIsFirstSwitchMode() {
-        return is_first_switch_mode;
+    bool getNeedSleep() {
+        return need_sleep;
     }
 
     void setCleanWaterLevel(int level) {

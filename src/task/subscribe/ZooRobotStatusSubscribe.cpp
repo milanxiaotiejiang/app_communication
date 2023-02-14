@@ -18,7 +18,7 @@ const int KNOB_STATUS_VERSION = 1;
 
 ZooRobotStatusSubscribe::ZooRobotStatusSubscribe(ros::NodeHandle handle)
         : handle(handle) {
-    isFirstSwitchMode = true;
+    ZooInnerStatus::instance().setNeedSleep(true);
     sub_robot_status_ = handle.subscribe("/robot_status_inner", 1, &ZooRobotStatusSubscribe::subscribeCallback, this);
     sub_motor_error_ = handle.subscribe("/mrrobot/push_error", 10, &ZooRobotStatusSubscribe::motorErrorCallback, this);
     sub_laser_error_ = handle.subscribe("/lidar/restart", 10, &ZooRobotStatusSubscribe::laserErrorCallback, this);
@@ -117,13 +117,11 @@ void ZooRobotStatusSubscribe::subscribeCallback(const zoo_bringup::robot_status 
     VersionSubscribe<ShowWorkStatus> statusResponse(1, status);
     PublishOutManager::instance().getPubOut()->publishStatus(statusResponse);
 
-    isFirstSwitchMode = ZooInnerStatus::instance().getIsFirstSwitchMode();
 
-    if (isFirstSwitchMode && is_charging) {
+    if (ZooInnerStatus::instance().getNeedSleep() && is_charging) {
         SwitchModePublish::instance().publish();
-        ZooInnerStatus::instance().setIsFirstSwitchMode(false);
+        ZooInnerStatus::instance().setNeedSleep(false);
     }
-    isFirstSwitchMode = false;
 }
 
 void ZooRobotStatusSubscribe::pubMaterial() const {

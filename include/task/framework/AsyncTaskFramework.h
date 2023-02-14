@@ -92,6 +92,8 @@ protected:
 
     void callBackBasePoint();
 
+    void callNeedPublishSleep();
+
     bool isWorkMode();
 
     bool isUrgencyStop();

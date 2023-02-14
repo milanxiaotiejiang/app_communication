@@ -290,7 +290,7 @@ void AsyncTaskCall::goodGame() {
             waitTaskQueue.pop_front();
         });
     } else {
-        SwitchModePublish::instance().publish();
+        callNeedPublishSleep();
         LOG(ERROR) << "AsyncTaskCall : gg";
     }
 }
@@ -424,7 +424,7 @@ void AsyncTaskCall::callManualCleanEnd() {//退出手动模式
     //电机使能
     MechanismManager::instance().quitManualControl();
     //睡眠模式标志设置
-    ZooInnerStatus::instance().setIsFirstSwitchMode(true);
+    callNeedPublishSleep();
 }
 
 void AsyncTaskCall::callUrgencyStop() {
@@ -454,8 +454,6 @@ void AsyncTaskCall::callRecoveryStop() {
     cancelTask([this]() {
         goodGame();
     });
-    //睡眠模式标志设置
-    ZooInnerStatus::instance().setIsFirstSwitchMode(true);
 }
 
 void AsyncTaskCall::callResume() {
