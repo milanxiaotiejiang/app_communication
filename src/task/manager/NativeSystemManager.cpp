@@ -27,6 +27,12 @@ void NativeSystemManager::motorErrorEvent(int error_event) {
         asyncTaskCall->forceBackToBase(4);
     }
 }
+void NativeSystemManager::hlsErrorEvent(int error_event){
+  if (error_event == 1) {
+    asyncTaskCall->recordHlsError();
+  } 
+}
+
 
 void NativeSystemManager::laserErrorEvent(std::string error_event) {
     if (error_event == "laser_scan_4016") {

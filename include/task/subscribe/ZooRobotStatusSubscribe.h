@@ -17,7 +17,7 @@ private:
 
     ros::Subscriber sub_robot_status_;
 
-    ros::Subscriber sub_motor_error_, sub_laser_error_;
+    ros::Subscriber sub_motor_error_, sub_laser_error_, sub_hls_error_;
 
     int last_machine_code_{10006};
 
@@ -28,6 +28,9 @@ private:
 
     //雷达故障
     void laserErrorCallback(const std_msgs::StringConstPtr &laser_error);
+
+    //电机堵转
+    void hlsErrorCallback(const std_msgs::Int32ConstPtr &motor_error);
 
     std::atomic<bool> isFirstSwitchMode;
 

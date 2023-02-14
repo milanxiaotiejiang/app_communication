@@ -21,6 +21,7 @@ ZooRobotStatusSubscribe::ZooRobotStatusSubscribe(ros::NodeHandle handle)
     isFirstSwitchMode = true;
     sub_robot_status_ = handle.subscribe("/robot_status_inner", 1, &ZooRobotStatusSubscribe::subscribeCallback, this);
     sub_motor_error_ = handle.subscribe("/mrrobot/push_error", 10, &ZooRobotStatusSubscribe::motorErrorCallback, this);
+    sub_hls_error_ = handle.subscribe("/mrrobot/hls_error_", 10, &ZooRobotStatusSubscribe::hlsErrorCallback, this);
     sub_laser_error_ = handle.subscribe("/lidar/restart", 10, &ZooRobotStatusSubscribe::laserErrorCallback, this);
 }
 
@@ -160,4 +161,10 @@ void ZooRobotStatusSubscribe::motorErrorCallback(const std_msgs::Int32ConstPtr &
 //雷达故障
 void ZooRobotStatusSubscribe::laserErrorCallback(const std_msgs::StringConstPtr &laser_error) {
     NativeSystemManager::instance().laserErrorEvent(laser_error->data);
+}
+
+
+//底盘电机失能
+void ZooRobotStatusSubscribe::hlsErrorCallback(const std_msgs::Int32ConstPtr &hls_error) {
+  NativeSystemManager::instance().hlsErrorEvent(hls_error->data);
 }

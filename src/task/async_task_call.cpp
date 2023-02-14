@@ -1425,6 +1425,11 @@ void AsyncTaskCall::recordMotorError() {
     internal_event::InternalEventPubManager::get_instance()->pubOper(internal_event::MOTOR_ERROR_RECOVERY_SCCEED);
 }
 
+void AsyncTaskCall::recordHlsError() {
+  internal_event::InternalEventPubManager::get_instance()->pubAlarm(
+      SelfCheckErrorType::HLS_ERROR);
+}
+
 void AsyncTaskCall::recordLaserError(std::string error_event) {
     if (error_event == "laser_scan_4014") {
         internal_event::InternalEventPubManager::get_instance()->pubAlarm(
