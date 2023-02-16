@@ -156,6 +156,9 @@ void SegmentationCenter::originalSegmentation(cv::Mat &segmented_map, std::vecto
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
     // 1.加载原始地图
     cv::Mat map = generateMat();
     map.convertTo(segmented_map, CV_32SC1, 256, 0);// rescale to 32 int, 255 --> 255*256 = 65280
@@ -222,6 +225,9 @@ void SegmentationCenter::handSegmentation(cv::Mat &segmented_map, std::vector<Ro
                                           const cv::Point &ps, const cv::Point &pe) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
     if (target_index < 0 || target_index >= rooms.size()) {
         throw app::exception(make_error_code(error::room_array_out_of_bounds));
@@ -325,6 +331,9 @@ void SegmentationCenter::mergeRoom(cv::Mat &segmented_map, std::vector<Room> &ro
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
     if (target_index < 0 || target_index >= rooms.size() ||
         room_to_merge_index < 0 || room_to_merge_index >= rooms.size()) {
         throw app::exception(make_error_code(error::room_array_out_of_bounds));
@@ -393,12 +402,18 @@ void SegmentationCenter::memory2Storage(cv::Mat &segmented_map, std::vector<Room
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
     SegmentationDataBase::instance().memory2Storage(segmented_map, rooms);
 }
 
 void SegmentationCenter::storage2Memory(cv::Mat &segmented_map, std::vector<Room> &rooms) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
     SegmentationDataBase::instance().storage2Memory(segmented_map, rooms, map_resolution_from_subscription);
 
@@ -409,6 +424,9 @@ void SegmentationCenter::storage2Memory(cv::Mat &segmented_map, std::vector<Room
 void SegmentationCenter::automaticSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
 
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);

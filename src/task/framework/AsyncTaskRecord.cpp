@@ -30,7 +30,7 @@ bool AsyncTaskRecord::isReturningBase(event::flow flow) {
            flow == event::flow::arrive_base_station_success ||
            flow == event::flow::try_recharging_again ||
            flow == event::flow::try_move_base_point_again ||
-           (flow == event::flow::flowing_water_production && plannerQueue.empty());
+           isPlannerEmpty(flow);
 }
 
 bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend) {
@@ -74,6 +74,10 @@ bool AsyncTaskRecord::isManualTask(const std::string &launchPeople) {
 
 bool AsyncTaskRecord::isRechargeFLow(event::flow flow) {
     return flow == event::flow::flowing_water_execution_completed;
+}
+
+bool AsyncTaskRecord::isPlannerEmpty(event::flow flow) {
+    return flow == event::flow::flowing_water_production && plannerQueue.empty();
 }
 
 void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint) {

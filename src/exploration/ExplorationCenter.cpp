@@ -84,6 +84,9 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
     }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
 
     cv::Mat original_map = room_map.clone();
     cv::Mat map = room_map.clone();

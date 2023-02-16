@@ -103,6 +103,7 @@ namespace error {
         dirty_water_level_check_failed,
         operation_is_not_allowed_in_the_station,
         operation_not_allowed_in_outbound,
+        in_creating_map,
     };// enum value
 
     class category : public std::error_category {
@@ -287,6 +288,8 @@ namespace error {
                     return "进站中不允许操作";
                 case error::operation_not_allowed_in_outbound:
                     return "出站中不允许操作";
+                case error::in_creating_map:
+                    return "地图创建中";
                 default:
                     return "Unknown";
             }

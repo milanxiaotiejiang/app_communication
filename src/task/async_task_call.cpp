@@ -448,8 +448,9 @@ void AsyncTaskCall::callReleaseStop() {
         if (isPause()) {
             if (recoverableSuspend()) {
                 LOG(INFO) << "AsyncTaskCall : 急停可恢复暂停状态 ... ";
-                LOG(INFO) << "AsyncTaskCall : 下位机断电，需要再次触发清洁机构，会导致“回充——急停——解除“后再次下方清洁机构 ... ";
+//                if (!isReturningBase(event_flow)) {
                 MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
+//                }
             }
         }
     }
@@ -469,7 +470,7 @@ void AsyncTaskCall::callResume() {
         auto lastStack = lastEmergencyStop();
         LOG(INFO) << "AsyncTaskCall : 继续 lastStack : " << lastStack << " ...";
 
-        if (lastStack.flow == event::flow::flowing_water_production && plannerQueue.empty()) {
+        if (isPlannerEmpty(lastStack.flow)) {
             LOG(INFO) << "AsyncTaskCall : 流水点的最后，点位规划队列为空，需要直接返回基站 ...";
             callBackBasePoint();
         } else {

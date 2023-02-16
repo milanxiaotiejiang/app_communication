@@ -55,6 +55,8 @@ protected:
 
     bool isRechargeFLow(event::flow flow);
 
+    bool isPlannerEmpty(event::flow flow);
+
     void recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint);
 
     bool recoverableEmergencyStop();

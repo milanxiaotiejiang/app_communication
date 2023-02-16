@@ -30,6 +30,8 @@ class MapAttribute {
 private:
     bool initialize_finish = false;
 
+    bool creating_map = false;
+
     geometry_msgs::Pose map_origin_pose;
     cv::Point2d map_origin;
 
@@ -68,6 +70,10 @@ public:
     bool isInitializeFinish() const {
         return initialize_finish;
     }
+
+    bool isCreatingMap() const;
+
+    void setCreatingMap(bool creatingMap);
 
     const geometry_msgs::Pose &getMapOriginPose() const {
         return map_origin_pose;

@@ -151,3 +151,11 @@ cv::Point MapAttribute::rosPoint2MapPoint(const cv::Mat &room_map, const Point &
     position.y = y / map_resolution_from_subscription;
     return position;
 }
+
+bool MapAttribute::isCreatingMap() const {
+    return creating_map;
+}
+
+void MapAttribute::setCreatingMap(bool creatingMap) {
+    creating_map = creatingMap;
+}
