@@ -53,6 +53,8 @@ protected:
 
     bool isManualTask(const std::string &launchPeople);
 
+    bool isRechargeFLow(event::flow flow);
+
     void recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint);
 
     bool recoverableEmergencyStop();

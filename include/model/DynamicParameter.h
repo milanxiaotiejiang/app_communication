@@ -27,10 +27,10 @@ public:
 
     bool setParameter(const T param) {
         if (setParameterFunction(param)) {
-            LOG(INFO) << "param " << nh_.getNamespace() << "/" << param_name_ << " is set to" << param << std::endl;
+//            LOG(INFO) << "param " << nh_.getNamespace() << "/" << param_name_ << " is set to " << param << std::endl;
             return true;
         } else {
-            LOG(ERROR) << "param " << nh_.getNamespace() << "/" << param_name_ << " set failed" << param << std::endl;
+            LOG(ERROR) << "param " << nh_.getNamespace() << "/" << param_name_ << " set failed " << param << std::endl;
             return false;
         }
     }

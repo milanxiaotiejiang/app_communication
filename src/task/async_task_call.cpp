@@ -432,6 +432,12 @@ void AsyncTaskCall::callUrgencyStop() {
             LOG(INFO) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
             LOG(INFO) << "AsyncTaskCall : event_flow : " << event_flow << "   " << recoverableEmergencyStop();
             setEpollManual(loop::manual_epoll::manual_pause);
+            if (isRechargeFLow(event_flow)) {
+                LOG(INFO) << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
+                //todo
+                rechargeRetryCount = 0;
+                recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
+            }
             callPause();
         }
     }
@@ -442,6 +448,7 @@ void AsyncTaskCall::callReleaseStop() {
         if (isPause()) {
             if (recoverableSuspend()) {
                 LOG(INFO) << "AsyncTaskCall : 急停可恢复暂停状态 ... ";
+                LOG(INFO) << "AsyncTaskCall : 下位机断电，需要再次触发清洁机构，会导致“回充——急停——解除“后再次下方清洁机构 ... ";
                 MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
             }
         }

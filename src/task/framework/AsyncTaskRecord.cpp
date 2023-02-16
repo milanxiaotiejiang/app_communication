@@ -72,6 +72,10 @@ bool AsyncTaskRecord::isManualTask(const std::string &launchPeople) {
     return false;
 }
 
+bool AsyncTaskRecord::isRechargeFLow(event::flow flow) {
+    return flow == event::flow::flowing_water_execution_completed;
+}
+
 void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint) {
     TaskStack stack(event_flow, realPoint);
     stopStack.push_back(stack);
@@ -104,8 +108,8 @@ TaskStack AsyncTaskRecord::lastEmergencyStop() {
 void AsyncTaskRecord::makeSurePause(event::flow flow) {
     if (isContinueWork(flow, true) && !recoverableSuspend()) {
         LOG(ERROR) << "AsyncTaskRecord : 不一定非在此处逻辑判断 "
-                  << " lastEmergencyStop().flow : " << lastEmergencyStop().flow
-                  << " flow : " << flow;
+                   << " lastEmergencyStop().flow : " << lastEmergencyStop().flow
+                   << " flow : " << flow;
     }
 }
 
