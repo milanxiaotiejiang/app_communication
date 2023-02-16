@@ -98,6 +98,8 @@ protected:
 
     void callBackStation();
 
+    void callCancelBackStation();
+
     void callSwitchWorkMode(function<void(bool work)> f);
 
     void callOpenMechanism(const WorkStatus &status, function<void()> f);

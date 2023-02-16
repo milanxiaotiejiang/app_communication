@@ -14,6 +14,8 @@ const int FLAG_OUT_STATION = 2;
 const int FLAG_RESULT_FAIL = 0;
 const int FLAG_RESULT_SUCCESS = 1;
 
+const int FLAG_CANCEL_IN_STATION = 10;
+
 void StationManager::initialize(ros::NodeHandle handle) {
     pub_flag_in = handle.advertise<std_msgs::Int32>("/flag_in", 10);
     pub_flag_out = handle.advertise<std_msgs::Int32>("/flag_out", 10);
@@ -47,6 +49,12 @@ void StationManager::backStation() {
             }
         });
     }
+}
+
+void StationManager::cancelBackStation() {
+    std_msgs::Int32 flag;
+    flag.data = FLAG_CANCEL_IN_STATION;
+    pub_flag_in.publish(flag);
 }
 
 void StationManager::stationInResult(int flag) {

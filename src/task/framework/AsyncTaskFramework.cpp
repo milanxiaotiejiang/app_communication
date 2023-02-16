@@ -208,6 +208,10 @@ void AsyncTaskFramework::callBackStation() {
     StationManager::instance().backStation();
 }
 
+void AsyncTaskFramework::callCancelBackStation() {
+    StationManager::instance().cancelBackStation();
+}
+
 void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
     if (!Environment::instance().isRealEnvironment) {
         NodeWorkModeManager::instance().setWorkMode(0);

@@ -30,6 +30,8 @@ public:
 
     void backStation();
 
+    void cancelBackStation();
+
     void stationInResult(int flag);
 };
 

@@ -434,7 +434,7 @@ void AsyncTaskCall::callUrgencyStop() {
             setEpollManual(loop::manual_epoll::manual_pause);
             if (isRechargeFLow(event_flow)) {
                 LOG(INFO) << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
-                //todo
+                callCancelBackStation();
                 rechargeRetryCount = 0;
                 recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
             }
