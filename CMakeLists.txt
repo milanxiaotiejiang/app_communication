@@ -138,7 +138,10 @@ install(DIRECTORY include/
         )
 
 
-set(other_dir params)#params package.xml
+set(other_dir
+        params
+        scripts
+        )
 
 
 foreach (_dir ${other_dir})
