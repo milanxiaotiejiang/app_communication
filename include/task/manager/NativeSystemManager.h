@@ -31,6 +31,8 @@ public:
 
     void motorErrorEvent(int error_event);
 
+    void hlsErrorEvent(int error_event);
+
     void laserErrorEvent(const std::string& error_event);
 };
 

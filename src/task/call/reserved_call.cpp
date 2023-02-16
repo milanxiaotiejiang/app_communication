@@ -219,6 +219,10 @@ void ReservedCall::recordMotorError() {
     InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_SCCEED);
 }
 
+void ReservedCall::recordHlsError() {
+    InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR);
+}
+
 void ReservedCall::recordLaserError(std::string error_event) {
     if (error_event == "laser_scan_4014") {
         InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_START);

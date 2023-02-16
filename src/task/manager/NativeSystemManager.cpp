@@ -28,7 +28,13 @@ void NativeSystemManager::motorErrorEvent(int error_event) {
     }
 }
 
-void NativeSystemManager::laserErrorEvent(const std::string& error_event) {
+void NativeSystemManager::hlsErrorEvent(int error_event) {
+    if (error_event == 1) {
+        asyncTaskCall->recordHlsError();
+    }
+}
+
+void NativeSystemManager::laserErrorEvent(const std::string &error_event) {
     if (error_event == "laser_scan_4016") {
         asyncTaskCall->executeUnrecoverableError();
     } else {
