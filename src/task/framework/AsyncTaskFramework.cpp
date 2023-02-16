@@ -69,13 +69,13 @@ void AsyncTaskFramework::execute() {
     }
 }
 
-void AsyncTaskFramework::notify_one(const function<void()> &triggerProcess) {
-    {
-        std::unique_lock<std::mutex> lock(cv_mut);
-        triggerProcess();
-    }
-    cv.notify_one();
-}
+//void AsyncTaskFramework::notify_one(const function<void()> &triggerProcess) {
+//    {
+//        std::unique_lock<std::mutex> lock(cv_mut);
+//        triggerProcess();
+//    }
+//    cv.notify_one();
+//}
 
 loop::execute_handle AsyncTaskFramework::function_manual_epoll() {
     switch (manualEpollDeque.back()) {
@@ -208,7 +208,7 @@ void AsyncTaskFramework::callBackStation() {
     StationManager::instance().backStation();
 }
 
-void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> workingMode) {
+void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
     if (!Environment::instance().isRealEnvironment) {
         NodeWorkModeManager::instance().setWorkMode(0);
     }
@@ -218,7 +218,7 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> work
 
         async::ThreadPool pool_;
         pool_.setNumOfThreads(1);
-        pool_.execute([this, &workingMode]() {
+        pool_.execute([this, &f]() {
             while (!isWorkMode() && !sleepTimeout) {
                 sleep(1);
             }
@@ -226,8 +226,8 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> work
                 async::TimerCall::instance().baseLoop()->cancelAny();
             }
             LOG(INFO) << "AsyncTaskFramework : 工作模式启动状态 " << NodeWorkModeManager::instance().getWorkMode() << " ...";
-            notify_one([this, &workingMode]() {
-                workingMode(isWorkMode());
+            notify_one([this, &f]() {
+                f(isWorkMode());
             });
         });
         async::TimerCall::instance().baseLoop()
@@ -236,59 +236,53 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> work
                 });
         if (!Environment::instance().isRealEnvironment) {
             async::TimerCall::instance().baseLoop()
-                    ->scheduleLater(std::chrono::seconds(2), [this]() {
+                    ->scheduleLater(std::chrono::seconds(2), []() {
                         NodeWorkModeManager::instance().setWorkMode(2);
                     });
         }
     } else {
         LOG(INFO) << "AsyncTaskFramework : 是工作状态 ...";
-        notify_one([&workingMode]() {
-            workingMode(true);
+        notify_one([&f]() {
+            f(true);
         });
     }
 }
 
-void AsyncTaskFramework::callOpenMechanism(const WorkStatus &status, const function<void()> openMechanism) {
+void AsyncTaskFramework::callOpenMechanism(const WorkStatus &status, std::function<void()> f) {
     LOG(INFO) << "AsyncTaskFramework : 准备打开相应的清洁机构 " << status << " ...";
     MechanismManager::instance().controlWorkStatus(status);
+    auto fun = std::move(f);
     if (!Environment::instance().isRealEnvironment) {
-        async::TimerCall::instance().baseLoop()->scheduleLater(
-                std::chrono::seconds(1), [this, &openMechanism]() {
-                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
-                    notify_one([openMechanism]() {
-                        openMechanism();
-                    });
-                });
+        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this, &fun]() {
+            LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
+            LOG(INFO) << "thread " << pthread_self();
+            notify_one(fun);
+        });
     } else {
         async::TimerCall::instance().baseLoop()->scheduleLater(
-                std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this, &openMechanism]() {
+                std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this, &fun]() {
                     LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
-                    notify_one([openMechanism]() {
-                        openMechanism();
-                    });
+                    notify_one(fun);
                 });
     }
 }
 
-void AsyncTaskFramework::callCloseMechanism(const function<void()> resetMechanism) {
+void AsyncTaskFramework::callCloseMechanism(std::function<void()> f) {
     LOG(INFO) << "AsyncTaskFramework : 准备关闭相应的清洁机构 ...";
     //这个函数里面关闭所有清洁机构
     MechanismManager::instance().resetWorkStatus();
+    auto fun = std::move(f);
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::seconds(1), [this, &resetMechanism]() {
+                ->scheduleLater(std::chrono::seconds(1), [this, &fun]() {
                     LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
-                    notify_one([resetMechanism]() {
-                        resetMechanism();
-                    });
+                    notify_one(fun);
                 });
     } else {
         async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this, &resetMechanism]() {
+                ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this, &fun]() {
                     LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
-                    notify_one([resetMechanism]() {
-                        resetMechanism();
-                    });
+                    notify_one(fun);
                 });
     }
 }

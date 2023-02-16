@@ -9,10 +9,15 @@
 #include <actionlib/client/simple_action_client.h>
 #include "move_base_msgs/MoveBaseAction.h"
 #include "model/Station.h"
+#include "model/DynamicParameter.h"
 
 class PointPlanner {
 private:
     bool initialize_finish = false;
+
+    ros::NodeHandle handle;
+    Parameter<double> xyGoalTolerance = Parameter<double>("/move_base/DWAPlannerROS", "xy_goal_tolerance");
+    Parameter<double> yawGoalTolerance = Parameter<double>("/move_base/DWAPlannerROS", "yaw_goal_tolerance");
 
     actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> *move_base;
 
@@ -31,9 +36,11 @@ public:
         return obj;
     }
 
-    void initialize();
+    void initialize(ros::NodeHandle handle);
 
     void gotoPlannerPoint(const RealPoint &realPoint);
+
+    void gotoPlannerFirstPoint(const RealPoint &realPoint);
 
     void cancelGoal();
 

@@ -62,7 +62,21 @@ protected:
 
     virtual void handlePoint(const RealPoint &point) = 0;
 
-    void notify_one(const std::function<void()> &triggerProcess);
+//    void notify_one(const std::function<void()> &triggerProcess);
+
+    /**
+     * https://zhuanlan.zhihu.com/p/384316039
+     * 左值可以简单理解为可以放在等号左边或者可以取址的表达式的值类别，除了左值剩下的就是右值，一般多为临时变量。
+     * 对于类型为T的左值引用使用T &表示，右值引用使用T &&表示。
+     */
+    template<typename F, typename... Args>
+    void notify_one(F &&f, Args &&... args) {
+        {
+            std::unique_lock<std::mutex> lock(cv_mut);
+            std::forward<F>(f)(std::forward<Args>(args)...);
+        }
+        cv.notify_one();
+    }
 
     loop::execute_handle function_manual_epoll();
 
@@ -84,11 +98,11 @@ protected:
 
     void callBackStation();
 
-    void callSwitchWorkMode(function<void(bool work)> workingMode);
+    void callSwitchWorkMode(function<void(bool work)> f);
 
-    void callOpenMechanism(const WorkStatus &status, function<void()> openMechanism);
+    void callOpenMechanism(const WorkStatus &status, function<void()> f);
 
-    void callCloseMechanism(function<void()> resetMechanism);
+    void callCloseMechanism(function<void()> f);
 
     void callBackBasePoint();
 

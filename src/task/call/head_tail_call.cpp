@@ -169,7 +169,7 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
 }
 
 void HeadTailPointCall::callGoFirstPoint(RealPoint point) {
-    PointPlanner::instance().gotoPlannerPoint(point);
+    PointPlanner::instance().gotoPlannerFirstPoint(point);
     async::TimerCall::instance().baseLoop()
             ->scheduleLater(std::chrono::seconds(point.realError.timeout), [this, &point]() {
                 auto currentPoint = findFrontPoint();

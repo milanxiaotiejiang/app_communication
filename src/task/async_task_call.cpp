@@ -11,7 +11,6 @@
 #include "simulation.h"
 #include "task/model/PointProgressVo.h"
 #include "task/manager/PointProgressPublish.h"
-#include "task/manager/SwitchModePublish.h"
 #include "task/manager/MechanismManager.h"
 
 /*

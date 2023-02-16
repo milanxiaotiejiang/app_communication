@@ -99,7 +99,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
 
     PointProgressPublish::instance().initialize(handle);
 
-    PointPlanner::instance().initialize();
+    PointPlanner::instance().initialize(handle);
     PointRoutine::instance().setAsyncTaskCall(asyncTaskCall);
 
     //任务分发类

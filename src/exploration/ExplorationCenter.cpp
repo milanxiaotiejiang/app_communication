@@ -23,6 +23,7 @@
 #include "simulation.h"
 
 static bool DISPLAY_TRAJECTORY = false;
+static bool DISPLAY_TRAJECTORY_EFFECT = false;
 
 void ExplorationCenter::initialize(ros::NodeHandle handle) {
     ros::Time::init();
@@ -58,14 +59,18 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 //                                     exploration_path, point_path);
 
     //3
-//    const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//    generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0),
-//                         exploration_path, point_path);
+    if (DISPLAY_TRAJECTORY_EFFECT) {
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0),
+//                             exploration_path, point_path);
+    }
 
     //4
-//    const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//    infinitelyNearBoundary(map, exploration_path, point_path);
-//
+    if (DISPLAY_TRAJECTORY_EFFECT) {
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        infinitelyNearBoundary(map, exploration_path, point_path);
+    }
+
 //    pathPublish(exploration_path);
 }
 
@@ -143,7 +148,7 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
 
-    if (DISPLAY_TRAJECTORY)
+    if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
         planning_pose_path_display(room_map, map_origin, pose_path, 1, "planning_pose_path_display");
 
 //    pose2CVPoint(room_map, point_path, pose_path, map_origin);
@@ -175,9 +180,11 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
 
     cv::Point robotPosition = MapAttribute::instance().getRobotPositionPoint(room_map);
-    if (ordain_start) {
-        robotPosition.x = start_position.x;
-        robotPosition.y = start_position.y;
+    if (!DISPLAY_TRAJECTORY_EFFECT) {
+        if (ordain_start) {
+            robotPosition.x = start_position.x;
+            robotPosition.y = start_position.y;
+        }
     }
 
 
@@ -299,8 +306,8 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
     optimizePathColumn(exploration_path);
 
-    if (DISPLAY_TRAJECTORY)
-        planning_pose_path_display(room_map, map_origin, exploration_path, 2, "planning_pose_path_display");
+    if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
+        planning_pose_path_display(room_map, map_origin, exploration_path, 1, "planning_pose_path_display");
 
     pose2CVPoint(room_map, point_path, exploration_path, map_origin);
     if (DISPLAY_TRAJECTORY)
