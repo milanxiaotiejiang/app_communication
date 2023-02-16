@@ -204,11 +204,12 @@ void AsyncTaskFramework::callOutBaseStation() {
 }
 
 void AsyncTaskFramework::callBackStation() {
-//    LOG(INFO) << "AsyncTaskFramework : 任务结束，准备返回基站充电啦 ...";
+    LOG(INFO) << "AsyncTaskFramework : 任务结束，准备返回基站充电啦 ...";
     StationManager::instance().backStation();
 }
 
 void AsyncTaskFramework::callCancelBackStation() {
+    LOG(INFO) << "AsyncTaskFramework : 取消回充动作 ...";
     StationManager::instance().cancelBackStation();
 }
 

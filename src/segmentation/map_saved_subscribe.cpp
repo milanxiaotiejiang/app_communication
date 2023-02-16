@@ -7,7 +7,7 @@
 #include "segmentation/SegmentationCenter.h"
 
 MapSavedSubscribe::MapSavedSubscribe(ros::NodeHandle handle) : handle(handle) {
-    sub_odom_ = handle.subscribe("/map_saved", 1, &MapSavedSubscribe::subscribeCallback, this);
+    sub_map_saved_ = handle.subscribe("/map_saved", 1, &MapSavedSubscribe::subscribeCallback, this);
 }
 
 void MapSavedSubscribe::subscribeCallback(const std_msgs::Int16 &msg) {
@@ -15,3 +15,5 @@ void MapSavedSubscribe::subscribeCallback(const std_msgs::Int16 &msg) {
     MapAttribute::instance().loadStation();
     MapAttribute::instance().setCreatingMap(false);
 }
+
+MapSavedSubscribe::~MapSavedSubscribe() = default;

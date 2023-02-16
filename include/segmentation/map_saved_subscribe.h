@@ -13,7 +13,7 @@ class MapSavedSubscribe {
 private:
     ros::NodeHandle handle;
 
-    ros::Subscriber sub_odom_;
+    ros::Subscriber sub_map_saved_;
 
     void subscribeCallback(const std_msgs::Int16 &msg);
 

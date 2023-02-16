@@ -8,6 +8,7 @@
 #include <ros/ros.h>
 #include "odom_subscribe.h"
 #include "segmentation/map_attribute.h"
+#include "segmentation/map_saved_subscribe.h"
 #include "lru_cache.h"
 #include "model/RoomVo.h"
 #include "segmentation/Room.h"
@@ -25,6 +26,7 @@ private:
     bool initialize_finish = false;
 
     OdomSubscribe *poseSubscribe;
+    MapSavedSubscribe *mapSavedSubscribe;
 
     cache::lru_cache<std::string, RoomCoverage> coverageCache = cache::lru_cache<std::string, RoomCoverage>(3);
 
