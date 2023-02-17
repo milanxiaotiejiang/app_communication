@@ -280,6 +280,8 @@ void AsyncTaskCall::goodGame() {
 
     setFlow(event::flow::waiting_for_task);
 
+    MechanismManager::instance().resetWorkStatus();
+
     reset();
 
     if (!waitTaskQueue.empty()) {
