@@ -142,8 +142,6 @@ void ReservedCall::handlePlannerPoint(const RealPoint &point) {
 }
 
 void ReservedCall::softwareInterruptTask(const RealPoint &point) {
-    InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::SOFTWARE_INTERRUPT);
-
     auto error_pair = generateErrorByRealPoint(point);
     CleanHistoryCenter::instance().errorComplete(
             std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair)
@@ -159,6 +157,7 @@ void ReservedCall::goodGame() {
 }
 
 void ReservedCall::garbage() {
+    InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::SOFTWARE_INTERRUPT);
     InternalEventPubManager::get_instance()->taskStop(runTask.getId());
     AsyncTaskCall::garbage();
 }
