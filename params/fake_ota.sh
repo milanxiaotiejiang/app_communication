@@ -13,6 +13,7 @@ echo "Upgrading local_costmap_params"
 rm /home/admin1/test_ws/install/share/robot_slam/params/costmap/local_costmap_params.yaml
 cp /home/admin1/AirCore/local_costmap_params.yaml /home/admin1/test_ws/install/share/robot_slam/params/costmap/
 echo "Upgrading tf"
+mkdir /home/admin1/test_ws/install/share/data_base/tf_params/
 cp /home/admin1/AirCore/camera_link1.yaml /home/admin1/test_ws/install/share/data_base/tf_params/
 cp /home/admin1/AirCore/camera_link2.yaml /home/admin1/test_ws/install/share/data_base/tf_params/
 version=$(rosparam get /ros_version)
