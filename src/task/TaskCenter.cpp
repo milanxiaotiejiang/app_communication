@@ -172,6 +172,13 @@ void TaskCenter::uninstall() {
 
 //executTask主要增加了一条历史记录
 void TaskCenter::executeTask(const Task &task) {
+    const std::string &launchPeople = task.getLaunchPeople();
+    if (launchPeople != "admin1") {
+        if (!asyncTaskCall->canIssuedTask(launchPeople)) {
+            throw app::exception(make_error_code(error::the_current_task_is_not_completed));
+        }
+    }
+
     //添加一条历史纪录
     clean_history_db::CleanHistoryCenter::instance().addCleanHistory(task);
     try {

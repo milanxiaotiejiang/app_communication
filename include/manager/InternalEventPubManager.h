@@ -71,7 +71,7 @@ namespace internal_event {
         const AlarmEvent motor_error_recovery_failed = AlarmEvent("alarm", 3218, "CCR_218", "尘推堵转，任务提前结束", "");
 
         //底盘电机失能
-        const AlarmEvent hls_error = AlarmEvent("alarm", 4014, "COR_414", "底盘电机失能", "");
+        const AlarmEvent hls_error = AlarmEvent("alarm", 4016, "COR_416", "底盘电机失能", "");
 
     public:
         static InternalEventPubManager *instance_;
