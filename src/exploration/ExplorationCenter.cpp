@@ -61,15 +61,15 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//        generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0),
-//                             exploration_path, point_path);
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0),
+                             exploration_path, point_path);
     }
 
     //4
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        infinitelyNearBoundary(map, exploration_path, point_path);
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        infinitelyNearBoundary(map, exploration_path, point_path);
     }
 
 //    pathPublish(exploration_path);

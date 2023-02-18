@@ -197,5 +197,5 @@ bool HeadTailPointCall::canIssuedTask(const std::string &launchPeople) {
 }
 
 bool HeadTailPointCall::taskRunning() {
-    return isWaitTask(currentFlow());
+    return !isWaitTask(currentFlow());
 }

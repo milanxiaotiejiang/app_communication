@@ -17,7 +17,7 @@ void ReservedCall::handleManualOperation() {
             CleanHistoryCenter::instance().manualBack();
             break;
         case loop::manual_epoll::manual_task_over: {
-            std::string error_string = "基站对接失败";
+            std::string error_string = "任务手动打断";
             int error_code = 3226;
             std::string error_code2 = "CCR_226";
             make_tuple(error_code, error_string, error_code2);
