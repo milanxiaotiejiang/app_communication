@@ -89,7 +89,7 @@ void execTask(TimerInfo &tsk) {
     tk->setRate(tsk.getRate());
     tk->setLaunchPeople("admin1");
     //任务运行中，不分配任务
-    if (!ManualManager::instance().taskRunning()) {
+    if (ManualManager::instance().taskRunning()) {
         LOG(INFO) << "当前有任务在执行，定时清扫被取消";
     } else {
         if (tk->getMode() == 6) {

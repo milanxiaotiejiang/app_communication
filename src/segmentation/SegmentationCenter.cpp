@@ -95,6 +95,17 @@ bool SegmentationCenter::lineThroughRoom(const cv::Mat &segmented_map, Room room
     return or_member_size > 0;
 }
 
+void SegmentationCenter::forceModifyMap(const cv::Point& start, const cv::Point& end, int fill) {
+    auto dbMap = SegmentationDataBase::instance().getDbMap();
+    std::string image_filename = dbMap.path + dbMap.name;//"sim_mymap.pgm";
+
+    cv::Mat unchanged = cv::imread(image_filename.c_str(), cv::ImreadModes::IMREAD_UNCHANGED);
+
+    cv::rectangle(unchanged, start, end, cv::Scalar(fill), CV_FILLED);
+
+    cv::imwrite(image_filename, unchanged);
+}
+
 void SegmentationCenter::initialize() {
     ros::Time::init();
     // 1.加载需要的地图的信息（仅地图信息）
@@ -547,3 +558,10 @@ MapRoomVo SegmentationCenter::toVoRoom(cv::Mat &segmented_map, std::vector<Room>
     return MapRoomVo(segmented_map.cols, segmented_map.rows, roomVos);
 }
 
+void SegmentationCenter::addObstacles() {
+//    forceModifyMap(128)
+}
+
+void SegmentationCenter::addFeasibleZone() {
+//    forceModifyMap(255)
+}
