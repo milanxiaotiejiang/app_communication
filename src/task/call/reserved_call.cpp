@@ -16,8 +16,14 @@ void ReservedCall::handleManualOperation() {
             InternalEventPubManager::get_instance()->pubOper(MANUAL_BACK_TO_BASE);
             CleanHistoryCenter::instance().manualBack();
             break;
-        case loop::manual_epoll::manual_task_over:
+        case loop::manual_epoll::manual_task_over: {
+            std::string error_string = "基站对接失败";
+            int error_code = 3226;
+            std::string error_code2 = "CCR_226";
+            make_tuple(error_code, error_string, error_code2);
+            CleanHistoryCenter::instance().successComplete(error_code, error_string, error_code2);
             break;
+        }
         default:
             break;
     }

@@ -528,6 +528,27 @@ namespace clean_history_db {
         current_history_ = default_history;
         return true;
     }
+    bool CleanHistoryCenter::successComplete(int error_code, std::string error_string, std::string error_code2) {
+        std::unique_lock<std::mutex> lock(history_update_mutex_);
+        if (current_history_.task_id_.empty()) {
+            return false;
+        }
+        long end_time;
+        time_t timep;
+        time(&timep);
+        end_time = timep * 1000;//毫秒
+        current_history_.end_time_ = end_time;
+        current_history_.history_state_ = history_state::executing;
+        current_history_.error_code_ = error_code;
+        current_history_.error_msg_ = error_string;
+        current_history_.error_code2_ = error_code2;
+
+        CleanHistoryDataBase::instance().updateHistory(current_history_);
+
+        CleanHistory default_history;
+        current_history_ = default_history;
+        return true;
+    }
 
     bool CleanHistoryCenter::laserInterrupt() {
         std::unique_lock<std::mutex> lock(history_update_mutex_);

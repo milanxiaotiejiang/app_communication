@@ -126,6 +126,7 @@ struct BoustrophedonCell {
 class BoustrophedonExplorer {
 protected:
     AStarPlanner path_planner_;
+    bool isShow;
 
     static const uchar BORDER_PIXEL_VALUE = 25;
 
