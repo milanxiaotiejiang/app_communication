@@ -41,7 +41,7 @@ void StationManager::backStation() {
     flag.data = FLAG_IN_STATION;
     pub_flag_in.publish(flag);
     if (!Environment::instance().isRealEnvironment) {
-        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(10), []() {
+        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(3), []() {
             if (!Environment::instance().will()) {
                 StationManager::instance().stationInResult(FLAG_RESULT_SUCCESS);
             } else {

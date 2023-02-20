@@ -413,9 +413,8 @@ void AsyncTaskCall::callPointComplete(const std::function<void()> &f) {
 
 
 void AsyncTaskCall::callManualCleanStart() {
-    cancelTask([this]() {
-        goodGame();
-    });
+    cancelTask();
+    goodGame();
     //电机失能
     MechanismManager::instance().enterManualControl();
 }
@@ -460,9 +459,8 @@ void AsyncTaskCall::callReleaseStop() {
 
 void AsyncTaskCall::callRecoveryStop() {
     setEpollManual(loop::manual_epoll::manual_normal);
-    cancelTask([this]() {
-        goodGame();
-    });
+    cancelTask();
+    goodGame();
 }
 
 void AsyncTaskCall::callResume() {
@@ -511,12 +509,11 @@ void AsyncTaskCall::cancelTaskAndBack() {
     }
 }
 
-void AsyncTaskCall::cancelTask(const function<void()> &f) {
+void AsyncTaskCall::cancelTask() {
     if (isRegularTask(event_flow)) {
         PointPlanner::instance().cancelGoal();
         async::TimerCall::instance().baseLoop()->cancelAny();
         waitTaskQueue.clear();
-        f();
     }
 }
 

@@ -160,9 +160,8 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
             break;
         }
         case event::flow::software_interrupt_task: {
-            cancelTask([this, &point]() {
-                softwareInterruptTask(point);
-            });
+            cancelTask();
+            softwareInterruptTask(point);
             break;
         }
     }

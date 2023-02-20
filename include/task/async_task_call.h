@@ -103,7 +103,7 @@ protected:
 
     void cancelTaskAndBack();
 
-    void cancelTask(const std::function<void()> &f);
+    void cancelTask();
 
     void triggerSuspend();
 
