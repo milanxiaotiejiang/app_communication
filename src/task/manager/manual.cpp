@@ -43,6 +43,10 @@ void ManualManager::reboot() {
     PublishInnerManager::instance().getPubInner()->publishReboot(msg);
 }
 
+bool ManualManager::taskRunning() {
+    return asyncTaskCall->taskRunning();
+}
+
 std::string ManualManager::runTaskId() {
     return asyncTaskCall->runTaskId();
 }

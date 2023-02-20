@@ -168,6 +168,8 @@ void initLog(char *const *argv) {
  */
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, void *context, bool succeeded) {
     std::string crash_file_path = descriptor.path();
+    unsigned long start = crash_file_path.find("app_dump/") + 9;
+    auto crash_file = crash_file_path.substr(start);
     LOG(ERROR) << sys_gettid() << " " << "Dump path : " << crash_file_path << " " << succeeded;
 
     std::string real_program_installation_dir = "$HOME/AirCore/app/install/lib/app_communication/";
@@ -182,8 +184,7 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
                                                                                      :
                                            "$HOME/app_ws/devel/lib/app_communication/";
 
-    unsigned long start = crash_file_path.find("app_dump/") + 9;
-    auto crash_file = crash_file_path.substr(start);
+
     auto CMD = instruct + " " + program_installation_dir + " " + crash_file;
     LOG(INFO) << "CMD : " << CMD;
     std::system(CMD.c_str());

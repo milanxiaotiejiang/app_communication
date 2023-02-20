@@ -310,6 +310,17 @@ int switch_ID(const std::string str) {
     if (str == "quit_manual_mode") {
         return QUIT_MANUAL_MODE;
     }
+
+    if (str == "emergency_stop") {
+        return EMERGENCY_STOP;
+    }
+    if (str == "release_emergency_stop") {
+        return RELEASE_EMERGENCY_STOP;
+    }
+    if (str == "unrecoverable_error") {
+        return UNRECOVERABLE_ERROR;
+    }
+
     if (str == "shutdown") {
         return SHUTDOWN;
     }

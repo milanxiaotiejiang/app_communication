@@ -91,13 +91,19 @@ namespace error {
         not_paused_status,
         the_current_state_is_uncontrollable,
         machine_is_in_emergency_stop_command_not_supported,
+        machine_is_in_manual_mode_command_not_supported,
+        operation_failure_please_restart_the_machine,
         the_current_task_is_not_completed,
         not_supported_temporarily,
         already_in_manual_clean_mode,
         not_in_manual_clean_mode,
+        manual_in_the_base_station,
         current_in_manual_clean_mode,
         clean_water_level_check_failed,
-        dirty_water_level_check_failed
+        dirty_water_level_check_failed,
+        operation_is_not_allowed_in_the_station,
+        operation_not_allowed_in_outbound,
+        in_creating_map,
     };// enum value
 
     class category : public std::error_category {
@@ -255,9 +261,13 @@ namespace error {
                 case error::the_current_state_is_uncontrollable:
                     return "当前状态不可控制";
                 case error::machine_is_in_emergency_stop_command_not_supported:
-                    return "机器处于急停状态，不支持本次指令";
+                    return "急停状态，不支持本次指令";
+                case error::machine_is_in_manual_mode_command_not_supported:
+                    return "手动模式，不支持本次指令";
+                case error::operation_failure_please_restart_the_machine:
+                    return "运行故障，请重启机器";
                 case error::the_current_task_is_not_completed:
-                    return "当前任务未执行完成";
+                    return "暂不支持任务下发";
                 case error::not_supported_temporarily:
                     return "暂不支持";
                 case error::fullclean_brief_get_fail:
@@ -266,12 +276,20 @@ namespace error {
                     return "已经在手动模式中";
                 case error::not_in_manual_clean_mode:
                     return "当前不在手动模式中";
+                case error::manual_in_the_base_station:
+                    return "请推回基站关闭手动模式";
                 case error::current_in_manual_clean_mode:
                     return "手动模式中，任务无法启动";
                 case error::clean_water_level_check_failed:
                     return "清水箱空，任务无法启动";
                 case error::dirty_water_level_check_failed:
                     return "污水箱满，任务无法启动";
+                case error::operation_is_not_allowed_in_the_station:
+                    return "进站中不允许操作";
+                case error::operation_not_allowed_in_outbound:
+                    return "出站中不允许操作";
+                case error::in_creating_map:
+                    return "地图创建中";
                 default:
                     return "Unknown";
             }

@@ -9,7 +9,6 @@
 #include "task/subscribe/zoo_inner_status.h"
 #include "task/manager/NodeWorkModeManager.h"
 #include "task/manager/StationManager.h"
-#include "task/call/timely_call.h"
 #include "task/call/head_tail_call.h"
 #include "simulation.h"
 #include "task/manager/PointProgressPublish.h"
@@ -48,14 +47,20 @@ void TaskCenter::realExecuteTask(const Task &task) {
     SwitchModePublish::instance().cancel();
 
     LOG(INFO) << "TASK ID : " << task.getTaskId();
+    if (AsyncMachine::instance().getError() == loop::error_epoll::error_unrecoverable) {
+        throw app::exception(make_error_code(error::operation_failure_please_restart_the_machine));
+    }
+
     //如果是急停按钮推下的状态中，那么直接报错且不执行任务
     auto isUrgencyStopStatus = ZooInnerStatus::instance().getUrgencyStopStatus();
     if (isUrgencyStopStatus) {
         throw app::exception(make_error_code(error::machine_is_in_emergency_stop));
-    }//如果当前电量少于10%，那么报错且不执行任务
-    auto RSOC = ZooInnerStatus::instance().getRsoc();
-    if (RSOC < LOW_RSOC) {
-        throw app::exception(make_error_code(error::dispatcher_task_low_rsoc));
+    }
+
+    //当前在手动模式中
+    if (AsyncMachine::instance().getError() == loop::error_epoll::error_manual_clean_start
+        || AsyncMachine::instance().getError() == loop::error_epoll::error_manual_clean_end) {
+        throw app::exception(make_error_code(error::current_in_manual_clean_mode));
     }
 
     //建图模式下，不能够分发任务
@@ -66,15 +71,18 @@ void TaskCenter::realExecuteTask(const Task &task) {
         }
     }
 
+    //如果当前电量少于10%，那么报错且不执行任务
+    auto RSOC = ZooInnerStatus::instance().getRsoc();
+    if (RSOC < LOW_RSOC) {
+        throw app::exception(make_error_code(error::dispatcher_task_low_rsoc));
+    }
+
     //没有传感器数据的情况下，不能够分发任务
     //todo /imu /scan /odom without any data reject
     //todo /knob
-    //当前在手动模式中
-    if (AsyncMachine::instance().getFlow() == event::flow::manual_cleaning) {
-        throw app::exception(make_error_code(error::current_in_manual_clean_mode));
-    }
-    //当前任务还未结束，不能下发新的任务
-    if (AsyncMachine::instance().getFlow() != event::flow::waiting_for_task) {
+
+    const std::string &launchPeople = task.getLaunchPeople();
+    if (!asyncTaskCall->canIssuedTask(launchPeople)) {
         throw app::exception(make_error_code(error::the_current_task_is_not_completed));
     }
 
@@ -87,15 +95,11 @@ void TaskCenter::realExecuteTask(const Task &task) {
 
 void TaskCenter::initialize(ros::NodeHandle handle) {
 
-    if (isTimely) {
-        asyncTaskCall = new TimelyPointCall();
-    } else {
-        asyncTaskCall = new HeadTailPointCall();
-    }
+    asyncTaskCall = new ReservedCall();
 
     PointProgressPublish::instance().initialize(handle);
 
-    PointPlanner::instance().initialize();
+    PointPlanner::instance().initialize(handle);
     PointRoutine::instance().setAsyncTaskCall(asyncTaskCall);
 
     //任务分发类
@@ -168,6 +172,13 @@ void TaskCenter::uninstall() {
 
 //executTask主要增加了一条历史记录
 void TaskCenter::executeTask(const Task &task) {
+    const std::string &launchPeople = task.getLaunchPeople();
+    if (launchPeople != "admin1") {
+        if (!asyncTaskCall->canIssuedTask(launchPeople)) {
+            throw app::exception(make_error_code(error::the_current_task_is_not_completed));
+        }
+    }
+
     //添加一条历史纪录
     clean_history_db::CleanHistoryCenter::instance().addCleanHistory(task);
     try {

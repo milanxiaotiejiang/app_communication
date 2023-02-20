@@ -30,6 +30,8 @@ class MapAttribute {
 private:
     bool initialize_finish = false;
 
+    bool creating_map = false;
+
     geometry_msgs::Pose map_origin_pose;
     cv::Point2d map_origin;
 
@@ -38,9 +40,9 @@ private:
     std::vector<std::vector<Point>> virtualWallList;
     std::vector<std::vector<Point>> penaltyZoneList;
 
-    const double robot_radius_ = 0.30;
+    const double robot_radius_ = 0.28;
     const int map_correction_closing_neighborhood_size_ = 1;
-    const double grid_obstacle_offset_ = 0.2;
+    const double grid_obstacle_offset_ = 0.1;
     const double path_eps_ = 1.0;
     const double min_cell_area_ = 100.0;
     const int max_deviation_from_track_ = -1;
@@ -68,6 +70,10 @@ public:
     bool isInitializeFinish() const {
         return initialize_finish;
     }
+
+    bool isCreatingMap() const;
+
+    void setCreatingMap(bool creatingMap);
 
     const geometry_msgs::Pose &getMapOriginPose() const {
         return map_origin_pose;

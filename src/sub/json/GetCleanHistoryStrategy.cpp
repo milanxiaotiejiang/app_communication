@@ -34,7 +34,12 @@ vector<CleanHistory> GetCleanHistoryStrategy::handler(string params) {
         int clean_time = item.clean_time_;
         int error_code = item.error_code_;
         std::string error_msg = item.error_msg_;
-        int task_type = item.launch_people_ == "admin1" ? 2 : 1;
+        int task_type = 2;
+        if (item.launch_people_ == "App") {
+            task_type = 3;
+        } else if (item.launch_people_ == "Pad") {
+            task_type = 1;
+        }
         CleanHistory clean_history_vo(is_complete, base_complete, launch_time, execute_time, end_time, task_mode,
                                       task_id, work_status, clean_area, clean_time, error_code, error_msg, task_type);
         result.push_back(clean_history_vo);
@@ -65,7 +70,12 @@ vector<CleanHistoryUpgrade> GetCloudCleanHistoryStrategy::handler(string params)
         int error_code = item.error_code_;
         std::string error_code2 = item.error_code2_;
         std::string error_msg = item.error_msg_;
-        int task_type = item.launch_people_ == "admin1" ? 2 : 1;
+        int task_type = 2;
+        if (item.launch_people_ == "App") {
+            task_type = 3;
+        } else if (item.launch_people_ == "Pad") {
+            task_type = 1;
+        }
         vector<char> oper_event_char = item.oper_event_;
         vector<int> oper_event_int;
         for (auto &item: oper_event_char) {

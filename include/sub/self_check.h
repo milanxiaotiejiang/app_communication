@@ -81,7 +81,7 @@ public:
     bool isValid() {
         ros::Time now = ros::Time::now();
         last_valid_ = valid_;
-        valid_ = (now - last_image_ < ros::Duration(5) && now - last_pointcloud_ < ros::Duration(5));
+        valid_ = (now - last_image_ < ros::Duration(10) && now - last_pointcloud_ < ros::Duration(10));
         if(needPublish()){
             setPublish();
         }
@@ -145,7 +145,7 @@ public:
 
     bool isValid() {
         last_valid_ = valid_;
-        valid_ = ros::Time::now() - last_laser_ < ros::Duration(5);
+        valid_ = ros::Time::now() - last_laser_ < ros::Duration(10);
         if (needPublish()) {
           setPublish();
         }
@@ -194,7 +194,7 @@ public:
 
     bool isValid() {
         last_valid_ = valid_;
-        valid_ = ros::Time::now() - last_imu_ < ros::Duration(5);
+        valid_ = ros::Time::now() - last_imu_ < ros::Duration(10);
         if (needPublish()) {
           setPublish();
         }
@@ -592,9 +592,9 @@ public:
             }
 
             if (temp_range < RANGE_THRESHOLD) {
-                std::cout << (ul_msg_2->header.stamp.toSec() -
-                              ul_sensor_trigger_time_2.toSec())
-                          << std::endl;
+//                std::cout << (ul_msg_2->header.stamp.toSec() -
+//                              ul_sensor_trigger_time_2.toSec())
+//                          << std::endl;
                 if ((ul_msg_2->header.stamp.toSec() -
                      ul_sensor_trigger_time_2.toSec()) > 30.0) {
                     // ul_sensor_2_error

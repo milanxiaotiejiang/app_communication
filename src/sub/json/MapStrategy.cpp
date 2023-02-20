@@ -7,14 +7,15 @@
 #include "segmentation/map_attribute.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
+
+    MapAttribute::instance().setCreatingMap(true);
+
     std_msgs::String map_save;
     map_save.data.append("save_map");
     for (int i = 0; i < 5; i++) {
         PublishInnerManager::instance().getPubInner()->publishCommand(map_save);
         ros::Duration(1).sleep();
     }
-
-    SegmentationCenter::instance().resetSegmentation();
 
     //回复，带参数，包括分配的id
     MapInfo param(1, params.getMapName());

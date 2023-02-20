@@ -23,11 +23,13 @@
 #include "simulation.h"
 
 static bool DISPLAY_TRAJECTORY = false;
+static bool DISPLAY_TRAJECTORY_EFFECT = false;
 
 void ExplorationCenter::initialize(ros::NodeHandle handle) {
     ros::Time::init();
 
     poseSubscribe = new OdomSubscribe(handle);
+    mapSavedSubscribe = new MapSavedSubscribe(handle);
 
     path_pub_ = handle.advertise<nav_msgs::Path>("exploration_coverage_path", 2);
 
@@ -58,19 +60,24 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 //                                     exploration_path, point_path);
 
     //3
-//    const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//    generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0),
-//                         exploration_path, point_path);
+    if (DISPLAY_TRAJECTORY_EFFECT) {
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0),
+                             exploration_path, point_path);
+    }
 
     //4
-//    const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//    infinitelyNearBoundary(map, exploration_path, point_path);
-//
+    if (DISPLAY_TRAJECTORY_EFFECT) {
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        infinitelyNearBoundary(map, exploration_path, point_path);
+    }
+
 //    pathPublish(exploration_path);
 }
 
 void ExplorationCenter::uninstall() {
     delete poseSubscribe;
+    delete mapSavedSubscribe;
 }
 
 void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
@@ -78,6 +85,9 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
                                                std::vector<cv::Point> &point_path) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
 
     cv::Mat original_map = room_map.clone();
@@ -143,7 +153,7 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
 
-    if (DISPLAY_TRAJECTORY)
+    if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
         planning_pose_path_display(room_map, map_origin, pose_path, 1, "planning_pose_path_display");
 
 //    pose2CVPoint(room_map, point_path, pose_path, map_origin);
@@ -175,9 +185,11 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
 
     cv::Point robotPosition = MapAttribute::instance().getRobotPositionPoint(room_map);
-    if (ordain_start) {
-        robotPosition.x = start_position.x;
-        robotPosition.y = start_position.y;
+    if (!DISPLAY_TRAJECTORY_EFFECT) {
+        if (ordain_start) {
+            robotPosition.x = start_position.x;
+            robotPosition.y = start_position.y;
+        }
     }
 
 
@@ -255,6 +267,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     }
 
     drawBaseStation(map, stationPoint, grid_spacing_in_pixel + plan.range_near_base_station);
+    findBaseNearReachable(map, robotPosition, (int) (grid_spacing_in_pixel * 2 + plan.range_near_base_station));
 
     cv::Mat latelyMap;
     if (model == ExplorationModel::FULL) {
@@ -298,8 +311,8 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
     optimizePathColumn(exploration_path);
 
-    if (DISPLAY_TRAJECTORY)
-        planning_pose_path_display(room_map, map_origin, exploration_path, 2, "planning_pose_path_display");
+    if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
+        planning_pose_path_display(room_map, map_origin, exploration_path, 1, "planning_pose_path_display");
 
     pose2CVPoint(room_map, point_path, exploration_path, map_origin);
     if (DISPLAY_TRAJECTORY)
@@ -660,4 +673,26 @@ bool ExplorationCenter::detectionTooSmallRoom(const cv::Mat &map, int iterations
         }
     }
     return count != 0;
+}
+
+cv::Point &ExplorationCenter::findBaseNearReachable(cv::Mat &map, cv::Point &reachablePoint, int range) {
+    int origin_x = reachablePoint.x;
+    int origin_y = reachablePoint.y;
+
+    if (map.at<unsigned char>(reachablePoint.y, reachablePoint.x) != 255) {
+        LOG(INFO) << "ExplorationCenter : Find available points near the base station";
+        for (int row = -range; row <= range; row++) {
+            if (map.at<unsigned char>(reachablePoint.y, reachablePoint.x) == 255)
+                break;
+            for (int col = -range; col <= range; col++) {
+                if (map.at<unsigned char>(origin_y + row, origin_x + col) == 255) {
+                    reachablePoint.x = origin_x + col;
+                    reachablePoint.y = origin_y + row;
+                    break;
+                }
+            }
+        }
+    } else {
+        LOG(INFO) << "InfinitelyNearBoundary : The location of the base station can ensure the arrival ...";
+    }
 }

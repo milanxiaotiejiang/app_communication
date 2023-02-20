@@ -6,18 +6,18 @@
 #define APP_COMMUNICATION_NATIVESYSTEMMANAGER_H
 
 
-#include "task/async_task_call.h"
+#include "task/call/reserved_call.h"
 
 class NativeSystemManager {
 private:
-    AsyncTaskCall *asyncTaskCall;
+    ReservedCall *asyncTaskCall;
 public:
     static auto &instance() {
         static NativeSystemManager obj;
         return obj;
     }
 
-    void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
+    void setAsyncTaskCall(ReservedCall *asyncTaskCall) {
         NativeSystemManager::asyncTaskCall = asyncTaskCall;
     }
 
@@ -25,13 +25,15 @@ public:
 
     void lowBatteryToBackBase();
 
-    void waterLevelToBackBase(int event);
+    void waterLevelToBackBase(loop::special_epoll operation);
 
     void urgencyStopAndCharge();
 
     void motorErrorEvent(int error_event);
 
-    void laserErrorEvent(std::string error_event);
+    void hlsErrorEvent(int error_event);
+
+    void laserErrorEvent(const std::string& error_event);
 };
 
 #endif //APP_COMMUNICATION_NATIVESYSTEMMANAGER_H

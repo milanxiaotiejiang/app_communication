@@ -32,7 +32,8 @@ void PointPlanner::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &fe
     PointRoutine::instance().pointFeedback(feedback->base_position);
 }
 
-void PointPlanner::initialize() {
+void PointPlanner::initialize(ros::NodeHandle handle) {
+    PointPlanner::handle = handle;
     LOG(INFO) << "PointPlanner initialize ...";
     std::thread moveBaseThread([this]() {
         move_base = new actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>("move_base", true);
@@ -52,11 +53,19 @@ void PointPlanner::gotoPlannerPoint(const RealPoint &realPoint) {
     move_base->sendGoal(goal, &doneCd, &activeCd, &feedbackCb);
 }
 
+void PointPlanner::gotoPlannerFirstPoint(const RealPoint &realPoint) {
+    xyGoalTolerance.setParameter(0.15);
+    yawGoalTolerance.setParameter(0.15);
+    gotoPlannerPoint(realPoint);
+}
+
 void PointPlanner::cancelGoal() {
     move_base->cancelGoal();
 }
 
 void PointPlanner::backBasePoint() {
+    xyGoalTolerance.setParameter(0.1);
+    yawGoalTolerance.setParameter(0.1);
     move_base_msgs::MoveBaseGoal goal;
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();

@@ -8,10 +8,22 @@
 #include "task/async_task_call.h"
 
 class HeadTailPointCall : public AsyncTaskCall {
-public:
+private:
+    void callGoFirstPoint(RealPoint point);
+
+    void exchangeFrontPoint(const RealPoint &point);
+
+protected:
     void handleFlowPoint(const RealPoint &point) override;
 
     void processControl(const RealPoint &point) override;
+
+    virtual void softwareInterruptTask(const RealPoint &point) = 0;
+
+public:
+    bool canIssuedTask(const std::string &launchPeople);
+
+    bool taskRunning();
 };
 
 

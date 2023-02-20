@@ -174,6 +174,11 @@ public:
     void setRealError(const RealError &realError) {
         RealPoint::realError = realError;
     }
+
+    friend std::ostream &operator<<(std::ostream &os, const RealPoint &point) {
+        os << "id: " << point.id << " realProgress: " << point.realProgress;
+        return os;
+    }
 };
 
 #endif //APP_COMMUNICATION_REALPOINT_H

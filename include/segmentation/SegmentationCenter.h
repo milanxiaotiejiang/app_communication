@@ -21,6 +21,8 @@ private:
 
     bool lineThroughRoom(const cv::Mat &segmented_map, Room room, const cv::Point &ps, const cv::Point &pe) const;
 
+    void forceModifyMap(const cv::Point &start, const cv::Point &end, int fill);
+
 public:
     static auto &instance() {
         static SegmentationCenter obj;
@@ -84,6 +86,10 @@ public:
     bool checkPartition() const;
 
     MapRoomVo toVoRoom(cv::Mat &segmented_map, std::vector<Room> &rooms) const;
+
+    void addObstacles();
+
+    void addFeasibleZone();
 };
 
 

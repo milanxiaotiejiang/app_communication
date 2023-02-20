@@ -95,6 +95,17 @@ bool SegmentationCenter::lineThroughRoom(const cv::Mat &segmented_map, Room room
     return or_member_size > 0;
 }
 
+void SegmentationCenter::forceModifyMap(const cv::Point& start, const cv::Point& end, int fill) {
+    auto dbMap = SegmentationDataBase::instance().getDbMap();
+    std::string image_filename = dbMap.path + dbMap.name;//"sim_mymap.pgm";
+
+    cv::Mat unchanged = cv::imread(image_filename.c_str(), cv::ImreadModes::IMREAD_UNCHANGED);
+
+    cv::rectangle(unchanged, start, end, cv::Scalar(fill), CV_FILLED);
+
+    cv::imwrite(image_filename, unchanged);
+}
+
 void SegmentationCenter::initialize() {
     ros::Time::init();
     // 1.加载需要的地图的信息（仅地图信息）
@@ -155,6 +166,9 @@ void SegmentationCenter::originalSegmentation(cv::Mat &segmented_map, std::vecto
                                               const cv::Point &ps, const cv::Point &pe) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
     // 1.加载原始地图
     cv::Mat map = generateMat();
@@ -222,6 +236,9 @@ void SegmentationCenter::handSegmentation(cv::Mat &segmented_map, std::vector<Ro
                                           const cv::Point &ps, const cv::Point &pe) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
     if (target_index < 0 || target_index >= rooms.size()) {
         throw app::exception(make_error_code(error::room_array_out_of_bounds));
@@ -325,6 +342,9 @@ void SegmentationCenter::mergeRoom(cv::Mat &segmented_map, std::vector<Room> &ro
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
     if (target_index < 0 || target_index >= rooms.size() ||
         room_to_merge_index < 0 || room_to_merge_index >= rooms.size()) {
         throw app::exception(make_error_code(error::room_array_out_of_bounds));
@@ -393,12 +413,18 @@ void SegmentationCenter::memory2Storage(cv::Mat &segmented_map, std::vector<Room
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
     SegmentationDataBase::instance().memory2Storage(segmented_map, rooms);
 }
 
 void SegmentationCenter::storage2Memory(cv::Mat &segmented_map, std::vector<Room> &rooms) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
     SegmentationDataBase::instance().storage2Memory(segmented_map, rooms, map_resolution_from_subscription);
 
@@ -409,6 +435,9 @@ void SegmentationCenter::storage2Memory(cv::Mat &segmented_map, std::vector<Room
 void SegmentationCenter::automaticSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
 
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
@@ -529,3 +558,10 @@ MapRoomVo SegmentationCenter::toVoRoom(cv::Mat &segmented_map, std::vector<Room>
     return MapRoomVo(segmented_map.cols, segmented_map.rows, roomVos);
 }
 
+void SegmentationCenter::addObstacles() {
+//    forceModifyMap(128)
+}
+
+void SegmentationCenter::addFeasibleZone() {
+//    forceModifyMap(255)
+}

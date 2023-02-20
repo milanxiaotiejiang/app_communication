@@ -70,6 +70,9 @@ namespace internal_event {
         const AlarmEvent motor_error_recovery_scceed = AlarmEvent("alarm", 4013, "COR_413", "尘推转速异常并成功恢复", "");
         const AlarmEvent motor_error_recovery_failed = AlarmEvent("alarm", 3218, "CCR_218", "尘推堵转，任务提前结束", "");
 
+        //底盘电机失能
+        const AlarmEvent hls_error = AlarmEvent("alarm", 4016, "COR_416", "底盘电机失能", "");
+
     public:
         static InternalEventPubManager *instance_;
 
@@ -233,6 +236,9 @@ namespace internal_event {
                     break;
                 case LASER_RESTART_FAILED:
                     pubAlarmEvent(laser_restart_failed);
+                    break;
+                case HLS_ERROR:
+                    pubAlarmEvent(hls_error);
                     break;
             }
         }

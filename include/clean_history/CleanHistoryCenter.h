@@ -104,6 +104,8 @@ namespace clean_history_db {
         //错误完成历史
         bool errorComplete(int error_code, std::string error_string, std::string error_code2);
 
+        bool successComplete(int error_code, std::string error_string, std::string error_code2);
+
         std::tuple<int, std::string, std::string> generateErrorMessageFromLastFlow(int flow);
 
         //生成错误日志
