@@ -21,7 +21,7 @@ ZooRobotStatusSubscribe::ZooRobotStatusSubscribe(ros::NodeHandle handle)
     ZooInnerStatus::instance().setNeedSleep(true);
     sub_robot_status_ = handle.subscribe("/robot_status_inner", 1, &ZooRobotStatusSubscribe::subscribeCallback, this);
     sub_motor_error_ = handle.subscribe("/mrrobot/push_error", 10, &ZooRobotStatusSubscribe::motorErrorCallback, this);
-    sub_hls_error_ = handle.subscribe("/mrrobot/hls_error_", 10, &ZooRobotStatusSubscribe::hlsErrorCallback, this);
+    sub_hls_error_ = handle.subscribe("/mrrobot/hls_error", 10, &ZooRobotStatusSubscribe::hlsErrorCallback, this);
     sub_laser_error_ = handle.subscribe("/lidar/restart", 10, &ZooRobotStatusSubscribe::laserErrorCallback, this);
 }
 
