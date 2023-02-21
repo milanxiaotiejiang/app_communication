@@ -54,8 +54,8 @@ namespace internal_event {
         const AlarmEvent bump3_alarm_event = AlarmEvent("alarm", 4010, "COR_410", "碰撞3连续误触", "");
         const AlarmEvent bump4_alarm_event = AlarmEvent("alarm", 4011, "COR_411", "碰撞4连续误触", "");
         const AlarmEvent bms_alarm_event = AlarmEvent("alarm", 4012, "COR_412", "电量异常跳变", "");
-        const AlarmEvent tracked_pose_alarm_event = AlarmEvent("alarm", 6001, "COR_601", "定位丢失", "");
-        const AlarmEvent bias_detect_alarm_event = AlarmEvent("alarm", 6002, "COR_602", "位置跳变", "");
+        const AlarmEvent bias_detect_alarm_event = AlarmEvent("alarm", 6001, "COR_601", "定位丢失", "");
+        const AlarmEvent tracked_pose_alarm_event = AlarmEvent("alarm", 6002, "COR_602", "位置跳变", "");
 
         const AlarmEvent not_at_base_point = AlarmEvent("alarm", 5001, "COR_501", "开始回充不在摆渡点附近", "");
         const AlarmEvent out_station_error = AlarmEvent("alarm", 5010, "COR_502", "机器出站异常（发速度机器不动）", "");
@@ -166,9 +166,9 @@ namespace internal_event {
                 case BMS_HOP:
                     pubAlarmEvent(bms_alarm_event);
                     break;
-                case TRACKED_POSE_HOP:
-                    pubAlarmEvent(tracked_pose_alarm_event);
-                    break;
+                    // case TRACKED_POSE_HOP:
+                    //     pubAlarmEvent(tracked_pose_alarm_event);
+                    //     break;
                 case BIAS_DETECTED:
                     pubAlarmEvent(bias_detect_alarm_event);
                     break;
@@ -239,6 +239,8 @@ namespace internal_event {
                     break;
                 case HLS_ERROR:
                     pubAlarmEvent(hls_error);
+                    break;
+                default:
                     break;
             }
         }
