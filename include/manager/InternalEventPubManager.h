@@ -166,9 +166,9 @@ namespace internal_event {
                 case BMS_HOP:
                     pubAlarmEvent(bms_alarm_event);
                     break;
-                // case TRACKED_POSE_HOP:
-                //     pubAlarmEvent(tracked_pose_alarm_event);
-                //     break;
+                    // case TRACKED_POSE_HOP:
+                    //     pubAlarmEvent(tracked_pose_alarm_event);
+                    //     break;
                 case BIAS_DETECTED:
                     pubAlarmEvent(bias_detect_alarm_event);
                     break;
@@ -238,11 +238,11 @@ namespace internal_event {
                     pubAlarmEvent(laser_restart_failed);
                     break;
                 case HLS_ERROR:
-                  pubAlarmEvent(hls_error);
-                  break;
+                    pubAlarmEvent(hls_error);
+                    break;
                 default:
                     break;
-                }
+            }
         }
 
         void pubOperEvent(const OperEvent &event) {
