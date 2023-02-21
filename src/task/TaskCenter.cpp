@@ -172,8 +172,9 @@ void TaskCenter::uninstall() {
 
 //executTask主要增加了一条历史记录
 void TaskCenter::executeTask(const Task &task) {
+    //拦截手动下发的任务且前期出站后期进站
     const std::string &launchPeople = task.getLaunchPeople();
-    if (launchPeople != "admin1") {
+    if (launchPeople == "App" || launchPeople == "Pad") {
         if (!asyncTaskCall->canIssuedTask(launchPeople)) {
             throw app::exception(make_error_code(error::the_current_task_is_not_completed));
         }

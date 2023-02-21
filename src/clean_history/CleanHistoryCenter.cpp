@@ -538,7 +538,7 @@ namespace clean_history_db {
         time(&timep);
         end_time = timep * 1000;//毫秒
         current_history_.end_time_ = end_time;
-        current_history_.history_state_ = history_state::executing;
+        current_history_.history_state_ = history_state::done;
         current_history_.error_code_ = error_code;
         current_history_.error_msg_ = error_string;
         current_history_.error_code2_ = error_code2;
