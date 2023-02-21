@@ -85,6 +85,8 @@ include_directories(include ${OpenCV_INCLUDE_DIRS})
 include_directories(include ${PYTHON_INCLUDE_DIRS})
 include_directories(include /usr/local/include/breakpad)
 
+message("cmake_current_source_dir=${CMAKE_CURRENT_SOURCE_DIR}")
+
 file(GLOB HEADER_FILES_LEVEL_1 "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 file(GLOB SOURCE_FILES_LEVEL_1 "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
@@ -109,6 +111,10 @@ add_executable(rec_app_node
         ${TEST_FILES}
         )
 
+add_executable(dump_upload
+        dump/dump_upload.cpp
+        )
+
 
 target_link_libraries(rec_app_node
         yaml-cpp
@@ -122,12 +128,20 @@ target_link_libraries(rec_app_node
         ${BREAK_PAD_LIBRARIES}
         )
 
+target_link_libraries(dump_upload
+        ${catkin_LIBRARIES}
+        )
+
 
 install(PROGRAMS
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )
 
 install(TARGETS rec_app_node
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        )
+
+install(TARGETS dump_upload
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )
 

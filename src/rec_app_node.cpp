@@ -106,7 +106,6 @@ int main(int argc, char **argv) {
     sThd->detach();
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    unsigned int count = 0;
     ros::Rate loop(5); // 5Hz循环分频
     while (ros::ok()) {
         ros::spinOnce();
@@ -118,18 +117,22 @@ int main(int argc, char **argv) {
 }
 
 void judgeEnvironment() {
-    DIR *pAdmin = opendir("/home/admin1");
-    Environment::instance().isRealEnvironment = pAdmin != nullptr;
-    if (pAdmin != nullptr) {
-        closedir(pAdmin);
-    }
+    char *home = getenv("HOME");
+    Environment::instance().isRealEnvironment = (string(home) == "/home/admin1");
+}
+
+void SignalHandle(const char *data, int size) {
+    std::string str = std::string(data, size);
+    LOG(ERROR) << str;
 }
 
 void initLog(char *const *argv) {
     // sudo apt-get install libgoogle-glog-dev
-    std::string logDirStr = Environment::instance().isRealEnvironment ?
-                            "/home/admin1/app_log" : "/home/lijiang/app_log";
+    std::string logDirStr = string(getenv("HOME")) + "/app_log";
     mkdir(logDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+
+    std::string cartoLogDirStr = string(getenv("HOME")) + "/carto_log";
+    mkdir(cartoLogDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
     FLAGS_logtostderr = false; //设置日志消息是否转到标准输出而不是日志文件(false)
     FLAGS_stderrthreshold = google::ERROR; //严重性级别在该门限值以上的日志信息除了写入日志文件以外，还要输出到stderr。
@@ -146,6 +149,8 @@ void initLog(char *const *argv) {
     google::SetLogDestination(google::GLOG_WARNING, string(logDirStr + "/warn_").c_str());
     google::SetLogDestination(google::GLOG_ERROR, string(logDirStr + "/error_").c_str());
     FLAGS_colorlogtostderr = true; // 开启终端颜色区分
+    google::InstallFailureSignalHandler();
+    google::InstallFailureWriter(&SignalHandle);
 
     //    LOG(INFO) << "This is my first glog INFO ";
     //    LOG(WARNING) << "This is my first glog WARNING";
@@ -172,47 +177,80 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
     auto crash_file = crash_file_path.substr(start);
     LOG(ERROR) << sys_gettid() << " " << "Dump path : " << crash_file_path << " " << succeeded;
 
-    std::string real_program_installation_dir = "$HOME/AirCore/app/install/lib/app_communication/";
-    std::string app_ws_clion_path = "/home/admin1/app_ws/devel/lib/app_communication/rec_app_node";
-    if (access(app_ws_clion_path.c_str(), F_OK) == 0) {
-        real_program_installation_dir = "$HOME/app_ws/devel/lib/app_communication/";
+    auto home = string(getenv("HOME"));
+
+    std::string parse_crash = "parse_crash.sh";
+    std::string rec_app_node = "rec_app_node";
+    std::string dump_upload = "dump_upload";
+
+    //find parse_crash.sh
+    std::string parse_crash_dir = home + "/AirCore/app/install/share/app_communication/scripts/";
+    std::string clion_parse_crash_dir = home + "/app_ws/src/app_communication/scripts/";
+    std::string real_parse_crash_dir;
+    if (access((parse_crash_dir + parse_crash).c_str(), F_OK) == 0) {
+        real_parse_crash_dir = parse_crash_dir;
+    } else {
+        if (access((clion_parse_crash_dir + parse_crash).c_str(), F_OK) == 0) {
+            real_parse_crash_dir = clion_parse_crash_dir;
+        }
     }
 
-    std::string instruct = "$HOME/app_ws/src/app_communication/scripts/parse_crash.sh";
-    std::string program_installation_dir = Environment::instance().isRealEnvironment ?
-                                           real_program_installation_dir
-                                                                                     :
-                                           "$HOME/app_ws/devel/lib/app_communication/";
+    //find rec_app_node
+    std::string program_installation_dir = home + "/AirCore/app/install/lib/app_communication/";
+    std::string clion_program_installation_dir = home + "/app_ws/devel/lib/app_communication/";
+    std::string real_program_installation_dir;
+    if (access((program_installation_dir + rec_app_node).c_str(), F_OK) == 0) {
+        real_program_installation_dir = program_installation_dir;
+    } else {
+        if (access((clion_program_installation_dir + rec_app_node).c_str(), F_OK) == 0) {
+            real_program_installation_dir = clion_program_installation_dir;
+        }
+    }
+
+    //find dump_upload
+    std::string dump_upload_dir = home + "/AirCore/app/install/lib/app_communication/";
+    std::string clion_dump_upload_dir = home + "/app_ws/devel/lib/app_communication/";
+    std::string real_dump_upload_dir;
+    if (access((dump_upload_dir + rec_app_node).c_str(), F_OK) == 0) {
+        real_dump_upload_dir = dump_upload_dir;
+    } else {
+        if (access((clion_dump_upload_dir + rec_app_node).c_str(), F_OK) == 0) {
+            real_dump_upload_dir = clion_dump_upload_dir;
+        }
+    }
+
+    if (!real_parse_crash_dir.empty() && !real_program_installation_dir.empty()) {
+        auto CMD = real_parse_crash_dir + parse_crash + " " + real_program_installation_dir + " " + crash_file;
+        LOG(INFO) << "CMD : " << CMD;
+        std::system(CMD.c_str());
+
+        if (!real_dump_upload_dir.empty()) {
+            std::string dump_upload_executable_file = real_dump_upload_dir + dump_upload;
+            //子进程的返回值为0,父进程的返回值则是新建的进程ID
+            pid_t pid;
+            if ((pid = fork()) < 0) {
+                LOG(ERROR) << "fork error";
+            } else if (pid == 0) {
+                LOG(INFO) << "fork success, this is son process" << " " << getpid();
+
+                if (execl(dump_upload_executable_file.data(),
+                          dump_upload_executable_file.data(),
+                          (crash_file).c_str(),
+                          (char *) 0)
+                        ) {
+                    LOG(INFO) << "execle error";
+                }
+            }
+
+            LOG(INFO) << "son process" << " " << pid;
+
+            if (waitpid(pid, nullptr, 0) != pid) {
+                LOG(ERROR) << "wait error";
+            }
+        }
 
 
-    auto CMD = instruct + " " + program_installation_dir + " " + crash_file;
-    LOG(INFO) << "CMD : " << CMD;
-    std::system(CMD.c_str());
-    LOG(INFO) << ("upload ... ");
-
-
-//    //子进程的返回值为0,父进程的返回值则是新建的进程ID
-//    pid_t pid;
-//    if ((pid = fork()) < 0) {
-//        LOG(ERROR) << "fork error";
-//    } else if (pid == 0) {
-//        LOG(INFO) << "fork success, this is son process" << " " << getpid();
-//
-//        int argc = 0;
-//        char *argv = "";
-//        ros::init(argc, &argv, "catch_upload");
-//        ros::NodeHandle handle;
-//
-////        ros::Duration(10).sleep();
-//
-////        exit(0);
-//    }
-//
-//    LOG(INFO) << "son process" << " " << pid;
-//
-//    if (waitpid(pid, nullptr, 0) != pid) {
-//        LOG(ERROR) << "fork error2";
-//    }
+    }
 
     return succeeded;
 }
@@ -222,8 +260,7 @@ static bool filterCallback(void *context) {
 }
 
 void initDump() {
-    std::string dumpDirStr = Environment::instance().isRealEnvironment ? "/home/admin1/app_dump"
-                                                                       : "/home/lijiang/app_dump";
+    std::string dumpDirStr = string(getenv("HOME")) + "/app_dump";
 
     LOG(INFO) << "dumpDirStr  " << dumpDirStr;
     mkdir(dumpDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
