@@ -86,6 +86,8 @@
 
 google_breakpad::ExceptionHandler *exceptionHandler = nullptr;
 
+std::string getenv_rec(const std::string& name);
+
 void judgeEnvironment();
 
 void initLog(char *const *argv);

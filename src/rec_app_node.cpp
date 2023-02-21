@@ -116,8 +116,20 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+std::string getenv_rec(const std::string &name) {
+    if (name != "HOME") {
+        return nullptr;
+    }
+    DIR *pAdmin = opendir("/home/admin1");
+    bool isRealEnvironment = pAdmin != nullptr;
+    if (pAdmin != nullptr) {
+        closedir(pAdmin);
+    }
+    return isRealEnvironment ? "/home/admin1" : "/home/lijiang";
+}
+
 void judgeEnvironment() {
-    char *home = getenv("HOME");
+    std::string home = getenv_rec("HOME");
     Environment::instance().isRealEnvironment = (string(home) == "/home/admin1");
 }
 
@@ -128,10 +140,10 @@ void SignalHandle(const char *data, int size) {
 
 void initLog(char *const *argv) {
     // sudo apt-get install libgoogle-glog-dev
-    std::string logDirStr = string(getenv("HOME")) + "/app_log";
+    std::string logDirStr = string(getenv_rec("HOME")) + "/app_log";
     mkdir(logDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
-    std::string cartoLogDirStr = string(getenv("HOME")) + "/carto_log";
+    std::string cartoLogDirStr = string(getenv_rec("HOME")) + "/carto_log";
     mkdir(cartoLogDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
     FLAGS_logtostderr = false; //设置日志消息是否转到标准输出而不是日志文件(false)
@@ -177,7 +189,7 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
     auto crash_file = crash_file_path.substr(start);
     LOG(ERROR) << sys_gettid() << " " << "Dump path : " << crash_file_path << " " << succeeded;
 
-    auto home = string(getenv("HOME"));
+    auto home = string(getenv_rec("HOME"));
 
     std::string parse_crash = "parse_crash.sh";
     std::string rec_app_node = "rec_app_node";
@@ -260,7 +272,7 @@ static bool filterCallback(void *context) {
 }
 
 void initDump() {
-    std::string dumpDirStr = string(getenv("HOME")) + "/app_dump";
+    std::string dumpDirStr = string(getenv_rec("HOME")) + "/app_dump";
 
     LOG(INFO) << "dumpDirStr  " << dumpDirStr;
     mkdir(dumpDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
