@@ -54,8 +54,8 @@ void PointPlanner::gotoPlannerPoint(const RealPoint &realPoint) {
 }
 
 void PointPlanner::gotoPlannerFirstPoint(const RealPoint &realPoint) {
-    xyGoalTolerance.setParameter(0.15);
-    yawGoalTolerance.setParameter(0.15);
+    xyGoalTolerance.d(0.15);
+    yawGoalTolerance.d(0.15);
     gotoPlannerPoint(realPoint);
 }
 
@@ -64,8 +64,8 @@ void PointPlanner::cancelGoal() {
 }
 
 void PointPlanner::backBasePoint() {
-    xyGoalTolerance.setParameter(0.1);
-    yawGoalTolerance.setParameter(0.1);
+    xyGoalTolerance.d(0.1);
+    yawGoalTolerance.d(0.1);
     move_base_msgs::MoveBaseGoal goal;
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();

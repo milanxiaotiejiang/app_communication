@@ -125,6 +125,11 @@ enum MESSAGE_ID {
     SHUTDOWN,//关机
     REBOOT,//重启
 
+    GET_ROBOT_PARAMS,
+    SET_ROBOT_PARAMS,
+    GET_HOT_WIND_MODE,
+    SET_HOT_WIND_MODE,
+
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };
 

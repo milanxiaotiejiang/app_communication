@@ -328,5 +328,18 @@ int switch_ID(const std::string str) {
         return REBOOT;
     }
 
+    if (str == "get_robot_params") {
+        return GET_ROBOT_PARAMS;
+    }
+    if (str == "set_robot_params") {
+        return SET_ROBOT_PARAMS;
+    }
+    if (str == "get_hot_wind_mode") {
+        return GET_HOT_WIND_MODE;
+    }
+    if (str == "set_hot_wind_mode") {
+        return SET_HOT_WIND_MODE;
+    }
+
     return -1;
 }

@@ -4,6 +4,8 @@
 
 #include "sub/json/ProjectStrategy.h"
 #include "manager/VersionManager.h"
+#include "leave/ParamManager.h"
+#include "leave/robot_speed.h"
 
 string ProjectStrategy::handler(Project params) {
     string filePath;
@@ -90,4 +92,20 @@ string PadVersionStrategy::handler(string params) {
 int MachineModelStrategy::handler(string params) {
     int machineVersion = VersionManager::instance().getMachineVersion();
     return machineVersion;
+}
+
+ParamVo GetRobotParamsStrategy::handler(string params) {
+    int tof = ParamManager::instance().getTof();
+    bool silver = ParamManager::instance().getSilver();
+    RobotSpeed robotSpeed;
+    float speed = robotSpeed.currentSpeed();
+    return ParamVo(tof, silver, speed);
+}
+
+ParamVo SetRobotParamsStrategy::handler(ParamVo params) {
+    ParamManager::instance().setTof(params.getTof());
+    ParamManager::instance().setSilver(params.isSilver());
+    RobotSpeed robotSpeed;
+    robotSpeed.changeSpeed(params.getSpeed());
+    return params;
 }

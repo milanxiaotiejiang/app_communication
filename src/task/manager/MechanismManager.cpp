@@ -5,6 +5,7 @@
 #include "task/manager/MechanismManager.h"
 #include "manager/PublishInnerManager.h"
 #include "task/subscribe/zoo_inner_status.h"
+#include "glog/logging.h"
 
 void MechanismManager::resetWorkStatus() {
     std_msgs::Int16 sweep_status;
@@ -137,4 +138,12 @@ void MechanismManager::quitManualControl() {
     std_msgs::Int8 map_start;
     map_start.data = 0;
     PublishInnerManager::instance().getPubInner()->publishKnobTask(map_start);
+}
+
+void MechanismManager::openHotWind() {
+    LOG(INFO) << "开启热风烘干";
+}
+
+void MechanismManager::closeHotWind() {
+    LOG(INFO) << "关闭热风烘干";
 }

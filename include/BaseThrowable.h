@@ -104,6 +104,9 @@ namespace error {
         operation_is_not_allowed_in_the_station,
         operation_not_allowed_in_outbound,
         in_creating_map,
+        coverage_path_overtime,
+        failed_to_parse_speed_related_files,
+        failed_to_parse_fall_prevention_related_files
     };// enum value
 
     class category : public std::error_category {
@@ -290,6 +293,12 @@ namespace error {
                     return "出站中不允许操作";
                 case error::in_creating_map:
                     return "地图创建中";
+                case error::coverage_path_overtime:
+                    return "获取全覆盖路径超时";
+                case error::failed_to_parse_speed_related_files:
+                    return "解析速度相关文件失败";
+                case error::failed_to_parse_fall_prevention_related_files:
+                    return "解析防跌落相关文件失败";
                 default:
                     return "Unknown";
             }

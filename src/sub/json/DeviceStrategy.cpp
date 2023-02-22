@@ -9,6 +9,7 @@
 #include "task/manager/MechanismManager.h"
 #include "task/manager/manual.h"
 #include "task/subscribe/zoo_inner_status.h"
+#include "leave/ParamManager.h"
 
 /**
  * @brief Get the Device Status Strategy::date Progressing object获取机器当前状态
@@ -151,4 +152,13 @@ string PlayerRecruitVoiceStrategy::handler(int params) {
     player_cmd.data = ((int32_t) 1);
     PublishInnerManager::instance().getPubInner()->publishMusic(player_cmd);
     return "";
+}
+
+int GetHotWindModeStrategy::handler(string params) {
+    return ParamManager::instance().getDry();
+}
+
+int SetHotWindModeStrategy::handler(int params) {
+    ParamManager::instance().setDry(params);
+    return ParamManager::instance().getDry();
 }

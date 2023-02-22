@@ -94,35 +94,37 @@ deque<PointProgressVo> GetFinishedPointStrategy::handler(string params) {
 
 Task GetFullPlanStrategy::handler(vector<int> params) {
 
-    std::vector<geometry_msgs::Pose2D> exploration_path;
-    std::vector<cv::Point> point_path;
-    const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
-    ExplorationCenter::instance().generatePlanningPath(baseMap, ExplorationModel::FULL,
-                                                       BOUSTROPHEDON_EXPLORER_MODE, false,
-                                                       cv::Point(0, 0),
-                                                       exploration_path, point_path);
+//    std::vector<geometry_msgs::Pose2D> exploration_path;
+//    std::vector<cv::Point> point_path;
+//    const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
+//    ExplorationCenter::instance().generatePlanningPath(baseMap, ExplorationModel::FULL,
+//                                                       BOUSTROPHEDON_EXPLORER_MODE, false,
+//                                                       cv::Point(0, 0),
+//                                                       exploration_path, point_path);
+//
+//    ExplorationCenter::instance().pathPublish(exploration_path);
+//    boost::uuids::uuid uuid = boost::uuids::random_generator()();
+//    string uuid_string = boost::uuids::to_string(uuid);
+//
+//    std::vector<PoseVo> poseList;
+//    std::vector<PointVo> pointList;
+//    for (const auto &item: exploration_path) {
+//        poseList.emplace_back(item.y, item.x, item.theta);
+//    }
+//    for (const auto &item: point_path) {
+//        pointList.emplace_back(item.x, item.y);
+//    }
+//
+//    auto coverage = RoomCoverage(uuid_string, pointList, poseList);
 
-    ExplorationCenter::instance().pathPublish(exploration_path);
-    boost::uuids::uuid uuid = boost::uuids::random_generator()();
-    string uuid_string = boost::uuids::to_string(uuid);
-
-    std::vector<PoseVo> poseList;
-    std::vector<PointVo> pointList;
-    for (const auto &item: exploration_path) {
-        poseList.emplace_back(item.y, item.x, item.theta);
-    }
-    for (const auto &item: point_path) {
-        pointList.emplace_back(item.x, item.y);
-    }
-
-    auto coverage = RoomCoverage(uuid_string, pointList, poseList);
+    auto coverage = ExplorationCenter::instance().obtainCoveragePath();
     ExplorationCenter::instance().cacheRoomCoverage(coverage);
 
 
-    Environment::instance().room_coverage_uuid = uuid_string;
+    Environment::instance().room_coverage_uuid = coverage.getCoverageId();
 
     std::vector<Point> full;
-    for (const auto &item: poseList) {
+    for (const auto &item: coverage.getPoseList()) {
         full.emplace_back(item.getX(), item.getY());
     }
     FullPath fullPath(full);

@@ -38,8 +38,9 @@ int main(int argc, char *argv[]) {
 //        printf("%s\n", *ptr);
 //    }
 
-    if (argc == 2) {
+    if (argc == 3) {
         std::string crash_file = argv[1];
+        std::string log_file = argv[2];
         if (!crash_file.empty()) {
             if (endsWith(crash_file, ".dmp")) {
 

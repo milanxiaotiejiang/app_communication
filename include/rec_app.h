@@ -84,9 +84,14 @@
 #include "sys/wait.h"
 #include "net/WebSocketManager.h"
 
-google_breakpad::ExceptionHandler *exceptionHandler = nullptr;
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
-std::string getenv_rec(const std::string& name);
+google_breakpad::ExceptionHandler *exceptionHandler = nullptr;
+std::string unique_identification = boost::uuids::to_string(boost::uuids::random_generator()());
+
+std::string getenv_rec(const std::string &name);
 
 void judgeEnvironment();
 

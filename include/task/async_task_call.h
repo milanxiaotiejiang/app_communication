@@ -91,6 +91,10 @@ protected:
 
     void callManualCleanEnd();
 
+    void callSubsequentSelfClean(WorkStatus status);
+
+    void callSelfCleanClose();
+
     void callUrgencyStop();
 
     void callReleaseStop();

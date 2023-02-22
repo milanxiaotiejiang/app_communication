@@ -159,6 +159,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
 
     if (!Environment::instance().isRealEnvironment) {
         ZooInnerStatus::instance().setRsoc(60);
+        ZooInnerStatus::instance().setCleanWaterLevel(50);
     }
 }
 

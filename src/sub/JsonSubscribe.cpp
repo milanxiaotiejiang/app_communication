@@ -319,6 +319,18 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case REBOOT:
             messageStrategy = new RebootStrategy();
             break;
+        case GET_ROBOT_PARAMS:
+            messageStrategy = new GetRobotParamsStrategy();
+            break;
+        case SET_ROBOT_PARAMS:
+            messageStrategy = new SetRobotParamsStrategy();
+            break;
+        case GET_HOT_WIND_MODE:
+            messageStrategy = new GetHotWindModeStrategy();
+            break;
+        case SET_HOT_WIND_MODE:
+            messageStrategy = new SetHotWindModeStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);

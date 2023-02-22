@@ -5,6 +5,7 @@
 #include "sub/json/MapStrategy.h"
 #include "segmentation/SegmentationCenter.h"
 #include "segmentation/map_attribute.h"
+#include "exploration/ExplorationCenter.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
 
@@ -73,7 +74,7 @@ string EditMapStrategy::handler(vector<std::vector<float>> params) {
             point[j - 1] = params[i][j];//点位信息
         }
         if (set_prohibition(point, point_num)) {
-            ROS_INFO("set wall %d successfully", i);
+//            ROS_INFO("set wall %d successfully", i);
         } else {
             ROS_ERROR("Failed to set wall!");
         }
@@ -81,6 +82,7 @@ string EditMapStrategy::handler(vector<std::vector<float>> params) {
     MapAttribute::instance().resetProhibition();
     MapAttribute::instance().loadVirtualWall();
     MapAttribute::instance().loadPenaltyZone();
+    ExplorationCenter::instance().repaintCoveragePath();
     return "";
 }
 

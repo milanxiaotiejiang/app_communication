@@ -12,6 +12,7 @@
 #include "task/model/PointProgressVo.h"
 #include "task/manager/PointProgressPublish.h"
 #include "task/manager/MechanismManager.h"
+#include "leave/ParamManager.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -215,6 +216,8 @@ void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
     backBaseRetryCount = 0;
     rechargeRetryCount = 0;
 
+    callSelfCleanClose();
+
     //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
     pushPoint(flowSeizeSeatPoint);
 }
@@ -291,6 +294,7 @@ void AsyncTaskCall::goodGame() {
             waitTaskQueue.pop_front();
         });
     } else {
+        callSubsequentSelfClean(runTask.getWorkStatus());
         callNeedPublishSleep();
         LOG(ERROR) << "AsyncTaskCall : gg";
     }
@@ -427,6 +431,33 @@ void AsyncTaskCall::callManualCleanEnd() {//退出手动模式
     callNeedPublishSleep();
 }
 
+void AsyncTaskCall::callSubsequentSelfClean(WorkStatus status) {
+    LOG(INFO) << status;
+    if (status.getMopStatus() > 0) {
+        if (ParamManager::instance().getDry() == -1) {
+            return;
+        }
+        time_t now = time(0);
+        tm *ltm = localtime(&now);
+        std::cout << "年: " << 1900 + ltm->tm_year << std::endl;
+        std::cout << "月: " << 1 + ltm->tm_mon << std::endl;
+        std::cout << "日: " << ltm->tm_mday << std::endl;
+        std::cout << "时间: " << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << endl;
+        if (ParamManager::instance().getDry() == 0 && ltm->tm_hour >= 7) {
+            return;
+        }
+        MechanismManager::instance().openHotWind();
+        async::TimerCall::instance().baseLoop()
+                ->scheduleLater(std::chrono::minutes(1), [this]() {
+                    callSelfCleanClose();
+                });
+    }
+}
+
+void AsyncTaskCall::callSelfCleanClose() {
+    MechanismManager::instance().closeHotWind();
+}
+
 void AsyncTaskCall::callUrgencyStop() {
     if (!isPause()) {
         if (isContinueWork(event_flow, true)) {
@@ -481,6 +512,7 @@ void AsyncTaskCall::callResume() {
 }
 
 void AsyncTaskCall::callPause() {
+    MechanismManager::instance().resetWorkStatus();
     if (isContinueWork(event_flow, true)) {
         makeSurePause(event_flow);
         PointPlanner::instance().cancelGoal();

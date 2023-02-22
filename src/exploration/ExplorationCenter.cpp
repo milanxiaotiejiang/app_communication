@@ -35,6 +35,8 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     initialize_finish = true;
 
+    pathGenerator.preloadCoveragePath();
+
     //testing
 //    geometry_msgs::Pose2D pose2D;
 //    pose2D.x = 0.0;
@@ -78,6 +80,16 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 void ExplorationCenter::uninstall() {
     delete poseSubscribe;
     delete mapSavedSubscribe;
+}
+
+void ExplorationCenter::repaintCoveragePath() {
+    pathGenerator.repaintCoveragePath();
+}
+
+RoomCoverage ExplorationCenter::obtainCoveragePath() {
+    auto map = SegmentationCenter::instance().generateMat();
+    auto overtime = map.rows * map.cols / 20;
+    return pathGenerator.obtainCoveragePath(overtime);
 }
 
 void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,

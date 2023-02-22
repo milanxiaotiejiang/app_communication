@@ -1,5 +1,6 @@
 #include "rec_app.h"
 #include "simulation.h"
+#include "leave/ParamManager.h"
 
 /**
  * 单元测试示例代码
@@ -64,6 +65,8 @@ int main(int argc, char **argv) {
 //    AlignmentCenter::instance().initialize(handle);
     TaskCenter::instance().initialize(handle);
 
+    ParamManager::instance().loadDefaultParam();
+
     //启动订阅话题的callback
     JsonSubscribe jsonSubscribe(handle);
     JsonSubscribeCloud jsonSubscribeCloud(handle, pubInner, pubOut);
@@ -105,12 +108,8 @@ int main(int argc, char **argv) {
     sThd->start();
     sThd->detach();
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    ros::Rate loop(5); // 5Hz循环分频
-    while (ros::ok()) {
-        ros::spinOnce();
-        loop.sleep();
-    }
+    ros::MultiThreadedSpinner spinner;
+    spinner.spin();
 
     release();
     return 0;
@@ -160,6 +159,10 @@ void initLog(char *const *argv) {
     google::SetLogDestination(google::GLOG_INFO, string(logDirStr + "/info_").c_str());
     google::SetLogDestination(google::GLOG_WARNING, string(logDirStr + "/warn_").c_str());
     google::SetLogDestination(google::GLOG_ERROR, string(logDirStr + "/error_").c_str());
+
+    auto filenameExtension = unique_identification + "_";
+    google::SetLogFilenameExtension(filenameExtension.data());
+
     FLAGS_colorlogtostderr = true; // 开启终端颜色区分
     google::InstallFailureSignalHandler();
     google::InstallFailureWriter(&SignalHandle);
@@ -168,7 +171,7 @@ void initLog(char *const *argv) {
     //    LOG(WARNING) << "This is my first glog WARNING";
     //    LOG(ERROR) << "This is my first glog ERROR 1";
 
-    LOG(ERROR) << "current process id is " << getpid();
+    LOG(INFO) << "current process id is " << getpid() << "  log uuid : " << unique_identification;
 }
 
 /**
@@ -248,6 +251,7 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
                 if (execl(dump_upload_executable_file.data(),
                           dump_upload_executable_file.data(),
                           (crash_file).c_str(),
+                          unique_identification.c_str(),
                           (char *) 0)
                         ) {
                     LOG(INFO) << "execle error";

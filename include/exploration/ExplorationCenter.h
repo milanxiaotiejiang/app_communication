@@ -12,6 +12,7 @@
 #include "lru_cache.h"
 #include "model/RoomVo.h"
 #include "segmentation/Room.h"
+#include "exploration_generate.h"
 
 const int BOUSTROPHEDON_EXPLORER_MODE = 1;
 
@@ -65,9 +66,15 @@ public:
 
     ros::Publisher path_pub_;
 
+    CoveragePathGenerator pathGenerator;
+
     void initialize(ros::NodeHandle handle);
 
     void uninstall();
+
+    void repaintCoveragePath();
+
+    RoomCoverage obtainCoveragePath();
 
     void infinitelyNearBoundary(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
                                 std::vector<cv::Point> &point_path);

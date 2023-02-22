@@ -27,6 +27,9 @@ public:
 
     void quitManualControl();
 
+    void openHotWind();
+
+    void closeHotWind();
 };
 
 

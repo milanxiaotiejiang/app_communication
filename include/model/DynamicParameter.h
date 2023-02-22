@@ -16,13 +16,12 @@ public:
 
     Parameter(std::string nh_name, std::string param_name)
             : nh_(nh_name), param_name_(param_name) {
-        LOG(INFO) << "add dynamic param" << std::endl;
-        LOG(INFO) << "param namespace: " << nh_.getNamespace() << std::endl;
-        LOG(INFO) << "param name: " << param_name_ << std::endl;
+//        LOG(INFO) << "add dynamic param" << std::endl;
+//        LOG(INFO) << "param namespace: " << nh_.getNamespace() << std::endl;
+//        LOG(INFO) << "param name: " << param_name_ << std::endl;
         std::string type = typeid(T).name();
-        LOG(INFO) << "param type: " << type << std::endl;
-        client_ = nh_.serviceClient<dynamic_reconfigure::Reconfigure>(
-                "set_parameters");
+//        LOG(INFO) << "param type: " << type << std::endl;
+        client_ = nh_.serviceClient<dynamic_reconfigure::Reconfigure>("set_parameters");
     }
 
     bool setParameter(const T param) {

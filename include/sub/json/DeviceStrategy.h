@@ -62,5 +62,15 @@ public:
     string handler(int params) override;
 };
 
+class GetHotWindModeStrategy : public MessageStrategy<string, int> {
+public:
+    int handler(string params) override;
+};
+
+class SetHotWindModeStrategy : public MessageStrategy<int, int> {
+public:
+    int handler(int params) override;
+};
+
 
 #endif//APP_COMMUNICATION_DEVICESTRATEGY_H
