@@ -35,7 +35,9 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     initialize_finish = true;
 
-    pathGenerator.preloadCoveragePath();
+    if (!DISPLAY_TRAJECTORY_EFFECT) {
+        pathGenerator.preloadCoveragePath();
+    }
 
     //testing
 //    geometry_msgs::Pose2D pose2D;
@@ -550,8 +552,9 @@ cv::Mat ExplorationCenter::prohibitionMat(const cv::Mat &room_map) const {
     cv::Mat prohibition_image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
 
     auto penaltyZoneList = MapAttribute::instance().getPenaltyZoneList();
-    std::vector<std::vector<cv::Point>> polygon_array;
+
     for (int i = 0; i < penaltyZoneList.size(); ++i) {
+        std::vector<std::vector<cv::Point>> polygon_array;
         std::vector<cv::Point> cvPoints;
         auto vector = penaltyZoneList[i];
         for (int j = 0; j < vector.size(); ++j) {
@@ -559,8 +562,8 @@ cv::Mat ExplorationCenter::prohibitionMat(const cv::Mat &room_map) const {
             cvPoints.push_back(point);
         }
         polygon_array.push_back(cvPoints);
+        cv::fillPoly(prohibition_image, polygon_array, cv::Scalar(255));
     }
-    cv::fillPoly(prohibition_image, polygon_array, cv::Scalar(255));
 
     auto virtualWallList = MapAttribute::instance().getVirtualWallList();
     for (const auto &vector: virtualWallList) {
