@@ -800,7 +800,7 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
         return;
     }
     if (isUnrecoverableError()) {
-        throw app::exception(make_error_code(error::the_current_state_is_uncontrollable));
+        return;
     }
     pushSpecial(operation);
 }
