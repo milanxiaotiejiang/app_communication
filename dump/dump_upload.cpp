@@ -52,9 +52,8 @@ int main(int argc, char *argv[]) {
                 crash.data = crash_file;
                 sleep(3);
 
-                std::cout << crash_file << " log ... " << std::endl;
-                std::cout << crash_file << " compress ... " << std::endl;
                 std::cout << crash_file << " upload ... " << std::endl;
+                std::cout << log_file << " upload ... " << std::endl;
 
                 pubDump.publish(crash);
             }

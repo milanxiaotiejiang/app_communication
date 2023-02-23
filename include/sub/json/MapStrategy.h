@@ -14,6 +14,7 @@
 #include "tool/write_file.hpp"
 
 #include "prohibition.h"
+#include "model/RoomVo.h"
 
 #include <nlohmann/json.hpp>
 
@@ -55,11 +56,19 @@ public:
     int handler(string params) override;
 };
 
-
 class ManualPushSaveStrategy : public MessageStrategy<MapInfo, MapInfo> {
 public:
     MapInfo handler(MapInfo params) override;
 };
 
+class MapObstaclesStrategy : public MessageStrategy<vector<vector<PointVo>>, string> {
+public:
+    string handler(vector<vector<PointVo>> params) override;
+};
+
+class MapFeasibleZoneStrategy : public MessageStrategy<vector<vector<PointVo>>, string> {
+public:
+    string handler(vector<vector<PointVo>> params) override;
+};
 
 #endif //APP_COMMUNICATION_MAPSTRATEGY_H

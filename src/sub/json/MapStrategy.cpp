@@ -6,6 +6,7 @@
 #include "segmentation/SegmentationCenter.h"
 #include "segmentation/map_attribute.h"
 #include "exploration/ExplorationCenter.h"
+#include "segmentation/map_modification.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
 
@@ -136,3 +137,34 @@ MapInfo ManualPushSaveStrategy::handler(MapInfo params) {
     return param;
 }
 
+string MapObstaclesStrategy::handler(vector<vector<PointVo>> params) {
+    std::vector<std::vector<cv::Point>> points;
+
+    for (const auto &vector: params) {
+        std::vector<cv::Point> cvs;
+        for (const auto &pointVo: vector) {
+            cv::Point point(pointVo.getX(), pointVo.getY());
+            cvs.push_back(point);
+        }
+        points.push_back(cvs);
+    }
+
+    MapModification mapModification;
+    mapModification.addObstacles(points);
+}
+
+string MapFeasibleZoneStrategy::handler(vector<vector<PointVo>> params) {
+    std::vector<std::vector<cv::Point>> points;
+
+    for (const auto &vector: params) {
+        std::vector<cv::Point> cvs;
+        for (const auto &pointVo: vector) {
+            cv::Point point(pointVo.getX(), pointVo.getY());
+            cvs.push_back(point);
+        }
+        points.push_back(cvs);
+    }
+
+    MapModification mapModification;
+    mapModification.addFeasibleZone(points);
+}

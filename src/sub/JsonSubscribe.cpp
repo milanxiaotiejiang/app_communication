@@ -331,6 +331,12 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case SET_HOT_WIND_MODE:
             messageStrategy = new SetHotWindModeStrategy();
             break;
+        case MAP_OBSTACLES:
+            messageStrategy = new MapObstaclesStrategy();
+            break;
+        case MAP_FEASIBLE_ZONE:
+            messageStrategy = new MapFeasibleZoneStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);
