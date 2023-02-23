@@ -306,7 +306,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
                                                   robotPosition, map_origin,
                                                   grid_spacing_in_pixel, grid_obstacle_offset_,
                                                   path_eps_, min_cell_area_, max_deviation_from_track_,
-                                                  TSP_GENETIC);
+                                                  TSP_NEAREST_NEIGHBOR);
     } else {
         EnergyFunctionalExplorator energy_functional_explorer;
         energy_functional_explorer.getExplorationPath(latelyMap, exploration_path, map_resolution_from_subscription,

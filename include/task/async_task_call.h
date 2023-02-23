@@ -24,7 +24,7 @@ const int MAX_RECHARGE_RETRY_COUNT = 5;
 class AsyncTaskCall : public AsyncTaskRecord {
 private:
 
-    event::flow event_flow = event::flow::waiting_for_task;
+    std::atomic<event::flow> event_flow;;
 
 protected:
 

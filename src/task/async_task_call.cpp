@@ -20,7 +20,12 @@
 AsyncTaskCall::AsyncTaskCall() {
     int err = AsyncTaskCall::make_thread(run, this);
     LOG(INFO) << err;
+
     setFlow(event::flow::waiting_for_task);
+    setEpollManual(loop::manual_epoll::manual_normal);
+    setEpollSpecial(loop::special_epoll::special_normal);
+    setEpollError(loop::error_epoll::error_normal);
+    setUrgencyStop(loop::urgency_stop::trigger_urgency_stop);
 
     //预埋点流转循环，打开清洁机构，关闭清洁机构，出站
     runTask.assignmentPoint(flowSeizeSeatPoint, FLOW_SEIZE_SEAT);

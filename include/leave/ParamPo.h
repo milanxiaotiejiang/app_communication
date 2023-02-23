@@ -11,25 +11,7 @@ class ParamPo {
 private:
     int tof;
     bool silver;
-    bool speed;
-public:
-    ParamPo();
-
-    ParamPo(int tof, bool silver, bool speed);
-
-    int getTof() const;
-
-    void setTof(int tof);
-
-    bool isSilver() const;
-
-    void setSilver(bool silver);
-
-    bool isSpeed() const;
-
-    void setSpeed(bool speed);
-
-    friend std::ostream &operator<<(std::ostream &os, const ParamPo &po);
+    float speed;
 };
 
 

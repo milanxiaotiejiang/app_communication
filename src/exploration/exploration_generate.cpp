@@ -62,7 +62,6 @@ RoomCoverage CoveragePathGenerator::obtainCoveragePath(int overtime) {
         return roomCoverage;
     }
 
-
     std::condition_variable cv;
     std::mutex mutex;
     std::unique_lock<std::mutex> lck(mutex);

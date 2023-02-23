@@ -83,6 +83,18 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         if (cv::pointPolygonTest(cell->getVertices(), rotated_starting_point, false) >= 0)
             start_cell_index = cell - cell_polygons.begin();
 
+    if (DISPLAY_TRAJECTORY) {
+        auto polygon_centers_map = rotated_room_map.clone();
+        for (int i = 0; i < polygon_centers.size(); i++) {
+            auto point = polygon_centers[i];
+            cv::putText(polygon_centers_map, std::to_string(i), point, cv::FONT_HERSHEY_TRIPLEX,
+                        0.8, cv::Scalar(128), 1, CV_AA);
+            cv::circle(polygon_centers_map, point, 3, cv::Scalar(160), CV_FILLED);
+        }
+        cv::imshow("polygon_centers_map", polygon_centers_map);
+        cv::waitKey();
+    }
+
     std::vector<int> optimal_order;
     // 确定单元格的最佳访问顺序
     if (tsp_solver == TSP_GENETIC) {
@@ -102,16 +114,21 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         // 算法原理：每次都取离当前位置最近的区域为下一个清扫区域，到达下一个区域后，再取最近的区域为下一个清扫区域，即遗传学TSP前半段
         LOG(INFO) << "NearestNeighborTSPSolver .. ";
         NearestNeighborTSPSolver neighbor_tsp_solver;
-        optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 0.25, 0.0,
+        optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
                                                             map_resolution, start_cell_index, 0);
-        if (optimal_order.size() != polygon_centers.size()) {
-            LOG(INFO)
-                    << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
-            optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
-                                                                map_resolution, start_cell_index, 0);
-        }
     }
 
+    if (DISPLAY_TRAJECTORY) {
+        auto polygon_centers_map2 = rotated_room_map.clone();
+        for (int i = 0; i < optimal_order.size(); i++) {
+            auto point = polygon_centers[optimal_order[i]];
+            cv::putText(polygon_centers_map2, std::to_string(i), point, cv::FONT_HERSHEY_TRIPLEX,
+                        0.8, cv::Scalar(128), 1, CV_AA);
+            cv::circle(polygon_centers_map2, point, 3, cv::Scalar(160), CV_FILLED);
+        }
+        cv::imshow("polygon_centers_map2", polygon_centers_map2);
+        cv::waitKey();
+    }
 
     LOG(INFO) << "Starting to get the paths for each cell, number of cells: " << (int) cell_polygons.size();
     LOG(INFO) << "Boustrophedon grid_spacing_as_int = " << grid_spacing_as_int;

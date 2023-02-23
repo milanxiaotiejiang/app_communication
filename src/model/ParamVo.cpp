@@ -24,10 +24,10 @@ void ParamVo::setSilver(bool silver) {
     ParamVo::silver = silver;
 }
 
-int ParamVo::getSpeed() const {
+float ParamVo::getSpeed() const {
     return speed;
 }
 
-void ParamVo::setSpeed(int speed) {
+void ParamVo::setSpeed(float speed) {
     ParamVo::speed = speed;
 }

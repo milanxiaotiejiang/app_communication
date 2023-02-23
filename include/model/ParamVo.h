@@ -14,7 +14,7 @@ class ParamVo {
 private:
     int tof;
     bool silver;
-    int speed;
+    float speed;
 public:
     ParamVo();
 
@@ -28,9 +28,9 @@ public:
 
     void setSilver(bool silver);
 
-    int getSpeed() const;
+    float getSpeed() const;
 
-    void setSpeed(int speed);
+    void setSpeed(float speed);
 
     friend void to_json(json &j, const ParamVo &b) {
         j = json{
