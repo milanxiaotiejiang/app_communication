@@ -8,8 +8,7 @@
 #include "sub/self_check.h"
 #include "task/subscribe/async_machine.h"
 
-SelfCheckSubscribe::SelfCheckSubscribe(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut)
-        : handle(handle), pubInner(std::move(pubInner)), pubOut(std::move(pubOut)) {
+SelfCheckSubscribe::SelfCheckSubscribe(ros::NodeHandle handle) : handle(handle) {
     //camera
     int camera_num = 2;
     for (int i = 1; i <= camera_num; i++) {

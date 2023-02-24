@@ -6,17 +6,13 @@
 #define APP_COMMUNICATION_MAPINNERSUBSCRIBE_H
 
 #include <ros/ros.h>
-#include <pub/PubInner.h>
 #include <model/WorkStatus.h>
-#include <pub/PubOut.h>
 #include "tool/OldFunction.hpp"
 
 class MapInnerSubscribe {
 
 private:
     ros::NodeHandle handle;
-    PubInner pubInner;
-    PubOut pubOut;
     ros::Subscriber sub_map_inner_;
 
     nav_msgs::OccupancyGrid map_app;
@@ -31,9 +27,8 @@ private:
 
     void subscribeCallback(const nav_msgs::OccupancyGrid &map_raw);
 
-
 public:
-    MapInnerSubscribe(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut);
+    MapInnerSubscribe(ros::NodeHandle handle);
 
     virtual ~MapInnerSubscribe();
 

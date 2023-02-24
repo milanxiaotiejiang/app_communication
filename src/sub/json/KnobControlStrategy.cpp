@@ -7,6 +7,6 @@
 string KnobControlStrategy::handler(bool method) {
     std_msgs::Bool aBool;
     aBool.data = method;
-    PublishInnerManager::instance().getPubInner()->publishKnobAvailable(aBool);
+    PublishInnerManager::instance().publishKnobAvailable(aBool);
     return "";
 }

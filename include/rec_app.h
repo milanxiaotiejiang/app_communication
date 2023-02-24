@@ -39,7 +39,6 @@
 #include "tool/Switch.h"
 #include "tool/write_file.hpp"
 #include <actionlib/client/simple_action_client.h>
-#include <pub/PubOut.h>
 #include <sub/BeforeJsonSubscribe.h>
 #include <sub/JsonSubscribe.h>
 #include <sub/JsonSubscribeCloud.h>
@@ -55,7 +54,6 @@
 #include "net/WsServerManager.h"
 #include "net/MessageBusManager.h"
 
-#include "pub/PubInner.h"
 #include "net/UdpManager.h"
 #include "glog/logging.h"
 #include "sys/stat.h"

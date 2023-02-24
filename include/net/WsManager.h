@@ -15,7 +15,6 @@
 #include <websocketpp/client.hpp>
 #include "tool/CThread.h"
 #include "BlockingCollection.h"
-#include "pub/PubInner.h"
 #include "model/Entrance.h"
 #include "model/RequestData.h"
 
@@ -27,19 +26,15 @@ class WsManager {
 
     WsManager &operator=(const WsManager &) = delete;
 
-    static WsManager *m_instance_ptr;
-
 public:
     ~WsManager() = default;
 
-    static WsManager *get_instance() {
-        if (m_instance_ptr == nullptr) {
-            m_instance_ptr = new WsManager;
-        }
-        return m_instance_ptr;
+    static auto &instance() {
+        static WsManager obj;
+        return obj;
     }
 
-    void startWebSocket(const PubInner &inner);
+    void startWebSocket();
 
     void sendData(const string &data);
 };

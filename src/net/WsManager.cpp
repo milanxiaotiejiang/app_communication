@@ -88,7 +88,7 @@ void on_fail(client *c, websocketpp::connection_hdl hdl) {
 }
 
 // 接收到服务器发来的WebSocket消息后的回调
-void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg, PubInner pubInner) {
+void on_message(client *c, websocketpp::connection_hdl hdl, message_ptr msg) {
     cout << "on_message : " << msg->get_payload() << endl;
     c->get_alog().write(websocketpp::log::alevel::app, "on_message : " + msg->get_payload());
     string payload = msg->get_payload();
@@ -111,10 +111,8 @@ void on_close(client *c, websocketpp::connection_hdl hdl) {
 }
 
 class WsConnectThread : public CThread {
-private:
-    PubInner pubInner;
 public:
-    WsConnectThread(const PubInner &pubInner) : pubInner(pubInner) {}
+    WsConnectThread() {}
 
     void *run() override {
 
@@ -135,7 +133,7 @@ public:
             // 注册回调函数
             echo_client.set_open_handler(std::bind(&on_open, &echo_client, ::_1));
             echo_client.set_fail_handler(std::bind(&on_fail, &echo_client, ::_1));
-            echo_client.set_message_handler(std::bind(&on_message, &echo_client, ::_1, ::_2, pubInner));
+            echo_client.set_message_handler(std::bind(&on_message, &echo_client, ::_1, ::_2));
             echo_client.set_close_handler(std::bind(&on_close, &echo_client, ::_1));
 
             // 在事件循环启动前创建一个连接对象
@@ -166,18 +164,18 @@ void connectFail() {
     mStatus = DISCONNECTED;
 }
 
-void WsManager::startWebSocket(const PubInner &inner) {
+void WsManager::startWebSocket() {
     switch (mStatus) {
         case CONNECTED:
-            ROS_INFO("已连接");
+            std::cout << ("已连接") << std::endl;
             break;
         case CONNECTING:
-            ROS_INFO("正在连接");
+            std::cout << ("正在连接") << std::endl;
             break;
         case RECONNECT:
         case DISCONNECTED:
             mStatus = CONNECTING;
-            WsConnectThread *pConnectThread = new WsConnectThread(inner);
+            WsConnectThread *pConnectThread = new WsConnectThread();
             pConnectThread->start();
             pConnectThread->detach();
             break;
@@ -189,7 +187,7 @@ void WsManager::sendData(const string &data) {
 
         dataCollection.add(data);
     } else {
-        ROS_INFO("其他原因导致发送失败");
+        std::cout << ("其他原因导致发送失败") << std::endl;
     }
 
 }

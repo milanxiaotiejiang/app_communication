@@ -25,6 +25,7 @@ enum ExplorationModel {
 class ExplorationCenter {
 private:
     bool initialize_finish = false;
+    std::mutex cv_mut;
 
     OdomSubscribe *poseSubscribe;
     MapSavedSubscribe *mapSavedSubscribe;

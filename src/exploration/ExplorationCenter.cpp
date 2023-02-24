@@ -104,6 +104,8 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
         throw app::exception(make_error_code(error::in_creating_map));
     }
 
+    std::unique_lock<std::mutex> lock(cv_mut);
+
     cv::Mat original_map = room_map.clone();
     cv::Mat map = room_map.clone();
 
@@ -192,8 +194,9 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
         throw app::exception(make_error_code(error::exploration_initialize_fail));
     }
 
-    cv::Mat map = room_map.clone();
+    std::unique_lock<std::mutex> lock(cv_mut);
 
+    cv::Mat map = room_map.clone();
 
     cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
     const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
@@ -205,7 +208,6 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
             robotPosition.y = start_position.y;
         }
     }
-
 
     //禁区虚拟墙
     cv::Mat prohibition_image = prohibitionMat(map);

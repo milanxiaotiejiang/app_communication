@@ -20,7 +20,7 @@ string AppAlongCleanStrategy::handler(vector<float> params) {
 }
 
 string PowerReductionStrategy::handler(string params) {
-    NoticeManager::get_instance()->setPlannerType(NoticeManager::get_instance()->getPlannerType() + 1);
+    NoticeManager::instance().setPlannerType(NoticeManager::instance().getPlannerType() + 1);
     return "";
 }
 

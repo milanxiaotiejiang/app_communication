@@ -5,8 +5,6 @@
 #ifndef APP_COMMUNICATION_MECHANISMMANAGER_H
 #define APP_COMMUNICATION_MECHANISMMANAGER_H
 
-
-#include "pub/PubInner.h"
 #include "model/WorkStatus.h"
 
 class MechanismManager {

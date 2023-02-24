@@ -3,13 +3,13 @@
 //
 
 #include <iostream>
-#include "glog/logging.h"
 #include "manager/NoticeManager.h"
+#include "manager/PublishOutManager.h"
 
 void NoticeManager::sendNotice(int noticeCode, long noticeTime, const string &noticeTitle,
                                const string &noticeMessage, const string &solution) {
     auto notice = Notice(noticeCode, noticeTime, noticeTitle, noticeMessage, solution);
-    NoticeManager::pubOut->publishNotice(notice);
+    PublishOutManager::instance().publishNotice(notice);
 }
 
 int NoticeManager::getPlannerType() const {
@@ -18,12 +18,4 @@ int NoticeManager::getPlannerType() const {
 
 void NoticeManager::setPlannerType(int plannerType) {
     planner_type = plannerType;
-}
-
-PubOut *NoticeManager::getPubOut() const {
-    return pubOut;
-}
-
-void NoticeManager::setPubOut(PubOut *pubOut) {
-    NoticeManager::pubOut = pubOut;
 }

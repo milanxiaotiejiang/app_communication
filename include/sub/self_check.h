@@ -16,8 +16,6 @@
 #include "model/SelfCheckErrorType.h"
 #include "manager/InternalEventPubManager.h"
 #include "nlohmann/json.hpp"
-#include "pub/PubInner.h"
-#include "pub/PubOut.h"
 #include "std_msgs/Int32.h"
 #include "ros/ros.h"
 #include "sensor_msgs/Image.h"
@@ -82,7 +80,7 @@ public:
         ros::Time now = ros::Time::now();
         last_valid_ = valid_;
         valid_ = (now - last_image_ < ros::Duration(10) && now - last_pointcloud_ < ros::Duration(10));
-        if(needPublish()){
+        if (needPublish()) {
             setPublish();
         }
         return valid_;
@@ -147,7 +145,7 @@ public:
         last_valid_ = valid_;
         valid_ = ros::Time::now() - last_laser_ < ros::Duration(10);
         if (needPublish()) {
-          setPublish();
+            setPublish();
         }
         return valid_;
     }
@@ -161,7 +159,7 @@ public:
 
     bool publishFlag() { return publish_flag_; }
 
-  private:
+private:
     ros::NodeHandle private_nh_;
     ros::Subscriber laser_sub_;
     std::string laser_name_;
@@ -196,7 +194,7 @@ public:
         last_valid_ = valid_;
         valid_ = ros::Time::now() - last_imu_ < ros::Duration(10);
         if (needPublish()) {
-          setPublish();
+            setPublish();
         }
         return valid_;
     }
@@ -210,7 +208,7 @@ public:
 
     bool publishFlag() { return publish_flag_; }
 
-  private:
+private:
     ros::NodeHandle private_nh_;
     ros::Subscriber imu_sub_;
     ros::Subscriber imu_error_pub_;
@@ -287,7 +285,7 @@ public:
 
     bool publishFlag() { return tracked_pose_publish_flag_; }
 
-  private:
+private:
     ros::NodeHandle private_nh_;
     ros::Subscriber bias_detect_sub_;
     ros::Subscriber tracked_pose_sub_;
@@ -322,18 +320,18 @@ public:
 
         double current_odom_pose_x = odom_msg->pose.pose.position.x;
         double current_odom_pose_y = odom_msg->pose.pose.position.y;
-        if(enabled_){
-          //里程计两帧之间跳变超过阈值
-          if ((abs(last_odom_pose_x - current_odom_pose_x) >= ODOM_THRESHOLD) ||
-              (abs(last_odom_pose_y - current_odom_pose_y) >= ODOM_THRESHOLD)) {
-            if (valid_ == true) {
-              valid_ = false;
-              setPublish();
+        if (enabled_) {
+            //里程计两帧之间跳变超过阈值
+            if ((abs(last_odom_pose_x - current_odom_pose_x) >= ODOM_THRESHOLD) ||
+                (abs(last_odom_pose_y - current_odom_pose_y) >= ODOM_THRESHOLD)) {
+                if (valid_ == true) {
+                    valid_ = false;
+                    setPublish();
+                }
+            } else {
+                valid_ = true;
             }
-          } else {
-            valid_ = true;
-          }
-        }else{
+        } else {
             valid_ = true;
         }
         last_wheel_odom.pose = odom_msg->pose;
@@ -349,7 +347,7 @@ public:
 
     bool publishFlag() { return publish_flag_; }
 
-    bool setEnabled(bool enable){
+    bool setEnabled(bool enable) {
         enabled_ = enable;
     }
 
@@ -400,7 +398,7 @@ public:
 
     bool publishFlag() { return publish_flag_; }
 
-  private:
+private:
     ros::NodeHandle private_nh_;
     ros::Subscriber battery_sub_;
     std::string battery_name_;
@@ -454,8 +452,8 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_0.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_0_valid) {
-                  bump_0_publish_flag_ = true;
-                  bump_0_valid = false;
+                    bump_0_publish_flag_ = true;
+                    bump_0_valid = false;
 
                 }
             }
@@ -465,8 +463,8 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_1.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_1_valid) {
-                  bump_1_publish_flag_ = true;
-                  bump_1_valid = false;
+                    bump_1_publish_flag_ = true;
+                    bump_1_valid = false;
                 }
             }
         }
@@ -475,8 +473,8 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_2.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_2_valid) {
-                  bump_2_publish_flag_ = true;
-                  bump_2_valid = false;
+                    bump_2_publish_flag_ = true;
+                    bump_2_valid = false;
                 }
             }
         }
@@ -485,8 +483,8 @@ public:
             if ((current_time_sec - bump_sensor_trigger_time_3.toSec()) > 30.0) {
                 //bump trigger error
                 if (bump_3_valid) {
-                  bump_3_publish_flag_ = true;
-                  bump_3_valid = false;
+                    bump_3_publish_flag_ = true;
+                    bump_3_valid = false;
                 }
             }
         }
@@ -505,21 +503,26 @@ public:
     }
 
     bool is_bump_1_need_publish() { return bump_1_publish_flag_; }
+
     void reset_bump_1_publish_flag() { bump_1_publish_flag_ = false; }
+
     bool is_bump_2_valid() {
         return bump_2_valid;
     }
 
     bool is_bump_2_need_publish() { return bump_2_publish_flag_; }
+
     void reset_bump_2_publish_flag() { bump_2_publish_flag_ = false; }
+
     bool is_bump_3_valid() {
         return bump_3_valid;
     }
 
     bool is_bump_3_need_publish() { return bump_3_publish_flag_; }
+
     void reset_bump_3_publish_flag() { bump_3_publish_flag_ = false; }
 
-  private:
+private:
     ros::NodeHandle private_nh_;
     ros::Subscriber bump_sub_;
 
@@ -571,7 +574,7 @@ public:
                 if ((ul_msg_1->header.stamp.toSec() -
                      ul_sensor_trigger_time_1.toSec()) > 30.0) {
                     // ul_sensor_1_error
-                    if (ultra_1_is_valid){
+                    if (ultra_1_is_valid) {
                         ultra_1_need_publish = true;
                         ultra_1_is_valid = false;
                     }
@@ -579,7 +582,7 @@ public:
                 }
             }
         } else {
-          ultra_1_is_valid = true;
+            ultra_1_is_valid = true;
         }
     }
 
@@ -598,15 +601,15 @@ public:
                 if ((ul_msg_2->header.stamp.toSec() -
                      ul_sensor_trigger_time_2.toSec()) > 30.0) {
                     // ul_sensor_2_error
-                    if (ultra_2_is_valid){
-                      ultra_2_need_publish = true;
-                      ultra_2_is_valid = false;
+                    if (ultra_2_is_valid) {
+                        ultra_2_need_publish = true;
+                        ultra_2_is_valid = false;
                     }
 
                 }
             }
         } else {
-          ultra_2_is_valid = true;
+            ultra_2_is_valid = true;
         }
     }
 
@@ -615,8 +618,9 @@ public:
     }
 
     bool is_ultra_1_need_publish() {
-         return (ultra_1_need_publish );
+        return (ultra_1_need_publish);
     }
+
     void reset_ultra_1_need_publish() { ultra_1_need_publish = false; }
 
     bool is_ultra_2_valid() {
@@ -624,7 +628,7 @@ public:
     }
 
     bool is_ultra_2_need_publish() {
-      return (ultra_2_need_publish);
+        return (ultra_2_need_publish);
     }
 
     void reset_ultra_2_need_publish() { ultra_2_need_publish = false; }
@@ -664,7 +668,7 @@ class SelfCheckSubscribe {
     本类为自检主线程类，创建该类对象即可进行自检。
     */
 public:
-    SelfCheckSubscribe(ros::NodeHandle handle, PubInner pubinner, PubOut pubout);// 构造函数，与主节点衔接，进入自检主线程。
+    SelfCheckSubscribe(ros::NodeHandle handle);// 构造函数，与主节点衔接，进入自检主线程。
     ~SelfCheckSubscribe();
 
 
@@ -682,8 +686,6 @@ private:
     ros::Subscriber back_charge_error_sub_;
     ////////////////////////////////////////////////////////////////////
     ros::NodeHandle handle;
-    PubInner pubInner;
-    PubOut pubOut;
 
     bool camera_check_enable_{false};//用于确认银牛是否启动
 

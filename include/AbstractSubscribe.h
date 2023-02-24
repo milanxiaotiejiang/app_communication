@@ -5,16 +5,8 @@
 #ifndef APP_COMMUNICATION_ABSTRACTSUBSCRIBE_H
 #define APP_COMMUNICATION_ABSTRACTSUBSCRIBE_H
 
-
-#include <pub/PubInner.h>
-#include <pub/PubOut.h>
-
 class AbstractSubscribe {
 
-private:
-    PubInner pubInner;
-    PubOut pubOut;
 };
-
 
 #endif //APP_COMMUNICATION_ABSTRACTSUBSCRIBE_H

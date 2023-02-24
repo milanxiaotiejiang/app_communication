@@ -5,10 +5,7 @@
 #include "sub/BeforeJsonSubscribe.h"
 #include "net/WsServerManager.h"
 
-BeforeJsonSubscribe::BeforeJsonSubscribe(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut)
-        : handle(handle),
-          pubInner(std::move(pubInner)),
-          pubOut(std::move(pubOut)) {
+BeforeJsonSubscribe::BeforeJsonSubscribe(ros::NodeHandle handle) : handle(handle) {
     sub_json_ = handle.subscribe(APP_COMMUNICATION, 1, &BeforeJsonSubscribe::subscribeCallback, this);
 }
 
@@ -71,7 +68,7 @@ void BeforeJsonSubscribe::subscribeCallback(const std_msgs::String &str) {
                 } else if (vel_direction == "04") {
                     move_cmd.angular.z = 0;
                 }
-                pubInner.publishVelocity(move_cmd);//发布速度
+                PublishInnerManager::instance().publishVelocity(move_cmd);//发布速度
                 //                ROS_INFO("start move!");
                 break;
 

@@ -15,7 +15,7 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
     std_msgs::String map_save;
     map_save.data.append("save_map");
     for (int i = 0; i < 5; i++) {
-        PublishInnerManager::instance().getPubInner()->publishCommand(map_save);
+        PublishInnerManager::instance().publishCommand(map_save);
         ros::Duration(1).sleep();
     }
 
@@ -102,7 +102,7 @@ int ManualPushStartStrategy::handler(string params) {
     std_msgs::Int8 map_start;
     map_start.data = 2;
     for (int i = 0; i < 5; i++) {
-        PublishInnerManager::instance().getPubInner()->publishKnobTask(map_start);
+        PublishInnerManager::instance().publishKnobTask(map_start);
         ros::Duration(1).sleep();
     }
 
@@ -113,7 +113,7 @@ int ManualPushResetStrategy::handler(string params) {
     std_msgs::Int8 map_start;
     map_start.data = 0;
     for (int i = 0; i < 5; i++) {
-        PublishInnerManager::instance().getPubInner()->publishKnobTask(map_start);
+        PublishInnerManager::instance().publishKnobTask(map_start);
         ros::Duration(1).sleep();
     }
     return 5;
@@ -123,14 +123,14 @@ MapInfo ManualPushSaveStrategy::handler(MapInfo params) {
     std_msgs::String map_save;
     map_save.data.append("save_map");
     for (int i = 0; i < 5; i++) {
-        PublishInnerManager::instance().getPubInner()->publishCommand(map_save);
+        PublishInnerManager::instance().publishCommand(map_save);
         ros::Duration(1).sleep();
     }
     MapInfo param(1, params.getMapName());
     std_msgs::Int8 map_start;
     map_start.data = 0;
     for (int i = 0; i < 5; i++) {
-        PublishInnerManager::instance().getPubInner()->publishKnobTask(map_start);
+        PublishInnerManager::instance().publishKnobTask(map_start);
         ros::Duration(1).sleep();
     }
 

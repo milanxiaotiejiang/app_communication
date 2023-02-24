@@ -14,8 +14,6 @@
 #include "boost/thread.hpp"
 
 #include <nlohmann/json.hpp>
-#include <pub/PubOut.h>
-#include <pub/PubInner.h>
 
 using json = nlohmann::json;
 

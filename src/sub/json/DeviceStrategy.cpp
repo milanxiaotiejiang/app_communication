@@ -23,10 +23,10 @@ DeviceStatus GetDeviceStatusStrategy::handler(string method) {
     //追加几行，每当有连接时候获取下版本号
     std_msgs::Int16 version;
     version.data = 0;
-    PublishInnerManager::instance().getPubInner()->publishDSVersion(version);
+    PublishInnerManager::instance().publishDSVersion(version);
     std_msgs::Int16 version1;
     version1.data = 1;
-    PublishInnerManager::instance().getPubInner()->publishDSVersion(version1);
+    PublishInnerManager::instance().publishDSVersion(version1);
 
     WorkStatus workStatus(ZooInnerStatus::instance().getSweepStatus(),
                           ZooInnerStatus::instance().getMopStatus(),
@@ -117,7 +117,7 @@ string ChangeWorkModeStrategy::handler(WorkStatus params) {
 string ChangeAromStatusStrategy::handler(bool params) {
     std_msgs::Int16 arom_status;
     arom_status.data = (int16_t) params;
-    PublishInnerManager::instance().getPubInner()->publishAromStatus(arom_status);
+    PublishInnerManager::instance().publishAromStatus(arom_status);
     return "";
 }
 
@@ -125,7 +125,7 @@ string SelfCleanStrategy::handler(string params) {
     //操作,发布指令，打开自清洁
     std_msgs::Int16 clean_mode;
     clean_mode.data = ((int16_t) 4);
-    PublishInnerManager::instance().getPubInner()->publishPushMode(clean_mode);
+    PublishInnerManager::instance().publishPushMode(clean_mode);
     return "";
 }
 
@@ -133,7 +133,7 @@ string OpenMachineDrawerStrategy::handler(string params) {
     //操作,发布指令，打开自清洁
     std_msgs::Int16 drawer_cmd;
     drawer_cmd.data = ((int16_t) 1);
-    PublishInnerManager::instance().getPubInner()->publishDrawerCmd(drawer_cmd);
+    PublishInnerManager::instance().publishDrawerCmd(drawer_cmd);
     return "";
 }
 
@@ -142,7 +142,7 @@ string LightBeltModeStrategy::handler(int params) {
     //操作,发布指令，打开自清洁
     std_msgs::Int16 light_cmd;
     light_cmd.data = ((int16_t) light_mode);
-    PublishInnerManager::instance().getPubInner()->publishLightCmd(light_cmd);
+    PublishInnerManager::instance().publishLightCmd(light_cmd);
     return "";
 }
 
@@ -150,7 +150,7 @@ string PlayerRecruitVoiceStrategy::handler(int params) {
     //操作,发布指令，播放音乐
     std_msgs::Int32 player_cmd;
     player_cmd.data = ((int32_t) 1);
-    PublishInnerManager::instance().getPubInner()->publishMusic(player_cmd);
+    PublishInnerManager::instance().publishMusic(player_cmd);
     return "";
 }
 

@@ -1,12 +1,10 @@
 //
-// Created by lijiang on 2021/12/18.
+// Created by Looper on 2023/2/24.
 //
 
-#include "pub/PubInner.h"
-#include <std_msgs/Int8.h>
-#include "glog/logging.h"
+#include "manager/PublishInnerManager.h"
 
-PubInner::PubInner(ros::NodeHandle handle) : handle(handle) {
+void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/switch_mode", 10);
     pub_flag_ = handle.advertise<std_msgs::Int32>("/flag", 10);
     pub_charge_ = handle.advertise<std_msgs::Int32>("/mr_charge", 10);
@@ -38,133 +36,138 @@ PubInner::PubInner(ros::NodeHandle handle) : handle(handle) {
     pub_knob_task = handle.advertise<std_msgs::Int8>("/knob/task", 1);
     pub_reboot = handle.advertise<std_msgs::Int32>("/reboot_flag", 1);
     pub_shutdown = handle.advertise<std_msgs::Int32>("/shutdown_flag", 1);
+    pub_go_first = handle.advertise<std_msgs::Int32>("/go_to_first_flag", 1);
 }
 
-void PubInner::publishMode(const std_msgs::Int32 &message) const {
+
+void PublishInnerManager::publishMode(const std_msgs::Int32 &message) const {
     //mode:0:建图；1修改地图；2工作
     pub_mode_.publish(message);
 }
 
-void PubInner::publishCharge(const std_msgs::Int32 &message) const {
+void PublishInnerManager::publishCharge(const std_msgs::Int32 &message) const {
     //mode:0:建图；1修改地图；2工作
     pub_charge_.publish(message);
 }
 
-void PubInner::publishFlag(const std_msgs::Int32 &message) const {
+void PublishInnerManager::publishFlag(const std_msgs::Int32 &message) const {
 
     pub_flag_.publish(message);
 }
 
-void PubInner::pubManualPush(const std_msgs::Int16 &message) const {
+void PublishInnerManager::pubManualPush(const std_msgs::Int16 &message) const {
     pub_manual_push_.publish(message);
 }
 
-void PubInner::publishStartPlan(const std_msgs::Int32MultiArray &message) const {
+void PublishInnerManager::publishStartPlan(const std_msgs::Int32MultiArray &message) const {
     pub_start_plan_.publish(message);
 }
 
-void PubInner::publishPushMode(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishPushMode(const std_msgs::Int16 &message) const {
     pub_push_mode_.publish(message);
 }
 
-void PubInner::publishSelfClean(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishSelfClean(const std_msgs::Int16 &message) const {
     pub_self_clean_.publish(message);
 }
 
-void PubInner::publishVacuumMode(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishVacuumMode(const std_msgs::Int16 &message) const {
     pub_vacuum_mode_.publish(message);
 }
 
-void PubInner::publishMopMode(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishMopMode(const std_msgs::Int16 &message) const {
     pub_mop_mode_.publish(message);
 }
 
-void PubInner::publishSweepMode(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishSweepMode(const std_msgs::Int16 &message) const {
     pub_sweep_mode_.publish(message);
 }
 
-void PubInner::publishAromStatus(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishAromStatus(const std_msgs::Int16 &message) const {
     pub_arom_status_.publish(message);
 }
 
-void PubInner::publishDrawerCmd(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishDrawerCmd(const std_msgs::Int16 &message) const {
     pub_darwer_cmd_.publish(message);
 }
 
-void PubInner::publishLightCmd(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishLightCmd(const std_msgs::Int16 &message) const {
     pub_light_mode_.publish(message);
 }
 
-void PubInner::publishCommand(const std_msgs::String &message) const {
+void PublishInnerManager::publishCommand(const std_msgs::String &message) const {
     pub_mode_command_.publish(message);
 }
 
-void PubInner::publishVelocity(const geometry_msgs::Twist &message) const {
+void PublishInnerManager::publishVelocity(const geometry_msgs::Twist &message) const {
     pub_velocity_.publish(message);
 }
 
-void PubInner::publishTaskPoint(const std_msgs::String &message) const {
+void PublishInnerManager::publishTaskPoint(const std_msgs::String &message) const {
     pub_task_point_.publish(message);
 }
 
-void PubInner::publishSkipTaskPoint(const std_msgs::String &message) const {
+void PublishInnerManager::publishSkipTaskPoint(const std_msgs::String &message) const {
     pub_skip_point_.publish(message);
 }
 
 
-void PubInner::publishPauseVel(const geometry_msgs::Twist &message) const {
+void PublishInnerManager::publishPauseVel(const geometry_msgs::Twist &message) const {
     pub_pause_.publish(message);
 }
 
-void PubInner::publishPassedPath(const nav_msgs::Path &message) const {
+void PublishInnerManager::publishPassedPath(const nav_msgs::Path &message) const {
     pub_passed_path_.publish(message);
 }
 
-void PubInner::publishInitialposition(const geometry_msgs::PoseWithCovarianceStamped &message) const {
+void PublishInnerManager::publishInitialposition(const geometry_msgs::PoseWithCovarianceStamped &message) const {
     pub_initial_postion_.publish(message);
 }
 
-void PubInner::publishMusic(const std_msgs::Int32 &message) const {
+void PublishInnerManager::publishMusic(const std_msgs::Int32 &message) const {
     pub_music.publish(message);
 }
 
-void PubInner::publishOtaPad(const std_msgs::String &message) const {
+void PublishInnerManager::publishOtaPad(const std_msgs::String &message) const {
     pub_otaPad.publish(message);
 }
 
-void PubInner::publishOtaCore(const std_msgs::String &message) const {
+void PublishInnerManager::publishOtaCore(const std_msgs::String &message) const {
     pub_otacore.publish(message);
 }
 
-void PubInner::publishOtaLow(const std_msgs::String &message) const {
-    LOG(ERROR) << message.data << "  ";
+void PublishInnerManager::publishOtaLow(const std_msgs::String &message) const {
     pub_otalow.publish(message);
 }
 
-void PubInner::publishRobotStatus(const std_msgs::Int32 &message) const {
+void PublishInnerManager::publishRobotStatus(const std_msgs::Int32 &message) const {
     pub_robot_status.publish(message);
 }
 
-void PubInner::publishBacktoBase(const std_msgs::Int32 &message) const {
+void PublishInnerManager::publishBacktoBase(const std_msgs::Int32 &message) const {
     pub_back_to_base.publish(message);
 }
 
-void PubInner::publishDSVersion(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishDSVersion(const std_msgs::Int16 &message) const {
     pub_ds_version.publish(message);
 }
 
-void PubInner::publishKnobAvailable(const std_msgs::Bool &message) const {
+void PublishInnerManager::publishKnobAvailable(const std_msgs::Bool &message) const {
     pub_knob_available.publish(message);
 }
 
-void PubInner::publishKnobTask(const std_msgs::Int8 &message) const {
+void PublishInnerManager::publishKnobTask(const std_msgs::Int8 &message) const {
     pub_knob_task.publish(message);
 }
 
-void PubInner::publishShutDown(const std_msgs::Int32 &message) const {
+void PublishInnerManager::publishShutDown(const std_msgs::Int32 &message) const {
     pub_shutdown.publish(message);
 }
 
-void PubInner::publishReboot(const std_msgs::Int32 &message) const {
+void PublishInnerManager::publishReboot(const std_msgs::Int32 &message) const {
     pub_reboot.publish(message);
+}
+
+void PublishInnerManager::publishGoToFirst(const std_msgs::Int32 &message) const {
+    pub_go_first.publish(message);
 }

@@ -14,6 +14,7 @@
 #include "net/WsServerManager.h"
 #include "tool/Variable.h"
 #include <ros/ros.h>
+#include <std_msgs/String.h>
 
 //todo 脱空跳点
 class MoveBaseRecoveryFailureSubscribe {

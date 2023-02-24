@@ -8,8 +8,6 @@
 #include "MessageStrategy.h"
 #include<std_msgs/String.h>
 #include <nlohmann/json.hpp>
-#include <pub/PubOut.h>
-#include <pub/PubInner.h>
 
 class MessageContext {
 private:

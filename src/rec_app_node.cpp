@@ -20,7 +20,6 @@ int Factorial(int number) {
 
 int ignore_area;//面积小于此百分比面积的分区区域将被忽略
 
-NoticeManager *NoticeManager::m_instance_ptr = nullptr;
 Variable *Variable::m_instance_ptr = nullptr;
 TeachModePoint *TeachModePoint::m_instance_ptr = nullptr;
 ViewPartManager *ViewPartManager::m_instance_ptr = nullptr;
@@ -54,11 +53,8 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle handle;
     handle.param("/path_planning_node/ignore_area", ignore_area, std::int32_t(8));
-    PubInner pubInner(handle);
-    PubOut pubOut(handle);
-    PublishInnerManager::instance().setPubInner(&pubInner);
-    PublishOutManager::instance().setPubOut(&pubOut);
-    internal_event::InternalEventPubManager::get_instance()->setPubOut(&pubOut);
+    PublishInnerManager::instance().initialize(handle);
+    PublishOutManager::instance().initialize(handle);
 
     SegmentationCenter::instance().initialize();
     ExplorationCenter::instance().initialize(handle);
@@ -69,16 +65,15 @@ int main(int argc, char **argv) {
 
     //启动订阅话题的callback
     JsonSubscribe jsonSubscribe(handle);
-    JsonSubscribeCloud jsonSubscribeCloud(handle, pubInner, pubOut);
-    BeforeJsonSubscribe beforeJsonSubscribe(handle, pubInner, pubOut);
-    MapInnerSubscribe mapInnerSubscribe(handle, pubInner, pubOut);
-    DSVersionSubscribe dsVersionSubscribe(handle, pubInner, pubOut);
+    JsonSubscribeCloud jsonSubscribeCloud(handle);
+    BeforeJsonSubscribe beforeJsonSubscribe(handle);
+    MapInnerSubscribe mapInnerSubscribe(handle);
+    DSVersionSubscribe dsVersionSubscribe(handle);
 
-    SelfCheckSubscribe selfCheckSubscribe(handle, pubInner, pubOut);
+    SelfCheckSubscribe selfCheckSubscribe(handle);
     MoveBaseRecoveryFailureSubscribe moveBaseRecoveryFailureSubscribe(handle);
 
     SegmentationSubscribe SegmentationSubscribe(handle);
-    NoticeManager::get_instance()->setPubOut(&pubOut);
 
     std_msgs::String test;
     /////////////////////////////////
@@ -98,7 +93,7 @@ int main(int argc, char **argv) {
     initNodeParams(nh);
 
     ros::Publisher pub_current = nh.advertise<std_msgs::Int32>("/current_flag", 10);
-    WsServerManager::instance().startWebSocket(pubInner, pubOut);
+    WsServerManager::instance().startWebSocket();
 
     string last_task;
     nh.param<string>("last_task", last_task, "");//上次执行的任务

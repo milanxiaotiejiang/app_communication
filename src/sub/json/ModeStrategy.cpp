@@ -12,7 +12,7 @@ string RobotTryEnterModeStrategy::handler(int params) {
     } else {
         std_msgs::Int32 mode;
         mode.data = ((int32_t) params);
-        PublishInnerManager::instance().getPubInner()->publishMode(mode);
+        PublishInnerManager::instance().publishMode(mode);
         return "";
     }
 }
@@ -21,23 +21,23 @@ string RobotForceEnterModeStrategy::handler(int params) {
     ManualManager::instance().backToBase(true);
     std_msgs::Int32 mode;
     mode.data = ((int32_t) params);
-    PublishInnerManager::instance().getPubInner()->publishMode(mode);
+    PublishInnerManager::instance().publishMode(mode);
     return "";
 }
 
 string RobotPreparetoWorkStrategy::handler(string params) {
     std_msgs::Int32 mode;
     mode.data = (int32_t) 2;
-    PublishInnerManager::instance().getPubInner()->publishMode(mode);
+    PublishInnerManager::instance().publishMode(mode);
     return "";
 }
 
 string MapPreparetoWorkStrategy::handler(string params) {
-    PublishOutManager::instance().getPubOut()->publishMap(Variable::get_instance()->getMapApp());
+    PublishOutManager::instance().publishMap(Variable::get_instance()->getMapApp());
     return "";
 }
 
 string GridMapPreparetoWorkStrategy::handler(string params) {
-    PublishOutManager::instance().getPubOut()->publishGridMap(Variable::get_instance()->getGridMapApp());
+    PublishOutManager::instance().publishGridMap(Variable::get_instance()->getGridMapApp());
     return "";
 }

@@ -3,7 +3,6 @@
 //
 
 #include "task/manager/manual.h"
-#include "pub/PubInner.h"
 #include "manager/PublishInnerManager.h"
 #include "task/manager/MechanismManager.h"
 
@@ -32,7 +31,7 @@ void ManualManager::shutdown() {
     msg.data = 1;
     MechanismManager::instance().resetWorkStatus();
     sleep(1);
-    PublishInnerManager::instance().getPubInner()->publishShutDown(msg);
+    PublishInnerManager::instance().publishShutDown(msg);
 }
 
 void ManualManager::reboot() {
@@ -40,7 +39,7 @@ void ManualManager::reboot() {
     msg.data = 1;
     MechanismManager::instance().resetWorkStatus();
     sleep(1);
-    PublishInnerManager::instance().getPubInner()->publishReboot(msg);
+    PublishInnerManager::instance().publishReboot(msg);
 }
 
 bool ManualManager::taskRunning() {

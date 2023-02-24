@@ -3,23 +3,22 @@
 //
 
 #include <ros/package.h>
+#include <std_msgs/Int16.h>
 #include "sub/DSVersionSubscribe.h"
 #include "tool/write_file.hpp"
+#include "manager/PublishInnerManager.h"
 
-DSVersionSubscribe::DSVersionSubscribe(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut)
-        : handle(handle),
-          pubInner(std::move(pubInner)),
-          pubOut(std::move(pubOut)) {
+DSVersionSubscribe::DSVersionSubscribe(ros::NodeHandle handle) : handle(handle) {
     sub_ds_hw = handle.subscribe("/dasheng/hw", 1, &DSVersionSubscribe::subscribeHWCallback, this);
     sub_ds_sw = handle.subscribe("/dasheng/sw", 1, &DSVersionSubscribe::subscribeSWCallback, this);
 
     std::cout << "DSVersionSubscribe" << std::endl;
     std_msgs::Int16 version;
     version.data = 0;
-    pubInner.publishDSVersion(version);
+    PublishInnerManager::instance().publishDSVersion(version);
     sleep(0.5);
     version.data = 1;
-    pubInner.publishDSVersion(version);
+    PublishInnerManager::instance().publishDSVersion(version);
 
     string filePath;
     filePath.append(ros::package::getPath("data_base"));

@@ -74,10 +74,10 @@ void getLocationStrategy::handler() {
             jLocation = json::parse(strLocationInfo);
             // jLocation["project"] = jsonProject["name"];
             strLocationInfo = jLocation.dump();
-            PublishOutManager::instance().getPubOut()->robot_result = strLocationInfo;
+            CloudRobotControl::instance().saveInfo(strLocationInfo);
         } else {
             is_location = false;
-            PublishOutManager::instance().getPubOut()->robot_result = "{\"err_msg\":\"this no locaiton\"}";
+            CloudRobotControl::instance().saveInfo("{\"err_msg\":\"this no locaiton\"}");
         }
     } else {
     }

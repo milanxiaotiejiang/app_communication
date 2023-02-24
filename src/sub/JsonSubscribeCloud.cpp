@@ -29,12 +29,10 @@
 #include "sub/json/NoticeStrategy.h"
 #include "sub/json/CloudDeviceStrategy.h"
 #include "sub/json/KnobControlStrategy.h"
+#include "manager/cloud_robot_control.h"
 
 
-JsonSubscribeCloud::JsonSubscribeCloud(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut)
-        : handle(handle),
-          pubInner(std::move(pubInner)),
-          pubOut(std::move(pubOut)) {
+JsonSubscribeCloud::JsonSubscribeCloud(ros::NodeHandle handle) : handle(handle) {
     // sub_json_ = handle.subscribe(APP_JSON_V2, 1, &JsonSubscribeCloud::subscribeCallback, this);
     service = handle.advertiseService("robot_control_srv", &JsonSubscribeCloud::function,
                                       this);//写明服务的处理函数 handle_function cloud_srvs是service的名称
@@ -238,10 +236,8 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
 
         messageContext.startDateProgressing(MessageSource::Cloud, jdecode);
 
-        res.resp = PublishOutManager::instance().getPubOut()->robot_result;//pubOut.robot_result;
-        //   LOG(ERROR) << "JsonSubscribeCloud method : " << res.resp;
-        //pubOut.robot_result = "{}";
-        PublishOutManager::instance().getPubOut()->robot_result = "{}";
+        res.resp = CloudRobotControl::instance().useInfo();
+        CloudRobotControl::instance().reset();
         delete messageStrategy;
     }
 

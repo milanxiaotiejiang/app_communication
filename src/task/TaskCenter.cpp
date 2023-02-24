@@ -151,7 +151,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
                                              ZooInnerStatus::instance().getIsCharging(),
                                              ZooInnerStatus::instance().getAromStatus());
                 VersionSubscribe<ShowWorkStatus> statusResponse(1, status);
-                PublishOutManager::instance().getPubOut()->publishStatus(statusResponse);
+                PublishOutManager::instance().publishStatus(statusResponse);
             }
         });
         moveBaseThread.detach();

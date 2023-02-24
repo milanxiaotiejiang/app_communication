@@ -9,9 +9,6 @@
 #include "vector"
 #include <iostream>
 
-#include "pub/PubInner.h"
-#include "pub/PubOut.h"
-
 #include "nlohmann/json.hpp"
 
 #include "model/RegisterOperation.h"
@@ -89,7 +86,7 @@ public:
         return obj;
     }
 
-    static void startWebSocket(const PubInner &inner, const PubOut &out);
+    static void startWebSocket();
 
     static void stopWebSocket();
 

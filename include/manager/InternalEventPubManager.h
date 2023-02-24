@@ -3,13 +3,12 @@
 
 #include "model/InternalEvent.h"
 #include "model/SelfCheckErrorType.h"
-#include <pub/PubOut.h>
+#include "PublishOutManager.h"
 #include <mutex>
 
 namespace internal_event {
     class InternalEventPubManager {
     private:
-        PubOut *pub_out_;
         std::mutex internal_mutex_;
 
         const AlarmEvent manual_back_to_base = AlarmEvent("alarm", 1001, "COR_101", "手动返回基站", "");
@@ -83,10 +82,6 @@ namespace internal_event {
             return instance_;
         }
 
-        void setPubOut(PubOut *pubOut) {
-            pub_out_ = pubOut;
-        }
-
         void taskStart(std::string task_id) {
             StartEvent start_event("task_start", task_id);
             json json_result = start_event;
@@ -94,7 +89,7 @@ namespace internal_event {
             msg.data.append(json_result.dump());
             {
                 std::unique_lock<std::mutex> lock(internal_mutex_);
-                pub_out_->publishInternalEvent(msg);
+                PublishOutManager::instance().publishInternalEvent(msg);
             }
 
         }
@@ -106,7 +101,7 @@ namespace internal_event {
             msg.data.append(json_result.dump());
             {
                 std::unique_lock<std::mutex> lock(internal_mutex_);
-                pub_out_->publishInternalEvent(msg);
+                PublishOutManager::instance().publishInternalEvent(msg);
             }
         }
 
@@ -117,7 +112,7 @@ namespace internal_event {
             msg.data.append(json_result.dump());
             {
                 std::unique_lock<std::mutex> lock(internal_mutex_);
-                pub_out_->publishInternalEvent(msg);
+                PublishOutManager::instance().publishInternalEvent(msg);
             }
         }
 
@@ -127,7 +122,7 @@ namespace internal_event {
             msg.data.append(json_result.dump());
             {
                 std::unique_lock<std::mutex> lock(internal_mutex_);
-                pub_out_->publishInternalEvent(msg);
+                PublishOutManager::instance().publishInternalEvent(msg);
             }
         }
 
@@ -251,7 +246,7 @@ namespace internal_event {
             msg.data.append(json_result.dump());
             {
                 std::unique_lock<std::mutex> lock(internal_mutex_);
-                pub_out_->publishInternalEvent(msg);
+                PublishOutManager::instance().publishInternalEvent(msg);
             }
         }
 

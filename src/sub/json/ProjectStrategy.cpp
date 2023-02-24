@@ -6,6 +6,7 @@
 #include "manager/VersionManager.h"
 #include "leave/ParamManager.h"
 #include "leave/robot_speed.h"
+#include "manager/cloud_robot_control.h"
 
 string ProjectStrategy::handler(Project params) {
     string filePath;
@@ -48,10 +49,10 @@ string getProjectStrategy::handler(string params) {
         responseP = pFile1->readAll();
         if (responseP.length() > 0) {
             is_location = true;
-            PublishOutManager::instance().getPubOut()->robot_result = responseP;
+            CloudRobotControl::instance().saveInfo(responseP);
         } else {
             is_location = false;
-            PublishOutManager::instance().getPubOut()->robot_result = "there is no project!!!";
+            CloudRobotControl::instance().saveInfo("there is no project!!!");
         }
     } else {
     }

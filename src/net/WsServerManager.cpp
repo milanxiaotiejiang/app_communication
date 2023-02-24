@@ -5,7 +5,9 @@
 #include "net/WsServerManager.h"
 #include "tool/Queue.hpp"
 #include "simulation.h"
+#include "manager/PublishOutManager.h"
 #include <opencv2/opencv.hpp>
+#include <std_msgs/String.h>
 //#include "tool/ZLibString.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -160,7 +162,7 @@ void on_open(server *s, websocketpp::connection_hdl hdl) {
 }
 
 // Define a callback to handle incoming messages
-void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr msg, const PubOut pubOut) {
+void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr msg) {
     //    std::cout << "on_message called with hdl: " << hdl.lock().get()
     //              << " and message: " << msg->get_payload()
     //              << " and " << msg->get_opcode()
@@ -198,7 +200,7 @@ void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr m
                         auto data = jDecode.get<RequestModel<RequestData>>();
                         std_msgs::String result;
                         result.data.append(data.getMsg().data);
-                        pubOut.publishAppCommunication(result);
+                        PublishOutManager::instance().publishAppCommunication(result);
                     }
                 }
             } catch (...) {
@@ -383,8 +385,6 @@ public:
  * */
 class WsServerThread : public CThread {
 private:
-    PubInner pubInner;
-    PubOut pubOut;
     WsServerDataThread *wsServerDataThread;
     WsServerSubThread *wsServerSubThread;
     WsServerMapThread *wsServerMapThread;
@@ -392,7 +392,7 @@ private:
     server echo_server;
 
 public:
-    WsServerThread(PubInner pubInner, PubOut pubOut) : pubInner(std::move(pubInner)), pubOut(std::move(pubOut)) {}
+    WsServerThread() {}
 
     void *run() override {
         LOG(INFO) << "WsServerThread : " << syscall(SYS_gettid);
@@ -412,7 +412,7 @@ public:
             echo_server.set_reuse_addr(true);
 
             //设置收到消息时的回调函数
-            echo_server.set_message_handler(bind(&on_message, &echo_server, ::_1, ::_2, pubOut));
+            echo_server.set_message_handler(bind(&on_message, &echo_server, ::_1, ::_2));
 
             echo_server.set_http_handler(bind(&on_http, &echo_server, ::_1));
             //设置连接失败时的回调函数
@@ -482,18 +482,18 @@ void messageBusTopic(const string &message) {
     LOG(INFO) << "messageBusTopic : " << message;
 }
 
-void WsServerManager::startWebSocket(const PubInner &inner, const PubOut &out) {
+void WsServerManager::startWebSocket() {
 
     //    MessageBusManager::get_instance()->getMessageBus()->attach(
     //            [](const string message) {
     //                LOG(INFO) << "messageBusTopic : " << message;
     //            }, MESSAGE_BUS_TOPIC);
 
-    wsServerThread = new WsServerThread(inner, out);
+    wsServerThread = new WsServerThread();
     wsServerThread->start();
     wsServerThread->detach();
 
-    auto funTransformBuffer = [](PolyM::Queue &q, const PubOut &out) {
+    auto funTransformBuffer = [](PolyM::Queue &q) {
         while (true) {
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
             auto m = q.get();
@@ -502,10 +502,10 @@ void WsServerManager::startWebSocket(const PubInner &inner, const PubOut &out) {
 //            LOG(ERROR) << "funTransformBuffer : " << payload;
             std_msgs::String result;
             result.data.append(payload);
-            out.publishAppJson(APP_JSON_VERSION::V1, result);
+            PublishOutManager::instance().publishAppJson(APP_JSON_VERSION::V1, result);
         }
     };
-    std::thread tTransformBuffer(funTransformBuffer, std::ref(transformQueue), out);
+    std::thread tTransformBuffer(funTransformBuffer, std::ref(transformQueue));
     tTransformBuffer.detach();
 }
 

@@ -116,7 +116,7 @@ void ZooRobotStatusSubscribe::subscribeCallback(const zoo_bringup::robot_status 
                                  ZooInnerStatus::instance().getIsCharging(),
                                  ZooInnerStatus::instance().getAromStatus());
     VersionSubscribe<ShowWorkStatus> statusResponse(1, status);
-    PublishOutManager::instance().getPubOut()->publishStatus(statusResponse);
+    PublishOutManager::instance().publishStatus(statusResponse);
 
 
     if (ZooInnerStatus::instance().getNeedSleep() && is_charging) {
@@ -133,7 +133,7 @@ void ZooRobotStatusSubscribe::pubMaterial() const {
     MaterialStatus materialStatus(soft_brush, carpet_brush, push_brush, fan_filter);
     //回复，带参数，包括分配的id
     VersionSubscribe<MaterialStatus> materialResponse(MATERIAL_STATUS_VERSION, materialStatus);
-    PublishOutManager::instance().getPubOut()->publishMaterialStatus(materialResponse);
+    PublishOutManager::instance().publishMaterialStatus(materialResponse);
 }
 
 void ZooRobotStatusSubscribe::pubKnob(const zoo_bringup::robot_status &robot_status) const {
@@ -142,7 +142,7 @@ void ZooRobotStatusSubscribe::pubKnob(const zoo_bringup::robot_status &robot_sta
     KnobStatus knobStatus;
     knobStatus.setIsAvailable(knob_available);
     VersionSubscribe<KnobStatus> knobResponse(WORK_STATUS_VERSION, knobStatus);
-    PublishOutManager::instance().getPubOut()->publishKnob(knobResponse);
+    PublishOutManager::instance().publishKnob(knobResponse);
 }
 
 //电机堵转

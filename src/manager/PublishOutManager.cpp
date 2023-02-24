@@ -1,11 +1,11 @@
 //
-// Created by lijiang on 2021/12/18.
+// Created by Looper on 2023/2/24.
 //
 
-#include "pub/PubOut.h"
+#include "manager/PublishOutManager.h"
 #include "net/WsServerManager.h"
 
-PubOut::PubOut(ros::NodeHandle handle) : handle(handle) {
+void PublishOutManager::initialize(ros::NodeHandle handle) {
     pub_response_ = handle.advertise<std_msgs::String>(RESPONSE, 1);
     pub_response_json_ = handle.advertise<std_msgs::String>(RESPONSE_JSON, 1);
     pub_robot_status_ = handle.advertise<std_msgs::String>(ROBOT_STATUS, 10);
@@ -29,22 +29,13 @@ PubOut::PubOut(ros::NodeHandle handle) : handle(handle) {
     acceptAppCommunication = handle.advertise<std_msgs::String>(APP_COMMUNICATION, 1);
 
     pub_knob_ = handle.advertise<std_msgs::String>(KNOB_APP, 10);
-
 }
 
-void PubOut::set_robot_result(string result) const {
-    const string robot_result = result;
-}
-
-string PubOut::get_robot_result() {
-    return robot_result;
-}
-
-void PubOut::publishResponse(const std_msgs::String &message) const {
+void PublishOutManager::publishResponse(const std_msgs::String &message) const {
     // pub_response_.publish(message);
 }
 
-void PubOut::publishJson(const std::string &message) const {
+void PublishOutManager::publishJson(const std::string &message) const {
 
     WsServerManager::instance().sendData(message);
 
@@ -53,7 +44,7 @@ void PubOut::publishJson(const std::string &message) const {
     pub_response_json_.publish(result);
 }
 
-void PubOut::publishStatus(const VersionSubscribe<ShowWorkStatus> &versionSubscribe) const {
+void PublishOutManager::publishStatus(const VersionSubscribe<ShowWorkStatus> &versionSubscribe) const {
     RequestModel<VersionSubscribe<ShowWorkStatus>> requestModel(
             "publish", ROBOT_STATUS, versionSubscribe
     );
@@ -67,7 +58,7 @@ void PubOut::publishStatus(const VersionSubscribe<ShowWorkStatus> &versionSubscr
     pub_robot_status_.publish(result);
 }
 
-void PubOut::publishMaterialStatus(const VersionSubscribe<MaterialStatus> &versionSubscribe) const {
+void PublishOutManager::publishMaterialStatus(const VersionSubscribe<MaterialStatus> &versionSubscribe) const {
     RequestModel<VersionSubscribe<MaterialStatus>> requestModel(
             "publish", MATERIAL_STATUS, versionSubscribe
     );
@@ -81,29 +72,29 @@ void PubOut::publishMaterialStatus(const VersionSubscribe<MaterialStatus> &versi
     pub_material_status_.publish(result);
 }
 
-void PubOut::publishMap(const nav_msgs::OccupancyGrid &message) const {
+void PublishOutManager::publishMap(const nav_msgs::OccupancyGrid &message) const {
     WsServerManager::instance().setMapApp(message);
     pub_map_.publish(message);
 }
 
-void PubOut::publishGridMap(const nav_msgs::OccupancyGrid &message) const {
+void PublishOutManager::publishGridMap(const nav_msgs::OccupancyGrid &message) const {
 //    WsServerManager::instance().setGridMapApp(message);
 //    pub_grid_map_.publish(message);
 }
 
-void PubOut::publishScan(const sensor_msgs::LaserScan &message) const {
+void PublishOutManager::publishScan(const sensor_msgs::LaserScan &message) const {
     //    pub_scan_.publish(message);
 }
 
-void PubOut::publishPath(const nav_msgs::Path &message) const {
+void PublishOutManager::publishPath(const nav_msgs::Path &message) const {
     //    pub_path_.publish(message);
 }
 
-void PubOut::publishMarkerPoint(const visualization_msgs::Marker &message) const {
+void PublishOutManager::publishMarkerPoint(const visualization_msgs::Marker &message) const {
     //    pub_marker_.publish(message);
 }
 
-void PubOut::publishSelfCheck(const VersionSubscribe<SelfCheckStatus> &versionSubscribe) const {
+void PublishOutManager::publishSelfCheck(const VersionSubscribe<SelfCheckStatus> &versionSubscribe) const {
     RequestModel<VersionSubscribe<SelfCheckStatus>> requestModel;
     requestModel.setOp("publish");
     requestModel.setTopic(CHECK_APP);
@@ -118,7 +109,7 @@ void PubOut::publishSelfCheck(const VersionSubscribe<SelfCheckStatus> &versionSu
     pub_self_check_.publish(result);
 }
 
-void PubOut::publishNotice(const Notice &notice) const {
+void PublishOutManager::publishNotice(const Notice &notice) const {
     RequestModel<Notice> requestModel;
     requestModel.setOp("publish");
     requestModel.setTopic(NOTICE_APP);
@@ -133,7 +124,7 @@ void PubOut::publishNotice(const Notice &notice) const {
     pub_notice_.publish(result);
 }
 
-void PubOut::publishAppJson(int version, const std_msgs::String &message) const {
+void PublishOutManager::publishAppJson(int version, const std_msgs::String &message) const {
     if (version == APP_JSON_VERSION::V1) {
         acceptAppJsonV1.publish(message);
     } else if (version == APP_JSON_VERSION::V2) {
@@ -141,25 +132,25 @@ void PubOut::publishAppJson(int version, const std_msgs::String &message) const 
     }
 }
 
-void PubOut::publishAppSchedule(const std_msgs::String &message) const {
+void PublishOutManager::publishAppSchedule(const std_msgs::String &message) const {
     cout << "publishAppSchedule!!!!!!!!!!!!!!! " << endl;
     acceptAppSchedule.publish(message);
 }
 
-void PubOut::publishAppError(const std_msgs::String &message) const {
+void PublishOutManager::publishAppError(const std_msgs::String &message) const {
     cout << "publishAppError!!!!!!!!!!!!!!! " << endl;
     acceptAppError.publish(message);
 }
 
-void PubOut::publishAppCommunication(const std_msgs::String &message) const {
+void PublishOutManager::publishAppCommunication(const std_msgs::String &message) const {
     acceptAppCommunication.publish(message);
 }
 
-void PubOut::publishCloudStatus(const std_msgs::String &message) const {
+void PublishOutManager::publishCloudStatus(const std_msgs::String &message) const {
     pub_cloud_status.publish(message);
 }
 
-void PubOut::publishKnob(const VersionSubscribe<KnobStatus> &versionSubscribe) const {
+void PublishOutManager::publishKnob(const VersionSubscribe<KnobStatus> &versionSubscribe) const {
     RequestModel<VersionSubscribe<KnobStatus>> requestModel(
             "publish", KNOB_APP, versionSubscribe
     );
@@ -173,11 +164,11 @@ void PubOut::publishKnob(const VersionSubscribe<KnobStatus> &versionSubscribe) c
     pub_knob_.publish(result);
 }
 
-void PubOut::publishCloudEvent(const clean_msgs::cloud_robot_event &event) const {
+void PublishOutManager::publishCloudEvent(const clean_msgs::cloud_robot_event &event) const {
     pub_cloud_event.publish(event);
 }
 
-void PubOut::publishInternalEvent(const std_msgs::String &message) const {
+void PublishOutManager::publishInternalEvent(const std_msgs::String &message) const {
 //    LOG(ERROR) << "publishInternalEvent message : " << message.data;
     pub_internal_event_.publish(message);
 }

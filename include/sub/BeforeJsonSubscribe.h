@@ -14,8 +14,6 @@
 #include "boost/thread.hpp"
 
 #include <nlohmann/json.hpp>
-#include <pub/PubOut.h>
-#include <pub/PubInner.h>
 #include "tool/OldFunction.hpp"
 
 using json = nlohmann::json;
@@ -23,14 +21,12 @@ using json = nlohmann::json;
 class BeforeJsonSubscribe {
 private:
     ros::NodeHandle handle;
-    PubInner pubInner;
-    PubOut pubOut;
     ros::Subscriber sub_json_;
 
     void subscribeCallback(const std_msgs::String &result);
 
 public:
-    BeforeJsonSubscribe(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut);
+    BeforeJsonSubscribe(ros::NodeHandle handle);
 
     virtual ~BeforeJsonSubscribe();
 
