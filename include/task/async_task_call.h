@@ -91,7 +91,7 @@ protected:
 
     void callManualCleanEnd();
 
-    void callSubsequentSelfClean(WorkStatus status);
+    void callSubsequentSelfClean(const WorkStatus& status);
 
     void callSelfCleanClose();
 

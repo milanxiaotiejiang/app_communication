@@ -436,7 +436,7 @@ void AsyncTaskCall::callManualCleanEnd() {//退出手动模式
     callNeedPublishSleep();
 }
 
-void AsyncTaskCall::callSubsequentSelfClean(WorkStatus status) {
+void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus& status) {
     LOG(INFO) << status;
     if (status.getMopStatus() > 0) {
         if (ParamManager::instance().getDry() == -1) {
