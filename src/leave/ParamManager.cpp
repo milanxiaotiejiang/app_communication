@@ -18,7 +18,7 @@ void ParamManager::loadDefaultParam() {
     if (access(drop_path.c_str(), F_OK)) {
         YAML::Node node;
         node["tof"] = 600;
-        node["silver"] = false;
+        node["silver"] = true;
         node["dry"] = 0;
         std::ofstream ofstream(drop_path);
         ofstream << node;
@@ -31,7 +31,7 @@ int ParamManager::getTof() {
         throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
     }
     YAML::Node node = YAML::LoadFile(drop_path);
-    return node["silver"].as<bool>();
+    return node["tof"].as<int>();
 }
 
 void ParamManager::setTof(int tof) {

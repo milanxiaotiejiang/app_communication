@@ -6,7 +6,7 @@
 
 ParamVo::ParamVo() {}
 
-ParamVo::ParamVo(int tof, bool silver, int speed) : tof(tof), silver(silver), speed(speed) {}
+ParamVo::ParamVo(int tof, bool silver, float speed) : tof(tof), silver(silver), speed(speed) {}
 
 int ParamVo::getTof() const {
     return tof;

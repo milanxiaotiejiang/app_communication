@@ -18,7 +18,7 @@ private:
 public:
     ParamVo();
 
-    ParamVo(int tof, bool silver, int speed);
+    ParamVo(int tof, bool silver, float speed);
 
     int getTof() const;
 

@@ -142,8 +142,14 @@ void MechanismManager::quitManualControl() {
 
 void MechanismManager::openHotWind() {
     LOG(INFO) << "开启热风烘干";
+    std_msgs::Int16 msg;
+    msg.data = 1;
+    PublishInnerManager::instance().publishSelfClean(msg);
 }
 
 void MechanismManager::closeHotWind() {
     LOG(INFO) << "关闭热风烘干";
+    std_msgs::Int16 msg;
+    msg.data = 0;
+    PublishInnerManager::instance().publishSelfClean(msg);
 }
