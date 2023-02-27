@@ -40,10 +40,10 @@ private:
     std::vector<std::vector<Point>> virtualWallList;
     std::vector<std::vector<Point>> penaltyZoneList;
 
-    const double robot_radius_ = 0.28;
+    const double robot_radius_ = 0.26;
     const int map_correction_closing_neighborhood_size_ = 1;
-    const double grid_obstacle_offset_ = 0.1;
-    const double path_eps_ = 1.0;
+    const double grid_obstacle_offset_ = 0.16;
+    const double path_eps_ = 7.0;
     const double min_cell_area_ = 100.0;
     const int max_deviation_from_track_ = -1;
     const int range_near_base_station_ = 5;

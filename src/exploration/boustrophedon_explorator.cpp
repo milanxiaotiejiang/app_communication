@@ -114,8 +114,14 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         // 算法原理：每次都取离当前位置最近的区域为下一个清扫区域，到达下一个区域后，再取最近的区域为下一个清扫区域，即遗传学TSP前半段
         LOG(INFO) << "NearestNeighborTSPSolver .. ";
         NearestNeighborTSPSolver neighbor_tsp_solver;
-        optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
+        optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 0.2, 0.0,
                                                             map_resolution, start_cell_index, 0);
+        if (optimal_order.size() != polygon_centers.size()) {
+            LOG(INFO)
+                    << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
+            optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
+                                                                map_resolution, start_cell_index, 0);
+        }
     }
 
     if (DISPLAY_TRAJECTORY) {

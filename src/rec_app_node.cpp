@@ -159,8 +159,8 @@ void initLog(char *const *argv) {
     google::SetLogFilenameExtension(filenameExtension.data());
 
     FLAGS_colorlogtostderr = true; // 开启终端颜色区分
-    google::InstallFailureSignalHandler();
-    google::InstallFailureWriter(&SignalHandle);
+//    google::InstallFailureSignalHandler();
+//    google::InstallFailureWriter(&SignalHandle);
 
     //    LOG(INFO) << "This is my first glog INFO ";
     //    LOG(WARNING) << "This is my first glog WARNING";

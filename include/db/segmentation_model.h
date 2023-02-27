@@ -108,13 +108,13 @@ max_area_for_merging: 12.5              #应与其周围房间合并的房间的
 class PlanPo {
 public:
     std::string map_id;
-    double robot_radius;//机器人半径 0.1-0.3（0.30）影响来回间距、贴边距离，数值越大间距越大，反之间距变小
+    double robot_radius;//机器人半径 0.2-0.3（0.26）影响来回间距、贴边距离，数值越大间距越大，反之间距变小
     int map_correction_closing_neighborhood_size;//外围区域闭合邻域大小 0-10（1）去除噪点，使地图更加圆润，数值越大规划越整齐，数值越小规划越真实
-    double grid_obstacle_offset;//障碍物的额外偏移 0-0.3（0.2）数值越大偏离障碍物越大
-    double path_eps;//路径规划时两点间距  1-10（1.0）数值越小规划越精准
-    double min_cell_area;//最小规划面积 30-500100）抛弃的最小面积
+    double grid_obstacle_offset;//障碍物的额外偏移 0-0.3（0.16）数值越大偏离障碍物越大
+    double path_eps;//路径规划时两点间距  7-10（7.0）数值越小规划越精准
+    double min_cell_area;//最小规划面积 50-1000(100）抛弃的最小面积
     double max_deviation_from_track;//轨道最大允许偏移量 -1-5（-1则计算取机器人半径，大于0取当前值）
-    int range_near_base_station;//基站范围 0-105）基站的范围不规划路径
+    int range_near_base_station;//基站范围 0-10(5）基站的范围不规划路径
 
     double room_area_factor_lower_limit;//临界线分隔的区域允许具有的最小面积 0.1-20（0.1）
     double room_area_factor_upper_limit;//临界线分隔的区域允许具有的最大面积 100-1000000（1000000）

@@ -237,22 +237,22 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
               << " m^2";
 
 
+    double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//网格正方形的边长
+    double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
+    LOG(INFO) << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
+    int half_grid_spacing_as_int_ = (int) std::floor(0.5 * grid_spacing_in_pixel);
+    int map_prohibition_expand_size_ = (int) std::floor(grid_spacing_in_pixel);
+
     //Minimum area of one cell for the boustrophedon explorator. 拆分各段分割地图后的面积最小值（16）
-    double min_cell_area_ = std::max(area_px / 1000.0, plan.min_cell_area);
+    double min_cell_area_ = std::max(area_px / 2000.0, plan.min_cell_area);
     //Minimal distance between two points on the generated path [pixel]. 覆盖路径中两点之间的最小距离，单位像素 px，例如 20，20 * 0.05 = 1m（8）
-    double path_eps_ = plan.path_eps;//1.0;//std::max(std::min(map.rows, map.cols) / 100.0, 8.0);
+    double path_eps_ = std::max(std::floor(grid_spacing_in_pixel), plan.path_eps);
     //Allows to displace the grid by more than the standard half_grid_size from obstacles [m].（0.1）
     double grid_obstacle_offset_ = plan.grid_obstacle_offset;//0.0;
     //Maximal allowed shift off the ideal boustrophedon track for avoiding obstacles on track, in [pixel]. For negative values max_deviation_from_track is automatically set to grid_spacing.（-1）
     int max_deviation_from_track_ = plan.max_deviation_from_track;//-1;
     LOG(INFO) << "min_cell_area_ : " << min_cell_area_ << " , path_eps_ : " << path_eps_;
     LOG(INFO) << "planning mode: planning coverage path with robot's footprint";
-
-    double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//网格正方形的边长
-    double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
-    LOG(INFO) << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
-    int half_grid_spacing_as_int_ = (int) std::floor(0.5 * grid_spacing_in_pixel);
-    int map_prohibition_expand_size_ = (int) std::floor(grid_spacing_in_pixel);
 
     cv::Mat generate_map = loadGenerateMap((int) std::floor(grid_spacing_in_pixel));
 
@@ -319,7 +319,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
 
     int end_time = ros::Time::now().sec;
-    std::cout << "cost getExplorationPath : " << end_time - start_time << " s " << std::endl;
+    std::cout << "cost getExplorationPath : " << (end_time - start_time) << " s " << std::endl;
 
     if (exploration_path.empty()) {
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
