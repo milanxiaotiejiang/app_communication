@@ -21,6 +21,7 @@
 #include "task/manager/NativeSystemManager.h"
 #include "clean_history/CleanHistoryCenter.h"
 #include "manager//InternalEventPubManager.h"
+#include "task/subscribe/CartographerManager.h"
 
 /*
  * task转换成realtask，赋值taskid，mode，rate，区域，组合路径区域描述，任务发起人，任务启动时间，timeMode
@@ -112,6 +113,10 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
     StationManager::instance().initialize(handle);
     StationManager::instance().setAsyncTaskCall(asyncTaskCall);
 
+    //地图管理类
+    CartographerManager::instance().initialize(handle);
+    CartographerManager::instance().setAsyncTaskCall(asyncTaskCall);
+
     //手动管理类
     ManualManager::instance().setAsyncTaskCall(asyncTaskCall);
 
@@ -126,6 +131,8 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
     flagOutSubscribe = new FlagOutSubscribe(handle);
     //进站管理类
     flagInSubscribe = new FlagInSubscribe(handle);
+    //地图管理类
+    cartographerSubscribe = new CartographerSubscribe(handle);
 
     if (!Environment::instance().isRealEnvironment) {
         std::thread moveBaseThread([]() {
@@ -169,6 +176,7 @@ void TaskCenter::uninstall() {
     delete zooRobotStatusSubscribe;
     delete flagOutSubscribe;
     delete flagInSubscribe;
+    delete cartographerSubscribe;
 }
 
 //executTask主要增加了一条历史记录

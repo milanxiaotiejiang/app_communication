@@ -91,9 +91,11 @@ protected:
 
     void callManualCleanEnd();
 
-    void callSubsequentSelfClean(const WorkStatus& status);
+    void callSubsequentSelfClean(const WorkStatus &status);
 
     void callSelfCleanClose();
+
+    void callSubsequentMode(int mode);
 
     void callUrgencyStop();
 
@@ -124,6 +126,7 @@ public:
 
     void executeInStation(bool result);
 
+    void executeCover();
 
     void manualBackToBase(bool force);
 

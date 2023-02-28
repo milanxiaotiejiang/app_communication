@@ -11,6 +11,7 @@
 #include "task/subscribe/ZooRobotStatusSubscribe.h"
 #include "task/subscribe/FlagResultSubscribe.h"
 #include "task/call/reserved_call.h"
+#include "task/subscribe/CartographerSubscribe.h"
 
 const int LOW_RSOC = 10;
 
@@ -26,6 +27,7 @@ private:
     ZooRobotStatusSubscribe *zooRobotStatusSubscribe;
     FlagOutSubscribe *flagOutSubscribe;
     FlagInSubscribe *flagInSubscribe;
+    CartographerSubscribe *cartographerSubscribe;
 
     void task2RealTask(const Task &task, RealTask &realTask);
 

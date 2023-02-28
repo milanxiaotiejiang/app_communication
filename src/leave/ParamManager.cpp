@@ -12,54 +12,73 @@
 #include "BaseThrowable.h"
 
 const std::string data_base_dir = ros::package::getPath("data_base");
-const std::string drop_path = data_base_dir + "/config/" + "param_app.yaml";
+const std::string app_param_path = data_base_dir + "/config/" + "param_app.yaml";
+
+const std::string zoo_bringup_dir = ros::package::getPath("zoo_bringup");
+const std::string zoo_param_path = zoo_bringup_dir + "/params/" + "base_params_with_imu.yaml";
+
+//#include <catch2/catch.hpp>
+//
+//TEST_CASE() {
+//    ParamManager::instance().setTof(600);
+//    REQUIRE(ParamManager::instance().getTof() == 600);
+//}
+//
+//TEST_CASE() {
+//    ParamManager::instance().setSilver(false);
+//    REQUIRE(ParamManager::instance().getSilver() == false);
+//}
+//
+//TEST_CASE() {
+//    ParamManager::instance().setDry(3);
+//    REQUIRE(ParamManager::instance().getDry() == 3);
+//}
 
 void ParamManager::loadDefaultParam() {
-    if (access(drop_path.c_str(), F_OK)) {
+    if (access(app_param_path.c_str(), F_OK)) {
         YAML::Node node;
-        node["tof"] = 600;
         node["silver"] = true;
         node["dry"] = 0;
-        std::ofstream ofstream(drop_path);
+        std::ofstream ofstream(app_param_path);
         ofstream << node;
         ofstream.close();
     }
 }
 
 int ParamManager::getTof() {
-    if (access(drop_path.c_str(), F_OK) != 0) {
+    if (access(zoo_param_path.c_str(), F_OK) != 0) {
         throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
     }
-    YAML::Node node = YAML::LoadFile(drop_path);
+    YAML::Node node = YAML::LoadFile(zoo_param_path);
     return node["tof"].as<int>();
 }
 
 void ParamManager::setTof(int tof) {
-    if (access(drop_path.c_str(), F_OK) != 0) {
+    if (access(zoo_param_path.c_str(), F_OK) != 0) {
         throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
     }
-    YAML::Node node = YAML::LoadFile(drop_path);
+    YAML::Node node = YAML::LoadFile(zoo_param_path);
     node["tof"] = tof;
-    std::ofstream ofstream(drop_path);
+    std::ofstream ofstream(zoo_param_path);
     ofstream << node;
     ofstream.close();
 }
 
 bool ParamManager::getSilver() {
-    if (access(drop_path.c_str(), F_OK) != 0) {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
         throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
     }
-    YAML::Node node = YAML::LoadFile(drop_path);
-    return node["tof"].as<int>();
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    return node["silver"].as<bool>();
 }
 
 void ParamManager::setSilver(bool silver) {
-    if (access(drop_path.c_str(), F_OK) != 0) {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
         throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
     }
-    YAML::Node node = YAML::LoadFile(drop_path);
+    YAML::Node node = YAML::LoadFile(app_param_path);
     node["silver"] = silver;
-    std::ofstream ofstream(drop_path);
+    std::ofstream ofstream(app_param_path);
     ofstream << node;
     ofstream.close();
 }
@@ -70,20 +89,20 @@ void ParamManager::setSilver(bool silver) {
  * -1：关闭
  */
 int ParamManager::getDry() {
-    if (access(drop_path.c_str(), F_OK) != 0) {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
         loadDefaultParam();
     }
-    YAML::Node node = YAML::LoadFile(drop_path);
+    YAML::Node node = YAML::LoadFile(app_param_path);
     return node["dry"].as<int>();
 }
 
 void ParamManager::setDry(int dry) {
-    if (access(drop_path.c_str(), F_OK) != 0) {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
         loadDefaultParam();
     }
-    YAML::Node node = YAML::LoadFile(drop_path);
+    YAML::Node node = YAML::LoadFile(app_param_path);
     node["dry"] = dry;
-    std::ofstream ofstream(drop_path);
+    std::ofstream ofstream(app_param_path);
     ofstream << node;
     ofstream.close();
 }

@@ -13,6 +13,7 @@
 #include "task/manager/PointProgressPublish.h"
 #include "task/manager/MechanismManager.h"
 #include "leave/ParamManager.h"
+#include "task/subscribe/CartographerManager.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -300,8 +301,7 @@ void AsyncTaskCall::goodGame() {
         });
     } else {
         callSubsequentSelfClean(runTask.getWorkStatus());
-        callNeedPublishSleep();
-        LOG(ERROR) << "AsyncTaskCall : gg";
+        callSubsequentMode(runTask.getMode());
     }
 }
 
@@ -436,8 +436,8 @@ void AsyncTaskCall::callManualCleanEnd() {//退出手动模式
     callNeedPublishSleep();
 }
 
-void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus& status) {
-    LOG(INFO) << status;
+void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
+    LOG(INFO) << "AsyncTaskCall : 处理 WorkStatus " << status << " ...";
     if (status.getMopStatus() > 0) {
         if (ParamManager::instance().getDry() == -1) {
             return;
@@ -461,6 +461,17 @@ void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus& status) {
 
 void AsyncTaskCall::callSelfCleanClose() {
     MechanismManager::instance().closeHotWind();
+}
+
+void AsyncTaskCall::callSubsequentMode(int mode) {
+    LOG(INFO) << "AsyncTaskCall : 处理 mode " << mode << " ...";
+    if (mode == 7 && runTask.getRealPoints().size() == runTask.getPlanPoints().size()) {
+        LOG(INFO) << "AsyncTaskCall : 全覆盖清洁后需要更新地图信息 ...";
+        CartographerManager::instance().pubCover();
+    } else {
+        callNeedPublishSleep();
+        LOG(ERROR) << "AsyncTaskCall : gg";
+    }
 }
 
 void AsyncTaskCall::callUrgencyStop() {
@@ -624,6 +635,12 @@ void AsyncTaskCall::executeInStation(bool result) {
         flowInStationPoint.realError.arrive = result;
         pushPoint(flowInStationPoint);
     });
+}
+
+void AsyncTaskCall::executeCover() {
+    LOG(INFO) << "AsyncTaskCall : 地图信息已更新完成，准备发布睡眠模式 ...";
+    callNeedPublishSleep();
+    LOG(ERROR) << "AsyncTaskCall : gg";
 }
 
 
