@@ -109,6 +109,7 @@ add_executable(rec_app_node
         ${HEADER_FILES_LEVEL_4}
         ${SOURCE_FILES_LEVEL_4}
         ${TEST_FILES}
+        include/cppfs/basen.hpp
         )
 
 add_executable(dump_upload

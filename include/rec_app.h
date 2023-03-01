@@ -86,6 +86,12 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "leave/ParamManager.h"
+#include "db/task_data_base.h"
+#include "cppfs/fs.h"
+#include "cppfs/FileHandle.h"
+#include "cppfs/FileIterator.h"
+
 google_breakpad::ExceptionHandler *exceptionHandler = nullptr;
 std::string unique_identification = boost::uuids::to_string(boost::uuids::random_generator()());
 
