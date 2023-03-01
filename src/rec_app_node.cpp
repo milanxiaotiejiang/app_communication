@@ -1,6 +1,7 @@
 #include "rec_app.h"
 #include "simulation.h"
 #include "leave/ParamManager.h"
+#include "db/task_data_base.h"
 
 /**
  * 单元测试示例代码
@@ -60,6 +61,7 @@ int main(int argc, char **argv) {
     ExplorationCenter::instance().initialize(handle);
 //    AlignmentCenter::instance().initialize(handle);
     TaskCenter::instance().initialize(handle);
+    TaskDataBase::instance().loadTask();
 
     ParamManager::instance().loadDefaultParam();
 

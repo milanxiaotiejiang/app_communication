@@ -9,6 +9,7 @@
 #include <sqlite_orm/sqlite_orm.h>
 #include "db/segmentation_model.h"
 #include "segmentation/Room.h"
+#include "task_model.h"
 #include <ros/package.h>
 
 const static std::string SEGMENTATION_DIR = ros::package::getPath("robot_slam");
@@ -17,11 +18,56 @@ const std::string SEGMENTATION_SQLITE_PATH = SEGMENTATION_PATH + "Map.sqlite";
 const std::string SEGMENTATION_MB = "segmentation_";
 const std::string SPLIT_STR = ",";
 
+const static std::string TASK_DIR = ros::package::getPath("data_base");
+const std::string TASK_PATH = TASK_DIR + "/config/";
+const std::string TASK_SQLITE_PATH = TASK_PATH + "Task.sqlite";
+
 using namespace sqlite_orm;
 
 class SqliteDataBase {
 public:
-    static auto initStorage() {
+    static int ModeToInt(TaskMode mode) {
+        return static_cast<int>(mode);
+    }
+
+    static std::unique_ptr<TaskMode> ModeFromInt(const int &i) {
+        if (i == 0) {
+            return std::make_unique<TaskMode>(TaskMode::Zoned);
+        } else if (i == 1) {
+            return std::make_unique<TaskMode>(TaskMode::Cover);
+        } else if (i == 2) {
+            return std::make_unique<TaskMode>(TaskMode::Subregion);
+        }
+        return nullptr;
+    }
+
+    static std::string SourceToString(TaskSource source) {
+        switch (source) {
+            case TaskSource::App:
+                return "app";
+            case TaskSource::Pad:
+                return "pad";
+            case TaskSource::Cloud:
+                return "cloud";
+            default:
+                return "self";
+        }
+    }
+
+    static std::unique_ptr<TaskSource> SourceFromString(const std::string &s) {
+        if (s == "app") {
+            return std::make_unique<TaskSource>(TaskSource::App);
+        } else if (s == "pad") {
+            return std::make_unique<TaskSource>(TaskSource::Pad);
+        } else if (s == "cloud") {
+            return std::make_unique<TaskSource>(TaskSource::Cloud);
+        }
+        return std::make_unique<TaskSource>(TaskSource::Self);
+    }
+
+public:
+
+    static auto initMapStorage() {
         return make_storage(SEGMENTATION_SQLITE_PATH,
                             make_table("map",
                                        make_column("id", &MapPo::id, primary_key()),
@@ -64,8 +110,115 @@ public:
 
     }
 
+    static auto initTaskStorage() {
+        return make_storage(TASK_SQLITE_PATH,
+                            make_table("task",
+                                       make_column("id", &TaskPo::id, primary_key(), autoincrement()),
+                                       make_column("o_map_id", &TaskPo::o_map_id),
+                                       make_column("name", &TaskPo::name),
+                                       make_column("rate", &TaskPo::rate),
+                                       make_column("mode", &TaskPo::mode),
+                                       make_column("sweep", &TaskPo::sweep, default_value(-1)),
+                                       make_column("mop", &TaskPo::mop, default_value(-1)),
+                                       make_column("vacuum", &TaskPo::vacuum, default_value(-1)),
+                                       make_column("push", &TaskPo::push, default_value(-1)),
+                                       make_column("aromatherapy", &TaskPo::aromatherapy, default_value(-1)),
+                                       make_column("disinfect", &TaskPo::disinfect, default_value(-1)),
+                                       make_column("partition", &TaskPo::partition),
+                                       make_column("subregion_range", &TaskPo::subregion_range),
+                                       make_column("source", &TaskPo::source),
+                                       make_column("launch_people", &TaskPo::launch_people),
+                                       make_column("launch_time", &TaskPo::launch_time),
+                                       make_column("update_time", &TaskPo::update_time),
+                                       make_column("create_time", &TaskPo::create_time)
+                            ),
+                            make_table("zone",
+                                       make_column("id", &ZonePo::id, primary_key(), autoincrement()),
+                                       make_column("o_task_id", &ZonePo::o_task_id),
+                                       make_column("point_range", &ZonePo::point_range),
+                                       foreign_key(&ZonePo::o_task_id).references(
+                                               &TaskPo::id).on_delete.set_default()
+                            )
+        );
+    }
+
 };
 
-using Storage = decltype(SqliteDataBase::initStorage());
+using MapStorage = decltype(SqliteDataBase::initMapStorage());
+using TaskStorage = decltype(SqliteDataBase::initTaskStorage());
+
+
+namespace sqlite_orm {
+
+    // TaskSource
+    template<>
+    struct type_printer<TaskSource> : public text_printer {
+    };
+
+    template<>
+    struct statement_binder<TaskSource> {
+        int bind(sqlite3_stmt *stmt, int index, const TaskSource &value) {
+            return statement_binder<std::string>().bind(stmt, index, SqliteDataBase::SourceToString(value));
+        }
+    };
+
+    template<>
+    struct field_printer<TaskSource> {
+        std::string operator()(const TaskSource &t) const {
+            return SqliteDataBase::SourceToString(t);
+        }
+    };
+
+    template<>
+    struct row_extractor<TaskSource> {
+        TaskSource extract(const char *row_value) {
+            if (auto gender = SqliteDataBase::SourceFromString(row_value)) {
+                return *gender;
+            } else {
+                throw std::runtime_error("incorrect gender string (" + std::string(row_value) + ")");
+            }
+        }
+
+        TaskSource extract(sqlite3_stmt *stmt, int columnIndex) {
+            auto str = sqlite3_column_text(stmt, columnIndex);
+            return this->extract((const char *) str);
+        }
+    };
+
+    // TaskMode
+    template<>
+    struct type_printer<TaskMode> : public integer_printer {
+    };
+
+    template<>
+    struct statement_binder<TaskMode> {
+        int bind(sqlite3_stmt *stmt, int index, const TaskMode &value) {
+            return statement_binder<int>().bind(stmt, index, SqliteDataBase::ModeToInt(value));
+        }
+    };
+
+    template<>
+    struct field_printer<TaskMode> {
+        int operator()(const TaskMode &t) const {
+            return SqliteDataBase::ModeToInt(t);
+        }
+    };
+
+    template<>
+    struct row_extractor<TaskMode> {
+        TaskMode extract(const int row_value) {
+            if (auto gender = SqliteDataBase::ModeFromInt(row_value)) {
+                return *gender;
+            } else {
+                throw std::runtime_error("incorrect gender string (" + std::to_string(row_value) + ")");
+            }
+        }
+
+        TaskMode extract(sqlite3_stmt *stmt, int columnIndex) {
+            auto str = sqlite3_column_int(stmt, columnIndex);
+            return this->extract(str);
+        }
+    };
+}
 
 #endif //APP_COMMUNICATION_SQLITEDATABASE_H

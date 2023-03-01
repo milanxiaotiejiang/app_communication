@@ -12,7 +12,7 @@
 class SegmentationDataBase {
 private:
     MapPo mapPo;
-    Storage segmentationStorage = SqliteDataBase::initStorage();
+    MapStorage segmentationStorage = SqliteDataBase::initMapStorage();
 public:
     static auto &instance() {
         static SegmentationDataBase obj;

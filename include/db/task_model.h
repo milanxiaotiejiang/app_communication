@@ -1,0 +1,79 @@
+//
+// Created by Looper on 2023/2/28.
+//
+
+#ifndef APP_COMMUNICATION_TASK_MODEL_H
+#define APP_COMMUNICATION_TASK_MODEL_H
+
+#include <memory>
+#include "string"
+#include "vector"
+
+struct ZonePo;
+
+struct PointPo {
+    PointPo();
+
+    PointPo(int x, int y);
+
+    int x;
+    int y;
+};
+
+enum class TaskMode {
+    Zoned,
+    Cover,
+    Subregion,
+};
+
+enum class TaskSource {
+    App,
+    Pad,
+    Cloud,
+    Self,
+};
+
+struct TaskPo {
+    TaskPo();
+
+    TaskPo(long id, const std::string &oMapId, const std::string &name, int rate, TaskMode mode, int sweep, int mop,
+           int vacuum, int push, int aromatherapy, int disinfect, const std::vector<ZonePo> &zones, bool partition,
+           const std::string &subregionRange, TaskSource source, const std::string &launchPeople, long launchTime,
+           time_t updateTime, time_t createTime);
+
+    long id;
+    std::string o_map_id;
+    std::string name;
+    int rate;
+    TaskMode mode;
+
+    int sweep{-1};
+    int mop{-1};
+    int vacuum{-1};
+    int push{-1};
+    int aromatherapy{-1};
+    int disinfect{-1};
+
+    std::vector<ZonePo> zones;
+    bool partition;
+    std::string subregion_range;
+
+    TaskSource source;
+    std::string launch_people;
+    long launch_time;
+
+    time_t update_time;
+    time_t create_time;
+};
+
+struct ZonePo {
+    ZonePo();
+
+    ZonePo(long id, long oTaskId, const std::string &pointRange);
+
+    long id;
+    decltype(TaskPo::id) o_task_id;
+    std::string point_range;
+};
+
+#endif //APP_COMMUNICATION_TASK_MODEL_H
