@@ -24,6 +24,7 @@ enum class TaskMode {
     Zoned,
     Cover,
     Subregion,
+    Line,
 };
 
 enum class TaskSource {
@@ -74,6 +75,26 @@ struct ZonePo {
     long id;
     decltype(TaskPo::id) o_task_id;
     std::string point_range;
+};
+
+struct TimerPo {
+    TimerPo();
+
+    TimerPo(int id, long oTaskId, const std::string &rule, const std::string &name, bool isExecute, int rate,
+            bool isNever, bool isSkip, int endYear, int endMonth, int endDay);
+
+    int id;
+    std::string o_map_id;
+    long o_task_id;
+    std::string rule;
+    std::string name;
+    bool is_execute;
+    int rate;
+    bool is_never;
+    bool is_skip;
+    int end_year;
+    int end_month;
+    int end_day;
 };
 
 #endif //APP_COMMUNICATION_TASK_MODEL_H

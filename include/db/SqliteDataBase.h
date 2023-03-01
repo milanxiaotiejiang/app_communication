@@ -136,8 +136,22 @@ public:
                                        make_column("id", &ZonePo::id, primary_key(), autoincrement()),
                                        make_column("o_task_id", &ZonePo::o_task_id),
                                        make_column("point_range", &ZonePo::point_range),
-                                       foreign_key(&ZonePo::o_task_id).references(
-                                               &TaskPo::id).on_delete.set_default()
+                                       foreign_key(&ZonePo::o_task_id).references(&TaskPo::id).on_delete.set_default()
+                            ),
+                            make_table("timer",
+                                       make_column("id", &TimerPo::id, primary_key(), autoincrement()),
+                                       make_column("o_map_id", &TimerPo::o_map_id),
+                                       make_column("o_task_id", &TimerPo::o_task_id),
+                                       make_column("rule", &TimerPo::rule),
+                                       make_column("name", &TimerPo::name),
+                                       make_column("is_execute", &TimerPo::is_execute),
+                                       make_column("rate", &TimerPo::rate),
+                                       make_column("is_never", &TimerPo::is_never),
+                                       make_column("is_skip", &TimerPo::is_skip),
+                                       make_column("end_year", &TimerPo::end_year),
+                                       make_column("end_month", &TimerPo::end_month),
+                                       make_column("end_day", &TimerPo::end_day),
+                                       foreign_key(&TimerPo::o_task_id).references(&TaskPo::id).on_delete.set_default()
                             )
         );
     }

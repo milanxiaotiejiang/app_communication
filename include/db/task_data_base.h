@@ -5,10 +5,10 @@
 #ifndef APP_COMMUNICATION_TASK_DATA_BASE_H
 #define APP_COMMUNICATION_TASK_DATA_BASE_H
 
-
 #include "SqliteDataBase.h"
 #include "model/Task.h"
 #include "model/task.h"
+#include "model/TimerInfo.h"
 
 class TaskDataBase {
 private:
@@ -24,13 +24,23 @@ public:
         return obj;
     }
 
-    std::vector<TaskVo> loadTaskFoMap(std::string mapId);
+    //增
 
+    //删
     void deleteOwnTask();
 
     void deleteTaskFoMap(std::string mapId);
 
     void deleteTaskFoId(long taskId);
+
+    //改
+
+    //查
+    std::vector<TaskVo> loadTaskFoMap(std::string mapId);
+
+    TaskVo loadTaskFoTask(long taskId);
+
+    std::vector<TimerInfo> loadTimerFoMap(std::string mapId);
 
     bool loadTask();
 };

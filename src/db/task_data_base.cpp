@@ -42,6 +42,25 @@ TaskVo TaskDataBase::taskPo2Vo(const TaskPo &taskPo) {
     task.setZones(zones);
 }
 
+void TaskDataBase::deleteOwnTask() {
+    taskStorage.remove_all<TimerPo>();
+    taskStorage.remove_all<ZonePo>();
+    taskStorage.remove_all<TaskPo>();
+}
+
+void TaskDataBase::deleteTaskFoMap(std::string mapId) {
+    auto taskPos = taskStorage.get_all<TaskPo>(c(&TaskPo::o_map_id) == std::move(mapId));
+    for (const auto &task: taskPos) {
+        deleteTaskFoId(task.id);
+    }
+}
+
+void TaskDataBase::deleteTaskFoId(long taskId) {
+    taskStorage.remove_all<TimerPo>(where(c(&TimerPo::o_task_id) == taskId));
+    taskStorage.remove_all<ZonePo>(where(c(&ZonePo::o_task_id) == taskId));
+    taskStorage.remove<TaskPo>(taskId);
+}
+
 std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
     std::vector<TaskVo> tasks;
 
@@ -62,21 +81,35 @@ std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
     }
 }
 
-void TaskDataBase::deleteOwnTask() {
-    taskStorage.remove_all<ZonePo>();
-    taskStorage.remove_all<TaskPo>();
+TaskVo TaskDataBase::loadTaskFoTask(long taskId) {
+    auto taskPo = taskStorage.get<TaskPo>(taskId);
+    return taskPo2Vo(taskPo);
 }
 
-void TaskDataBase::deleteTaskFoMap(std::string mapId) {
-    auto taskPos = taskStorage.get_all<TaskPo>(c(&TaskPo::o_map_id) == std::move(mapId));
-    for (const auto &task: taskPos) {
-        deleteTaskFoId(task.id);
-    }
-}
+std::vector<TimerInfo> TaskDataBase::loadTimerFoMap(std::string mapId) {
+    auto results = taskStorage.select(
+            columns(&TimerPo::id,
+                    &TimerPo::o_map_id,
+                    &TimerPo::o_task_id,
+                    &TimerPo::rule,
+                    &TimerPo::name,
 
-void TaskDataBase::deleteTaskFoId(long taskId) {
-    taskStorage.remove_all<ZonePo>(where(c(&ZonePo::o_task_id) == taskId));
-    taskStorage.remove<TaskPo>(taskId);
+                    &TimerPo::is_execute,
+                    &TimerPo::rate,
+                    &TimerPo::is_never,
+                    &TimerPo::is_skip,
+                    &TimerPo::end_year,
+                    &TimerPo::end_month,
+
+                    &TimerPo::end_day,
+
+                    &TaskPo::name
+            ),
+            join<ZonePo>(on(c(&TaskPo::id) == &TimerPo::o_task_id)
+                         and
+                         c(&TimerPo::o_map_id) == std::move(mapId)
+            )
+    );
 }
 
 bool TaskDataBase::loadTask() {
