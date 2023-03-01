@@ -453,7 +453,7 @@ void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
         }
         MechanismManager::instance().openHotWind();
         async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::minutes(1), [this]() {
+                ->scheduleLater(std::chrono::minutes(20), [this]() {
                     callSelfCleanClose();
                 });
     }
@@ -465,7 +465,7 @@ void AsyncTaskCall::callSelfCleanClose() {
 
 void AsyncTaskCall::callSubsequentMode(int mode) {
     LOG(INFO) << "AsyncTaskCall : 处理 mode " << mode << " ...";
-    if (mode == 7 && runTask.getRealPoints().size() == runTask.getPlanPoints().size()) {
+    if (mode == 6 && runTask.getRealPoints().size() == runTask.getPlanPoints().size()) {
         LOG(INFO) << "AsyncTaskCall : 全覆盖清洁后需要更新地图信息 ...";
         CartographerManager::instance().pubCover();
     } else {
