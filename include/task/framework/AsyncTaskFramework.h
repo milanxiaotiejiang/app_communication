@@ -104,7 +104,7 @@ protected:
 
     void callOpenMechanism(const WorkStatus &status, function<void()> f);
 
-    void callCloseMechanism(function<void()> f);
+    virtual void callCloseMechanism(function<void()> f) = 0;
 
     void callBackBasePoint();
 

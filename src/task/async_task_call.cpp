@@ -506,6 +506,7 @@ void AsyncTaskCall::callReleaseStop() {
 
 void AsyncTaskCall::callRecoveryStop() {
     setEpollManual(loop::manual_epoll::manual_normal);
+    MechanismManager::instance().resetWorkStatus();
     cancelTask();
     goodGame();
 }
@@ -513,8 +514,8 @@ void AsyncTaskCall::callRecoveryStop() {
 void AsyncTaskCall::callResume() {
     setEpollManual(loop::manual_epoll::manual_normal);
     if (recoverableSuspend()) {
-        MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
         LOG(INFO) << "AsyncTaskCall : 可继续执行任务 ...";
+        MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
         auto lastStack = lastEmergencyStop();
         LOG(INFO) << "AsyncTaskCall : 继续 lastStack : " << lastStack << " ...";
 

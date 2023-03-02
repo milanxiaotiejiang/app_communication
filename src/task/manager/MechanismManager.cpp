@@ -8,6 +8,7 @@
 #include "glog/logging.h"
 
 void MechanismManager::resetWorkStatus() {
+    LOG(INFO) << "MechanismManager : 收起清洁机构.";
     std_msgs::Int16 sweep_status;
     if (ZooInnerStatus::instance().getSweepStatus() != 0 && ZooInnerStatus::instance().getSweepStatus() != -1) {
         sweep_status.data = 0;
@@ -42,6 +43,7 @@ void MechanismManager::resetWorkStatus() {
 }
 
 void MechanismManager::controlWorkStatus(const WorkStatus &workStatus) {
+    LOG(INFO) << "MechanismManager : 打开清洁机构.";
     //扫
     std_msgs::Int16 sweep_status;
     if (workStatus.getSweepStatus() >= 0 && workStatus.getSweepStatus() <= 2) {
@@ -94,11 +96,11 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus) {
 }
 
 void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus) {
+    LOG(INFO) << "MechanismManager : 强制打开清洁机构.";
     //扫
     std_msgs::Int16 sweep_status;
     sweep_status.data = ((int16_t) workStatus.getSweepStatus());
-    PublishInnerManager::instance().publishSweepMode(
-            sweep_status);
+    PublishInnerManager::instance().publishSweepMode(sweep_status);
 
     //拖
     std_msgs::Int16 mop_status;
@@ -108,8 +110,7 @@ void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus) {
     //吸
     std_msgs::Int16 vacuum_status;
     vacuum_status.data = ((int16_t) workStatus.getVacuumStatus());
-    PublishInnerManager::instance().publishVacuumMode(
-            vacuum_status);
+    PublishInnerManager::instance().publishVacuumMode(vacuum_status);
 
     //尘推
     std_msgs::Int16 push_status;
@@ -117,14 +118,12 @@ void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus) {
     if (push_status.data == 1) {
         push_status.data = 2;
     }
-    PublishInnerManager::instance().publishPushMode(
-            push_status);
+    PublishInnerManager::instance().publishPushMode(push_status);
 
     //香薰
     std_msgs::Int16 aromatherapy_status;
     aromatherapy_status.data = ((int16_t) workStatus.getAromatherapyStatus());
-    PublishInnerManager::instance().publishAromStatus(
-            aromatherapy_status);
+    PublishInnerManager::instance().publishAromStatus(aromatherapy_status);
     std_msgs::Int16 disinfect_status;
 }
 
@@ -141,14 +140,14 @@ void MechanismManager::quitManualControl() {
 }
 
 void MechanismManager::openHotWind() {
-    LOG(INFO) << "开启热风烘干";
+    LOG(INFO) << "MechanismManager : 开启热风烘干.";
     std_msgs::Int16 msg;
     msg.data = 1;
     PublishInnerManager::instance().publishSelfClean(msg);
 }
 
 void MechanismManager::closeHotWind() {
-    LOG(INFO) << "关闭热风烘干";
+    LOG(INFO) << "MechanismManager : 关闭热风烘干.";
     std_msgs::Int16 msg;
     msg.data = 0;
     PublishInnerManager::instance().publishSelfClean(msg);
