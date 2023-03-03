@@ -84,7 +84,11 @@ void ExplorationCenter::uninstall() {
     delete mapSavedSubscribe;
 }
 
-void ExplorationCenter::repaintCoveragePath() {
+void ExplorationCenter::repaintCoveragePath(bool retrieveStation, bool resetSegmentation) {
+    if (retrieveStation)
+        MapAttribute::instance().loadStation();
+    if (resetSegmentation)
+        SegmentationCenter::instance().resetSegmentation();
     pathGenerator.repaintCoveragePath();
 }
 

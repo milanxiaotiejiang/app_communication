@@ -1,6 +1,5 @@
 #include "rec_app.h"
 #include "simulation.h"
-#include "time.h"
 
 /**
  * https://github.com/fnc12/sqlite_orm

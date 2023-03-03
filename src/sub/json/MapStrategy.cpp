@@ -83,7 +83,7 @@ string EditMapStrategy::handler(vector<std::vector<float>> params) {
     MapAttribute::instance().resetProhibition();
     MapAttribute::instance().loadVirtualWall();
     MapAttribute::instance().loadPenaltyZone();
-    ExplorationCenter::instance().repaintCoveragePath();
+    ExplorationCenter::instance().repaintCoveragePath(false, false);
     return "";
 }
 
