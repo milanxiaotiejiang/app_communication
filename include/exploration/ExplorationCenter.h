@@ -73,7 +73,7 @@ public:
 
     void uninstall();
 
-    void repaintCoveragePath();
+    void repaintCoveragePath(bool retrieveStation, bool resetSegmentation);
 
     RoomCoverage obtainCoveragePath();
 

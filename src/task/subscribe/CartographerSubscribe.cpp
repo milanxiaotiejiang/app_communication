@@ -11,6 +11,6 @@ CartographerSubscribe::CartographerSubscribe(ros::NodeHandle handle) {
 }
 
 void CartographerSubscribe::subscribeCallback(const std_msgs::Int32 &flag_result) {
-    ExplorationCenter::instance().repaintCoveragePath();
+    ExplorationCenter::instance().repaintCoveragePath(true, true);
     CartographerManager::instance().coverResult();
 }

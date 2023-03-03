@@ -12,10 +12,8 @@ MapSavedSubscribe::MapSavedSubscribe(ros::NodeHandle handle) : handle(handle) {
 }
 
 void MapSavedSubscribe::subscribeCallback(const std_msgs::Int16 &msg) {
-    SegmentationCenter::instance().resetSegmentation();
-    MapAttribute::instance().loadStation();
     MapAttribute::instance().setCreatingMap(false);
-    ExplorationCenter::instance().repaintCoveragePath();
+    ExplorationCenter::instance().repaintCoveragePath(true, true);
 }
 
 MapSavedSubscribe::~MapSavedSubscribe() = default;
