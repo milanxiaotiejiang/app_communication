@@ -19,6 +19,7 @@
 
 #include "task/RealPoint.h"
 #include "task/RealTask.h"
+#include "task/feedback.h"
 
 const int OPENING_TIME_OF_CLEANING_MECHANISM = 10;
 const int CLOSING_TIME_OF_CLEANING_MECHANISM = 5;
@@ -42,6 +43,8 @@ public:
     AsyncTaskFramework();
 
 protected:
+
+    std::unique_ptr<TaskFeedback> fbPtr;
 
     std::atomic<loop::manual_epoll> epoll_manual;
     std::atomic<loop::special_epoll> epoll_special;

@@ -14,6 +14,7 @@
 #include "task/manager/MechanismManager.h"
 #include "leave/ParamManager.h"
 #include "task/subscribe/CartographerManager.h"
+#include "task/feedback.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -21,6 +22,8 @@
 AsyncTaskCall::AsyncTaskCall() {
     int err = AsyncTaskCall::make_thread(run, this);
     LOG(INFO) << err;
+
+    fbPtr = make_unique<TaskFeedback>();
 
     setFlow(event::flow::waiting_for_task);
     setEpollManual(loop::manual_epoll::manual_normal);

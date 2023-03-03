@@ -32,6 +32,5 @@ void PointRoutine::pointActive() {
 
 }
 
-void PointRoutine::pointFeedback(geometry_msgs::PoseStamped_<allocator<void>> stamped) {
-//    LOG(INFO) << "feedbackCb : " << stamped.pose.position.x << " " << stamped.pose.position.y;
+void PointRoutine::pointFeedback(geometry_msgs::PoseStamped::_pose_type pose) {
 }

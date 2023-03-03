@@ -30,7 +30,7 @@ public:
 
     void pointActive();
 
-    void pointFeedback(geometry_msgs::PoseStamped_<allocator<void>> stamped);
+    void pointFeedback(geometry_msgs::PoseStamped::_pose_type pose);
 };
 
 
