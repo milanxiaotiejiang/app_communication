@@ -325,7 +325,9 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
 
+    LOG(INFO) << "exploration_path front point size : " << exploration_path.size();
     optimizePathColumn(exploration_path);
+    LOG(INFO) << "exploration_path after point size : " << exploration_path.size();
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
         planning_pose_path_display(room_map, map_origin, exploration_path, 1, "planning_pose_path_display");

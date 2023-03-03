@@ -99,6 +99,14 @@ file(GLOB SOURCE_FILES_LEVEL_3 "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*/*.cpp")
 file(GLOB HEADER_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/include/*/*/*/*.h")
 file(GLOB SOURCE_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*/*/*.cpp")
 
+
+file(GLOB HEADER_CPP_FS "${CMAKE_CURRENT_SOURCE_DIR}/include/cppfs/*.h")
+file(GLOB SOURCE_CPP_FS "${CMAKE_CURRENT_SOURCE_DIR}/src/cppfs/*.cpp")
+file(GLOB HEADER_CPP_FS_POSIX "${CMAKE_CURRENT_SOURCE_DIR}/include/cppfs/posix/*.h")
+file(GLOB SOURCE_CPP_FS_POSIX "${CMAKE_CURRENT_SOURCE_DIR}/src/cppfs/posix/*.cpp")
+file(GLOB HEADER_CPP_FS_LINUX "${CMAKE_CURRENT_SOURCE_DIR}/include/cppfs/linux/*.h")
+file(GLOB SOURCE_CPP_FS_LINUX "${CMAKE_CURRENT_SOURCE_DIR}/src/cppfs/linux/*.cpp")
+
 add_executable(rec_app_node
         ${HEADER_FILES_LEVEL_1}
         ${SOURCE_FILES_LEVEL_1}
@@ -114,6 +122,13 @@ add_executable(rec_app_node
 
 add_executable(dump_upload
         dump/dump_upload.cpp
+        include/cppfs/basen.hpp
+        ${HEADER_CPP_FS}
+        ${SOURCE_CPP_FS}
+        ${HEADER_CPP_FS_POSIX}
+        ${SOURCE_CPP_FS_POSIX}
+        ${HEADER_CPP_FS_LINUX}
+        ${SOURCE_CPP_FS_LINUX}
         )
 
 

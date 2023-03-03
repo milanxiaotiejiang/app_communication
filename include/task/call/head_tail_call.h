@@ -20,6 +20,8 @@ protected:
 
     virtual void softwareInterruptTask(const RealPoint &point) = 0;
 
+    void callCloseMechanism(function<void()> f) override;
+
 public:
     bool canIssuedTask(const std::string &launchPeople);
 

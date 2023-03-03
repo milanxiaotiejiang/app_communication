@@ -1,5 +1,6 @@
 #include "rec_app.h"
 #include "simulation.h"
+#include "time.h"
 
 /**
  * https://github.com/fnc12/sqlite_orm
@@ -38,6 +39,8 @@ MessageBus *MessageBusManager::getMessageBus() const { return messageBus; }
 ThreadPool pool(3);
 
 int main(int argc, char **argv) {
+
+    current_program_string = argv[0];
 
     judgeEnvironment();
     initLog(argv);
@@ -159,8 +162,25 @@ void initLog(char *const *argv) {
     google::SetLogDestination(google::GLOG_WARNING, string(logDirStr + "/warn_").c_str());
     google::SetLogDestination(google::GLOG_ERROR, string(logDirStr + "/error_").c_str());
 
-    auto filenameExtension = unique_identification + "_";
-    google::SetLogFilenameExtension(filenameExtension.data());
+    time_t timestamp_ = std::time(0);
+    struct ::tm tm_time;
+    localtime_r(&timestamp_, &tm_time);
+    ostringstream time_pid_stream;
+    time_pid_stream.fill('0');
+    time_pid_stream << 1900 + tm_time.tm_year
+                    << setw(2) << 1 + tm_time.tm_mon
+                    << setw(2) << tm_time.tm_mday
+                    << '-'
+                    << setw(2) << tm_time.tm_hour
+                    << setw(2) << tm_time.tm_min
+                    << setw(2) << tm_time.tm_sec
+                    << '.'
+                    << getpid();
+    const string &time_pid_string = time_pid_stream.str();
+    glog_info_time_pid_string = "info_" + time_pid_string;
+
+//    auto filenameExtension = unique_identification + "_";
+//    google::SetLogFilenameExtension(filenameExtension.data());
 
     FLAGS_colorlogtostderr = true; // 开启终端颜色区分
 //    google::InstallFailureSignalHandler();
@@ -170,7 +190,7 @@ void initLog(char *const *argv) {
     //    LOG(WARNING) << "This is my first glog WARNING";
     //    LOG(ERROR) << "This is my first glog ERROR 1";
 
-    LOG(INFO) << "current process id is " << getpid() << "  log uuid : " << unique_identification;
+    LOG(INFO) << "glog file is " << glog_info_time_pid_string;
 }
 
 /**
@@ -249,8 +269,9 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
 
                 if (execl(dump_upload_executable_file.data(),
                           dump_upload_executable_file.data(),
+                          current_program_string.c_str(),
                           (crash_file).c_str(),
-                          unique_identification.c_str(),
+                          glog_info_time_pid_string.c_str(),
                           (char *) 0)
                         ) {
                     LOG(INFO) << "execle error";
@@ -263,8 +284,6 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
                 LOG(ERROR) << "wait error";
             }
         }
-
-
     }
 
     return succeeded;

@@ -81,10 +81,10 @@ void PointGenerator::pose2RealPoint(const RealTask &realTask, std::vector<PoseVo
 
             auto realPoint = RealPoint(accumulation, realTask.getId(), realTask.getMode(), realTask.getWorkStatus());
             realPoint.setInClean(j != 0);
-            realPoint.setRealPosition(realPosition);
-            realPoint.setRealOrientation(realOrientation);
-            realPoint.setRealProgress(realProgress);
-            realPoint.setRealError(realError);
+            realPoint.realPosition = std::move(realPosition);
+            realPoint.realOrientation = std::move(realOrientation);
+            realPoint.realProgress = std::move(realProgress);
+            realPoint.realError = std::move(realError);
 
             realPointList.push_back(realPoint);
 
@@ -159,10 +159,10 @@ void PointGenerator::combinationPose2RealPoint(const RealTask &realTask, std::ve
 
             auto realPoint = RealPoint(accumulation, realTask.getId(), realTask.getMode(), realTask.getWorkStatus());
             realPoint.setInClean(vo.getIndex() != 0);
-            realPoint.setRealPosition(realPosition);
-            realPoint.setRealOrientation(realOrientation);
-            realPoint.setRealProgress(realProgress);
-            realPoint.setRealError(realError);
+            realPoint.realPosition = std::move(realPosition);
+            realPoint.realOrientation = std::move(realOrientation);
+            realPoint.realProgress = std::move(realProgress);
+            realPoint.realError = std::move(realError);
 
             realPointList.push_back(realPoint);
 

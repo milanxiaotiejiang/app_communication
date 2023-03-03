@@ -91,9 +91,12 @@
 #include "cppfs/fs.h"
 #include "cppfs/FileHandle.h"
 #include "cppfs/FileIterator.h"
+#include "ctime"
 
 google_breakpad::ExceptionHandler *exceptionHandler = nullptr;
 std::string unique_identification = boost::uuids::to_string(boost::uuids::random_generator()());
+std::string current_program_string = "";
+std::string glog_info_time_pid_string = "";
 
 std::string getenv_rec(const std::string &name);
 

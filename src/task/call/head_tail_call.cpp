@@ -6,6 +6,7 @@
 #include "task/point_planner.h"
 #include "simulation.h"
 #include "future/timer_call.h"
+#include "task/manager/MechanismManager.h"
 
 void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
     if (point.getId() == FLOW_SEIZE_SEAT) {
@@ -127,10 +128,11 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
         }
         case event::flow::arrive_base_point_success: {
             LOG(INFO) << "HeadTailPointCall : 成功到达基站前点位，收起清洁机构 ...";
-            callCloseMechanism([this]() {
-                flowCloseMechanismPoint.realError.arrive = true;
-                pushPoint(flowCloseMechanismPoint);
-            });
+//            callCloseMechanism([this]() {
+//                flowCloseMechanismPoint.realError.arrive = true;
+//                pushPoint(flowCloseMechanismPoint);
+//            });
+            callCloseMechanism([]() {});
             break;
         }
         case event::flow::flowing_water_execution_completed: {
@@ -165,6 +167,36 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
             softwareInterruptTask(point);
             break;
         }
+    }
+}
+
+/**
+ * 作为
+ */
+void HeadTailPointCall::callCloseMechanism(function<void()> f) {
+//    AsyncTaskFramework::callCloseMechanism(f);
+    LOG(INFO) << "AsyncTaskFramework : 准备关闭相应的清洁机构 ...";
+
+    flowCloseMechanismPoint.realError.arrive = true;
+
+    //这个函数里面关闭所有清洁机构
+    MechanismManager::instance().resetWorkStatus();
+    if (!Environment::instance().isRealEnvironment) {
+        async::TimerCall::instance().baseLoop()
+                ->scheduleLater(std::chrono::seconds(1), [this]() {
+                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
+                    notify_one([this]() {
+                        pushPoint(flowCloseMechanismPoint);
+                    });
+                });
+    } else {
+        async::TimerCall::instance().baseLoop()
+                ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this]() {
+                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
+                    notify_one([this]() {
+                        pushPoint(flowCloseMechanismPoint);
+                    });
+                });
     }
 }
 
