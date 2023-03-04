@@ -10,12 +10,11 @@
 #include <iostream>
 #include <fstream>
 #include "BaseThrowable.h"
+#include "db/path.h"
 
-const std::string data_base_dir = ros::package::getPath("data_base");
-const std::string app_param_path = data_base_dir + "/config/" + "param_app.yaml";
+const std::string app_param_path = path::data_base_config_path() + "param_app.yaml";
 
-const std::string zoo_bringup_dir = ros::package::getPath("zoo_bringup");
-const std::string zoo_param_path = zoo_bringup_dir + "/params/" + "base_params_with_imu.yaml";
+const std::string zoo_param_imu_path = path::zoo_bringup_params_path() + "base_params_with_imu.yaml";
 
 //#include <catch2/catch.hpp>
 //
@@ -46,20 +45,20 @@ void ParamManager::loadDefaultParam() {
 }
 
 int ParamManager::getTof() {
-    if (access(zoo_param_path.c_str(), F_OK) != 0) {
+    if (access(zoo_param_imu_path.c_str(), F_OK) != 0) {
         throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
     }
-    YAML::Node node = YAML::LoadFile(zoo_param_path);
+    YAML::Node node = YAML::LoadFile(zoo_param_imu_path);
     return node["tof"].as<int>();
 }
 
 void ParamManager::setTof(int tof) {
-    if (access(zoo_param_path.c_str(), F_OK) != 0) {
+    if (access(zoo_param_imu_path.c_str(), F_OK) != 0) {
         throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
     }
-    YAML::Node node = YAML::LoadFile(zoo_param_path);
+    YAML::Node node = YAML::LoadFile(zoo_param_imu_path);
     node["tof"] = tof;
-    std::ofstream ofstream(zoo_param_path);
+    std::ofstream ofstream(zoo_param_imu_path);
     ofstream << node;
     ofstream.close();
 }

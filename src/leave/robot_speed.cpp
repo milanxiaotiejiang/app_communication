@@ -8,13 +8,14 @@
 #include "glog/logging.h"
 #include "yaml-cpp/yaml.h"
 #include "BaseThrowable.h"
+#include "db/path.h"
 #include <iostream>
 #include <fstream>
 
 const std::string DWA_LOCAL_PLANNER_PARAMS_ZOO_FILE_NAME = "dwa_local_planner_params_zoo.yaml";
 
 float RobotSpeed::currentSpeed() {
-    auto slamPath = ros::package::getPath("robot_slam");
+    auto slamPath = path::robot_slam_path();
     auto absolute_path = slamPath + "/params/planner/" + DWA_LOCAL_PLANNER_PARAMS_ZOO_FILE_NAME;
 
     if (access(absolute_path.c_str(), F_OK) != 0) {

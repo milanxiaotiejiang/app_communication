@@ -3,11 +3,12 @@
 //
 
 #include "sub/json/LocationStrategy.h"
+#include "db/path.h"
 
 string LocationStrategy::handler(Location params) {
     string filePath;
-    filePath.append(ros::package::getPath("data_base"));
-    filePath.append("/config/location_info.txt");
+    filePath.append(path::data_base_config_path());
+    filePath.append("location_info.txt");
 
     if (!sh::File::exists(filePath)) {
         unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
@@ -39,8 +40,8 @@ void getLocationStrategy::handler() {
     bool is_location;
 
     // string filePath;
-    // filePath.append(ros::package::getPath("data_base"));
-    // filePath.append("/config/project_info.txt");
+    // filePath.append(path::data_base_config_path());
+    // filePath.append("project_info.txt");
 
     // // sh::File *pFile1 = new sh::File(filePath);
     // std::shared_ptr<sh::File> pFile1 = make_shared<sh::File>(filePath);
@@ -60,8 +61,8 @@ void getLocationStrategy::handler() {
     // json jsonProject;
     string responseP;
     string filePath2;
-    filePath2.append(ros::package::getPath("data_base"));
-    filePath2.append("/config/location_info.txt");
+    filePath2.append(path::data_base_config_path());
+    filePath2.append("location_info.txt");
 
     // *pFile2 = new sh::File(filePath2);
     std::shared_ptr<sh::File> pFile2 = make_shared<sh::File>(filePath2);

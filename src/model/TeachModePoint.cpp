@@ -77,8 +77,8 @@ void TeachModeProcess() {
                 //读文件
                 string fileName;
                 string sss;
-                fileName.append(ros::package::getPath("data_base"));
-                fileName.append("/config/teach_point_json.txt");
+                fileName.append(path::data_base_config_path());
+                fileName.append("teach_point_json.txt");
                 std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
                 if (fff->open(std::ios::in)) {
                     sss = fff->readAll();

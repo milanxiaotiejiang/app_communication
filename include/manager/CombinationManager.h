@@ -13,6 +13,7 @@
 
 #include "model/Combination.h"
 #include "tool/write_file.hpp"
+#include "db/path.h"
 #include <ros/package.h>
 
 class CombinationManager {
@@ -31,9 +32,9 @@ private:
 
 public:
     CombinationManager() {
-        m_filename.append(ros::package::getPath("data_base"));
+        m_filename.append(path::data_base_config_path());
 //        m_filename.append("/config/combination_list.txt");
-        m_filename.append("/config/combination_list_principal_json_work.txt");
+        m_filename.append("combination_list_principal_json_work.txt");
         cout << "combination_list_path:" << m_filename << endl;
         // m_filename.append("/home/admin1/test_ws/src/data_base/config/combination_list.txt");
         //m_file_ptr = new sh::File(m_filename);

@@ -5,10 +5,6 @@
 #include "sub/json/CloudDeviceStrategy.h"
 
 string GetDeviceSecretStrategy::handler(string method) {
-//    std::string basePath = ros::package::getPath("data_base") + "/config/";
-//    std::string path;
-//    path.append(basePath);
-//    path.append("robot_hw_info.yaml");
     string path;
     path.append("/opt/robot/robot_hw_info.yaml");
     if (sh::File::exists(path)) {

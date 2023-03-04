@@ -15,23 +15,6 @@
 bool SegmentationDataBase::loadMap() {
     segmentationStorage.sync_schema();
     try {
-        auto vectorMap = segmentationStorage.get_all<MapPo>(limit(1));
-        if (!vectorMap.empty()) {
-            auto map = vectorMap.front();
-            auto map_verify_path = map.path + "mymap.pgm";
-            if (access(map_verify_path.c_str(), F_OK) != 0) {
-                segmentationStorage.replace(
-                        MapPo(map.id, "mymap.pgm",
-                              SEGMENTATION_PATH)
-                );
-            }
-        } else {
-            auto mapId = boost::uuids::to_string(boost::uuids::random_generator()());
-            segmentationStorage.replace(
-                    MapPo(mapId, "mymap.pgm",
-                          SEGMENTATION_PATH)
-            );
-        }
         auto againMap = segmentationStorage.get_all<MapPo>(limit(1));
         mapPo = againMap.front();
         return true;
@@ -46,8 +29,7 @@ MapPo &SegmentationDataBase::getDbMap() {
 }
 
 std::vector<RoomPo> SegmentationDataBase::selectByMapId(const std::string &mapId) {
-    return segmentationStorage.get_all<RoomPo>(
-            where(c(&RoomPo::o_map_id) == mapId));
+    return segmentationStorage.get_all<RoomPo>(where(c(&RoomPo::o_map_id) == mapId));
 }
 
 void SegmentationDataBase::removeAllRoom(const std::string &mapId) {
@@ -75,7 +57,7 @@ void SegmentationDataBase::memory2Storage(cv::Mat &mat, std::vector<Room> &rooms
                 if (i == neighborIds.size() - 1) {
                     neighbor_room_ids.append(std::to_string(neighborId));
                 } else {
-                    neighbor_room_ids.append(std::to_string(neighborId)).append(SPLIT_STR);
+                    neighbor_room_ids.append(std::to_string(neighborId)).append(path::split_str);
                 }
             }
 
@@ -88,19 +70,16 @@ void SegmentationDataBase::memory2Storage(cv::Mat &mat, std::vector<Room> &rooms
 //        auto depth = mat.clone();
 //        CvUtils::savePng(randomPngPath, depth);
 
-        auto segmentationPgmPath = mapPo.path + SEGMENTATION_MB + mapPo.id;
-        return CvUtils::write(segmentationPgmPath, mat);
+        return CvUtils::write(path::map_segmentation_path(), mat);
     });
 }
 
 void
 SegmentationDataBase::storage2Memory(cv::Mat &mat, std::vector<Room> &rooms, double map_resolution_from_subscription) {
-    auto segmentationPgmPath = mapPo.path + SEGMENTATION_MB + mapPo.id;
     try {
-        mat = CvUtils::read(segmentationPgmPath);
+        mat = CvUtils::read(path::map_segmentation_path());
 
-        auto result = segmentationStorage.get_all<RoomPo>(
-                where(c(&RoomPo::o_map_id) == mapPo.id));
+        auto result = segmentationStorage.get_all<RoomPo>(where(c(&RoomPo::o_map_id) == mapPo.id));
 
         for (const auto &item: result) {
 
@@ -116,15 +95,15 @@ SegmentationDataBase::storage2Memory(cv::Mat &mat, std::vector<Room> &rooms, dou
             }
 
             std::vector<int> neighbor_room_ids;
-            std::string str = item.neighbor_room_ids + SPLIT_STR;
-            size_t pos = str.find(SPLIT_STR);
-            int step = SPLIT_STR.size();
+            std::string str = item.neighbor_room_ids + path::split_str;
+            size_t pos = str.find(path::split_str);
+            int step = path::split_str.size();
             while (pos != str.npos) {
                 std::string temp = str.substr(0, pos);
                 neighbor_room_ids.push_back(atoi(temp.c_str()));
                 //去掉已分割的字符串,在剩下的字符串中进行分割
                 str = str.substr(pos + step, str.size());
-                pos = str.find(SPLIT_STR);
+                pos = str.find(path::split_str);
             }
 
             Room room(item.value);

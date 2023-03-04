@@ -25,10 +25,10 @@ cv::Point MapAttribute::getRobotPositionPoint(const cv::Mat &room_map) const {
 }
 
 void MapAttribute::loadStation() {
-    if (access(map_yaml_path.c_str(), F_OK) != 0) {//存在
+    if (access(path::map_yaml_path().c_str(), F_OK) != 0) {//存在
         return;
     }
-    YAML::Node config = YAML::LoadFile(map_yaml_path);
+    YAML::Node config = YAML::LoadFile(path::map_yaml_path());
     const YAML::Node &originNode = config["origin"];
     if (!originNode.IsDefined()) {
         return;
@@ -53,11 +53,11 @@ void MapAttribute::resetProhibition() {
 }
 
 void MapAttribute::loadVirtualWall() {
-    if (access(prohibition_yaml_path.c_str(), F_OK) != 0) {//存在
+    if (access(path::prohibition_areas_path().c_str(), F_OK) != 0) {//存在
         return;
     }
 
-    YAML::Node config = YAML::LoadFile(prohibition_yaml_path);
+    YAML::Node config = YAML::LoadFile(path::prohibition_areas_path());
     const YAML::Node &prohibitionNode = config["prohibition_areas"];
     if (!prohibitionNode.IsDefined()) {
         return;
@@ -73,11 +73,11 @@ void MapAttribute::loadVirtualWall() {
 }
 
 void MapAttribute::loadPenaltyZone() {
-    if (access(prohibition_yaml_path.c_str(), F_OK) != 0) {//存在
+    if (access(path::prohibition_areas_path().c_str(), F_OK) != 0) {//存在
         return;
     }
 
-    YAML::Node config = YAML::LoadFile(prohibition_yaml_path);
+    YAML::Node config = YAML::LoadFile(path::prohibition_areas_path());
     const YAML::Node &prohibitionNode = config["prohibition_areas"];
     if (!prohibitionNode.IsDefined()) {
         return;

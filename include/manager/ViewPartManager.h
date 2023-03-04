@@ -13,6 +13,7 @@
 
 #include "model/ViewPart.h"
 #include "tool/write_file.hpp"
+#include "db/path.h"
 #include <ros/package.h>
 
 enum StartegyResult {
@@ -39,8 +40,8 @@ private:
 
 public:
     ViewPartManager() {
-        m_filename.append(ros::package::getPath("data_base"));
-        m_filename.append("/config/view_part_principal_json.txt");
+        m_filename.append(path::data_base_config_path());
+        m_filename.append("view_part_principal_json.txt");
         // m_filename.append("/home/admin1/test_ws/src/data_base/config/view_part.txt");
         // m_file_ptr = new sh::File(m_filename);
         m_file_ptr = make_shared<sh::File>(m_filename);

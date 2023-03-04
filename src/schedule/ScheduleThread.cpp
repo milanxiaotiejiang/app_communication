@@ -161,8 +161,8 @@ void execTask(TimerInfo &tsk) {
 void ScheduleThread::startScheduleCheck() {
     string fileName;
     string sss;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_path());
+    fileName.append("timer_info_json.txt");
     //设置清扫计时器
 
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
@@ -241,8 +241,8 @@ void ScheduleThread::subscribeCallback(const std_msgs::String &result) {
     //
     string fileName;
 
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_path());
+    fileName.append("timer_info_json.txt");
     //设置清扫计时器
     // sh::File *fff = new sh::File(fileName);
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);

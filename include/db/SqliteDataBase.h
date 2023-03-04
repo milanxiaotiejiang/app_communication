@@ -10,17 +10,12 @@
 #include "db/segmentation_model.h"
 #include "segmentation/Room.h"
 #include "task_model.h"
+#include "path.h"
 #include <ros/package.h>
 
-const static std::string SEGMENTATION_DIR = ros::package::getPath("robot_slam");
-const std::string SEGMENTATION_PATH = SEGMENTATION_DIR + "/maps/";
-const std::string SEGMENTATION_SQLITE_PATH = SEGMENTATION_PATH + "Map.sqlite";
-const std::string SEGMENTATION_MB = "segmentation_";
-const std::string SPLIT_STR = ",";
+const std::string SEGMENTATION_SQLITE_PATH = path::robot_slam_map_path() + "Map.sqlite";
 
-const static std::string TASK_DIR = ros::package::getPath("data_base");
-const std::string TASK_PATH = TASK_DIR + "/config/";
-const std::string TASK_SQLITE_PATH = TASK_PATH + "Task.sqlite";
+const std::string TASK_SQLITE_PATH = path::data_base_config_path() + "Task.sqlite";
 
 using namespace sqlite_orm;
 
@@ -37,8 +32,23 @@ public:
             return std::make_unique<TaskMode>(TaskMode::Cover);
         } else if (i == 2) {
             return std::make_unique<TaskMode>(TaskMode::Subregion);
+        } else if (i == 3) {
+            return std::make_unique<TaskMode>(TaskMode::Line);
         }
         return nullptr;
+    }
+
+    static TaskMode TaskModeFromInt(const int &i) {
+        if (i == 0) {
+            return TaskMode::Zoned;
+        } else if (i == 1) {
+            return TaskMode::Cover;
+        } else if (i == 2) {
+            return TaskMode::Subregion;
+        } else if (i == 3) {
+            return TaskMode::Line;
+        }
+        return TaskMode::Cover;
     }
 
     static std::string SourceToString(TaskSource source) {

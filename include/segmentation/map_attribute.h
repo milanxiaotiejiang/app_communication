@@ -15,16 +15,12 @@
 
 #include "glog/logging.h"
 #include "model/Point.h"
+#include "db/path.h"
 
 const double map_resolution_from_subscription = 0.05;
 
 const int VIRTUAL_WALL_DUS_COUNT = 2;
 const int PENALTY_ZONE_DUS_COUNT = 4;
-
-const std::string map_yaml_path = ros::package::getPath("robot_slam")
-                                  + "/maps/mymap.yaml";
-const std::string prohibition_yaml_path = ros::package::getPath("data_base")
-                                          + "/config/prohibition_areas.yaml";
 
 class MapAttribute {
 private:

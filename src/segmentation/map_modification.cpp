@@ -8,9 +8,8 @@
 
 void MapModification::forceModifyMap(const std::vector<std::vector<cv::Point>> &points, int fill) {
     auto dbMap = SegmentationDataBase::instance().getDbMap();
-    std::string image_filename = dbMap.path + dbMap.name;//"sim_mymap.pgm";
 
-    cv::Mat unchanged = cv::imread(image_filename.c_str(), cv::ImreadModes::IMREAD_UNCHANGED);
+    cv::Mat unchanged = cv::imread(path::map_pgm_path().c_str(), cv::ImreadModes::IMREAD_UNCHANGED);
 
     for (const auto &v: points) {
         std::vector<std::vector<cv::Point>> polygon_array;
@@ -18,7 +17,7 @@ void MapModification::forceModifyMap(const std::vector<std::vector<cv::Point>> &
         cv::fillPoly(unchanged, polygon_array, cv::Scalar(fill));
     }
 
-    cv::imwrite(image_filename, unchanged);
+    cv::imwrite(path::map_pgm_path(), unchanged);
 }
 
 void MapModification::addObstacles(const std::vector<std::vector<cv::Point>> &points) {

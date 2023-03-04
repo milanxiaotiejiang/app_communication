@@ -27,9 +27,8 @@ vector<FullCleanBrief> FullCLeanListStrategy::handler(string params) {
 }
 
 string SetFullCleaningModeStrategy::handler(WorkStatus params) {
-    auto dataBasePath = ros::package::getPath("data_base");
     std::string filePath;
-    filePath.append(dataBasePath);
+    filePath.append(path::data_base_config_path());
     filePath.append(FULL_CLEANING_MODE);
 
     json currentJson = params;

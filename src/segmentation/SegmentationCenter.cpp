@@ -145,9 +145,8 @@ void SegmentationCenter::resetSegmentation() {
     auto dbMap = SegmentationDataBase::instance().getDbMap();
     SegmentationDataBase::instance().removeAllRoom(dbMap.id);
 
-    auto segmentationPgmPath = dbMap.path + SEGMENTATION_MB + dbMap.id;
-    if (access(segmentationPgmPath.c_str(), F_OK) == 0) {//存在
-        std::remove(segmentationPgmPath.c_str());
+    if (access(path::map_segmentation_path().c_str(), F_OK) == 0) {//存在
+        std::remove(path::map_segmentation_path().c_str());
     }
 }
 
@@ -476,8 +475,7 @@ cv::Mat SegmentationCenter::choiceOneRoom(cv::Mat &segmented_map, std::vector<Ro
 
 cv::Mat SegmentationCenter::generateMat() const {
     auto dbMap = SegmentationDataBase::instance().getDbMap();
-    std::string image_filename = dbMap.path + dbMap.name;//"sim_mymap.pgm";
-    cv::Mat map = cv::imread(image_filename.c_str(), cv::ImreadModes::IMREAD_GRAYSCALE);
+    cv::Mat map = cv::imread(path::map_pgm_path().c_str(), cv::ImreadModes::IMREAD_GRAYSCALE);
 
     cv::normalize(map, map, 0, 255, cv::NORM_MINMAX);
 //    map.convertTo(map, CV_8U);
@@ -502,8 +500,7 @@ cv::Mat SegmentationCenter::generateMat() const {
 
 bool SegmentationCenter::checkPartition() const {
     auto dbMap = SegmentationDataBase::instance().getDbMap();
-    auto segmentationPgmPath = dbMap.path + SEGMENTATION_MB + dbMap.id;
-    if (access(segmentationPgmPath.c_str(), F_OK) == 0) {
+    if (access(path::map_segmentation_path().c_str(), F_OK) == 0) {
         auto roomList = SegmentationDataBase::instance().selectByMapId(dbMap.id);
         if (roomList.empty()) {
             return false;

@@ -3,12 +3,12 @@
 //
 
 #include "manager/UpgradeManager.h"
+#include "db/path.h"
 
 //void UpgradeManager::updateCombinationPrincipal() {
-//    auto dataBasePath = ros::package::getPath("data_base");
 //    std::string lastFilePath;
-//    lastFilePath.append(dataBasePath);
-//    lastFilePath.append("/config/combination_list.txt");
+//    lastFilePath.append(path::data_base_config_path());
+//    lastFilePath.append("combination_list.txt");
 //
 //    if (!sh::File::exists(lastFilePath)) {
 //        LOG(INFO) << lastFilePath << " not exists";
@@ -78,10 +78,9 @@
 //}
 
 //void UpgradeManager::updateViewPartPrincipal() {
-//    auto dataBasePath = ros::package::getPath("data_base");
 //    std::string lastFilePath;
-//    lastFilePath.append(dataBasePath);
-//    lastFilePath.append("/config/view_part.txt");
+//    lastFilePath.append(path::data_base_config_path());
+//    lastFilePath.append("view_part.txt");
 //
 //    if (!sh::File::exists(lastFilePath)) {
 //        LOG(INFO) << lastFilePath << " not exists";
@@ -160,10 +159,9 @@
 //}
 
 void UpgradeManager::updateCleanHistoryPrincipal() {
-    auto dataBasePath = ros::package::getPath("data_base");
     std::string lastFilePath;
-    lastFilePath.append(dataBasePath);
-    lastFilePath.append("/config/clean_history.txt");
+    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append("clean_history.txt");
 
     if (!sh::File::exists(lastFilePath)) {
         LOG(INFO) << lastFilePath << " not exists";
@@ -192,8 +190,8 @@ void UpgradeManager::updateCleanHistoryPrincipal() {
     auto lastList = jdecode.get<CleanHistoryListUpgrade>();
 
     std::string currentFilePath;
-    currentFilePath.append(dataBasePath);
-    currentFilePath.append("/config/clean_history_principal.txt");
+    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append("clean_history_principal.txt");
 
     if (sh::File::exists(currentFilePath)) {
         if (!sh::File::saveTextTo(currentFilePath, "")) {
@@ -234,10 +232,9 @@ void UpgradeManager::updateCleanHistoryPrincipal() {
 }
 
 void UpgradeManager::updateCombinationBase64() {
-    auto dataBasePath = ros::package::getPath("data_base");
     std::string lastFilePath;
-    lastFilePath.append(dataBasePath);
-    lastFilePath.append("/config/combination_list_principal.txt");
+    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append("combination_list_principal.txt");
 
     if (!sh::File::exists(lastFilePath)) {
         LOG(INFO) << lastFilePath << " not exists";
@@ -266,8 +263,8 @@ void UpgradeManager::updateCombinationBase64() {
     auto lastList = jdecode.get<CombinationBriefList>();
 
     std::string currentFilePath;
-    currentFilePath.append(dataBasePath);
-    currentFilePath.append("/config/combination_list_principal_json.txt");
+    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append("combination_list_principal_json.txt");
 
     if (sh::File::exists(currentFilePath)) {
         if (!sh::File::saveTextTo(currentFilePath, "")) {
@@ -294,10 +291,9 @@ void UpgradeManager::updateCombinationBase64() {
 }
 
 void UpgradeManager::updateViewPartBase64() {
-    auto dataBasePath = ros::package::getPath("data_base");
     std::string lastFilePath;
-    lastFilePath.append(dataBasePath);
-    lastFilePath.append("/config/view_part_principal.txt");
+    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append("view_part_principal.txt");
 
     if (!sh::File::exists(lastFilePath)) {
         LOG(INFO) << lastFilePath << " not exists";
@@ -326,8 +322,8 @@ void UpgradeManager::updateViewPartBase64() {
     auto lastList = jdecode.get<ViewPartList>();
 
     std::string currentFilePath;
-    currentFilePath.append(dataBasePath);
-    currentFilePath.append("/config/view_part_principal_json.txt");
+    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append("view_part_principal_json.txt");
 
     if (sh::File::exists(currentFilePath)) {
         if (!sh::File::saveTextTo(currentFilePath, "")) {
@@ -352,10 +348,9 @@ void UpgradeManager::updateViewPartBase64() {
 }
 
 void UpgradeManager::updateCleanHistoryBase64() {
-    auto dataBasePath = ros::package::getPath("data_base");
     std::string lastFilePath;
-    lastFilePath.append(dataBasePath);
-    lastFilePath.append("/config/clean_history_principal.txt");
+    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append("clean_history_principal.txt");
 
     if (!sh::File::exists(lastFilePath)) {
         LOG(INFO) << lastFilePath << " not exists";
@@ -384,8 +379,8 @@ void UpgradeManager::updateCleanHistoryBase64() {
     auto lastList = jdecode.get<CleanHistoryList>();
 
     std::string currentFilePath;
-    currentFilePath.append(dataBasePath);
-    currentFilePath.append("/config/clean_history_principal_json.txt");
+    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append("clean_history_principal_json.txt");
 
     if (sh::File::exists(currentFilePath)) {
         if (!sh::File::saveTextTo(currentFilePath, "")) {
@@ -410,10 +405,9 @@ void UpgradeManager::updateCleanHistoryBase64() {
 }
 
 void UpgradeManager::updateTimeInfoBase64() {
-    auto dataBasePath = ros::package::getPath("data_base");
     std::string lastFilePath;
-    lastFilePath.append(dataBasePath);
-    lastFilePath.append("/config/timer_info.txt");
+    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append("timer_info.txt");
 
     if (!sh::File::exists(lastFilePath)) {
         LOG(INFO) << lastFilePath << " not exists";
@@ -442,8 +436,8 @@ void UpgradeManager::updateTimeInfoBase64() {
     auto lastList = jdecode.get<std::vector<TimerInfo>>();
 
     std::string currentFilePath;
-    currentFilePath.append(dataBasePath);
-    currentFilePath.append("/config/timer_info_json.txt");
+    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append("timer_info_json.txt");
 
     if (sh::File::exists(currentFilePath)) {
         if (!sh::File::saveTextTo(currentFilePath, "")) {
@@ -468,10 +462,9 @@ void UpgradeManager::updateTimeInfoBase64() {
 }
 
 void UpgradeManager::updateTeachPoint() {
-    auto dataBasePath = ros::package::getPath("data_base");
     std::string lastFilePath;
-    lastFilePath.append(dataBasePath);
-    lastFilePath.append("/config/teach_point.txt");
+    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append("teach_point.txt");
 
     if (!sh::File::exists(lastFilePath)) {
         LOG(INFO) << lastFilePath << " not exists";
@@ -500,8 +493,8 @@ void UpgradeManager::updateTeachPoint() {
     auto lastList = jdecode.get<std::vector<WayPointTask>>();
 
     std::string currentFilePath;
-    currentFilePath.append(dataBasePath);
-    currentFilePath.append("/config/teach_point_json.txt");
+    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append("teach_point_json.txt");
 
     if (sh::File::exists(currentFilePath)) {
         if (!sh::File::saveTextTo(currentFilePath, "")) {
@@ -526,10 +519,9 @@ void UpgradeManager::updateTeachPoint() {
 }
 
 void UpgradeManager::updateCombinationPrincipalWork() {
-    auto dataBasePath = ros::package::getPath("data_base");
     std::string lastFilePath;
-    lastFilePath.append(dataBasePath);
-    lastFilePath.append("/config/combination_list_principal_json.txt");
+    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append("combination_list_principal_json.txt");
 
     if (!sh::File::exists(lastFilePath)) {
         LOG(INFO) << lastFilePath << " not exists";
@@ -557,8 +549,8 @@ void UpgradeManager::updateCombinationPrincipalWork() {
     auto lastList = jdecode.get<CombinationBriefWorkList>();
 
     std::string currentFilePath;
-    currentFilePath.append(dataBasePath);
-    currentFilePath.append("/config/combination_list_principal_json_work.txt");
+    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append("combination_list_principal_json_work.txt");
 
     if (sh::File::exists(currentFilePath)) {
         if (!sh::File::saveTextTo(currentFilePath, "")) {
@@ -596,18 +588,16 @@ void UpgradeManager::updateCombinationPrincipalWork() {
 }
 
 void UpgradeManager::checkWhetherFileExists() {
-    auto dataBasePath = ros::package::getPath("data_base");
-    createFile(dataBasePath, "combination_list_principal_json_work.txt");
-    createFile(dataBasePath, "view_part_principal_json.txt");
-    createFile(dataBasePath, "clean_history_principal_json.txt");
-    createFile(dataBasePath, "timer_info_json.txt");
-    createFile(dataBasePath, "teach_point_json.txt");
+    createFile(path::data_base_config_path(), "combination_list_principal_json_work.txt");
+    createFile(path::data_base_config_path(), "view_part_principal_json.txt");
+    createFile(path::data_base_config_path(), "clean_history_principal_json.txt");
+    createFile(path::data_base_config_path(), "timer_info_json.txt");
+    createFile(path::data_base_config_path(), "teach_point_json.txt");
 }
 
 void UpgradeManager::createFile(const string &dataBasePath, const string &fileName) const {
     std::string currentFilePath;
     currentFilePath.append(dataBasePath);
-    currentFilePath.append("/config/");
     currentFilePath.append(fileName);
     if (!sh::File::exists(currentFilePath)) {
         unique_ptr<sh::File> cFilePtr(new sh::File(currentFilePath));
@@ -621,10 +611,9 @@ void UpgradeManager::removePolygonViewPart() {
     //combination_list_principal_json_work
     //view_part_principal_json
 
-    auto dataBasePath = ros::package::getPath("data_base");
     std::string viewPartFilePath;
-    viewPartFilePath.append(dataBasePath);
-    viewPartFilePath.append("/config/view_part_principal_json.txt");
+    viewPartFilePath.append(path::data_base_config_path());
+    viewPartFilePath.append("view_part_principal_json.txt");
 
     if (!sh::File::exists(viewPartFilePath)) {
         return;
@@ -687,10 +676,9 @@ void UpgradeManager::removePolygonViewPart() {
 
 void UpgradeManager::removeCombination(vector<string> keys) {
 
-    auto dataBasePath = ros::package::getPath("data_base");
     std::string combinationFilePath;
-    combinationFilePath.append(dataBasePath);
-    combinationFilePath.append("/config/combination_list_principal_json_work.txt");
+    combinationFilePath.append(path::data_base_config_path());
+    combinationFilePath.append("combination_list_principal_json_work.txt");
 
     if (!sh::File::exists(combinationFilePath)) {
         return;

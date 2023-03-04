@@ -13,10 +13,6 @@
 #include "db/segmentation_data_base.h"
 #include "simulation.h"
 
-std::string Map_path =
-        ros::package::getPath("robot_slam") + "/maps/mymap.pgm";
-
-
 string ExecuteTaskStrategy::handler(Task task) {
     TaskCenter::instance().executeTask(task);
     return "";

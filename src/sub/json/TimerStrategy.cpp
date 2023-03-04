@@ -5,6 +5,7 @@
 #include "sub/json/TimerStrategy.h"
 #include "ros/package.h"
 #include "glog/logging.h"
+#include "db/path.h"
 #include <model/Entrance.h>
 
 
@@ -12,8 +13,8 @@ string AddTimerStrategy::handler(TimerInfo params) {
 
     string fileName;
     string sss;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_path());
+    fileName.append("timer_info_json.txt");
     //设置清扫计时器
     //sh::File *fff = new sh::File(fileName);
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
@@ -93,8 +94,8 @@ string AddTimerStrategy::handler(TimerInfo params) {
 string UpdateTimerStrategy::handler(TimerInfo params) {
     string fileName;
     string sss;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_path());
+    fileName.append("timer_info_json.txt");
 
     // *fff = new sh::File(fileName);
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
@@ -164,8 +165,8 @@ string UpdateTimerStrategy::handler(TimerInfo params) {
 vector<TimerInfo> GetTimerListStrategy::handler(string params) {
     string fileName;
     string sss;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_path());
+    fileName.append("timer_info_json.txt");
 
     //sh::File *fff = new sh::File(fileName);
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
@@ -191,8 +192,8 @@ string DeleteTimerStrategy::handler(string params) {
     //    使能/失能清扫计时器
     string fileName;
     string path;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_path());
+    fileName.append("timer_info_json.txt");
     cout << "timer_infos 214 " << endl;
     //sh::File *fff = new sh::File(fileName);
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);

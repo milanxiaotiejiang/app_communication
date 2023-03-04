@@ -7,11 +7,12 @@
 #include "leave/ParamManager.h"
 #include "leave/robot_speed.h"
 #include "manager/cloud_robot_control.h"
+#include "db/path.h"
 
 string ProjectStrategy::handler(Project params) {
     string filePath;
-    filePath.append(ros::package::getPath("data_base"));
-    filePath.append("/config/project_info.txt");
+    filePath.append(path::data_base_config_path());
+    filePath.append("project_info.txt");
 
     if (!sh::File::exists(filePath)) {
         unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
@@ -40,8 +41,8 @@ string getProjectStrategy::handler(string params) {
     bool is_location;
 
     string filePath;
-    filePath.append(ros::package::getPath("data_base"));
-    filePath.append("/config/project_info.txt");
+    filePath.append(path::data_base_config_path());
+    filePath.append("project_info.txt");
 
     sh::File *pFile1 = new sh::File(filePath);
     string responseP;
@@ -63,8 +64,8 @@ string getProjectStrategy::handler(string params) {
 
 string PadVersionStrategy::handler(string params) {
     string filePath;
-    filePath.append(ros::package::getPath("data_base"));
-    filePath.append("/config/pad_version_info.txt");
+    filePath.append(path::data_base_config_path());
+    filePath.append("pad_version_info.txt");
 
     if (!sh::File::exists(filePath)) {
         unique_ptr<sh::File> uFilePtr(new sh::File(filePath));

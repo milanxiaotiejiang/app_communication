@@ -7,6 +7,7 @@
 #include "sub/DSVersionSubscribe.h"
 #include "tool/write_file.hpp"
 #include "manager/PublishInnerManager.h"
+#include "db/path.h"
 
 DSVersionSubscribe::DSVersionSubscribe(ros::NodeHandle handle) : handle(handle) {
     sub_ds_hw = handle.subscribe("/dasheng/hw", 1, &DSVersionSubscribe::subscribeHWCallback, this);
@@ -21,8 +22,8 @@ DSVersionSubscribe::DSVersionSubscribe(ros::NodeHandle handle) : handle(handle) 
     PublishInnerManager::instance().publishDSVersion(version);
 
     string filePath;
-    filePath.append(ros::package::getPath("data_base"));
-    filePath.append("/config/pad_version_info.txt");
+    filePath.append(path::data_base_config_path());
+    filePath.append("pad_version_info.txt");
 
     if (sh::File::exists(filePath)) {
         unique_ptr<sh::File> uFilePtr(new sh::File(filePath));

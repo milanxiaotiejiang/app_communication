@@ -46,8 +46,7 @@ void TaskFeedback::start() {
 
     map_origin = MapAttribute::instance().getMapOrigin();
 
-    const std::string &basicString = ros::package::getPath("data_base") + "/config/";
-    savePath = basicString + run_task_id + ".pgm";
+    savePath = path::data_base_config_path() + run_task_id + ".pgm";
 
     auto map = SegmentationCenter::instance().generateMat().clone();
     area_px = 0;

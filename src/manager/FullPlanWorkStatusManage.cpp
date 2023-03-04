@@ -12,11 +12,11 @@
 
 #include "glog/logging.h"
 #include "tool/write_file.hpp"
+#include "db/path.h"
 
 WorkStatus FullPlanWorkStatusManager::getFullCleanWorkStatus() {
-    auto dataBasePath = ros::package::getPath("data_base");
     std::string filePath;
-    filePath.append(dataBasePath);
+    filePath.append(path::data_base_config_path());
     filePath.append(FULL_CLEANING_MODE);
 
     if (!sh::File::exists(filePath)) {
