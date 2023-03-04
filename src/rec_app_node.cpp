@@ -330,11 +330,14 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<string>("ros_version", ros_version, "0.0.0.1"); //版本号
     VersionManager::instance().setAirCodeVersion(ros_version);
     int machine_version;
-    nh.param<int>("machine_version", machine_version, 630); //版本号
+    nh.param<int>("machine_version", machine_version, 630);
     VersionManager::instance().setMachineVersion(machine_version);
     int self_check_version;
-    nh.param<int>("self_check_version", self_check_version, 1); //版本号
+    nh.param<int>("self_check_version", self_check_version, 1);
     VersionManager::instance().setSelfCheckVersion(self_check_version);
+    bool update_map;
+    nh.param<bool>("update_map", update_map, false); //update_map
+    Environment::instance().update_map = update_map;
 }
 
 void release() {
