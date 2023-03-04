@@ -40,6 +40,8 @@ public:
     void preloadCoveragePath();
 
     void repaintCoveragePath();
+
+    void publish() const;
 };
 
 

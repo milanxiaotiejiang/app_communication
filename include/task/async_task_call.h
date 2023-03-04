@@ -122,6 +122,8 @@ public:
 
     void executeOnNext(event::error error);
 
+    void executePointFeedback(geometry_msgs::Pose2D);
+
     void executeOutStation(bool result);
 
     void executeInStation(bool result);

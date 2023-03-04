@@ -30,7 +30,7 @@ public:
 
     void pointActive();
 
-    void pointFeedback(geometry_msgs::PoseStamped::_pose_type pose);
+    void pointFeedback(geometry_msgs::Pose2D pose);
 };
 
 

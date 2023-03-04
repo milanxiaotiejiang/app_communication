@@ -87,16 +87,30 @@ void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &ex
 RoomCoverage CoveragePathGenerator::obtainCoveragePath(int overtime) {
     LOG(INFO) << "CoveragePathGenerator " << overtime;
     if (coverage_planner_done) {
+        publish();
         return roomCoverage;
     }
 
     std::unique_lock<std::mutex> lck(wait_mutex);
     wait_cv.wait_for(lck, std::chrono::milliseconds(overtime));
     if (coverage_planner_done) {
+        publish();
         return roomCoverage;
     } else {
         throw app::exception(make_error_code(error::coverage_path_overtime));
     }
+}
+
+void CoveragePathGenerator::publish() const {
+    std::vector<geometry_msgs::Pose2D> exploration_path;
+    for (const auto &item: roomCoverage.getPoseList()) {
+        geometry_msgs::Pose2D pose2D;
+        pose2D.x = item.getY();
+        pose2D.y = item.getX();
+        pose2D.theta = item.getTheta();
+        exploration_path.push_back(pose2D);
+    }
+    ExplorationCenter::instance().pathPublish(exploration_path);
 }
 
 void CoveragePathGenerator::preloadCoveragePath() {

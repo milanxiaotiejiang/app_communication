@@ -628,6 +628,10 @@ void AsyncTaskCall::executeOnNext(event::error error) {
     }
 }
 
+void AsyncTaskCall::executePointFeedback(geometry_msgs::Pose2D pose) {
+    fbPtr->triggerFeedback(pose);
+}
+
 void AsyncTaskCall::executeOutStation(bool result) {
     notify_one([this, &result]() {
         flowOutStationPoint.realError.arrive = result;

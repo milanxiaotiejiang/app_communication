@@ -108,6 +108,7 @@ void ReservedCall::handleStop() {
 }
 
 void ReservedCall::handleExecuteTask(const RealTask &task) {
+    fbPtr->triggerStart(task.getId(), task.getPlanPoints());
     InternalEventPubManager::get_instance()->taskStart(task.getId());
     CleanHistoryCenter::instance().executeTask(task);
     AsyncTaskCall::handleExecuteTask(task);
@@ -156,6 +157,7 @@ void ReservedCall::softwareInterruptTask(const RealPoint &point) {
 }
 
 void ReservedCall::goodGame() {
+    fbPtr->triggerEnd();
     runTask;
     InternalEventPubManager::get_instance()->taskStop(runTask.getId());
     CleanHistoryCenter::instance().complete();

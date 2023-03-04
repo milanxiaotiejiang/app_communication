@@ -26,6 +26,35 @@ void PointVo::setY(int y) {
     PointVo::y = y;
 }
 
+bool PointVo::operator==(const PointVo &rhs) const {
+    return x == rhs.x &&
+           y == rhs.y;
+}
+
+bool PointVo::operator!=(const PointVo &rhs) const {
+    return !(rhs == *this);
+}
+
+bool PointVo::operator<(const PointVo &rhs) const {
+    if (x < rhs.x)
+        return true;
+    if (rhs.x < x)
+        return false;
+    return y < rhs.y;
+}
+
+bool PointVo::operator>(const PointVo &rhs) const {
+    return rhs < *this;
+}
+
+bool PointVo::operator<=(const PointVo &rhs) const {
+    return !(rhs < *this);
+}
+
+bool PointVo::operator>=(const PointVo &rhs) const {
+    return !(*this < rhs);
+}
+
 PoseVo::PoseVo() {}
 
 PoseVo::PoseVo(float x, float y, float theta) : x(x), y(y), theta(theta) {}

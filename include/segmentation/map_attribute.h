@@ -115,6 +115,8 @@ public:
                            const YAML::Node &node, int dusCount) const;
 
     cv::Point rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const;
+
+    cv::Point rosPoint2MapPoint(double rows, double cols, const Point &point) const;
 };
 
 

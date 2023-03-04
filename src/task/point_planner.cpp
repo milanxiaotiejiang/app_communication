@@ -29,7 +29,14 @@ void PointPlanner::activeCd() {
 }
 
 void PointPlanner::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback) {
-    PointRoutine::instance().pointFeedback(feedback->base_position);
+    move_base_msgs::MoveBaseFeedback_<allocator<void>>::_base_position_type stamped = feedback->base_position;
+    geometry_msgs::PoseStamped_<allocator<void>>::_pose_type pose = stamped.pose;
+    geometry_msgs::Pose_<allocator<void>>::_position_type &point = pose.position;
+    geometry_msgs::Pose2D pose2D;
+    pose2D.x = point.x;
+    pose2D.y = point.y;
+    pose2D.theta = 0.;
+    PointRoutine::instance().pointFeedback(pose2D);
 }
 
 void PointPlanner::initialize(ros::NodeHandle handle) {

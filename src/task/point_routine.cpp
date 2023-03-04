@@ -4,6 +4,7 @@
 
 #include "task/point_routine.h"
 #include "task/status/state_machine.h"
+#include <geometry_msgs/Pose2D.h>
 
 void PointRoutine::pointDone(const actionlib::SimpleClientGoalState &state) {
     event::error status = event::error::SUCCEEDED;
@@ -32,5 +33,6 @@ void PointRoutine::pointActive() {
 
 }
 
-void PointRoutine::pointFeedback(geometry_msgs::PoseStamped::_pose_type pose) {
+void PointRoutine::pointFeedback(geometry_msgs::Pose2D pose) {
+    asyncTaskCall->executePointFeedback(pose);
 }

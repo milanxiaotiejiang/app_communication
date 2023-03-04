@@ -152,6 +152,15 @@ cv::Point MapAttribute::rosPoint2MapPoint(const cv::Mat &room_map, const Point &
     return position;
 }
 
+cv::Point MapAttribute::rosPoint2MapPoint(double rows, double cols, const Point &point) const {
+    double x = cols - (point.getY() - map_origin_pose.position.x);
+    double y = rows - (point.getX() - map_origin_pose.position.y);
+    cv::Point position;
+    position.x = x / map_resolution_from_subscription;
+    position.y = y / map_resolution_from_subscription;
+    return position;
+}
+
 bool MapAttribute::isCreatingMap() const {
     return creating_map;
 }

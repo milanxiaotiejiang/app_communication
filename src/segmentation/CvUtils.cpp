@@ -105,4 +105,9 @@ namespace CvUtils {
         return true;
     }
 
+    bool savePgm(const std::string &fileName, const cv::Mat &src) {
+        cv::imwrite(fileName, src);
+        return true;
+    }
+
 }

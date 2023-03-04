@@ -30,6 +30,18 @@ public:
 
     void setY(int y);
 
+    bool operator==(const PointVo &rhs) const;
+
+    bool operator!=(const PointVo &rhs) const;
+
+    bool operator<(const PointVo &rhs) const;
+
+    bool operator>(const PointVo &rhs) const;
+
+    bool operator<=(const PointVo &rhs) const;
+
+    bool operator>=(const PointVo &rhs) const;
+
     friend void to_json(json &j, const PointVo &pointVo) {
         j = json{
                 {"x", pointVo.x},
