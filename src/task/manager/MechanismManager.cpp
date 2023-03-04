@@ -10,34 +10,34 @@
 void MechanismManager::resetWorkStatus() {
     LOG(INFO) << "MechanismManager : 收起清洁机构.";
     std_msgs::Int16 sweep_status;
-    if (ZooInnerStatus::instance().getSweepStatus() != 0 && ZooInnerStatus::instance().getSweepStatus() != -1) {
-        sweep_status.data = 0;
-        PublishInnerManager::instance().publishSweepMode(sweep_status);
-    }
+//    if (ZooInnerStatus::instance().getSweepStatus() != 0 && ZooInnerStatus::instance().getSweepStatus() != -1) {
+    sweep_status.data = 0;
+    PublishInnerManager::instance().publishSweepMode(sweep_status);
+//    }
 
     std_msgs::Int16 mop_status;
-    if (ZooInnerStatus::instance().getMopStatus() != 0 && ZooInnerStatus::instance().getMopStatus() != -1) {
-        mop_status.data = 0;
-        PublishInnerManager::instance().publishMopMode(mop_status);
-    }
+//    if (ZooInnerStatus::instance().getMopStatus() != 0 && ZooInnerStatus::instance().getMopStatus() != -1) {
+    mop_status.data = 0;
+    PublishInnerManager::instance().publishMopMode(mop_status);
+//    }
 
     std_msgs::Int16 vacuum_status;
-    if (ZooInnerStatus::instance().getVacuumStatus() != 0 && ZooInnerStatus::instance().getVacuumStatus() != -1) {
-        vacuum_status.data = 0;
-        PublishInnerManager::instance().publishVacuumMode(vacuum_status);
-    }
+//    if (ZooInnerStatus::instance().getVacuumStatus() != 0 && ZooInnerStatus::instance().getVacuumStatus() != -1) {
+    vacuum_status.data = 0;
+    PublishInnerManager::instance().publishVacuumMode(vacuum_status);
+//    }
 
     std_msgs::Int16 push_status;
-    if (ZooInnerStatus::instance().getPushStatus() != 0 && ZooInnerStatus::instance().getPushStatus() != -1) {
-        push_status.data = 0;
-        PublishInnerManager::instance().publishPushMode(push_status);
-    }
+//    if (ZooInnerStatus::instance().getPushStatus() != 0 && ZooInnerStatus::instance().getPushStatus() != -1) {
+    push_status.data = 0;
+    PublishInnerManager::instance().publishPushMode(push_status);
+//    }
 
     std_msgs::Int16 aromatherapy_status;
-    if (ZooInnerStatus::instance().getAromStatus() != 0 && ZooInnerStatus::instance().getAromStatus() != -1) {
-        aromatherapy_status.data = 0;
-        PublishInnerManager::instance().publishAromStatus(aromatherapy_status);
-    }
+//    if (ZooInnerStatus::instance().getAromStatus() != 0 && ZooInnerStatus::instance().getAromStatus() != -1) {
+    aromatherapy_status.data = 0;
+    PublishInnerManager::instance().publishAromStatus(aromatherapy_status);
+//    }
 
     std_msgs::Int16 disinfect_status;
 }

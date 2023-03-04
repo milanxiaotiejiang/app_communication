@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
     ExplorationCenter::instance().initialize(handle);
 //    AlignmentCenter::instance().initialize(handle);
     TaskCenter::instance().initialize(handle);
-    TaskDataBase::instance().loadTask();
+//    TaskDataBase::instance().initialize();
 
     ParamManager::instance().loadDefaultParam();
 

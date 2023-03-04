@@ -8,7 +8,6 @@
 #include "SqliteDataBase.h"
 #include "model/Task.h"
 #include "model/task.h"
-#include "model/TimerInfo.h"
 
 class TaskDataBase {
 private:
@@ -18,13 +17,20 @@ private:
 
     TaskVo taskPo2Vo(const TaskPo &taskPo);
 
+    TimerVo timerPo2Vo(const TimerPo &timerPo, const std::string &taskName);
+
 public:
     static auto &instance() {
         static TaskDataBase obj;
         return obj;
     }
 
+    void initialize();
+
     //增
+    void addZoneTask(const std::string &mapId, const TaskVo &taskVo);
+
+    void addTimer(const std::string& mapId, long taskId, const TimerVo &timer);
 
     //删
     void deleteOwnTask();
@@ -38,11 +44,12 @@ public:
     //查
     std::vector<TaskVo> loadTaskFoMap(std::string mapId);
 
-    TaskVo loadTaskFoTask(long taskId);
+    TaskVo loadTaskFoId(long taskId);
 
-    std::vector<TimerInfo> loadTimerFoMap(std::string mapId);
+    std::vector<TimerVo> loadTimerFoMap(std::string mapId);
 
-    bool loadTask();
+    TimerVo loadTimerFoId(long timerId);
+
 };
 
 

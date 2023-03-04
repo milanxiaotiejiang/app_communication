@@ -65,6 +65,17 @@ public:
         return std::make_unique<TaskSource>(TaskSource::Self);
     }
 
+    static TaskSource TaskSourceFromString(const std::string &s) {
+        if (s == "app") {
+            return TaskSource::App;
+        } else if (s == "pad") {
+            return TaskSource::Pad;
+        } else if (s == "cloud") {
+            return TaskSource::Cloud;
+        }
+        return TaskSource::Self;
+    }
+
 public:
 
     static auto initMapStorage() {

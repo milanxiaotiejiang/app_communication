@@ -80,12 +80,14 @@ struct ZonePo {
 struct TimerPo {
     TimerPo();
 
-    TimerPo(int id, long oTaskId, const std::string &rule, const std::string &name, bool isExecute, int rate,
-            bool isNever, bool isSkip, int endYear, int endMonth, int endDay);
+    TimerPo(int id, const std::string &oMapId, long oTaskId, long oTaskName, const std::string &rule,
+            const std::string &name, bool isExecute, int rate, bool isNever, bool isSkip, int endYear, int endMonth,
+            int endDay);
 
     int id;
     std::string o_map_id;
     long o_task_id;
+    long o_task_name;
     std::string rule;
     std::string name;
     bool is_execute;

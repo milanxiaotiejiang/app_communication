@@ -6,6 +6,8 @@
 
 #include <utility>
 
+#include <catch2/catch.hpp>
+
 void TaskDataBase::split(const std::string &s, std::vector<std::string> &tokens, char delim) {
     tokens.clear();
     size_t lastPos = s.find_first_not_of(delim, 0);
@@ -40,6 +42,136 @@ TaskVo TaskDataBase::taskPo2Vo(const TaskPo &taskPo) {
         zones.push_back(points);
     }
     task.setZones(zones);
+    return task;
+}
+
+TimerVo TaskDataBase::timerPo2Vo(const TimerPo &timerPo, const std::string &taskName) {
+    return TimerVo(timerPo.id, timerPo.rule, timerPo.o_task_id, timerPo.name,
+                   taskName, timerPo.is_execute, timerPo.rate, timerPo.is_never, timerPo.is_skip,
+                   timerPo.end_year, timerPo.end_month, timerPo.end_day);
+}
+
+TEST_CASE() {
+    TaskDataBase::instance().initialize();
+
+    TaskDataBase::instance().deleteOwnTask();
+
+    std::string map_id = "888";
+    TaskVo task1(0, map_id, "task test 1", 1, 0, false, "App", "looper", 0l, 0l, 0l);
+    TaskVo task2(0, map_id, "task test 2", 1, 0, false, "App", "looper", 0l, 0l, 0l);
+    TaskVo task3(0, map_id, "task test 3", 1, 0, false, "App", "looper", 0l, 0l, 0l);
+
+    std::vector<std::vector<PointVo>> zones;
+    for (int i = 0; i < rand() % 5; i++) {
+        std::vector<PointVo> points;
+        for (int j = 0; j < 4; j++) {
+            points.emplace_back(rand() % 10, rand() % 10);
+        }
+        zones.push_back(points);
+    }
+    task1.setZones(zones);
+    task2.setZones(zones);
+    task3.setZones(zones);
+
+    TaskDataBase::instance().addZoneTask(map_id, task1);
+    TaskDataBase::instance().addZoneTask(map_id, task2);
+    TaskDataBase::instance().addZoneTask(map_id, task3);
+
+    const std::vector<TaskVo> &vector = TaskDataBase::instance().loadTaskFoMap(map_id);
+    std::cout << "loadTaskFoMap ------------------------------------------------------" << std::endl;
+    for (const auto &item: vector) {
+        std::cout << item << std::endl;
+    }
+
+    if (!vector.empty()) {
+        auto task = vector[0];
+        const TaskVo &vo = TaskDataBase::instance().loadTaskFoId(task.getId());
+        std::cout << "loadTaskFoTask ------------------------------------------------------" << std::endl;
+        std::cout << vo << std::endl;
+
+
+        TimerVo timer1(0, "1357", 0, "timer test 1", "", false, 1, false, false, 0, 0, 0);
+        TaskDataBase::instance().addTimer(map_id, task.getId(), timer1);
+
+        TimerVo timer2(0, "1357", 0, "timer test 2", "", false, 1, false, false, 0, 0, 0);
+        TaskDataBase::instance().addTimer(map_id, task.getId(), timer2);
+
+        //todo
+        TaskDataBase::instance().loadTimerFoMap(map_id);
+
+        TaskDataBase::instance().deleteTaskFoId(task.getId());
+    }
+    const std::vector<TaskVo> &vector2 = TaskDataBase::instance().loadTaskFoMap(map_id);
+    std::cout << "deleteTaskFoId ------------------------------------------------------" << std::endl;
+    for (const auto &item: vector2) {
+        std::cout << item << std::endl;
+    }
+
+    TaskDataBase::instance().deleteTaskFoMap(map_id);
+    const std::vector<TaskVo> &vector3 = TaskDataBase::instance().loadTaskFoMap(map_id);
+    std::cout << "deleteTaskFoMap ------------------------------------------------------" << std::endl;
+    for (const auto &item: vector3) {
+        std::cout << item << std::endl;
+    }
+}
+
+void TaskDataBase::initialize() {
+    taskStorage.sync_schema();
+}
+
+void TaskDataBase::addZoneTask(const std::string &mapId, const TaskVo &taskVo) {
+    std::vector<std::string> ranges;
+    std::vector<std::vector<PointVo>> zones = taskVo.getZones();
+    for (const auto &zs: zones) {
+        std::string pointRange;
+        for (int i = 0; i < zs.size(); i++) {
+            auto point = zs[i];
+            if (i == zs.size() - 1) {
+                pointRange.append(std::to_string(point.getX()) + "," + std::to_string(point.getY()));
+            } else {
+                pointRange.append(std::to_string(point.getX()) + "," + std::to_string(point.getY()) + ",");
+            }
+        }
+        ranges.push_back(pointRange);
+    }
+
+    std::vector<ZonePo> v;
+    TaskPo taskPo(0,
+                  mapId,
+                  taskVo.getName(),
+                  taskVo.getRate(),
+                  TaskMode::Zoned,
+                  taskVo.getWorkStatus().getSweepStatus(),
+                  taskVo.getWorkStatus().getMopStatus(),
+                  taskVo.getWorkStatus().getVacuumStatus(),
+                  taskVo.getWorkStatus().getPushStatus(),
+                  taskVo.getWorkStatus().getAromatherapyStatus(),
+                  taskVo.getWorkStatus().getDisinfectStatus(),
+                  v,
+                  false,
+                  "",
+                  SqliteDataBase::TaskSourceFromString(taskVo.getSource()),
+                  taskVo.getLaunchPeople(),
+                  time_t(),
+                  std::time(nullptr),
+                  std::time(nullptr)
+    );
+
+    taskStorage.transaction([this, taskPo, ranges] {
+        auto taskId = taskStorage.insert(taskPo);
+        for (const auto &item: ranges) {
+            const ZonePo &zonePo = ZonePo(0, taskId, item);
+            taskStorage.insert(zonePo);
+        }
+        return true;
+    });
+
+}
+
+void TaskDataBase::addTimer(const std::string &mapId, long taskId, const TimerVo &timer) {
+    TimerPo timerPo(0, mapId, taskId, timer.getTimerRule(), timer.getTimerName(), timer.isExecute(), timer.getRate(),
+                    timer.isNever(), timer.isSkip(), timer.getEndYear(), timer.getEndMonth(), timer.getEndDay());
+    taskStorage.insert(timerPo);
 }
 
 void TaskDataBase::deleteOwnTask() {
@@ -49,7 +181,7 @@ void TaskDataBase::deleteOwnTask() {
 }
 
 void TaskDataBase::deleteTaskFoMap(std::string mapId) {
-    auto taskPos = taskStorage.get_all<TaskPo>(c(&TaskPo::o_map_id) == std::move(mapId));
+    auto taskPos = taskStorage.get_all<TaskPo>(where(c(&TaskPo::o_map_id) == std::move(mapId)));
     for (const auto &task: taskPos) {
         deleteTaskFoId(task.id);
     }
@@ -64,7 +196,7 @@ void TaskDataBase::deleteTaskFoId(long taskId) {
 std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
     std::vector<TaskVo> tasks;
 
-    auto taskPos = taskStorage.get_all<TaskPo>(c(&TaskPo::o_map_id) == std::move(mapId));
+    auto taskPos = taskStorage.get_all<TaskPo>(where(c(&TaskPo::o_map_id) == std::move(mapId)));
     if (taskPos.empty()) {
         return tasks;
     }
@@ -81,12 +213,12 @@ std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
     }
 }
 
-TaskVo TaskDataBase::loadTaskFoTask(long taskId) {
+TaskVo TaskDataBase::loadTaskFoId(long taskId) {
     auto taskPo = taskStorage.get<TaskPo>(taskId);
     return taskPo2Vo(taskPo);
 }
 
-std::vector<TimerInfo> TaskDataBase::loadTimerFoMap(std::string mapId) {
+std::vector<TimerVo> TaskDataBase::loadTimerFoMap(std::string mapId) {
     auto results = taskStorage.select(
             columns(&TimerPo::id,
                     &TimerPo::o_map_id,
@@ -105,15 +237,23 @@ std::vector<TimerInfo> TaskDataBase::loadTimerFoMap(std::string mapId) {
 
                     &TaskPo::name
             ),
-            join<ZonePo>(on(c(&TaskPo::id) == &TimerPo::o_task_id)
-                         and
-                         c(&TimerPo::o_map_id) == std::move(mapId)
+            join<ZonePo>(
+                    on(
+                            c(&TaskPo::id) == &TimerPo::o_task_id
+                            and
+                            c(&TimerPo::o_map_id) == std::move(mapId)
+                    )
             )
     );
+
+    for (const auto &row: results) {
+        std::cout << std::get<0>(row) << std::endl;
+        TimerPo timerPo(std::get<0>(row), std::get<0>(row), std::get<0>(row), std::get<0>(row), const std::string &name,
+        bool isExecute, int rate, bool isNever, bool isSkip, int endYear, int endMonth, int endDay);
+    }
 }
 
-bool TaskDataBase::loadTask() {
-    taskStorage.sync_schema();
-    const auto taskList = taskStorage.get_all<TaskPo>();
-    return false;
+TimerVo TaskDataBase::loadTimerFoId(long timerId) {
+//    auto timerPo = taskStorage.get<TimerPo>(timerId);
+//    return timerPo2Vo(timerPo);
 }

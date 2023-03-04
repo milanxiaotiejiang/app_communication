@@ -28,11 +28,9 @@ ZonePo::ZonePo(long id, long oTaskId, const std::string &pointRange) : id(id), o
 
 TimerPo::TimerPo() {}
 
-TimerPo::TimerPo(int id, long oTaskId, const std::string &rule, const std::string &name, bool isExecute, int rate,
-                 bool isNever, bool isSkip, int endYear, int endMonth, int endDay) : id(id), o_task_id(oTaskId),
-                                                                                     rule(rule), name(name),
-                                                                                     is_execute(isExecute), rate(rate),
-                                                                                     is_never(isNever), is_skip(isSkip),
-                                                                                     end_year(endYear),
-                                                                                     end_month(endMonth),
-                                                                                     end_day(endDay) {}
+TimerPo::TimerPo(int id, const std::string &oMapId, long oTaskId, long oTaskName, const std::string &rule,
+                 const std::string &name, bool isExecute, int rate, bool isNever, bool isSkip, int endYear,
+                 int endMonth, int endDay) : id(id), o_map_id(oMapId), o_task_id(oTaskId), o_task_name(oTaskName),
+                                             rule(rule), name(name), is_execute(isExecute), rate(rate),
+                                             is_never(isNever), is_skip(isSkip), end_year(endYear), end_month(endMonth),
+                                             end_day(endDay) {}

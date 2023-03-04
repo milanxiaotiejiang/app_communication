@@ -6,6 +6,7 @@
 #define APP_COMMUNICATION_TASK_H
 
 #include <memory>
+#include <ostream>
 #include "string"
 #include "vector"
 #include "RoomVo.h"
@@ -32,6 +33,36 @@ public:
 
     void setSubregions(const std::vector<int> &subregions);
 
+    long getId() const;
+
+    const std::string &getOMapId() const;
+
+    const std::string &getName() const;
+
+    int getRate() const;
+
+    int getMode() const;
+
+    const WorkStatus &getWorkStatus() const;
+
+    const std::vector<std::vector<PointVo>> &getZones() const;
+
+    bool isPartition() const;
+
+    const std::vector<int> &getSubregions() const;
+
+    const std::string &getSource() const;
+
+    const std::string &getLaunchPeople() const;
+
+    long getLaunchTime() const;
+
+    long getUpdateTime() const;
+
+    long getCreateTime() const;
+
+    friend std::ostream &operator<<(std::ostream &os, const TaskVo &vo);
+
 private:
     long id;
     std::string o_map_id;
@@ -51,6 +82,78 @@ private:
 
     long update_time;
     long create_time;
+};
+
+class TimerVo {
+public:
+    TimerVo();
+
+    TimerVo(long timerId, const std::string &timerRule, long taskId, const std::string &timerName,
+            const std::string &taskName, bool isExecute, int rate, bool isNever, bool isSkip, int endYear, int endMonth,
+            int endDay);
+
+    long getTimerId() const;
+
+    void setTimerId(long timerId);
+
+    const std::string &getTimerRule() const;
+
+    void setTimerRule(const std::string &timerRule);
+
+    long getTaskId() const;
+
+    void setTaskId(long taskId);
+
+    const std::string &getTimerName() const;
+
+    void setTimerName(const std::string &timerName);
+
+    const std::string &getTaskName() const;
+
+    void setTaskName(const std::string &taskName);
+
+    bool isExecute() const;
+
+    void setIsExecute(bool isExecute);
+
+    int getRate() const;
+
+    void setRate(int rate);
+
+    bool isNever() const;
+
+    void setIsNever(bool isNever);
+
+    bool isSkip() const;
+
+    void setIsSkip(bool isSkip);
+
+    int getEndYear() const;
+
+    void setEndYear(int endYear);
+
+    int getEndMonth() const;
+
+    void setEndMonth(int endMonth);
+
+    int getEndDay() const;
+
+    void setEndDay(int endDay);
+
+private:
+    long timer_id;
+    std::string timer_rule;
+    long task_id;
+    std::string timer_name;
+    std::string task_name;
+    bool is_execute{true};
+    int rate;
+    bool is_never;
+    bool is_skip{true};
+    int end_year;
+    int end_month;
+    int end_day;
+
 };
 
 
