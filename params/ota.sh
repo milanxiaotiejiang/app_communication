@@ -1,6 +1,5 @@
 #!/bin/bash
 echo "Incoming param:" + $1 + $2
-echo "123456" | sudo -S cp $1/libcartographer.so /usr/local/lib/
 echo "Rm bak folder"
 rm -rf /home/admin1/AirCorebak
 echo "backup core to bak folder"

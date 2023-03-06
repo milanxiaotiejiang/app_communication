@@ -357,6 +357,9 @@ void initNodeParams(const ros::NodeHandle &nh) {
     int self_check_version;
     nh.param<int>("self_check_version", self_check_version, 1); //版本号
     VersionManager::instance().setSelfCheckVersion(self_check_version);
+    bool update_map;
+    nh.param<bool>("update_map", update_map, false); //update_map
+    Environment::instance().update_map = update_map;
 }
 
 void release() {
