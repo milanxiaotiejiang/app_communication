@@ -341,5 +341,16 @@ int switch_ID(const std::string str) {
         return SET_HOT_WIND_MODE;
     }
 
+    if (str == "map_obstacles") {
+        return MAP_OBSTACLES;
+    }
+    if (str == "map_feasible_zone") {
+        return MAP_FEASIBLE_ZONE;
+    }
+
+    if (str == "explorer_energy") {
+        return EXPLORER_ENERGY;
+    }
+
     return -1;
 }

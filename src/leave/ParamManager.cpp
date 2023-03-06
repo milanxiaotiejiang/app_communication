@@ -38,6 +38,7 @@ void ParamManager::loadDefaultParam() {
         YAML::Node node;
         node["silver"] = true;
         node["dry"] = 0;
+        node["energy"] = false;
         std::ofstream ofstream(app_param_path);
         ofstream << node;
         ofstream.close();
@@ -101,6 +102,25 @@ void ParamManager::setDry(int dry) {
     }
     YAML::Node node = YAML::LoadFile(app_param_path);
     node["dry"] = dry;
+    std::ofstream ofstream(app_param_path);
+    ofstream << node;
+    ofstream.close();
+}
+
+bool ParamManager::getEnergy() {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    return node["energy"].as<bool>();
+}
+
+void ParamManager::setEnergy(bool energy) {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    node["energy"] = energy;
     std::ofstream ofstream(app_param_path);
     ofstream << node;
     ofstream.close();

@@ -28,5 +28,9 @@ public:
     PlanParam handler(string params) override;
 };
 
+class ExplorerEnergyStrategy : public MessageStrategy<bool, void> {
+public:
+    void handler(bool params) override;
+};
 
 #endif //APP_COMMUNICATION_EXPLORATIONSTRATEGY_H

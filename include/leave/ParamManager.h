@@ -25,6 +25,10 @@ public:
     int getDry();
 
     void setDry(int dry);
+
+    bool getEnergy();
+
+    void setEnergy(bool energy);
 };
 
 

@@ -11,6 +11,8 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "leave/ParamManager.h"
+
 const int DATA_MODE_GEOMETRY_POSE = 1;
 const int DATA_MODE_OPEN_CV_POINT = 2;
 
@@ -125,4 +127,8 @@ PlanParam PlanParamResetStrategy::handler(string params) {
                      planPo.min_critical_point_distance_factor, planPo.max_area_for_merging,
                      planPo.distance_from_obstacles, planPo.number_extension, planPo.multiple_contour_spacing,
                      planPo.random_number_generation_ratio, planPo.boundary_min_area);
+}
+
+void ExplorerEnergyStrategy::handler(bool params) {
+    ParamManager::instance().setEnergy(params);
 }

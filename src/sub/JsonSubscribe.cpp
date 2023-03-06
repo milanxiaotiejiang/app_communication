@@ -337,6 +337,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case MAP_FEASIBLE_ZONE:
             messageStrategy = new MapFeasibleZoneStrategy();
             break;
+        case EXPLORER_ENERGY:
+            messageStrategy = new ExplorerEnergyStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);

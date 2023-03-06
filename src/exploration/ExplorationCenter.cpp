@@ -21,6 +21,7 @@
 #include "db/segmentation_data_base.h"
 #include "exploration/infinitely_near_boundary.h"
 #include "simulation.h"
+#include "leave/ParamManager.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 static bool DISPLAY_TRAJECTORY_EFFECT = false;
@@ -308,7 +309,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
     int start_time = ros::Time::now().sec;
 
-    if (explorer_mode == BOUSTROPHEDON_EXPLORER_MODE) {
+    if (!ParamManager::instance().getEnergy() && explorer_mode == BOUSTROPHEDON_EXPLORER_MODE) {
         BoustrophedonExplorer boustrophedon_explorer;
         boustrophedon_explorer.getExplorationPath(latelyMap, exploration_path, map_resolution_from_subscription,
                                                   robotPosition, map_origin,
