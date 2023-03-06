@@ -129,6 +129,11 @@ PlanParam PlanParamResetStrategy::handler(string params) {
                      planPo.random_number_generation_ratio, planPo.boundary_min_area);
 }
 
-void ExplorerEnergyStrategy::handler(bool params) {
+bool SetExplorerEnergyStrategy::handler(bool params) {
     ParamManager::instance().setEnergy(params);
+    return ParamManager::instance().getEnergy();
+}
+
+bool GetExplorerEnergyStrategy::handler(string params) {
+    return ParamManager::instance().getEnergy();
 }

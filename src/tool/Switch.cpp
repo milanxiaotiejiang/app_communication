@@ -348,8 +348,11 @@ int switch_ID(const std::string str) {
         return MAP_FEASIBLE_ZONE;
     }
 
-    if (str == "explorer_energy") {
-        return EXPLORER_ENERGY;
+    if (str == "set_explorer_energy") {
+        return SET_EXPLORER_ENERGY;
+    }
+    if (str == "get_explorer_energy") {
+        return GET_EXPLORER_ENERGY;
     }
 
     return -1;
