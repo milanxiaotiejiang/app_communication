@@ -22,7 +22,7 @@ DSVersionSubscribe::DSVersionSubscribe(ros::NodeHandle handle) : handle(handle) 
     PublishInnerManager::instance().publishDSVersion(version);
 
     string filePath;
-    filePath.append(path::data_base_config_path());
+    filePath.append(path::data_base_config_dir());
     filePath.append("pad_version_info.txt");
 
     if (sh::File::exists(filePath)) {

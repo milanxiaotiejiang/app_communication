@@ -12,9 +12,9 @@
 #include "BaseThrowable.h"
 #include "db/path.h"
 
-const std::string app_param_path = path::data_base_config_path() + "param_app.yaml";
+const std::string app_param_path = path::data_base_config_dir() + "param_app.yaml";
 
-const std::string zoo_param_imu_path = path::zoo_bringup_params_path() + "base_params_with_imu.yaml";
+const std::string zoo_param_imu_path = path::zoo_bringup_params_dir() + "base_params_with_imu.yaml";
 
 //#include <catch2/catch.hpp>
 //

@@ -7,7 +7,7 @@
 
 string LocationStrategy::handler(Location params) {
     string filePath;
-    filePath.append(path::data_base_config_path());
+    filePath.append(path::data_base_config_dir());
     filePath.append("location_info.txt");
 
     if (!sh::File::exists(filePath)) {
@@ -61,7 +61,7 @@ void getLocationStrategy::handler() {
     // json jsonProject;
     string responseP;
     string filePath2;
-    filePath2.append(path::data_base_config_path());
+    filePath2.append(path::data_base_config_dir());
     filePath2.append("location_info.txt");
 
     // *pFile2 = new sh::File(filePath2);

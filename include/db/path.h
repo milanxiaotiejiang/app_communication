@@ -17,17 +17,17 @@ namespace path {
     const std::string mymap_segmentation = "mymap_segmentation";
     const std::string prohibition_areas_yaml = "prohibition_areas.yaml";
 
-    std::string data_base_path();
+    std::string data_base_dir();
 
-    std::string robot_slam_path();
+    std::string robot_slam_dir();
 
-    std::string zoo_bringup_path();
+    std::string zoo_bringup_dir();
 
-    std::string data_base_config_path();
+    std::string data_base_config_dir();
 
-    std::string robot_slam_map_path();
+    std::string robot_slam_map_dir();
 
-    std::string zoo_bringup_params_path();
+    std::string zoo_bringup_params_dir();
 
     std::string map_yaml_path();
 

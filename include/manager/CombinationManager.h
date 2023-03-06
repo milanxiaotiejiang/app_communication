@@ -32,7 +32,7 @@ private:
 
 public:
     CombinationManager() {
-        m_filename.append(path::data_base_config_path());
+        m_filename.append(path::data_base_config_dir());
 //        m_filename.append("/config/combination_list.txt");
         m_filename.append("combination_list_principal_json_work.txt");
         cout << "combination_list_path:" << m_filename << endl;

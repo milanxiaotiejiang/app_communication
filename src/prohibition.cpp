@@ -8,7 +8,7 @@
 
 using namespace std;
 
-std::string partition_path = path::data_base_config_path() + "devide_area.yaml";
+std::string partition_path = path::data_base_config_dir() + "devide_area.yaml";
 
 int set_prohibition(float *point, int num) {
 

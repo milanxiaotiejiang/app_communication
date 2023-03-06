@@ -13,7 +13,7 @@ string AddTimerStrategy::handler(TimerInfo params) {
 
     string fileName;
     string sss;
-    fileName.append(path::data_base_config_path());
+    fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
     //设置清扫计时器
     //sh::File *fff = new sh::File(fileName);
@@ -94,7 +94,7 @@ string AddTimerStrategy::handler(TimerInfo params) {
 string UpdateTimerStrategy::handler(TimerInfo params) {
     string fileName;
     string sss;
-    fileName.append(path::data_base_config_path());
+    fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
 
     // *fff = new sh::File(fileName);
@@ -165,7 +165,7 @@ string UpdateTimerStrategy::handler(TimerInfo params) {
 vector<TimerInfo> GetTimerListStrategy::handler(string params) {
     string fileName;
     string sss;
-    fileName.append(path::data_base_config_path());
+    fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
 
     //sh::File *fff = new sh::File(fileName);
@@ -192,7 +192,7 @@ string DeleteTimerStrategy::handler(string params) {
     //    使能/失能清扫计时器
     string fileName;
     string path;
-    fileName.append(path::data_base_config_path());
+    fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
     cout << "timer_infos 214 " << endl;
     //sh::File *fff = new sh::File(fileName);

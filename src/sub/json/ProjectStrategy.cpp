@@ -11,7 +11,7 @@
 
 string ProjectStrategy::handler(Project params) {
     string filePath;
-    filePath.append(path::data_base_config_path());
+    filePath.append(path::data_base_config_dir());
     filePath.append("project_info.txt");
 
     if (!sh::File::exists(filePath)) {
@@ -41,7 +41,7 @@ string getProjectStrategy::handler(string params) {
     bool is_location;
 
     string filePath;
-    filePath.append(path::data_base_config_path());
+    filePath.append(path::data_base_config_dir());
     filePath.append("project_info.txt");
 
     sh::File *pFile1 = new sh::File(filePath);
@@ -64,7 +64,7 @@ string getProjectStrategy::handler(string params) {
 
 string PadVersionStrategy::handler(string params) {
     string filePath;
-    filePath.append(path::data_base_config_path());
+    filePath.append(path::data_base_config_dir());
     filePath.append("pad_version_info.txt");
 
     if (!sh::File::exists(filePath)) {

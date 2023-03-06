@@ -13,9 +13,9 @@
 #include "path.h"
 #include <ros/package.h>
 
-const std::string SEGMENTATION_SQLITE_PATH = path::robot_slam_map_path() + "Map.sqlite";
+const std::string SEGMENTATION_SQLITE_PATH = path::robot_slam_map_dir() + "Map.sqlite";
 
-const std::string TASK_SQLITE_PATH = path::data_base_config_path() + "Task.sqlite";
+const std::string TASK_SQLITE_PATH = path::data_base_config_dir() + "Task.sqlite";
 
 using namespace sqlite_orm;
 

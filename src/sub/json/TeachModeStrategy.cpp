@@ -16,7 +16,7 @@ string StopTeachModeStrategy::handler(ClossTeachMode params) {
         bool can_save = true;//判断是否能保存
         string fileName;
         string sss;
-        fileName.append(path::data_base_config_path());
+        fileName.append(path::data_base_config_dir());
         fileName.append("teach_point_json.txt");
         std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
         if (fff->open(std::ios::in)) {//打开成功
@@ -68,7 +68,7 @@ string HeartBeatofTeachModeStrategy::handler(string params) {
 vector<ResponseGetTeachTask> GetTeachModeListStrategy::handler(string params) {
     string fileName;
     string sss;
-    fileName.append(path::data_base_config_path());
+    fileName.append(path::data_base_config_dir());
     fileName.append("teach_point_json.txt");
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
     if (fff->open(std::ios::in)) {
@@ -100,7 +100,7 @@ vector<ResponseGetTeachTask> GetTeachModeListStrategy::handler(string params) {
 vector<Point> GetTeachModeDetialStrategy::handler(string params) {
     string fileName;
     string sss;
-    fileName.append(path::data_base_config_path());
+    fileName.append(path::data_base_config_dir());
     fileName.append("teach_point_json.txt");
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
     if (fff->open(std::ios::in)) {
@@ -183,7 +183,7 @@ string DeleteTeachModeStrategy::handler(vector<string> params) {
     //读文件
     string fileName;
     string sss;
-    fileName.append(path::data_base_config_path());
+    fileName.append(path::data_base_config_dir());
     fileName.append("teach_point_json.txt");
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
     if (fff->open(std::ios::in)) {

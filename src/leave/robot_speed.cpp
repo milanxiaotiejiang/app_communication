@@ -15,7 +15,7 @@
 const std::string DWA_LOCAL_PLANNER_PARAMS_ZOO_FILE_NAME = "dwa_local_planner_params_zoo.yaml";
 
 float RobotSpeed::currentSpeed() {
-    auto slamPath = path::robot_slam_path();
+    auto slamPath = path::robot_slam_dir();
     auto absolute_path = slamPath + "/params/planner/" + DWA_LOCAL_PLANNER_PARAMS_ZOO_FILE_NAME;
 
     if (access(absolute_path.c_str(), F_OK) != 0) {

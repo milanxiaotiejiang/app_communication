@@ -7,7 +7,7 @@
 
 vector<Notice> NoticeListStrategy::handler(string params) {
     std::string noticeFilePath;
-    noticeFilePath.append(path::data_base_config_path());
+    noticeFilePath.append(path::data_base_config_dir());
     noticeFilePath.append("notice.txt");
 
     std::string content;

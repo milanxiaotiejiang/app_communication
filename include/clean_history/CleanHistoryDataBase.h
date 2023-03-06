@@ -14,7 +14,7 @@
 
 namespace clean_history_db {
 
-    const std::string CLEAN_HISTORY_SQLITE_PATH = path::data_base_config_path() + "cleanHistory.sqlite";
+    const std::string CLEAN_HISTORY_SQLITE_PATH = path::data_base_config_dir() + "cleanHistory.sqlite";
 
     using namespace sqlite_orm;
 

@@ -160,7 +160,7 @@
 
 void UpgradeManager::updateCleanHistoryPrincipal() {
     std::string lastFilePath;
-    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append(path::data_base_config_dir());
     lastFilePath.append("clean_history.txt");
 
     if (!sh::File::exists(lastFilePath)) {
@@ -190,7 +190,7 @@ void UpgradeManager::updateCleanHistoryPrincipal() {
     auto lastList = jdecode.get<CleanHistoryListUpgrade>();
 
     std::string currentFilePath;
-    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append(path::data_base_config_dir());
     currentFilePath.append("clean_history_principal.txt");
 
     if (sh::File::exists(currentFilePath)) {
@@ -233,7 +233,7 @@ void UpgradeManager::updateCleanHistoryPrincipal() {
 
 void UpgradeManager::updateCombinationBase64() {
     std::string lastFilePath;
-    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append(path::data_base_config_dir());
     lastFilePath.append("combination_list_principal.txt");
 
     if (!sh::File::exists(lastFilePath)) {
@@ -263,7 +263,7 @@ void UpgradeManager::updateCombinationBase64() {
     auto lastList = jdecode.get<CombinationBriefList>();
 
     std::string currentFilePath;
-    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append(path::data_base_config_dir());
     currentFilePath.append("combination_list_principal_json.txt");
 
     if (sh::File::exists(currentFilePath)) {
@@ -292,7 +292,7 @@ void UpgradeManager::updateCombinationBase64() {
 
 void UpgradeManager::updateViewPartBase64() {
     std::string lastFilePath;
-    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append(path::data_base_config_dir());
     lastFilePath.append("view_part_principal.txt");
 
     if (!sh::File::exists(lastFilePath)) {
@@ -322,7 +322,7 @@ void UpgradeManager::updateViewPartBase64() {
     auto lastList = jdecode.get<ViewPartList>();
 
     std::string currentFilePath;
-    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append(path::data_base_config_dir());
     currentFilePath.append("view_part_principal_json.txt");
 
     if (sh::File::exists(currentFilePath)) {
@@ -349,7 +349,7 @@ void UpgradeManager::updateViewPartBase64() {
 
 void UpgradeManager::updateCleanHistoryBase64() {
     std::string lastFilePath;
-    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append(path::data_base_config_dir());
     lastFilePath.append("clean_history_principal.txt");
 
     if (!sh::File::exists(lastFilePath)) {
@@ -379,7 +379,7 @@ void UpgradeManager::updateCleanHistoryBase64() {
     auto lastList = jdecode.get<CleanHistoryList>();
 
     std::string currentFilePath;
-    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append(path::data_base_config_dir());
     currentFilePath.append("clean_history_principal_json.txt");
 
     if (sh::File::exists(currentFilePath)) {
@@ -406,7 +406,7 @@ void UpgradeManager::updateCleanHistoryBase64() {
 
 void UpgradeManager::updateTimeInfoBase64() {
     std::string lastFilePath;
-    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append(path::data_base_config_dir());
     lastFilePath.append("timer_info.txt");
 
     if (!sh::File::exists(lastFilePath)) {
@@ -436,7 +436,7 @@ void UpgradeManager::updateTimeInfoBase64() {
     auto lastList = jdecode.get<std::vector<TimerInfo>>();
 
     std::string currentFilePath;
-    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append(path::data_base_config_dir());
     currentFilePath.append("timer_info_json.txt");
 
     if (sh::File::exists(currentFilePath)) {
@@ -463,7 +463,7 @@ void UpgradeManager::updateTimeInfoBase64() {
 
 void UpgradeManager::updateTeachPoint() {
     std::string lastFilePath;
-    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append(path::data_base_config_dir());
     lastFilePath.append("teach_point.txt");
 
     if (!sh::File::exists(lastFilePath)) {
@@ -493,7 +493,7 @@ void UpgradeManager::updateTeachPoint() {
     auto lastList = jdecode.get<std::vector<WayPointTask>>();
 
     std::string currentFilePath;
-    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append(path::data_base_config_dir());
     currentFilePath.append("teach_point_json.txt");
 
     if (sh::File::exists(currentFilePath)) {
@@ -520,7 +520,7 @@ void UpgradeManager::updateTeachPoint() {
 
 void UpgradeManager::updateCombinationPrincipalWork() {
     std::string lastFilePath;
-    lastFilePath.append(path::data_base_config_path());
+    lastFilePath.append(path::data_base_config_dir());
     lastFilePath.append("combination_list_principal_json.txt");
 
     if (!sh::File::exists(lastFilePath)) {
@@ -549,7 +549,7 @@ void UpgradeManager::updateCombinationPrincipalWork() {
     auto lastList = jdecode.get<CombinationBriefWorkList>();
 
     std::string currentFilePath;
-    currentFilePath.append(path::data_base_config_path());
+    currentFilePath.append(path::data_base_config_dir());
     currentFilePath.append("combination_list_principal_json_work.txt");
 
     if (sh::File::exists(currentFilePath)) {
@@ -588,11 +588,11 @@ void UpgradeManager::updateCombinationPrincipalWork() {
 }
 
 void UpgradeManager::checkWhetherFileExists() {
-    createFile(path::data_base_config_path(), "combination_list_principal_json_work.txt");
-    createFile(path::data_base_config_path(), "view_part_principal_json.txt");
-    createFile(path::data_base_config_path(), "clean_history_principal_json.txt");
-    createFile(path::data_base_config_path(), "timer_info_json.txt");
-    createFile(path::data_base_config_path(), "teach_point_json.txt");
+    createFile(path::data_base_config_dir(), "combination_list_principal_json_work.txt");
+    createFile(path::data_base_config_dir(), "view_part_principal_json.txt");
+    createFile(path::data_base_config_dir(), "clean_history_principal_json.txt");
+    createFile(path::data_base_config_dir(), "timer_info_json.txt");
+    createFile(path::data_base_config_dir(), "teach_point_json.txt");
 }
 
 void UpgradeManager::createFile(const string &dataBasePath, const string &fileName) const {
@@ -612,7 +612,7 @@ void UpgradeManager::removePolygonViewPart() {
     //view_part_principal_json
 
     std::string viewPartFilePath;
-    viewPartFilePath.append(path::data_base_config_path());
+    viewPartFilePath.append(path::data_base_config_dir());
     viewPartFilePath.append("view_part_principal_json.txt");
 
     if (!sh::File::exists(viewPartFilePath)) {
@@ -677,7 +677,7 @@ void UpgradeManager::removePolygonViewPart() {
 void UpgradeManager::removeCombination(vector<string> keys) {
 
     std::string combinationFilePath;
-    combinationFilePath.append(path::data_base_config_path());
+    combinationFilePath.append(path::data_base_config_dir());
     combinationFilePath.append("combination_list_principal_json_work.txt");
 
     if (!sh::File::exists(combinationFilePath)) {

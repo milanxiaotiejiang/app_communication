@@ -213,7 +213,7 @@ void save_planning_point_segmentation_path(const cv::Mat &map, cv::Mat segmented
     }
 
     auto uuid = boost::uuids::to_string(boost::uuids::random_generator()());
-    auto randomPngPath = path::robot_slam_map_path() + uuid + ".png";
+    auto randomPngPath = path::robot_slam_map_dir() + uuid + ".png";
     auto depth = segmented_map.clone();
     CvUtils::savePng(randomPngPath, depth);
 }

@@ -16,7 +16,7 @@
 
 WorkStatus FullPlanWorkStatusManager::getFullCleanWorkStatus() {
     std::string filePath;
-    filePath.append(path::data_base_config_path());
+    filePath.append(path::data_base_config_dir());
     filePath.append(FULL_CLEANING_MODE);
 
     if (!sh::File::exists(filePath)) {

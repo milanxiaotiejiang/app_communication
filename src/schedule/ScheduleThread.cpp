@@ -161,7 +161,7 @@ void execTask(TimerInfo &tsk) {
 void ScheduleThread::startScheduleCheck() {
     string fileName;
     string sss;
-    fileName.append(path::data_base_config_path());
+    fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
     //设置清扫计时器
 
@@ -241,7 +241,7 @@ void ScheduleThread::subscribeCallback(const std_msgs::String &result) {
     //
     string fileName;
 
-    fileName.append(path::data_base_config_path());
+    fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
     //设置清扫计时器
     // sh::File *fff = new sh::File(fileName);

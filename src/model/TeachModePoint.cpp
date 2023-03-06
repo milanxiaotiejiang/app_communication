@@ -77,7 +77,7 @@ void TeachModeProcess() {
                 //读文件
                 string fileName;
                 string sss;
-                fileName.append(path::data_base_config_path());
+                fileName.append(path::data_base_config_dir());
                 fileName.append("teach_point_json.txt");
                 std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
                 if (fff->open(std::ios::in)) {
