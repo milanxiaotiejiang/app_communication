@@ -69,7 +69,12 @@ bool ParamManager::getSilver() {
         throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
     }
     YAML::Node node = YAML::LoadFile(app_param_path);
-    return node["silver"].as<bool>();
+    auto childNode = node["silver"];
+    if (childNode.IsDefined() && childNode.IsScalar()) {
+        return childNode.as<bool>();
+    }
+    setSilver(false);
+    return getSilver();
 }
 
 void ParamManager::setSilver(bool silver) {
@@ -93,7 +98,12 @@ int ParamManager::getDry() {
         loadDefaultParam();
     }
     YAML::Node node = YAML::LoadFile(app_param_path);
-    return node["dry"].as<int>();
+    auto childNode = node["dry"];
+    if (childNode.IsDefined() && childNode.IsScalar()) {
+        return childNode.as<int>();
+    }
+    setDry(0);
+    return getDry();
 }
 
 void ParamManager::setDry(int dry) {
@@ -112,7 +122,12 @@ bool ParamManager::getEnergy() {
         throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
     }
     YAML::Node node = YAML::LoadFile(app_param_path);
-    return node["energy"].as<bool>();
+    auto childNode = node["energy"];
+    if (childNode.IsDefined() && childNode.IsScalar()) {
+        return childNode.as<bool>();
+    }
+    setEnergy(false);
+    return getEnergy();
 }
 
 void ParamManager::setEnergy(bool energy) {

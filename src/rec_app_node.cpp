@@ -1,6 +1,5 @@
 #include "rec_app.h"
 #include "simulation.h"
-#include "leave/map_control.h"
 
 /**
  * https://github.com/fnc12/sqlite_orm
@@ -62,13 +61,13 @@ int main(int argc, char **argv) {
     PublishInnerManager::instance().initialize(handle);
     PublishOutManager::instance().initialize(handle);
 
+    ParamManager::instance().loadDefaultParam();
+
     SegmentationCenter::instance().initialize();
     ExplorationCenter::instance().initialize(handle);
 //    AlignmentCenter::instance().initialize(handle);
     TaskCenter::instance().initialize(handle);
     TaskDataBase::instance().initialize();
-
-    ParamManager::instance().loadDefaultParam();
 
     //启动订阅话题的callback
     JsonSubscribe jsonSubscribe(handle);
