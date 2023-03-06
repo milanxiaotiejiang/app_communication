@@ -5,6 +5,7 @@
 #include "task/feedback.h"
 #include "segmentation/SegmentationCenter.h"
 #include "segmentation/map_attribute.h"
+#include "db/segmentation_data_base.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -40,15 +41,21 @@ void TaskFeedback::execute() {
 void TaskFeedback::start() {
     points.clear();
 
+    map_origin = MapAttribute::instance().getMapOrigin();
+
     const cv::Mat room_map = SegmentationCenter::instance().generateMat();
     rows = room_map.rows;
     cols = room_map.cols;
 
-    map_origin = MapAttribute::instance().getMapOrigin();
-
     savePath = path::data_base_config_dir() + run_task_id + ".pgm";
 
-    auto map = SegmentationCenter::instance().generateMat().clone();
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//网格正方形的边长
+    double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
+    LOG(INFO) << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
+    spacing_half = (int) std::floor(0.5 * grid_spacing_in_pixel);
+
+    auto map = room_map.clone();
     area_px = 0;
     for (int v = 0; v < map.rows; ++v) {
         for (int u = 0; u < map.cols; ++u) {
@@ -56,6 +63,27 @@ void TaskFeedback::start() {
                 area_px++;
         }
     }
+
+    geometry_msgs::Pose2D robot_position = MapAttribute::instance().getRobotPositionPose();
+    const cv::Point &start_point = poseTransferPoint(robot_position.x, robot_position.y);
+    cv::Point p0 = poseTransferPoint(planPoseVos[0].getX(), planPoseVos[0].getY());
+    cv::line(map, start_point, p0, cv::Scalar(100), spacing_half * 2);
+    for (int i = 1; i < planPoseVos.size(); ++i) {
+        cv::Point ps = poseTransferPoint(planPoseVos[i - 1].getX(), planPoseVos[i - 1].getY());
+        cv::Point pe = poseTransferPoint(planPoseVos[i].getX(), planPoseVos[i].getY());
+        cv::line(map, ps, pe, cv::Scalar(100), spacing_half * 2);
+    }
+    cv::Point pl = poseTransferPoint(planPoseVos[planPoseVos.size() - 1].getX(),
+                                     planPoseVos[planPoseVos.size() - 1].getY());
+    cv::line(map, pl, start_point, cv::Scalar(100), spacing_half * 2);
+    plan_px = 0;
+    for (int v = 0; v < map.rows; ++v) {
+        for (int u = 0; u < map.cols; ++u) {
+            if (map.at<uchar>(v, u) == 100)
+                plan_px++;
+        }
+    }
+
 }
 
 void TaskFeedback::end() {
@@ -73,16 +101,9 @@ void TaskFeedback::feedback(geometry_msgs::Pose2D data) {
     if (pair.second) {
         auto task_mat = SegmentationCenter::instance().generateMat().clone();
 
-        for (int i = 1; i < planPoseVos.size(); ++i) {
-            cv::Point ps = poseTransferPoint(planPoseVos[i - 1].getX(), planPoseVos[i - 1].getY());
-            cv::Point pe = poseTransferPoint(planPoseVos[i].getX(), planPoseVos[i].getY());
-            cv::line(task_mat, ps, pe, cv::Scalar(100), 1);
-        }
-
         for (const auto &item: points) {
-            cv::circle(task_mat, cv::Point(item.getX(), item.getY()), 3, cv::Scalar(200), CV_FILLED);
+            cv::circle(task_mat, cv::Point(item.getX(), item.getY()), spacing_half, cv::Scalar(200), CV_FILLED);
         }
-
 
         int clear_px = 0;
         for (int v = 0; v < task_mat.rows; ++v) {
@@ -92,7 +113,9 @@ void TaskFeedback::feedback(geometry_msgs::Pose2D data) {
             }
         }
 
-        LOG(INFO) << "### " << savePath << "  tcr = " << (clear_px * 1.0 / area_px);
+        LOG(INFO) << "### area_px : " << area_px << " , plan_px : " << plan_px << "  "
+                  << run_task_id << " 真实面积/总面积 = " << (clear_px * 1.0 / area_px)
+                  << " , 真实面积/规划面积 = " << (clear_px * 1.0 / plan_px);
 
         CvUtils::savePgm(savePath, task_mat.clone());
     }

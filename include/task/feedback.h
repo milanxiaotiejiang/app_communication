@@ -29,8 +29,15 @@ private:
     std::string run_task_id;
     std::vector<PoseVo> planPoseVos;
 
+
+    cv::Point2d map_origin;
+    int rows, cols;
+
     std::string savePath;
+    int spacing_half;
+
     int area_px;
+    int plan_px;
 
     void start();
 
@@ -45,9 +52,6 @@ public:
     TaskFeedback();
 
     void execute() override;
-
-    cv::Point2d map_origin;
-    int rows, cols;
 
     void triggerStart(std::string taskId, const std::vector<RealPoint> &points);
 

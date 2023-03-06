@@ -72,11 +72,11 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
     std::vector<cv::Point2f> middle_point_path;
     for (int r = 0; r < number_extension; ++r) {
 
-        int scale_in_pixel = half_grid_spacing_as_int +//机器人半径
-                             distance_from_obstacles +//与障碍物的间距
-                             half_grid_spacing_as_int * 2 * r +//多轮廓
-                             multiple_contour_spacing * r;
-        LOG(INFO) << "(infinitely near boundary) scale_in_pixel: " << scale_in_pixel;
+        int scale_in_pixel = (int) std::floor(half_grid_spacing_as_int +//机器人半径
+                                              distance_from_obstacles +//与障碍物的间距
+                                              grid_spacing_in_pixel * r +//多轮廓
+                                              multiple_contour_spacing * r);
+        LOG(INFO) << "(infinitely near boundary) 边界距离 scale_in_pixel: " << scale_in_pixel << " px";
 
         auto borderMat = room_map.clone();
         cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(1, 1), scale_in_pixel);
@@ -109,7 +109,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
                         area_px++;
             auto area = area_px * map_resolution * map_resolution;
             if (area < boundary_min_area) {
-                LOG(INFO) << "InfinitelyNearBoundary : Discard small obstacles , area =" << area << " ...";
+//                LOG(INFO) << "InfinitelyNearBoundary : Discard small obstacles , area =" << area << " ...";
                 continue;
             }
 
@@ -141,8 +141,8 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
                 }
                 middle_point_path.push_back(vector.front());
             } else {
-                LOG(INFO) << "InfinitelyNearBoundary : maxTraversal =" << maxTraversal << " , accessibleCount = "
-                          << accessibleCount;
+//                LOG(INFO) << "InfinitelyNearBoundary : maxTraversal =" << maxTraversal
+//                          << " , accessibleCount = " << accessibleCount;
             }
 
         }

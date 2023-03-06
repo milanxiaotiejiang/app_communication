@@ -66,15 +66,15 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0),
-                             exploration_path, point_path);
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0),
+//                             exploration_path, point_path);
     }
 
     //4
     if (DISPLAY_TRAJECTORY_EFFECT) {
-//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//        infinitelyNearBoundary(map, exploration_path, point_path);
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        infinitelyNearBoundary(map, exploration_path, point_path);
     }
 
 //    pathPublish(exploration_path);
@@ -111,7 +111,6 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
 
     std::unique_lock<std::mutex> lock(cv_mut);
 
-    cv::Mat original_map = room_map.clone();
     cv::Mat map = room_map.clone();
 
     cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
@@ -128,9 +127,19 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
     int half_grid_spacing_as_int_ = (int) std::floor(0.5 * grid_spacing_in_pixel);
 
-    int distance_from_obstacles = plan.distance_from_obstacles > 0 ? plan.distance_from_obstacles : 1;
+    int distance_from_obstacles = plan.distance_from_obstacles;
+    if (distance_from_obstacles < -half_grid_spacing_as_int_) {
+        distance_from_obstacles = -half_grid_spacing_as_int_ + 1;
+    }
     int number_extension = plan.number_extension > 0 ? plan.number_extension : 1;
-    int multiple_contour_spacing = plan.multiple_contour_spacing > 0 ? plan.multiple_contour_spacing : 1;
+    int multiple_contour_spacing = plan.multiple_contour_spacing;
+    if (std::abs(multiple_contour_spacing) > half_grid_spacing_as_int_) {
+        if (multiple_contour_spacing > 0) {
+            multiple_contour_spacing = half_grid_spacing_as_int_;
+        } else {
+            multiple_contour_spacing = -half_grid_spacing_as_int_;
+        }
+    }
     int random_number_generation_ratio = plan.random_number_generation_ratio;
     int boundary_min_area = plan.boundary_min_area;
     LOG(INFO) << "(infinitely near boundary) distance_from_obstacles: " << distance_from_obstacles;
@@ -156,7 +165,7 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
     int start_time = ros::Time::now().sec;
 
     InfinitelyNearBoundary infinitelyNearBoundary;
-    infinitelyNearBoundary.getExplorationPath(original_map, latelyMap, pose_path, point_path,
+    infinitelyNearBoundary.getExplorationPath(room_map.clone(), latelyMap, pose_path, point_path,
                                               map_resolution_from_subscription,
                                               stationPoint, map_origin,
                                               plan.robot_radius,
@@ -176,11 +185,6 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
         planning_pose_path_display(room_map, map_origin, pose_path, 1, "planning_pose_path_display");
-
-//    pose2CVPoint(room_map, point_path, pose_path, map_origin);
-//    if (DISPLAY_TRAJECTORY)
-//        planning_point_path_display(room_map, point_path, 1, "planning_point_path_display");
-
 }
 
 void
