@@ -15,73 +15,92 @@
 #include "node_manager.h"
 #include "child_activate_node.h"
 #include "node_observer_mode.h"
+#include "machine.h"
+#include "node_control_subscribe.h"
 
 #define  THREAD_POOL_MAX_NUM 16
 
 const std::string N_GAZEBO = "roslaunch turtlebot3_gazebo turtlebot3_test.launch > rviz.log 2>&1";
 
-
 const std::string K_RVIZ = "rosnode kill /rviz";
 
-namespace node {
+class NodeControl {
+private:
+    template<typename F, typename... Args>
+    void asyncOn(F &&f, Args &&... args) {
+        auto func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
+        pool_.execute([this, t = std::move(func)]() {
+            t();
+        });
+    }
 
-    enum class State {
-        normal,
-        started,
-        stopped,
-    };
+    template<typename F, typename... Args>
+    void asyncOff(int seconds, F &&f, Args &&... args) {
+        std::mutex mutex;
+        std::condition_variable cond;
 
-    class NodeControl {
-    public:
-        static auto &instance() {
-            static NodeControl obj;
-            return obj;
-        }
+        auto func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
+        pool_.execute([this, t = std::move(func), &cond]() {
+            t();
+            cond.notify_one();
+        });
 
-        async::ThreadPool pool_;
+        std::unique_lock<std::mutex> guard(mutex);
+        cond.wait_for(guard, std::chrono::seconds(seconds));
+    }
 
-        std::atomic<State> state_{State::normal};
+    void onWork();
 
-        NodeSubject *nodeSubject{};
-        NodeObserver *nodeObserver{};
+    void offWork();
 
-        void initialize();
+    void onMap();
 
-        void release();
+    void offMap();
 
-        void start() {
-            std::thread nodeThread([this]() {
+    void trySleep();
 
-                std::mutex count_mutex;
-                std::condition_variable count_cond;
+public:
+    static auto &instance() {
+        static NodeControl obj;
+        return obj;
+    }
 
-                NodeChain chain(&pool_);
+    async::ThreadPool pool_;
+    NodeControlSubscribe *subscribe;
 
-                auto *pFilterManager = new NodeManager(new OnceConfirm());
-                pFilterManager->setNodeSubject(nodeSubject);
-                pFilterManager->addActivateNode(new DumpActivateNode(2));
-                pFilterManager->addActivateNode(new RvizActivateNode(3));
+    std::atomic<node::State> state_{node::State::sleep};
+    std::atomic<node::WorkState> work_state_{node::WorkState::normal};
+    std::atomic<node::MapState> map_state_{node::MapState::normal};
 
-                bool isSuccessful = pFilterManager->activateNode(chain);
-                if (isSuccessful) {
-                    state_ = State::started;
-                }
+    NodeSubject *nodeSubject{};
+    NodeObserver *nodeObserver{};
 
-                delete pFilterManager;
+    void initialize(ros::NodeHandle handle);
 
-            });
-            nodeThread.detach();
-        }
+    void release();
 
-        void stop() {
-            pool_.execute([]() {
-                std::system(K_RVIZ.data());
-            });
-        }
-    };
+    bool isWork() const {
+        return state_ == node::State::work && work_state_ == node::WorkState::complete;
+    }
 
+    bool isMap() const {
+        return state_ == node::State::map && map_state_ == node::MapState::complete;
+    }
 
-}
+    bool isSleep() const {
+        return state_ == node::State::sleep
+               && work_state_ == node::WorkState::normal
+               && map_state_ == node::MapState::normal;
+    }
+
+    void update();
+
+    void changeWorkMode();
+
+    void changeMapMode();
+
+    void changeSleepMode();
+};
 
 
 #endif //APP_COMMUNICATION_NODE_CONTROL_H

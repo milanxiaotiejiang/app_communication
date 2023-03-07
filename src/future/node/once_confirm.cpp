@@ -7,5 +7,5 @@
 
 bool OnceConfirm::confirm(NodeChain chain) {
     LOG(INFO) << "最终启动的结果 : " << chain.isPrevious();
-    return false;
+    return true;
 }

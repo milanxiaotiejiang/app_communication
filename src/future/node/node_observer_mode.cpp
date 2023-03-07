@@ -4,11 +4,12 @@
 
 #include "future/node/node_observer_mode.h"
 #include "glog/logging.h"
+#include "future/node/node_control.h"
 
 AbnormalObserver::AbnormalObserver(NodeSubject *nodeSubject) : nodeSubject(nodeSubject) {}
 
 void AbnormalObserver::update() {
-    LOG(INFO) << "AbnormalObserver update";
+    NodeControl::instance().update();
 }
 
 void AbnormalSubject::attach(NodeObserver *observer) {

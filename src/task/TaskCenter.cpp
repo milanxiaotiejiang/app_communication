@@ -137,12 +137,13 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
 
     if (!Environment::instance().isRealEnvironment) {
         std::thread moveBaseThread([]() {
-            sleep(20);
-            node::NodeControl::instance().stop();
+            sleep(5);
             int last_machine_code = 10006;
             while (1) {
                 sleep(1);
-
+                LOG(ERROR) << "isSleep : " << NodeControl::instance().isSleep()
+                           << " isWork : " << NodeControl::instance().isWork()
+                           << " isMap : " << NodeControl::instance().isMap();
                 NativeSystemManager::instance().urgencyStop(ZooInnerStatus::instance().getUrgencyStopStatus());
                 long current_execute_time = clean_history_db::CleanHistoryCenter::instance().getCurrentCleanTime();
                 WorkStatus workStatus(0, 0, 0, 0, 0, 0);

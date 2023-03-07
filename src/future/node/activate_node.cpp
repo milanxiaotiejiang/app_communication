@@ -40,7 +40,7 @@ bool ActivateNodeChain::execute(NodeChain chain) {
         chain.setPrevious(successful);
     }
     if (chain.isPrevious()) {
-        return onceConfirm->confirm(chain);
+        return OnceConfirm::confirm(chain);
     }
     return false;
 }
