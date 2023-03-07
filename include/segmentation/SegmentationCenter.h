@@ -9,11 +9,15 @@
 #include "model/RoomVo.h"
 #include "CvUtils.h"
 #include "db/segmentation_model.h"
+#include "SegmentationSubscribe.h"
 #include <opencv2/opencv.hpp>
+#include <ros/node_handle.h>
 
 class SegmentationCenter {
 private:
     bool initialize_finish = false;
+
+    SegmentationSubscribe *segmentationSubscribe;
 
     bool detectionTooSmallRoom(const cv::Mat &segmented_map, Room room, PlanPo plan) const;
 
@@ -30,7 +34,7 @@ public:
     /**
      * 初始化
      */
-    void initialize();
+    void initialize(ros::NodeHandle handle);
 
     /**
      * 重置所有分区的设置

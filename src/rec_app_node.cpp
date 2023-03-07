@@ -1,5 +1,6 @@
 #include "rec_app.h"
 #include "simulation.h"
+#include "future/node/node_control.h"
 
 /**
  * https://github.com/fnc12/sqlite_orm
@@ -20,8 +21,6 @@ int Factorial(int number) {
 //    REQUIRE(Factorial(3) == 7);
 //}
 
-
-int ignore_area;//面积小于此百分比面积的分区区域将被忽略
 
 Variable *Variable::m_instance_ptr = nullptr;
 TeachModePoint *TeachModePoint::m_instance_ptr = nullptr;
@@ -49,7 +48,7 @@ int main(int argc, char **argv) {
     //初始化ros节点
     ros::init(argc, argv, "rec_app_node");
     LOG(INFO) << sys_gettid() << " start to listening!";
-    //Li Quan 新清洁历史
+    //新清洁历史
     clean_history_db::CleanHistoryCenter::instance().initialize();
     pool.init();
 
@@ -57,17 +56,18 @@ int main(int argc, char **argv) {
     UdpManager::instance().start();
 
     ros::NodeHandle handle;
-    handle.param("/path_planning_node/ignore_area", ignore_area, std::int32_t(8));
     PublishInnerManager::instance().initialize(handle);
     PublishOutManager::instance().initialize(handle);
 
     ParamManager::instance().loadDefaultParam();
 
-    SegmentationCenter::instance().initialize();
+    SegmentationCenter::instance().initialize(handle);
     ExplorationCenter::instance().initialize(handle);
 //    AlignmentCenter::instance().initialize(handle);
     TaskCenter::instance().initialize(handle);
     TaskDataBase::instance().initialize();
+
+    node::NodeControl::instance().start();
 
     //启动订阅话题的callback
     JsonSubscribe jsonSubscribe(handle);
@@ -78,8 +78,6 @@ int main(int argc, char **argv) {
 
     SelfCheckSubscribe selfCheckSubscribe(handle);
     MoveBaseRecoveryFailureSubscribe moveBaseRecoveryFailureSubscribe(handle);
-
-    SegmentationSubscribe SegmentationSubscribe(handle);
 
     std_msgs::String test;
     /////////////////////////////////

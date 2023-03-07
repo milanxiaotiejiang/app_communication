@@ -22,6 +22,7 @@
 #include "clean_history/CleanHistoryCenter.h"
 #include "manager//InternalEventPubManager.h"
 #include "task/subscribe/CartographerManager.h"
+#include "future/node/node_control.h"
 
 /*
  * task转换成realtask，赋值taskid，mode，rate，区域，组合路径区域描述，任务发起人，任务启动时间，timeMode
@@ -136,7 +137,8 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
 
     if (!Environment::instance().isRealEnvironment) {
         std::thread moveBaseThread([]() {
-            sleep(10);
+            sleep(20);
+            node::NodeControl::instance().stop();
             int last_machine_code = 10006;
             while (1) {
                 sleep(1);

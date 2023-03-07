@@ -12,6 +12,7 @@
 #include "BaseThrowable.h"
 #include "exploration/ExplorationCenter.h"
 #include "simulation.h"
+#include "segmentation/SegmentationSubscribe.h"
 
 static bool DEBUG_DISPLAYS_SHOW = false;
 
@@ -95,7 +96,7 @@ bool SegmentationCenter::lineThroughRoom(const cv::Mat &segmented_map, Room room
     return or_member_size > 0;
 }
 
-void SegmentationCenter::initialize() {
+void SegmentationCenter::initialize(ros::NodeHandle handle) {
     ros::Time::init();
     // 1.加载需要的地图的信息（仅地图信息）
     initialize_finish = SegmentationDataBase::instance().loadMap();
@@ -115,6 +116,8 @@ void SegmentationCenter::initialize() {
     MapAttribute::instance().loadPenaltyZone();
     // 6.加载参数
     MapAttribute::instance().loadPlanParam();
+
+    segmentationSubscribe = new SegmentationSubscribe(handle);
 
     // test
 //    resetSegmentation();
