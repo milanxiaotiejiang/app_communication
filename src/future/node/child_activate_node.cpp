@@ -13,8 +13,6 @@ bool RvizActivateNode::execute(NodeChain chain) {
     if (chain.isPrevious()) {
         return asyncExecute(chain.getPool(), []() {
             std::system(N_RVIZ.data());
-            //todo
-            LOG(ERROR) << "N_RVIZ STOP";
         });
     }
     return false;

@@ -14,6 +14,7 @@
 #include "glog/logging.h"
 #include "node_manager.h"
 #include "child_activate_node.h"
+#include "node_observer_mode.h"
 
 #define  THREAD_POOL_MAX_NUM 16
 
@@ -39,13 +40,16 @@ namespace node {
 
         async::ThreadPool pool_;
 
-        std::atomic<State> state_;
+        std::atomic<State> state_{State::normal};
+
+        NodeSubject *nodeSubject{};
+        NodeObserver *nodeObserver{};
+
+        void initialize();
+
+        void release();
 
         void start() {
-
-//            assert(state_ == State::normal);
-            pool_.setNumOfThreads(THREAD_POOL_MAX_NUM);
-
             std::thread nodeThread([this]() {
 
                 std::mutex count_mutex;
@@ -54,6 +58,7 @@ namespace node {
                 NodeChain chain(&pool_);
 
                 auto *pFilterManager = new NodeManager(new OnceConfirm());
+                pFilterManager->setNodeSubject(nodeSubject);
                 pFilterManager->addActivateNode(new DumpActivateNode(2));
                 pFilterManager->addActivateNode(new RvizActivateNode(3));
 

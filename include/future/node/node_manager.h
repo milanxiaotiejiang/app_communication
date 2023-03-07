@@ -17,8 +17,11 @@ public:
 
     bool activateNode(NodeChain chain);
 
+    void setNodeSubject(NodeSubject *pSubject);
+
 private:
     ActivateNodeChain *activateNodeChain;
+    NodeSubject *nodeSubject;
 };
 
 

@@ -8,6 +8,10 @@
 
 ActivateNode::ActivateNode(int seconds) : seconds(seconds) {}
 
+void ActivateNode::setNodeSubject(NodeSubject *nodeSubject) {
+    ActivateNode::nodeSubject = nodeSubject;
+}
+
 ActivateNodeChain::ActivateNodeChain() = default;
 
 ActivateNodeChain::~ActivateNodeChain() {

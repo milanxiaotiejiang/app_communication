@@ -9,6 +9,7 @@
 #include "node_chain.h"
 #include "once_confirm.h"
 #include "list"
+#include "node_observer_mode.h"
 
 #define become_silent false
 
@@ -21,6 +22,8 @@ private:
     bool error_monitor = false;
 
 protected:
+    NodeSubject *nodeSubject;
+
     template<typename F, typename... Args>
     bool asyncExecute(async::ThreadPool *pool, F &&f, Args &&... args) {
         auto func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
@@ -31,6 +34,8 @@ protected:
             std::unique_lock<std::mutex> guard(wait_mutex);
             error_monitor = true;
             err_cond.notify_one();
+
+            nodeSubject->notify();
         });
 
         std::unique_lock<std::mutex> lck(wait_mutex);
@@ -45,6 +50,8 @@ public:
     explicit ActivateNode(int seconds);
 
     virtual ~ActivateNode() = default;;
+
+    void setNodeSubject(NodeSubject *nodeSubject);
 
     virtual bool execute(NodeChain chain) = 0;
 

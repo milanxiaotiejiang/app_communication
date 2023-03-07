@@ -15,9 +15,15 @@ NodeManager::~NodeManager() {
 }
 
 void NodeManager::addActivateNode(ActivateNode *node) {
+    if (nodeSubject != nullptr)
+        node->setNodeSubject(nodeSubject);
     this->activateNodeChain->addActivateNode(node);
 }
 
 bool NodeManager::activateNode(NodeChain chain) {
     return this->activateNodeChain->execute(chain);
+}
+
+void NodeManager::setNodeSubject(NodeSubject *pSubject) {
+    this->nodeSubject = pSubject;
 }

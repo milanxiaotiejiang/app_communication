@@ -67,6 +67,7 @@ int main(int argc, char **argv) {
     TaskCenter::instance().initialize(handle);
     TaskDataBase::instance().initialize();
 
+    node::NodeControl::instance().initialize();
     node::NodeControl::instance().start();
 
     //启动订阅话题的callback

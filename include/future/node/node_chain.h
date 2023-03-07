@@ -7,6 +7,7 @@
 
 
 #include "future/thread_pool.h"
+#include "node_observer_mode.h"
 
 class NodeChain {
 private:
@@ -22,6 +23,7 @@ public:
     bool isPrevious() const;
 
     void setPrevious(bool previous);
+
 };
 
 
