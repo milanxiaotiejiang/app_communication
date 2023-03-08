@@ -18,6 +18,7 @@
 #include "model/VersionSubscribe.h"
 #include "model/MaterialStatus.h"
 #include "model/KnobStatus.h"
+#include "model/InternalEvent.h"
 
 class PublishOutManager {
 private:
@@ -78,6 +79,8 @@ public:
     void publishAppSchedule(const std_msgs::String &message) const;
 
     void publishAppError(const std_msgs::String &message) const;
+
+    void publishAlarm(const internal_event::AlarmEvent& alarmEvent) const;
 
     void publishCloudStatus(const std_msgs::String &message) const;
 

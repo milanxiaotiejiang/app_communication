@@ -136,6 +136,8 @@ enum MESSAGE_ID {
     SET_EXPLORER_ENERGY,
     GET_EXPLORER_ENERGY,
 
+    AUTOMATIC_OILING,
+
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };
 

@@ -354,6 +354,9 @@ int switch_ID(const std::string str) {
     if (str == "get_explorer_energy") {
         return GET_EXPLORER_ENERGY;
     }
+    if (str == "automatic_oiling") {
+        return AUTOMATIC_OILING;
+    }
 
     return -1;
 }

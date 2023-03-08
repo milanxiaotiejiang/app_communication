@@ -162,3 +162,7 @@ int SetHotWindModeStrategy::handler(int params) {
     ParamManager::instance().setDry(params);
     return ParamManager::instance().getDry();
 }
+
+void AutomaticOilingStrategy::handler() {
+
+}

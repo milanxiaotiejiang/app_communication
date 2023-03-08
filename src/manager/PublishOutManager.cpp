@@ -142,6 +142,16 @@ void PublishOutManager::publishAppError(const std_msgs::String &message) const {
     acceptAppError.publish(message);
 }
 
+void PublishOutManager::publishAlarm(const internal_event::AlarmEvent& alarmEvent) const {
+    VersionSubscribe<internal_event::AlarmEvent> versionSubscribe(1, alarmEvent);
+
+    RequestModel<VersionSubscribe<internal_event::AlarmEvent>> requestModel(
+            "publish", ALARM_EVENT, versionSubscribe
+    );
+    json jsonResult = requestModel;
+    WsServerManager::instance().sendRequestData(ALARM_EVENT, jsonResult.dump());
+}
+
 void PublishOutManager::publishAppCommunication(const std_msgs::String &message) const {
     acceptAppCommunication.publish(message);
 }
@@ -169,6 +179,6 @@ void PublishOutManager::publishCloudEvent(const clean_msgs::cloud_robot_event &e
 }
 
 void PublishOutManager::publishInternalEvent(const std_msgs::String &message) const {
-//    LOG(ERROR) << "publishInternalEvent message : " << message.data;
+    LOG(ERROR) << "publishInternalEvent message : " << message.data;
     pub_internal_event_.publish(message);
 }

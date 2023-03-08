@@ -153,6 +153,7 @@ void on_open(server *s, websocketpp::connection_hdl hdl) {
     ask.subMap[WAYPOINTS_MARKER] = false;
     ask.subMap[SCAN_APP] = false;
     ask.subMap[PATH_TEST] = false;
+    ask.subMap[ALARM_EVENT] = false;
     ask.subMap[RESPONSE] = false;
     ask.subMap[RESPONSE_JSON] = false;
     {
@@ -257,6 +258,7 @@ public:
         dataMap[TASK_POINT] = "";
         dataMap[CHECK_APP] = "";
         dataMap[KNOB_APP] = "";
+        dataMap[ALARM_EVENT] = "";
         dataMap[RESPONSE] = "";
         dataMap[RESPONSE_JSON] = "";
     }

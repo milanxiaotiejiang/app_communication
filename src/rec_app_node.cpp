@@ -21,6 +21,12 @@ int Factorial(int number) {
 //    REQUIRE(Factorial(3) == 7);
 //}
 
+/**
+ * todo
+ * 1.简单的自动上油
+ * 2.简单的地毯识别
+ * 3.电梯检测上报
+ */
 
 Variable *Variable::m_instance_ptr = nullptr;
 TeachModePoint *TeachModePoint::m_instance_ptr = nullptr;

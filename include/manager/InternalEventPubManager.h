@@ -4,6 +4,8 @@
 #include "model/InternalEvent.h"
 #include "model/SelfCheckErrorType.h"
 #include "PublishOutManager.h"
+#include "model/RequestModel.h"
+#include "net/WsServerManager.h"
 #include <mutex>
 
 namespace internal_event {
@@ -117,6 +119,8 @@ namespace internal_event {
         }
 
         void pubAlarmEvent(const AlarmEvent &event) {
+            PublishOutManager::instance().publishAlarm(event);
+
             json json_result = event;
             std_msgs::String msg;
             msg.data.append(json_result.dump());

@@ -343,6 +343,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case GET_EXPLORER_ENERGY:
             messageStrategy = new GetExplorerEnergyStrategy();
             break;
+        case AUTOMATIC_OILING:
+            messageStrategy = new AutomaticOilingStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);

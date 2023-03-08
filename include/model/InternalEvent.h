@@ -48,7 +48,7 @@ namespace internal_event {
 
     };
 
-    class WorkStatusUpdate {//开始和结束事件
+    class WorkStatusUpdate {//状态更新事件
     private:
         std::string event_id_;
         int event_code_;
@@ -73,7 +73,7 @@ namespace internal_event {
         }
     };
 
-    class AlarmEvent {//开始和结束事件
+    class AlarmEvent {//告警事件
     private:
         std::string event_id_;
         int event_code_;
@@ -112,7 +112,7 @@ namespace internal_event {
         }
     };
 
-    class OperEvent {//开始和结束事件
+    class OperEvent {//操作事件
     private:
         std::string event_id_;
         int event_code_;

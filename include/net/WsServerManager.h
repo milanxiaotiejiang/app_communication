@@ -58,6 +58,7 @@ const string WAYPOINTS_MARKER = "/waypoints_marker";
 const string SCAN_APP = "/scan_app";
 const string PATH_TEST = "/path_test";
 const string INTERNAL_EVENT = "/robot_internal_event";
+const string ALARM_EVENT = "/alarm_event";
 const string RESPONSE = "/response";
 const string RESPONSE_JSON = "/response_json";
 

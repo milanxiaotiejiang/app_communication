@@ -72,5 +72,9 @@ public:
     int handler(int params) override;
 };
 
+class AutomaticOilingStrategy: public MessageStringStrategy  {
+public:
+    void handler() override;
+};
 
 #endif//APP_COMMUNICATION_DEVICESTRATEGY_H
