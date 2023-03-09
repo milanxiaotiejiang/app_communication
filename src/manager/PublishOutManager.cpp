@@ -11,15 +11,9 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
     pub_robot_status_ = handle.advertise<std_msgs::String>(ROBOT_STATUS, 10);
     pub_material_status_ = handle.advertise<std_msgs::String>(MATERIAL_STATUS, 10);
     pub_map_ = handle.advertise<nav_msgs::OccupancyGrid>(MAP_APP, 10);
-    pub_grid_map_ = handle.advertise<nav_msgs::OccupancyGrid>(GRID_MAP_APP, 10);
 
-    pub_marker_ = handle.advertise<visualization_msgs::Marker>(WAYPOINTS_MARKER, 10);
-    pub_scan_ = handle.advertise<sensor_msgs::LaserScan>(SCAN_APP, 10);
-    pub_path_ = handle.advertise<nav_msgs::Path>(PATH_TEST, 10);
     pub_self_check_ = handle.advertise<std_msgs::String>(CHECK_APP, 1);
     pub_notice_ = handle.advertise<std_msgs::String>(NOTICE_APP, 1);
-    pub_cloud_status = handle.advertise<std_msgs::String>("/cloud_robot_status", 10);
-    pub_cloud_event = handle.advertise<clean_msgs::cloud_robot_event>("/cloud_robot_event", 10);
     pub_internal_event_ = handle.advertise<std_msgs::String>(INTERNAL_EVENT, 10);
 
     acceptAppJsonV1 = handle.advertise<std_msgs::String>(APP_JSON, 1);
@@ -77,23 +71,6 @@ void PublishOutManager::publishMap(const nav_msgs::OccupancyGrid &message) const
     pub_map_.publish(message);
 }
 
-void PublishOutManager::publishGridMap(const nav_msgs::OccupancyGrid &message) const {
-//    WsServerManager::instance().setGridMapApp(message);
-//    pub_grid_map_.publish(message);
-}
-
-void PublishOutManager::publishScan(const sensor_msgs::LaserScan &message) const {
-    //    pub_scan_.publish(message);
-}
-
-void PublishOutManager::publishPath(const nav_msgs::Path &message) const {
-    //    pub_path_.publish(message);
-}
-
-void PublishOutManager::publishMarkerPoint(const visualization_msgs::Marker &message) const {
-    //    pub_marker_.publish(message);
-}
-
 void PublishOutManager::publishSelfCheck(const VersionSubscribe<SelfCheckStatus> &versionSubscribe) const {
     RequestModel<VersionSubscribe<SelfCheckStatus>> requestModel;
     requestModel.setOp("publish");
@@ -133,12 +110,10 @@ void PublishOutManager::publishAppJson(int version, const std_msgs::String &mess
 }
 
 void PublishOutManager::publishAppSchedule(const std_msgs::String &message) const {
-    cout << "publishAppSchedule!!!!!!!!!!!!!!! " << endl;
     acceptAppSchedule.publish(message);
 }
 
 void PublishOutManager::publishAppError(const std_msgs::String &message) const {
-    cout << "publishAppError!!!!!!!!!!!!!!! " << endl;
     acceptAppError.publish(message);
 }
 
@@ -156,10 +131,6 @@ void PublishOutManager::publishAppCommunication(const std_msgs::String &message)
     acceptAppCommunication.publish(message);
 }
 
-void PublishOutManager::publishCloudStatus(const std_msgs::String &message) const {
-    pub_cloud_status.publish(message);
-}
-
 void PublishOutManager::publishKnob(const VersionSubscribe<KnobStatus> &versionSubscribe) const {
     RequestModel<VersionSubscribe<KnobStatus>> requestModel(
             "publish", KNOB_APP, versionSubscribe
@@ -174,11 +145,7 @@ void PublishOutManager::publishKnob(const VersionSubscribe<KnobStatus> &versionS
     pub_knob_.publish(result);
 }
 
-void PublishOutManager::publishCloudEvent(const clean_msgs::cloud_robot_event &event) const {
-    pub_cloud_event.publish(event);
-}
-
 void PublishOutManager::publishInternalEvent(const std_msgs::String &message) const {
-    LOG(ERROR) << "publishInternalEvent message : " << message.data;
+//    LOG(ERROR) << "publishInternalEvent message : " << message.data;
     pub_internal_event_.publish(message);
 }

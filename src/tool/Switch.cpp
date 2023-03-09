@@ -121,9 +121,6 @@ int switch_ID(const std::string str) {
     if (str == "work_to_map_app") {
         return WORK_TO_MAP_APP_;
     }
-    if (str == "work_to_grid_map_app") {
-        return WORK_TO_GRID_MAP_APP_;
-    }
     if (str == "clean_history_list") {
         return CLEAN_HISTORY_REQUEST_;
     }
@@ -190,9 +187,6 @@ int switch_ID(const std::string str) {
     }
     if (str == "set_timer") {
         return SET_TIMER_;
-    }
-    if (str == "work_to_grid_map_app") {
-        return WORK_TO_GRID_MAP_APP_;
     }
     if (str == "save_location") {
         return SAVE_LOCATION;

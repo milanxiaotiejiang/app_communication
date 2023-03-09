@@ -4,6 +4,7 @@
 
 #include "future/node/child_activate_node.h"
 #include "glog/logging.h"
+#include "future/node/node_control.h"
 
 RvizActivateNode::RvizActivateNode(int seconds) : ActivateNode(seconds) {}
 
@@ -12,20 +13,73 @@ RvizActivateNode::~RvizActivateNode() = default;
 bool RvizActivateNode::execute(NodeChain chain) {
     if (chain.isPrevious()) {
         return asyncExecute(chain.getPool(), []() {
-            std::system(N_RVIZ.data());
+            int status = std::system(N_RVIZ.data());
+            LOG(INFO) << "status : " << status;
         });
     }
     return false;
 }
 
-DumpActivateNode::DumpActivateNode(int seconds) : ActivateNode(seconds) {}
+BuildMappingActivateNode::BuildMappingActivateNode(int seconds) : ActivateNode(seconds) {}
 
-DumpActivateNode::~DumpActivateNode() = default;
+BuildMappingActivateNode::~BuildMappingActivateNode() = default;
 
-bool DumpActivateNode::execute(NodeChain chain) {
+bool BuildMappingActivateNode::execute(NodeChain chain) {
     if (chain.isPrevious()) {
         return asyncExecute(chain.getPool(), []() {
-            std::system(N_DUMP.data());
+            NodeControl::system_start(n_build_mapping);
+        });
+    }
+    return false;
+}
+
+SubmapToMapActivateNode::SubmapToMapActivateNode(int seconds) : ActivateNode(seconds) {}
+
+SubmapToMapActivateNode::~SubmapToMapActivateNode() = default;
+
+bool SubmapToMapActivateNode::execute(NodeChain chain) {
+    if (chain.isPrevious()) {
+        return asyncExecute(chain.getPool(), []() {
+            NodeControl::system_start(n_submap_to_map);
+        });
+    }
+    return false;
+}
+
+LocalizationActivateNode::LocalizationActivateNode(int seconds) : ActivateNode(seconds) {}
+
+LocalizationActivateNode::~LocalizationActivateNode() = default;
+
+bool LocalizationActivateNode::execute(NodeChain chain) {
+    if (chain.isPrevious()) {
+        return asyncExecute(chain.getPool(), []() {
+            NodeControl::system_start(n_localization);
+        });
+    }
+    return false;
+}
+
+LoadMapActivateNode::LoadMapActivateNode(int seconds) : ActivateNode(seconds) {}
+
+LoadMapActivateNode::~LoadMapActivateNode() = default;
+
+bool LoadMapActivateNode::execute(NodeChain chain) {
+    if (chain.isPrevious()) {
+        return asyncExecute(chain.getPool(), []() {
+            NodeControl::system_start(n_load_map);
+        });
+    }
+    return false;
+}
+
+NavigationActivateNode::NavigationActivateNode(int seconds) : ActivateNode(seconds) {}
+
+NavigationActivateNode::~NavigationActivateNode() = default;
+
+bool NavigationActivateNode::execute(NodeChain chain) {
+    if (chain.isPrevious()) {
+        return asyncExecute(chain.getPool(), []() {
+            NodeControl::system_start(n_navigation);
         });
     }
     return false;

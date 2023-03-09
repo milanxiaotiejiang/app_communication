@@ -45,7 +45,6 @@ const string APP_COMMUNICATION = "/app_communication";
 const string MOVEBASERECOVERYFAILURE = "/move_base/recovery_failure";
 
 const string MAP_APP = "/map_app";
-const string GRID_MAP_APP = "/grid_map_app";
 const string ODOM_APP = "/odom_app";
 const string ROBOT_STATUS = "/robot_status";
 const string MATERIAL_STATUS = "/material_status";
@@ -54,9 +53,6 @@ const string NOTICE_APP = "/notice_app";
 const string TASK_POINT = "/task_point";
 const string CHECK_APP = "/check_app";
 const string KNOB_APP = "/knob_app";
-const string WAYPOINTS_MARKER = "/waypoints_marker";
-const string SCAN_APP = "/scan_app";
-const string PATH_TEST = "/path_test";
 const string INTERNAL_EVENT = "/robot_internal_event";
 const string ALARM_EVENT = "/alarm_event";
 const string RESPONSE = "/response";

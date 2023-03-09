@@ -28,10 +28,4 @@ public:
     string handler(string params) override;
 };
 
-class GridMapPreparetoWorkStrategy : public MessageStrategy<string, string> {
-public:
-    string handler(string params) override;
-};
-
-
 #endif //APP_COMMUNICATION_MODESTRATEGY_H

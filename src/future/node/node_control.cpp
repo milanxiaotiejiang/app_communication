@@ -3,6 +3,7 @@
 //
 
 #include "future/node/node_control.h"
+#include "manager/PublishInnerManager.h"
 
 void NodeControl::initialize(ros::NodeHandle handle) {
     pool_.setNumOfThreads(THREAD_POOL_MAX_NUM);
@@ -12,6 +13,8 @@ void NodeControl::initialize(ros::NodeHandle handle) {
     nodeSubject = new AbnormalSubject();
     nodeObserver = new AbnormalObserver(nodeSubject);
     nodeSubject->attach(nodeObserver);
+
+    pub_clear_odom = handle.advertise<std_msgs::Int32>("/mrrobot/clear_odom", 1);
 }
 
 void NodeControl::release() {
@@ -27,8 +30,10 @@ void NodeControl::onWork() {
 
         auto *pFilterManager = new NodeManager(new OnceConfirm());
         pFilterManager->setNodeSubject(nodeSubject);
-        pFilterManager->addActivateNode(new DumpActivateNode(2));
-        pFilterManager->addActivateNode(new RvizActivateNode(3));
+//        pFilterManager->addActivateNode(new RvizActivateNode(3));
+        pFilterManager->addActivateNode(new NavigationActivateNode(3));
+        pFilterManager->addActivateNode(new LoadMapActivateNode(3));
+        pFilterManager->addActivateNode(new LocalizationActivateNode(3));
 
         bool isSuccessful = pFilterManager->activateNode(chain);
         if (isSuccessful) {
@@ -43,9 +48,12 @@ void NodeControl::onWork() {
 
 void NodeControl::offWork() {
     asyncOff(3, [this]() {
-        std::system(K_RVIZ.data());
         work_state_ = node::WorkState::normal;
         state_ = node::State::sleep;
+//        system_kill(N_RVIZ);
+        system_kill(n_localization);
+        system_kill(n_load_map);
+        system_kill(n_navigation);
     });
 }
 
@@ -54,17 +62,19 @@ void NodeControl::onMap() {
     asyncOn([this]() {
         NodeChain chain(&pool_);
 
+        resetLocalization(false);
+
         auto *pFilterManager = new NodeManager(new OnceConfirm());
         pFilterManager->setNodeSubject(nodeSubject);
-        pFilterManager->addActivateNode(new DumpActivateNode(2));
-        pFilterManager->addActivateNode(new RvizActivateNode(3));
+        pFilterManager->addActivateNode(new BuildMappingActivateNode(3));
+        pFilterManager->addActivateNode(new SubmapToMapActivateNode(3));
 
         bool isSuccessful = pFilterManager->activateNode(chain);
         if (isSuccessful) {
             state_ = node::State::map;
             map_state_ = node::MapState::complete;
         } else {
-            offWork();
+            offMap();
         }
         delete pFilterManager;
     });
@@ -72,20 +82,41 @@ void NodeControl::onMap() {
 
 void NodeControl::offMap() {
     asyncOff(3, [this]() {
-        std::system(K_RVIZ.data());
         map_state_ = node::MapState::normal;
         state_ = node::State::sleep;
+        system_kill(n_submap_to_map);
+        system_kill(n_build_mapping);
     });
 }
 
 void NodeControl::trySleep() {
     if (!isSleep()) {
+        clearOdom();
         if (isWork()) {
             offWork();
         }
         if (isMap()) {
             offMap();
         }
+    }
+}
+
+void NodeControl::clearOdom() {
+    std_msgs::Int32 message;
+    message.data = 1;
+    pub_clear_odom.publish(message);
+}
+
+void NodeControl::resetLocalization(bool open) {
+    ros::param::set("/localization", open);
+    if (open) {
+        ros::param::set("/set_initial_pose_x", 0.0);
+        ros::param::set("/set_initial_pose_y", 0.0);
+        ros::param::set("/set_initial_pose_z", 0.0);
+        ros::param::set("/set_initial_pose_ox", 0.0);
+        ros::param::set("/set_initial_pose_oy", 0.0);
+        ros::param::set("/set_initial_pose_oz", 0.0);
+        ros::param::set("/set_initial_pose_ow", 1.0);
     }
 }
 

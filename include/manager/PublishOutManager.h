@@ -27,13 +27,7 @@ private:
     pub_robot_status_,   //机器人状态
     pub_material_status_,//
     pub_map_,            //地图
-    pub_grid_map_,       //grid地图
-    pub_scan_,           //雷达数据
-    pub_path_,           //路径测试
-    pub_marker_,         //
     pub_self_check_,     //目标点
-    pub_cloud_status,    //云端
-    pub_cloud_event,     //
     pub_notice_,         //notice
     pub_knob_,           //knob
     pub_internal_event_;//发送给云端
@@ -60,19 +54,11 @@ public:
 
     void publishMap(const nav_msgs::OccupancyGrid &message) const;
 
-    void publishGridMap(const nav_msgs::OccupancyGrid &message) const;
-
-    void publishScan(const sensor_msgs::LaserScan &message) const;
-
-    void publishMarkerPoint(const visualization_msgs::Marker &message) const;
-
-    void publishPath(const nav_msgs::Path &message) const;
-
     void publishSelfCheck(const VersionSubscribe<SelfCheckStatus> &versionSubscribe) const;
 
     void publishNotice(const Notice &notice) const;
 
-    void publishAppJson(const int version, const std_msgs::String &message) const;
+    void publishAppJson(int version, const std_msgs::String &message) const;
 
     void publishAppCommunication(const std_msgs::String &message) const;
 
@@ -82,11 +68,7 @@ public:
 
     void publishAlarm(const internal_event::AlarmEvent& alarmEvent) const;
 
-    void publishCloudStatus(const std_msgs::String &message) const;
-
     void publishKnob(const VersionSubscribe<KnobStatus> &versionSubscribe) const;
-
-    void publishCloudEvent(const clean_msgs::cloud_robot_event &event) const;
 
     void publishInternalEvent(const std_msgs::String &message) const;
 };

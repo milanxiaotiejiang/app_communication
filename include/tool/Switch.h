@@ -40,7 +40,6 @@ enum MESSAGE_ID {
     FORCED_TO_ENTER_,       //强制进入某种模式
     WORK_TO_ENTER_,         //打开规划器，进入工作模式
     WORK_TO_MAP_APP_,       //工作模式请求地图
-    WORK_TO_GRID_MAP_APP_,  //工作模式请求grid地图
     CLEAN_HISTORY_REQUEST_, //请求清扫历史纪录
 
     COMBINATION_PART_ADD_,        //添加单个part

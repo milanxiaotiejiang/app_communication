@@ -134,9 +134,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case WORK_TO_MAP_APP_:
             messageStrategy = new MapPreparetoWorkStrategy();
             break;
-        case WORK_TO_GRID_MAP_APP_:
-            messageStrategy = new GridMapPreparetoWorkStrategy();
-            break;
         case CLEAN_HISTORY_REQUEST_:
             messageStrategy = new GetCleanHistoryStrategy();
             break;

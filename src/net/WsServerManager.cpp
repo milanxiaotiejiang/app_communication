@@ -150,9 +150,6 @@ void on_open(server *s, websocketpp::connection_hdl hdl) {
     ask.subMap[TASK_POINT] = false;
     ask.subMap[CHECK_APP] = false;
     ask.subMap[KNOB_APP] = false;
-    ask.subMap[WAYPOINTS_MARKER] = false;
-    ask.subMap[SCAN_APP] = false;
-    ask.subMap[PATH_TEST] = false;
     ask.subMap[ALARM_EVENT] = false;
     ask.subMap[RESPONSE] = false;
     ask.subMap[RESPONSE_JSON] = false;
@@ -246,7 +243,6 @@ private:
     websocketpp::server<websocketpp::config::asio> *server;
     map<string, string> dataMap;
     string mapData;
-    string mapGridData;
 
 public:
     explicit WsServerSubThread(websocketpp::server<websocketpp::config::asio> *server) : server(server) {
@@ -265,10 +261,6 @@ public:
 
     void setMapApp(const string &data) {
         mapData = data;
-    }
-
-    void setGridMapApp(const string &data) {
-        mapGridData = data;
     }
 
     void setOdomApp(const std_msgs::String &data) {
@@ -309,12 +301,6 @@ public:
                             if (key == MAP_APP) {
                                 if (!mapData.empty()) {
                                     wsServerSend(server, ask.second.hdl, mapData, key);
-                                    dataMap[key] = "";
-                                }
-                            }
-                            if (key == GRID_MAP_APP) {
-                                if (!mapGridData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, mapGridData, key);
                                     dataMap[key] = "";
                                 }
                             }

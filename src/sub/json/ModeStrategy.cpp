@@ -36,8 +36,3 @@ string MapPreparetoWorkStrategy::handler(string params) {
     PublishOutManager::instance().publishMap(Variable::get_instance()->getMapApp());
     return "";
 }
-
-string GridMapPreparetoWorkStrategy::handler(string params) {
-    PublishOutManager::instance().publishGridMap(Variable::get_instance()->getGridMapApp());
-    return "";
-}
