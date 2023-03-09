@@ -55,6 +55,7 @@ int main(int argc, char **argv) {
     //初始化ros节点
     ros::init(argc, argv, "rec_app_node");
     LOG(INFO) << sys_gettid() << " start to listening!";
+
     //新清洁历史
     clean_history_db::CleanHistoryCenter::instance().initialize();
     pool.init();

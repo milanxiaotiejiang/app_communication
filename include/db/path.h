@@ -17,6 +17,8 @@ namespace path {
     const std::string mymap_segmentation = "mymap_segmentation";
     const std::string prohibition_areas_yaml = "prohibition_areas.yaml";
 
+    std::string separator();
+
     std::string data_base_dir();
 
     std::string robot_slam_dir();

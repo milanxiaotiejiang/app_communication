@@ -6,28 +6,35 @@
 #include "db/path.h"
 
 namespace path {
+    std::string separator() {
+        if (file_separator.empty()) {
+            return "/";
+        }
+        return file_separator;
+    }
+
     std::string data_base_dir() {
-        return ros::package::getPath("data_base") + file_separator;
+        return ros::package::getPath("data_base") + separator();
     }
 
     std::string robot_slam_dir() {
-        return ros::package::getPath("robot_slam") + file_separator;
+        return ros::package::getPath("robot_slam") + separator();
     }
 
     std::string zoo_bringup_dir() {
-        return ros::package::getPath("zoo_bringup") + file_separator;
+        return ros::package::getPath("zoo_bringup") + separator();
     }
 
     std::string data_base_config_dir() {
-        return data_base_dir() + "config" + file_separator;
+        return data_base_dir() + "config" + separator();
     }
 
     std::string robot_slam_map_dir() {
-        return robot_slam_dir() + "maps" + file_separator;
+        return robot_slam_dir() + "maps" + separator();
     }
 
     std::string zoo_bringup_params_dir() {
-        return zoo_bringup_dir() + "params" + file_separator;
+        return zoo_bringup_dir() + "params" + separator();
     }
 
     std::string map_yaml_path() {
