@@ -93,6 +93,7 @@
 #include "cppfs/FileIterator.h"
 #include "ctime"
 #include "time.h"
+#include "future/node/node_control.h"
 
 google_breakpad::ExceptionHandler *exceptionHandler = nullptr;
 std::string unique_identification = boost::uuids::to_string(boost::uuids::random_generator()());

@@ -1,7 +1,5 @@
 #include "rec_app.h"
 #include "simulation.h"
-#include "future/node/node_control.h"
-#include "alignment/blob.h"
 
 /**
  * https://github.com/fnc12/sqlite_orm
@@ -115,7 +113,6 @@ int main(int argc, char **argv) {
     sThd->start();
     sThd->detach();
 
-    Blob blob(handle);
     ros::MultiThreadedSpinner spinner;
     spinner.spin();
 
