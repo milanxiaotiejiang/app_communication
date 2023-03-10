@@ -24,6 +24,15 @@ public:
     bool execute(NodeChain chain) override;
 };
 
+class KillMapServerActivateNode : public ActivateNode {
+public:
+    explicit KillMapServerActivateNode(int seconds);
+
+    ~KillMapServerActivateNode() override;
+
+    bool execute(NodeChain chain) override;
+};
+
 class BuildMappingActivateNode : public ActivateNode {
 public:
     explicit BuildMappingActivateNode(int seconds);

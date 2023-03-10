@@ -9,12 +9,17 @@ void NodeControl::initialize(ros::NodeHandle handle) {
     pool_.setNumOfThreads(THREAD_POOL_MAX_NUM);
 
     subscribe = new NodeControlSubscribe(handle);
+    cartoHeartBeat = new CartoHeartBeat(handle);
 
     nodeSubject = new AbnormalSubject();
     nodeObserver = new AbnormalObserver(nodeSubject);
     nodeSubject->attach(nodeObserver);
 
     pub_clear_odom = handle.advertise<std_msgs::Int32>("/mrrobot/clear_odom", 1);
+
+    asyncOn([]() {
+        system_start(n_load_map);
+    });
 }
 
 void NodeControl::release() {
@@ -28,6 +33,8 @@ void NodeControl::onWork() {
     asyncOn([this]() {
         NodeChain chain(&pool_);
 
+        resetLocalization(true);
+
         auto *pFilterManager = new NodeManager(new OnceConfirm());
         pFilterManager->setNodeSubject(nodeSubject);
 //        pFilterManager->addActivateNode(new RvizActivateNode(3));
@@ -40,20 +47,9 @@ void NodeControl::onWork() {
             state_ = node::State::work;
             work_state_ = node::WorkState::complete;
         } else {
-            offWork();
+            trySleep();
         }
         delete pFilterManager;
-    });
-}
-
-void NodeControl::offWork() {
-    asyncOff(3, [this]() {
-        work_state_ = node::WorkState::normal;
-        state_ = node::State::sleep;
-//        system_kill(N_RVIZ);
-        system_kill(n_localization);
-        system_kill(n_load_map);
-        system_kill(n_navigation);
     });
 }
 
@@ -66,37 +62,61 @@ void NodeControl::onMap() {
 
         auto *pFilterManager = new NodeManager(new OnceConfirm());
         pFilterManager->setNodeSubject(nodeSubject);
+        pFilterManager->addActivateNode(new KillMapServerActivateNode(2));
         pFilterManager->addActivateNode(new BuildMappingActivateNode(3));
-        pFilterManager->addActivateNode(new SubmapToMapActivateNode(3));
+        pFilterManager->addActivateNode(new SubmapToMapActivateNode(4));
 
         bool isSuccessful = pFilterManager->activateNode(chain);
         if (isSuccessful) {
             state_ = node::State::map;
             map_state_ = node::MapState::complete;
         } else {
-            offMap();
+            trySleep();
         }
         delete pFilterManager;
     });
 }
 
+void NodeControl::offSleep() {
+    system_kill("map_server");
+}
+
+void NodeControl::offWork() {
+    //at this time the truth was invalid
+//    system_kill(n_localization);
+//    system_kill(n_load_map);
+//    system_kill(n_navigation);
+    //this simplest way
+    system_kill("cartographer_node");
+    system_kill("map_server");
+    system_kill("bump_back_node");
+    system_kill("move_base");
+}
+
 void NodeControl::offMap() {
-    asyncOff(3, [this]() {
-        map_state_ = node::MapState::normal;
-        state_ = node::State::sleep;
-        system_kill(n_submap_to_map);
-        system_kill(n_build_mapping);
-    });
+    system_kill("cartographer_occupancy_grid_node");
+    system_kill("cartographer_node");
 }
 
 void NodeControl::trySleep() {
     if (!isSleep()) {
-        clearOdom();
-        if (isWork()) {
-            offWork();
-        }
-        if (isMap()) {
-            offMap();
+        asyncOff(5, [this]() {
+            clearOdom();
+            if (isWork()) {
+                offWork();
+            }
+            if (isMap()) {
+                offMap();
+            }
+            asyncOn([]() {
+                system_start(n_load_map);
+            });
+            work_state_ = node::WorkState::normal;
+            map_state_ = node::MapState::normal;
+            state_ = node::State::sleep;
+        });
+        if (!isSleep()) {
+            LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
         }
     }
 }

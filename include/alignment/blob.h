@@ -9,6 +9,7 @@
 #include <opencv2/opencv.hpp>
 #include <ros/node_handle.h>
 #include <std_msgs/String.h>
+#include <cv_bridge/cv_bridge.h>
 #include "ros/ros.h"
 #include "glog/logging.h"
 
@@ -16,9 +17,6 @@
 
 using json = nlohmann::json;
 
-/**
- rostopic pub -1 /tt_blob std_msgs/String "data: '{\"blobColor\":0,\"filterByArea\":true,\"filterByCircularity\":true,\"filterByColor\":true,\"filterByConvexity\":true,\"filterByInertia\":true,\"maxArea\":5000.0,\"maxCircularity\":3.140000104904175,\"maxConvexity\":3.140000104904175,\"maxInertiaRatio\":0.800000011920929,\"maxThreshold\":256.0,\"minArea\":50.0,\"minCircularity\":0.5,\"minConvexity\":0.5,\"minDistBetweenBlobs\":10.0,\"minInertiaRatio\":0.30000001192092896,\"minRepeatability\":2,\"minThreshold\":0.0,\"thresholdStep\":1.0}'"
- */
 class BlobParams {
 public:
     float thresholdStep{1};
@@ -93,6 +91,25 @@ public:
     }
 };
 
+class BlobManager {
+public:
+    static auto &instance() {
+        static BlobManager obj;
+        return obj;
+    }
+
+public:
+    BlobParams blob;
+
+    const BlobParams &getBlob() const {
+        return blob;
+    }
+
+    void setBlob(const BlobParams &blob) {
+        BlobManager::blob = blob;
+    }
+};
+
 class Blob {
 private:
     ros::NodeHandle handle;
@@ -102,11 +119,12 @@ private:
         std::string string = result.data;
         json jDecode = json::parse(string);
         auto blob = jDecode.get<BlobParams>();
-        detect(blob);
+        BlobManager::instance().setBlob(blob);
     };
 
-    static void detect(BlobParams blob) {
-        auto src = cv::imread("/home/lijiang/Desktop/zt/004.png");
+private:
+    static void detect(cv::Mat src, BlobParams blob) {
+//        auto src = cv::imread("/home/admin1/Desktop/zt/004.png");
         cv::cvtColor(src, src, cv::COLOR_BGR2GRAY);
 
         cv::SimpleBlobDetector::Params params;
@@ -151,8 +169,8 @@ private:
                       << ", size : " << item.size
                       << ", angle : " << item.angle
                       << std::endl;
-            cv::putText(outImg, std::to_string(item.size), item.pt, cv::FONT_HERSHEY_TRIPLEX,
-                        0.5, cv::Scalar(128), 1, CV_AA);
+//            cv::putText(outImg, std::to_string(item.size), item.pt, cv::FONT_HERSHEY_TRIPLEX,
+//                        0.5, cv::Scalar(128), 1, CV_AA);
         }
         cv::imshow("blob", outImg);
         cv::waitKey();
@@ -169,3 +187,4 @@ public:
 };
 
 #endif //APP_COMMUNICATION_BLOB_H
+//rostopic pub -1 /tt_blob std_msgs/String "data: '{\"blobColor\":255,\"filterByArea\":true,\"filterByCircularity\":false,\"filterByColor\":true,\"filterByConvexity\":false,\"filterByInertia\":true,\"maxArea\":5000.0,\"maxCircularity\":3.140000104904175,\"maxConvexity\":3.140000104904175,\"maxInertiaRatio\":0.800000011920929,\"maxThreshold\":256.0,\"minArea\":80.0,\"minCircularity\":0.5,\"minConvexity\":0.5,\"minDistBetweenBlobs\":10.0,\"minInertiaRatio\":0.30000001192092896,\"minRepeatability\":2,\"minThreshold\":50.0,\"thresholdStep\":1.0}'"

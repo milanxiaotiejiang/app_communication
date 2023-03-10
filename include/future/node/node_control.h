@@ -17,6 +17,7 @@
 #include "node_observer_mode.h"
 #include "machine.h"
 #include "node_control_subscribe.h"
+#include "heart_beat.h"
 
 #define  THREAD_POOL_MAX_NUM 16
 
@@ -24,6 +25,7 @@ class NodeControl {
 private:
     async::ThreadPool pool_;
     NodeControlSubscribe *subscribe;
+    CartoHeartBeat *cartoHeartBeat;
     ros::Publisher pub_clear_odom;
 
     std::atomic<node::State> state_{node::State::sleep};
@@ -58,9 +60,9 @@ private:
 
     void onWork();
 
-    void offWork();
-
     void onMap();
+
+    void offWork();
 
     void offMap();
 
@@ -71,6 +73,8 @@ private:
     void resetLocalization(bool open);
 
 public:
+    std::atomic<int> heart_beat;
+
     static auto &instance() {
         static NodeControl obj;
         return obj;
@@ -82,7 +86,8 @@ public:
     }
 
     static void system_kill(const std::string &ns) {
-        std::string kill_str = "ps -ef | grep '" + ns + "' | grep -v grep | awk '{print $2}' | xargs kill -9";
+        std::string kill_str = "ps -ef | grep '" + ns + "' | grep -v grep | awk '{print $2}' | xargs kill -s 9";
+//        std::string kill_str = "pgrep " + ns + " | xargs kill -s 9";
         LOG(INFO) << "system kill order is " << kill_str;
         std::system(kill_str.data());
     }
@@ -90,6 +95,8 @@ public:
     void initialize(ros::NodeHandle handle);
 
     void release();
+
+    void offSleep();
 
     bool isWork() const {
         return state_ == node::State::work && work_state_ == node::WorkState::complete;

@@ -56,8 +56,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
         INCLUDE_DIRS include
         LIBRARIES app_communication
-        CATKIN_DEPENDS roscpp rospy std_msgs clean_msgs
-        CATKIN_DEPENDS message_runtime
+        CATKIN_DEPENDS roscpp rospy std_msgs clean_msgs message_runtime
         #  DEPENDS system_lib
 )
 

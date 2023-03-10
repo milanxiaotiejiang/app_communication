@@ -20,6 +20,16 @@ bool RvizActivateNode::execute(NodeChain chain) {
     return false;
 }
 
+KillMapServerActivateNode::KillMapServerActivateNode(int seconds) : ActivateNode(seconds) {}
+
+KillMapServerActivateNode::~KillMapServerActivateNode() = default;
+
+bool KillMapServerActivateNode::execute(NodeChain chain) {
+    NodeControl::instance().offSleep();
+    sleep(seconds);
+    return true;
+}
+
 BuildMappingActivateNode::BuildMappingActivateNode(int seconds) : ActivateNode(seconds) {}
 
 BuildMappingActivateNode::~BuildMappingActivateNode() = default;

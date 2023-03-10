@@ -15,13 +15,13 @@
 
 class ActivateNode {
 private:
-    int seconds{};
 
     std::mutex wait_mutex;
     std::condition_variable err_cond;
     bool error_monitor = false;
 
 protected:
+    int seconds{};
     NodeSubject *nodeSubject;
 
     template<typename F, typename... Args>
@@ -31,7 +31,7 @@ protected:
         pool->execute([this, t = std::move(func)]() {
             t();
 
-            std::unique_lock<std::mutex> guard(wait_mutex);
+//            std::unique_lock<std::mutex> guard(wait_mutex);
             error_monitor = true;
             err_cond.notify_one();
 
