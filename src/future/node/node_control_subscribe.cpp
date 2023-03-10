@@ -6,7 +6,7 @@
 #include "future/node/node_control.h"
 
 NodeControlSubscribe::NodeControlSubscribe(ros::NodeHandle handle) {
-    sub_flag_ = handle.subscribe("/tt_node_control", 1, &NodeControlSubscribe::subscribeCallback, this);
+    sub_flag_ = handle.subscribe("/node_control", 1, &NodeControlSubscribe::subscribeCallback, this);
 }
 
 void NodeControlSubscribe::subscribeCallback(const std_msgs::Int32 &flag_result) {
