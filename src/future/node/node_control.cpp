@@ -97,12 +97,15 @@ void NodeControl::offWork() {
 //    system_kill(n_load_map);
 //    system_kill(n_navigation);
     //this simplest way
-    system_kill("cartographer_node");
-    system_kill("map_server");
-    system_kill("bump_back_node");
-    system_kill("move_base");
     if (Environment::instance().isRealEnvironment) {
-//        system_kill("move_base");
+        system_kill("cartographer_node");
+        system_kill("map_server");
+        system_kill("bump_back_node");
+        system_kill("move_base");
+    } else {
+        system_kill(N_RVIZ);
+        system_kill("map_server");
+        system_kill("amcl");
     }
 }
 

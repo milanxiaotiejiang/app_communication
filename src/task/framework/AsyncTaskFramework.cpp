@@ -11,6 +11,7 @@
 #include "task/point_routine.h"
 #include "future/timer_call.h"
 #include "future/node/node_control.h"
+#include "task/manager/SwitchModePublish.h"
 
 AsyncTaskFramework::AsyncTaskFramework() {
     int err = AsyncTaskCall::make_thread(run, this);
@@ -342,6 +343,10 @@ void AsyncTaskFramework::callBackBasePoint() {
 void AsyncTaskFramework::callNeedPublishSleep() {
     LOG(INFO) << "AsyncTaskFramework : 等待充电成功即可发布睡眠模式 ...";
     ZooInnerStatus::instance().setNeedSleep(true);
+    if (!Environment::instance().isRealEnvironment) {
+        SwitchModePublish::instance().publish();
+        ZooInnerStatus::instance().setNeedSleep(false);
+    }
 }
 
 void AsyncTaskFramework::release() {
