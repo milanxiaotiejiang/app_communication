@@ -5,6 +5,7 @@
 #ifndef APP_COMMUNICATION_ACTIVATE_NODE_H
 #define APP_COMMUNICATION_ACTIVATE_NODE_H
 
+#include <armadillo>
 #include "future/thread_pool.h"
 #include "node_chain.h"
 #include "once_confirm.h"
@@ -35,6 +36,7 @@ protected:
             error_monitor = true;
             err_cond.notify_one();
 
+            sleep(3);
             nodeSubject->notify();
         });
 

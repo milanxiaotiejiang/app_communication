@@ -43,13 +43,13 @@ void NodeControl::onWork() {
         auto *pFilterManager = new NodeManager(new OnceConfirm());
         pFilterManager->setNodeSubject(nodeSubject);
         if (Environment::instance().isRealEnvironment) {
-            pFilterManager->addActivateNode(new NavigationActivateNode(3));
-            pFilterManager->addActivateNode(new LoadMapActivateNode(3));
-            pFilterManager->addActivateNode(new LocalizationActivateNode(3));
+            pFilterManager->addActivateNode(new NavigationActivateNode(2));
+            pFilterManager->addActivateNode(new LoadMapActivateNode(2));
+            pFilterManager->addActivateNode(new LocalizationActivateNode(2));
         } else {
-            pFilterManager->addActivateNode(new NavigationActivateNode(3));
-            pFilterManager->addActivateNode(new LoadMapActivateNode(3));
-            pFilterManager->addActivateNode(new RvizActivateNode(3));
+            pFilterManager->addActivateNode(new NavigationActivateNode(1));
+            pFilterManager->addActivateNode(new LoadMapActivateNode(1));
+            pFilterManager->addActivateNode(new RvizActivateNode(1));
         }
 
         bool isSuccessful = pFilterManager->activateNode(chain);
@@ -72,9 +72,9 @@ void NodeControl::onMap() {
 
         auto *pFilterManager = new NodeManager(new OnceConfirm());
         pFilterManager->setNodeSubject(nodeSubject);
-        pFilterManager->addActivateNode(new KillMapServerActivateNode(2));
-        pFilterManager->addActivateNode(new BuildMappingActivateNode(3));
-        pFilterManager->addActivateNode(new SubmapToMapActivateNode(4));
+        pFilterManager->addActivateNode(new KillMapServerActivateNode(1));
+        pFilterManager->addActivateNode(new BuildMappingActivateNode(2));
+        pFilterManager->addActivateNode(new SubmapToMapActivateNode(2));
 
         bool isSuccessful = pFilterManager->activateNode(chain);
         if (isSuccessful) {
