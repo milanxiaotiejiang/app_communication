@@ -820,6 +820,11 @@ void AsyncTaskCall::urgencyStopAndCharge() {
 }
 
 void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
+    LOG(INFO) << "NativeSystemManager : motorErrorEvent 3"
+              << "  IsCharging :" << ZooInnerStatus::instance().getIsCharging()
+              << "  isUrgencyStop :" << isUrgencyStop()
+              << "  isUnrecoverableError :" << isUnrecoverableError()
+              << " ...";
     if (ZooInnerStatus::instance().getIsCharging()) {
         return;
     }

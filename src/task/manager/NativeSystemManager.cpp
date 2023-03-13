@@ -21,9 +21,11 @@ void NativeSystemManager::waterLevelToBackBase(loop::special_epoll operation) {
 }
 
 void NativeSystemManager::motorErrorEvent(int error_event) {
+    LOG(INFO) << "NativeSystemManager : motorErrorEvent 1 ...";
     if (error_event == 1) {
         asyncTaskCall->recordMotorError();
     } else {
+        LOG(INFO) << "NativeSystemManager : motorErrorEvent 2 ...";
         asyncTaskCall->forceBackToBase(loop::special_epoll::special_dust_push_anomaly);
     }
 }
