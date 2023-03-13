@@ -105,22 +105,13 @@ WorkMode NodeWorkModeManager::nowWorkMode() {
 
 bool NodeWorkModeManager::asyncWorkMode(WorkMode mode) {
     LOG(INFO) << "NodeWorkModeManager 切换为 mode = " << mode << " 的模式 ... ";
-    if (mode == WorkMode::SLEEPING) {
-        std_msgs::Int32 message;
-        message.data = 0;
-        pub_node_.publish(message);
-    } else if (mode == WorkMode::WORKING) {
-        std_msgs::Int32 message;
-        message.data = 1;
-        pub_node_.publish(message);
-    } else if (mode == WorkMode::MAPPING) {
-        std_msgs::Int32 message;
-        message.data = 2;
-        pub_node_.publish(message);
-    } else if (mode == WorkMode::UNKNOWN) {
+    if (mode == WorkMode::UNKNOWN) {
         LOG(ERROR) << "NodeWorkModeManager asyncWorkMode unknown " << mode;
+    } else {
+        std_msgs::Int32 message;
+        message.data = mode;
+        pub_node_.publish(message);
     }
-//    nodeHandle.setParam("/node_controller/work_mode", mode);
 }
 
 bool NodeWorkModeManager::tryToWork() {
@@ -152,7 +143,7 @@ bool NodeWorkModeManager::tryToWork() {
 
         std::unique_lock<std::mutex> lck(wait_mutex);
         if (wait_cv.wait_for(lck,
-                             std::chrono::milliseconds(MAXIMUM_LIMIT_TIME_OF_TIMEOUT)
+                             std::chrono::seconds(MAXIMUM_LIMIT_TIME_OF_TIMEOUT)
         ) == std::cv_status::timeout) {
             LOG(INFO) << "NodeWorkModeManager 切换工作模式超时，进入再次确认 ... ";
             return nowWorkMode() == WorkMode::WORKING;
@@ -190,7 +181,7 @@ bool NodeWorkModeManager::tryToMap() {
 
         std::unique_lock<std::mutex> lck(wait_mutex);
         if (wait_cv.wait_for(lck,
-                             std::chrono::milliseconds(MAXIMUM_LIMIT_TIME_OF_TIMEOUT)
+                             std::chrono::seconds(MAXIMUM_LIMIT_TIME_OF_TIMEOUT)
         ) == std::cv_status::timeout) {
             LOG(INFO) << "NodeWorkModeManager 切换建图模式超时，进入再次确认 ... ";
             return nowWorkMode() == WorkMode::MAPPING;

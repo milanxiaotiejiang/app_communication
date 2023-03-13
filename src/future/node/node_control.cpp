@@ -4,6 +4,7 @@
 
 #include "future/node/node_control.h"
 #include "manager/PublishInnerManager.h"
+#include "simulation.h"
 
 void NodeControl::initialize(ros::NodeHandle handle) {
     pool_.setNumOfThreads(THREAD_POOL_MAX_NUM);
@@ -18,7 +19,11 @@ void NodeControl::initialize(ros::NodeHandle handle) {
     pub_clear_odom = handle.advertise<std_msgs::Int32>("/mrrobot/clear_odom", 1);
 
     asyncOn([]() {
-        system_start(n_load_map);
+        if (Environment::instance().isRealEnvironment) {
+            system_start(n_load_map);
+        } else {
+            system_start(n_tt_load_map);
+        }
     });
 }
 
@@ -37,10 +42,15 @@ void NodeControl::onWork() {
 
         auto *pFilterManager = new NodeManager(new OnceConfirm());
         pFilterManager->setNodeSubject(nodeSubject);
-//        pFilterManager->addActivateNode(new RvizActivateNode(3));
-        pFilterManager->addActivateNode(new NavigationActivateNode(3));
-        pFilterManager->addActivateNode(new LoadMapActivateNode(3));
-        pFilterManager->addActivateNode(new LocalizationActivateNode(3));
+        if (Environment::instance().isRealEnvironment) {
+            pFilterManager->addActivateNode(new NavigationActivateNode(3));
+            pFilterManager->addActivateNode(new LoadMapActivateNode(3));
+            pFilterManager->addActivateNode(new LocalizationActivateNode(3));
+        } else {
+            pFilterManager->addActivateNode(new NavigationActivateNode(3));
+            pFilterManager->addActivateNode(new LoadMapActivateNode(3));
+            pFilterManager->addActivateNode(new RvizActivateNode(3));
+        }
 
         bool isSuccessful = pFilterManager->activateNode(chain);
         if (isSuccessful) {
@@ -91,6 +101,9 @@ void NodeControl::offWork() {
     system_kill("map_server");
     system_kill("bump_back_node");
     system_kill("move_base");
+    if (Environment::instance().isRealEnvironment) {
+//        system_kill("move_base");
+    }
 }
 
 void NodeControl::offMap() {
@@ -109,7 +122,11 @@ void NodeControl::trySleep() {
                 offMap();
             }
             asyncOn([]() {
-                system_start(n_load_map);
+                if (Environment::instance().isRealEnvironment) {
+                    system_start(n_load_map);
+                } else {
+                    system_start(n_tt_load_map);
+                }
             });
             work_state_ = node::WorkState::normal;
             map_state_ = node::MapState::normal;

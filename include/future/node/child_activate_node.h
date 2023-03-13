@@ -7,7 +7,10 @@
 
 #include "activate_node.h"
 
+
 const std::string N_RVIZ = "roslaunch robot_slam view_nav.launch > rviz.log 2>&1";
+const std::string N_tt_navigation = "roslaunch robot_slam sim_navigation.launch > tt_sim_navigation.log 2>&1";
+const std::string n_tt_load_map = "roslaunch robot_slam load_map.launch > tt_load_map.log 2>&1";
 
 const std::string n_build_mapping = "roslaunch launch_center build_mapping.launch > launch_center_build_mapping.log 2>&1";
 const std::string n_submap_to_map = "roslaunch launch_center submap_to_map.launch > launch_center_submap_to_map.log 2>&1";

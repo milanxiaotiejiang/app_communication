@@ -5,8 +5,13 @@
 #include "future/node/once_confirm.h"
 #include "glog/logging.h"
 #include "future/node/node_control.h"
+#include "simulation.h"
 
 bool OnceConfirm::confirm(NodeChain chain) {
+
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
+    }
 
     NodeControl::instance().heart_beat = 0;
 

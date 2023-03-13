@@ -23,7 +23,7 @@
 
 const int OPENING_TIME_OF_CLEANING_MECHANISM = 10;
 const int CLOSING_TIME_OF_CLEANING_MECHANISM = 5;
-const int WAITING_TIME_OF_NODE_WORK_MODE = 30;
+const int WAITING_TIME_OF_NODE_WORK_MODE = 60;
 
 class AsyncTaskFramework : public AsyncCall {
 private:

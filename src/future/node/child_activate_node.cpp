@@ -5,6 +5,7 @@
 #include "future/node/child_activate_node.h"
 #include "glog/logging.h"
 #include "future/node/node_control.h"
+#include "simulation.h"
 
 RvizActivateNode::RvizActivateNode(int seconds) : ActivateNode(seconds) {}
 
@@ -76,7 +77,11 @@ LoadMapActivateNode::~LoadMapActivateNode() = default;
 bool LoadMapActivateNode::execute(NodeChain chain) {
     if (chain.isPrevious()) {
         return asyncExecute(chain.getPool(), []() {
-            NodeControl::system_start(n_load_map);
+            if (Environment::instance().isRealEnvironment) {
+                NodeControl::system_start(n_load_map);
+            } else {
+                NodeControl::system_start(n_tt_load_map);
+            }
         });
     }
     return false;
@@ -89,7 +94,11 @@ NavigationActivateNode::~NavigationActivateNode() = default;
 bool NavigationActivateNode::execute(NodeChain chain) {
     if (chain.isPrevious()) {
         return asyncExecute(chain.getPool(), []() {
-            NodeControl::system_start(n_navigation);
+            if (Environment::instance().isRealEnvironment) {
+                NodeControl::system_start(n_navigation);
+            } else {
+                NodeControl::system_start(N_tt_navigation);
+            }
         });
     }
     return false;
