@@ -36,14 +36,6 @@ private:
     NodeObserver *nodeObserver{};
 
     template<typename F, typename... Args>
-    void asyncOn(F &&f, Args &&... args) {
-        auto func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
-        pool_.execute([this, t = std::move(func)]() {
-            t();
-        });
-    }
-
-    template<typename F, typename... Args>
     void asyncOff(int seconds, F &&f, Args &&... args) {
         std::mutex mutex;
         std::condition_variable cond;
@@ -90,6 +82,14 @@ public:
 //        std::string kill_str = "pgrep " + ns + " | xargs kill -s 9";
         LOG(INFO) << "system kill order is " << kill_str;
         std::system(kill_str.data());
+    }
+
+    template<typename F, typename... Args>
+    void asyncOn(F &&f, Args &&... args) {
+        auto func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
+        pool_.execute([this, t = std::move(func)]() {
+            t();
+        });
     }
 
     void initialize(ros::NodeHandle handle);

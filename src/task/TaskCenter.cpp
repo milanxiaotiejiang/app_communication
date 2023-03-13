@@ -66,8 +66,7 @@ void TaskCenter::realExecuteTask(const Task &task) {
 
     //建图模式下，不能够分发任务
     if (Environment::instance().isRealEnvironment) {
-        auto workMode = NodeWorkModeManager::instance().getWorkMode();
-        if (workMode == WorkMode::MAPPING) {
+        if (NodeControl::instance().isMap()) {
             throw app::exception(make_error_code(error::dispatcher_task_work_mode_mapping));
         }
     }

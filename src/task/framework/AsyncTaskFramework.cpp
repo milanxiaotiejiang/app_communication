@@ -10,6 +10,7 @@
 #include "task/point_planner.h"
 #include "task/point_routine.h"
 #include "future/timer_call.h"
+#include "future/node/node_control.h"
 
 AsyncTaskFramework::AsyncTaskFramework() {
     int err = AsyncTaskCall::make_thread(run, this);
@@ -218,7 +219,7 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
     if (!isWorkMode()) {
         LOG(INFO) << "AsyncTaskFramework : 不是工作状态，准备启动工作状态 ...";
 
-        NodeWorkModeManager::instance().setWorkMode(WorkMode::WORKING);
+        NodeWorkModeManager::instance().forceToWork();
 
         async::ThreadPool pool_;
         pool_.setNumOfThreads(1);
@@ -229,7 +230,11 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
             if (!sleepTimeout) {
                 async::TimerCall::instance().baseLoop()->cancelAny();
             }
-            LOG(INFO) << "AsyncTaskFramework : 工作模式启动状态 " << NodeWorkModeManager::instance().getWorkMode() << " ...";
+            LOG(INFO) << "AsyncTaskFramework : 工作模式启动状态 "
+                      << " 是否是工作 ： " << NodeControl::instance().isWork()
+                      << " 是否是建图 ： " << NodeControl::instance().isMap()
+                      << " 是否是睡眠 ： " << NodeControl::instance().isSleep()
+                      << " ...";
             notify_one([this, &f]() {
                 f(isWorkMode());
             });
@@ -286,7 +291,7 @@ void AsyncTaskFramework::callCloseMechanism(std::function<void()> f) {
 }
 
 bool AsyncTaskFramework::isWorkMode() {
-    return NodeWorkModeManager::instance().getWorkMode() == WorkMode::WORKING;
+    return NodeControl::instance().isWork();
 }
 
 bool AsyncTaskFramework::isUrgencyStop() {

@@ -106,7 +106,8 @@ namespace error {
         in_creating_map,
         coverage_path_overtime,
         failed_to_parse_speed_related_files,
-        failed_to_parse_fall_prevention_related_files
+        failed_to_parse_fall_prevention_related_files,
+        mode_switching_is_not_supported
     };// enum value
 
     class category : public std::error_category {
@@ -299,6 +300,8 @@ namespace error {
                     return "解析速度相关文件失败";
                 case error::failed_to_parse_fall_prevention_related_files:
                     return "解析防跌落相关文件失败";
+                case error::mode_switching_is_not_supported:
+                    return "暂不支持模式切换，请稍后调用";
                 default:
                     return "Unknown";
             }

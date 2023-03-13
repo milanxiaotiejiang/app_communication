@@ -25,7 +25,7 @@ void SwitchModePublish::initialize(ros::NodeHandle handle) {
                     if (!isReset) {
                         if (isPublish) {
                             LOG(INFO) << "发布睡眠模式 ...";
-                            NodeWorkModeManager::instance().setWorkMode(WorkMode::SLEEPING);
+                            NodeWorkModeManager::instance().toSleep();
                             isPublish = false;
                         }
                     }
