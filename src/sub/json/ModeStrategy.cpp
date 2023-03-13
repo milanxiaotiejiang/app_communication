@@ -5,30 +5,28 @@
 #include "sub/json/ModeStrategy.h"
 #include "task/subscribe/async_machine.h"
 #include "task/manager/manual.h"
+#include "task/manager/NodeWorkModeManager.h"
 
+/*
+ *  mode:0:建图；1修改地图；2工作
+ */
 string RobotTryEnterModeStrategy::handler(int params) {
-    if (AsyncMachine::instance().getFlow() != event::flow::waiting_for_task) {
+    if (ManualManager::instance().taskRunning()) {
         throw app::exception(make_error_code(error::current_in_task));
     } else {
-        std_msgs::Int32 mode;
-        mode.data = ((int32_t) params);
-        PublishInnerManager::instance().publishMode(mode);
+        NodeWorkModeManager::instance().enterWorkMode(params);
         return "";
     }
 }
 
 string RobotForceEnterModeStrategy::handler(int params) {
     ManualManager::instance().backToBase(true);
-    std_msgs::Int32 mode;
-    mode.data = ((int32_t) params);
-    PublishInnerManager::instance().publishMode(mode);
+    NodeWorkModeManager::instance().enterWorkMode(params);
     return "";
 }
 
 string RobotPreparetoWorkStrategy::handler(string params) {
-    std_msgs::Int32 mode;
-    mode.data = (int32_t) 2;
-    PublishInnerManager::instance().publishMode(mode);
+    NodeWorkModeManager::instance().setWorkMode(WorkMode::WORKING);
     return "";
 }
 

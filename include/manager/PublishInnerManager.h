@@ -18,7 +18,7 @@
 
 class PublishInnerManager {
 private:
-    ros::Publisher pub_mode_,//发布工作模式
+    ros::Publisher
     pub_push_mode_, //尘推
     pub_self_clean_, //基站自清洁
     pub_vacuum_mode_, //吸
@@ -44,8 +44,6 @@ public:
     }
 
     void initialize(ros::NodeHandle handle);
-
-    void publishMode(const std_msgs::Int32 &message) const;
 
     void publishPushMode(const std_msgs::Int16 &message) const;
 

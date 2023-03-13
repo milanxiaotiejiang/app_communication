@@ -12,8 +12,6 @@
 //发布模式选择
 class SwitchModePublish {
 private:
-    ros::Publisher pub_node_mode_;
-
     std::mutex cv_m;
     std::condition_variable cv;
 
@@ -27,8 +25,6 @@ public:
     }
 
     void initialize(ros::NodeHandle handle);
-
-    void mapping();
 
     void publish();
 

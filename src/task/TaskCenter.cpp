@@ -46,7 +46,6 @@ void TaskCenter::task2RealTask(const Task &task, RealTask &realTask) {
  * 执行函数，调用来执行整个任务
  */
 void TaskCenter::realExecuteTask(const Task &task) {
-    SwitchModePublish::instance().cancel();
 
     LOG(INFO) << "TASK ID : " << task.getTaskId();
     if (AsyncMachine::instance().getError() == loop::error_epoll::error_unrecoverable) {

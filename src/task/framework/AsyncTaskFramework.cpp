@@ -214,12 +214,11 @@ void AsyncTaskFramework::callCancelBackStation() {
 }
 
 void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
-    if (!Environment::instance().isRealEnvironment) {
-        NodeWorkModeManager::instance().setWorkMode(0);
-    }
     LOG(INFO) << "AsyncTaskFramework : 出站成功，查看当前是否处于工作状态 ...";
     if (!isWorkMode()) {
         LOG(INFO) << "AsyncTaskFramework : 不是工作状态，准备启动工作状态 ...";
+
+        NodeWorkModeManager::instance().setWorkMode(WorkMode::WORKING);
 
         async::ThreadPool pool_;
         pool_.setNumOfThreads(1);
@@ -239,12 +238,6 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
                 ->scheduleLater(std::chrono::seconds(WAITING_TIME_OF_NODE_WORK_MODE), [this]() {
                     sleepTimeout = true;
                 });
-        if (!Environment::instance().isRealEnvironment) {
-            async::TimerCall::instance().baseLoop()
-                    ->scheduleLater(std::chrono::seconds(2), []() {
-                        NodeWorkModeManager::instance().setWorkMode(2);
-                    });
-        }
     } else {
         LOG(INFO) << "AsyncTaskFramework : 是工作状态 ...";
         notify_one([&f]() {

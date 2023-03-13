@@ -10,13 +10,15 @@
 enum WorkMode {
     MAPPING,
     SLEEPING,
-    WORKING
+    WORKING,
+    UNKNOWN
 };
 
 class NodeWorkModeManager {
 private:
-    ros::NodeHandle nodeHandle;
-    WorkMode workMode;
+//    ros::NodeHandle nodeHandle;
+//    WorkMode workMode;
+    ros::Publisher pub_node_;
 public:
     static auto &instance() {
         static NodeWorkModeManager obj;
@@ -27,7 +29,9 @@ public:
 
     WorkMode getWorkMode();
 
-    void setWorkMode(int);
+    void setWorkMode(WorkMode mode);
+
+    void enterWorkMode(int enter);
 };
 
 

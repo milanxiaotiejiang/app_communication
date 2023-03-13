@@ -140,7 +140,7 @@ enum MESSAGE_ID {
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };
 
-int switch_ID(std::string str);
+int switch_ID(const std::string& str);
 
 pid_t getProcessPidByName(const char *proc_name);
 

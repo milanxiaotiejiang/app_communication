@@ -28,13 +28,10 @@ pid_t getProcessPidByName(const char *proc_name) {
 }
 
 
-int switch_ID(const std::string str) {
+int switch_ID(const std::string& str) {
 
     if (str == "get_device_status") {
         return GET_DEVICE_STATUS_;
-    }
-    if (str == "app_along_clean") {
-        return APP_ALONG_CLEAN_;
     }
     if (str == "save_map") {
         return SAVE_MAP_;
@@ -70,7 +67,6 @@ int switch_ID(const std::string str) {
         return CHANGE_WORK_STATUS_;
     }
     if (str == "change_aromatherapy_state") {
-        printf("change_aromatherapy_state!!!!!!!!!!!!!!!!!!!! \n");
         return CHANGE_AROM_STATUS_;
     }
     if (str == "continuity_task_list") {

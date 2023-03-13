@@ -15,6 +15,7 @@
 #include "leave/ParamManager.h"
 #include "task/subscribe/CartographerManager.h"
 #include "task/feedback.h"
+#include "task/manager/SwitchModePublish.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -154,6 +155,8 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
                   << "epoll_error " << epoll_error << " ";
         return;
     }
+
+    SwitchModePublish::instance().cancel();
 
     if (isWaitTask(event_flow)) {
 

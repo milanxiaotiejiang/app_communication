@@ -5,7 +5,6 @@
 #include "manager/PublishInnerManager.h"
 
 void PublishInnerManager::initialize(ros::NodeHandle handle) {
-    pub_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/switch_mode", 10);
     pub_push_mode_ = handle.advertise<std_msgs::Int16>("/mrrobot/push_mode_control", 1);
     pub_self_clean_ = handle.advertise<std_msgs::Int16>("/mrrobot/self_clean_control", 1); //基站自清洁
     pub_vacuum_mode_ = handle.advertise<std_msgs::Int16>("/mrrobot/vacuum_mode_control", 1); //扫吸
@@ -24,12 +23,6 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_knob_task = handle.advertise<std_msgs::Int8>("/knob/task", 1);
     pub_reboot = handle.advertise<std_msgs::Int32>("/reboot_flag", 1);
     pub_shutdown = handle.advertise<std_msgs::Int32>("/shutdown_flag", 1);
-}
-
-
-void PublishInnerManager::publishMode(const std_msgs::Int32 &message) const {
-    //mode:0:建图；1修改地图；2工作
-    pub_mode_.publish(message);
 }
 
 void PublishInnerManager::publishPushMode(const std_msgs::Int16 &message) const {
