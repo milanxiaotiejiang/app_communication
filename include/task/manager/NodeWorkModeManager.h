@@ -9,10 +9,10 @@
 #include <condition_variable>
 
 enum WorkMode {
-    MAPPING,
+    UNKNOWN,
     SLEEPING,
     WORKING,
-    UNKNOWN
+    MAPPING
 };
 
 const int MAXIMUM_TIME_LIMIT_FOR_QUICK_EXIT = 30;
