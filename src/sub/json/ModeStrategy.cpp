@@ -6,6 +6,7 @@
 #include "task/subscribe/async_machine.h"
 #include "task/manager/manual.h"
 #include "task/manager/NodeWorkModeManager.h"
+#include "future/node/node_control.h"
 
 /*
  *  mode:0:建图；1修改地图；2工作
@@ -26,7 +27,9 @@ string RobotForceEnterModeStrategy::handler(int params) {
 }
 
 string RobotPreparetoWorkStrategy::handler(string params) {
-    NodeWorkModeManager::instance().setWorkMode(WorkMode::WORKING);
+    if (NodeControl::instance().isWork()) {
+        NodeWorkModeManager::instance().setWorkMode(WorkMode::WORKING);
+    }
     return "";
 }
 

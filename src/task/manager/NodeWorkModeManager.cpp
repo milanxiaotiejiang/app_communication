@@ -42,9 +42,13 @@ void NodeWorkModeManager::setWorkMode(WorkMode mode) {
 
 void NodeWorkModeManager::enterWorkMode(int enter) {
     if (enter == 0) {
-        NodeWorkModeManager::instance().setWorkMode(WorkMode::MAPPING);
+        if (NodeControl::instance().isMap()) {
+            NodeWorkModeManager::instance().setWorkMode(WorkMode::MAPPING);
+        }
     } else if (enter == 2) {
-        NodeWorkModeManager::instance().setWorkMode(WorkMode::WORKING);
+        if (NodeControl::instance().isWork()) {
+            NodeWorkModeManager::instance().setWorkMode(WorkMode::WORKING);
+        }
     } else {
         LOG(INFO) << "NodeWorkModeManager enterWorkMode unknown " << enter;
     }
