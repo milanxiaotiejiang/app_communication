@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
                     ros::init(argc, argv, "dump_upload");
 
                     ros::NodeHandle handle;
-                    ros::Publisher pubDump = handle.advertise<std_msgs::String>("/dump_crash", 1);
+                    ros::Publisher pubDump = handle.advertise<std_msgs::String>("/robot_internal_event", 1);
 
                     sleep(3);
 

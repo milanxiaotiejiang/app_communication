@@ -41,6 +41,8 @@ protected:
         return event_flow;
     }
 
+    atomic<bool> isCarpetAndPack;
+
 protected:
 
     void handleManualOperation() override;
@@ -148,6 +150,11 @@ public:
 
 
     void forceBackToBase(loop::special_epoll operation);
+
+
+    void executeCarpet(bool carpet);
+
+    void executeLift(bool lift);
 
 
     std::string runTaskId();

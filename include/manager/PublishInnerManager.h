@@ -18,7 +18,7 @@
 
 class PublishInnerManager {
 private:
-    ros::Publisher
+    ros::Publisher//
     pub_push_mode_, //尘推
     pub_self_clean_, //基站自清洁
     pub_vacuum_mode_, //吸
@@ -36,7 +36,9 @@ private:
     pub_knob_available,  //
     pub_knob_task,//
     pub_shutdown,//
-    pub_reboot;//
+    pub_reboot,//
+    pub_oil,//
+    pub_knife;//
 public:
     static auto &instance() {
         static PublishInnerManager obj;
@@ -81,6 +83,9 @@ public:
 
     void publishReboot(const std_msgs::Int32 &message) const;
 
+    void publishOil(const std_msgs::Int32 &message) const;
+
+    void pubKnife(const std_msgs::Int32 &message) const;
 };
 
 #endif //APP_COMMUNICATION_PUBLISHINNERMANAGER_H

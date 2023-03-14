@@ -103,9 +103,10 @@ void NodeControl::offWork() {
         system_kill("bump_back_node");
         system_kill("move_base");
     } else {
-        system_kill(N_RVIZ);
+        system_kill("rviz");
         system_kill("map_server");
         system_kill("amcl");
+        system_kill("move_base");
     }
 }
 

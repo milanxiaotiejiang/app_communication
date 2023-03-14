@@ -365,6 +365,8 @@ void AsyncTaskCall::reset() {
     flowEndSleepPoint.realError.arrive = false;
     flowInBasePoint.realError.arrive = false;
     flowInStationPoint.realError.arrive = false;
+
+    isCarpetAndPack = false;
 }
 
 void AsyncTaskCall::handlePlannerPoint(const RealPoint &point) {
@@ -835,6 +837,60 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
         return;
     }
     pushSpecial(operation);
+}
+
+void AsyncTaskCall::executeCarpet(bool carpet) {
+    LOG(INFO) << "NativeSystemManager : executeCarpet 1"
+              << "  IsCharging :" << ZooInnerStatus::instance().getIsCharging()
+              << "  isUrgencyStop :" << isUrgencyStop()
+              << "  isUnrecoverableError :" << isUnrecoverableError()
+              << " ...";
+    if (ZooInnerStatus::instance().getIsCharging()) {
+        return;
+    }
+    if (isUrgencyStop()) {
+        return;
+    }
+    if (isUnrecoverableError()) {
+        return;
+    }
+    if (carpet) {
+        if (!isCarpetAndPack) {
+            isCarpetAndPack = true;
+            MechanismManager::instance().resetWorkStatus();
+            LOG(INFO) << "NativeSystemManager : executeCarpet 2"
+                      << "  检测到地毯并且已经收起清洁机构"
+                      << " ...";
+        }
+    } else {
+        if (isCarpetAndPack) {
+            isCarpetAndPack = false;
+            LOG(INFO) << "NativeSystemManager : executeCarpet 2"
+                      << "  离开地毯，且机构已收起，执行再次放下清洁机构"
+                      << " ...";
+            MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
+        }
+    }
+}
+
+void AsyncTaskCall::executeLift(bool lift) {
+    LOG(INFO) << "NativeSystemManager : executeLift 1"
+              << "  IsCharging :" << ZooInnerStatus::instance().getIsCharging()
+              << "  isUrgencyStop :" << isUrgencyStop()
+              << "  isUnrecoverableError :" << isUnrecoverableError()
+              << " ...";
+    if (ZooInnerStatus::instance().getIsCharging()) {
+        return;
+    }
+    if (isUrgencyStop()) {
+        return;
+    }
+    if (isUnrecoverableError()) {
+        return;
+    }
+    if (lift) {
+
+    }
 }
 
 

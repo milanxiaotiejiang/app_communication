@@ -73,14 +73,14 @@ public:
     }
 
     static void system_start(const std::string &ns) {
-        LOG(INFO) << "system start order is " << ns;
+        LOG(ERROR) << "system start order is " << ns;
         std::system(ns.data());
     }
 
     static void system_kill(const std::string &ns) {
         std::string kill_str = "ps -ef | grep '" + ns + "' | grep -v grep | awk '{print $2}' | xargs kill -s 9";
 //        std::string kill_str = "pgrep " + ns + " | xargs kill -s 9";
-        LOG(INFO) << "system kill order is " << kill_str;
+        LOG(ERROR) << "system kill order is " << kill_str;
         std::system(kill_str.data());
     }
 

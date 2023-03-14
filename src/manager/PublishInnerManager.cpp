@@ -23,6 +23,8 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_knob_task = handle.advertise<std_msgs::Int8>("/knob/task", 1);
     pub_reboot = handle.advertise<std_msgs::Int32>("/reboot_flag", 1);
     pub_shutdown = handle.advertise<std_msgs::Int32>("/shutdown_flag", 1);
+    pub_oil = handle.advertise<std_msgs::Int32>("/mrrobot/pop_sweep_oil", 1);
+    pub_knife = handle.advertise<std_msgs::Int32>("/mrrobot/control_wind_knife", 1);
 }
 
 void PublishInnerManager::publishPushMode(const std_msgs::Int16 &message) const {
@@ -95,4 +97,12 @@ void PublishInnerManager::publishShutDown(const std_msgs::Int32 &message) const 
 
 void PublishInnerManager::publishReboot(const std_msgs::Int32 &message) const {
     pub_reboot.publish(message);
+}
+
+void PublishInnerManager::publishOil(const std_msgs::Int32 &message) const {
+    pub_oil.publish(message);
+}
+
+void PublishInnerManager::pubKnife(const std_msgs::Int32 &message) const {
+    pub_knife.publish(message);
 }
