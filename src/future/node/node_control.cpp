@@ -7,6 +7,7 @@
 #include "simulation.h"
 
 void NodeControl::initialize(ros::NodeHandle handle) {
+    nodeHandle = handle;
     pool_.setNumOfThreads(THREAD_POOL_MAX_NUM);
 
     subscribe = new NodeControlSubscribe(handle);
@@ -39,6 +40,7 @@ void NodeControl::onWork() {
         NodeChain chain(&pool_);
 
         resetLocalization(true);
+        clearOdom();
 
         auto *pFilterManager = new NodeManager(new OnceConfirm());
         pFilterManager->setNodeSubject(nodeSubject);
@@ -54,6 +56,7 @@ void NodeControl::onWork() {
 
         bool isSuccessful = pFilterManager->activateNode(chain);
         if (isSuccessful) {
+            setWorkMode(node::State::work);
             state_ = node::State::work;
             work_state_ = node::WorkState::complete;
         } else {
@@ -69,6 +72,7 @@ void NodeControl::onMap() {
         NodeChain chain(&pool_);
 
         resetLocalization(false);
+        clearOdom();
 
         auto *pFilterManager = new NodeManager(new OnceConfirm());
         pFilterManager->setNodeSubject(nodeSubject);
@@ -78,6 +82,7 @@ void NodeControl::onMap() {
 
         bool isSuccessful = pFilterManager->activateNode(chain);
         if (isSuccessful) {
+            setWorkMode(node::State::map);
             state_ = node::State::map;
             map_state_ = node::MapState::complete;
         } else {
@@ -132,6 +137,7 @@ void NodeControl::trySleep() {
                     system_start(n_tt_load_map);
                 }
             });
+            setWorkMode(node::State::sleep);
             work_state_ = node::WorkState::normal;
             map_state_ = node::MapState::normal;
             state_ = node::State::sleep;
@@ -146,6 +152,16 @@ void NodeControl::clearOdom() {
     std_msgs::Int32 message;
     message.data = 1;
     pub_clear_odom.publish(message);
+}
+
+void NodeControl::setWorkMode(node::State state) {
+    if (state == node::State::work) {
+        nodeHandle.setParam("/node_controller/work_mode", 2);
+    } else if (state == node::State::map) {
+        nodeHandle.setParam("/node_controller/work_mode", 0);
+    } else {
+        nodeHandle.setParam("/node_controller/work_mode", 1);
+    }
 }
 
 void NodeControl::resetLocalization(bool open) {

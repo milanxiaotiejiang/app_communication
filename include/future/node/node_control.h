@@ -23,6 +23,7 @@
 
 class NodeControl {
 private:
+    ros::NodeHandle nodeHandle;
     async::ThreadPool pool_;
     NodeControlSubscribe *subscribe;
     CartoHeartBeat *cartoHeartBeat;
@@ -61,6 +62,8 @@ private:
     void trySleep();
 
     void clearOdom();
+
+    void setWorkMode(node::State state);
 
     void resetLocalization(bool open);
 
