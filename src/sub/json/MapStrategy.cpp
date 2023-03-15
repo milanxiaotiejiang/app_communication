@@ -18,6 +18,7 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
 
     MapInfo param(1, params.getMapName());
 
+    sleep(5);
     return param;
 }
 

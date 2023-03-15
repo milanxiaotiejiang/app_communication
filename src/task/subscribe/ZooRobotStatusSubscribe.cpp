@@ -18,7 +18,7 @@ const int KNOB_STATUS_VERSION = 1;
 
 ZooRobotStatusSubscribe::ZooRobotStatusSubscribe(ros::NodeHandle handle)
         : handle(handle) {
-    ZooInnerStatus::instance().setNeedSleep(true);
+//    ZooInnerStatus::instance().setNeedSleep(true);
     sub_robot_status_ = handle.subscribe("/robot_status_inner", 1, &ZooRobotStatusSubscribe::subscribeCallback, this);
     sub_motor_error_ = handle.subscribe("/mrrobot/push_error", 10, &ZooRobotStatusSubscribe::motorErrorCallback, this);
     sub_hls_error_ = handle.subscribe("/mrrobot/hls_error", 10, &ZooRobotStatusSubscribe::hlsErrorCallback, this);

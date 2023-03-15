@@ -238,7 +238,7 @@ bool NodeWorkModeManager::enterWorkMode(int enter) {
         return NodeWorkModeManager::instance().tryToWork();
     } else {
         LOG(INFO) << "NodeWorkModeManager enterWorkMode unknown " << enter;
-        return false;
+        return true;
     }
 }
 
