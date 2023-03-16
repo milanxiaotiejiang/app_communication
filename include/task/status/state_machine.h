@@ -78,6 +78,7 @@ namespace loop {
         error_normal,
         error_manual_clean_start,//手动模式开启
         error_manual_clean_end,//手动模式结束
+        error_lift,//电梯
         error_unrecoverable,//不可恢复的错误（需要拆分）当前暂时为激光雷达错误
         error_unknown
     };

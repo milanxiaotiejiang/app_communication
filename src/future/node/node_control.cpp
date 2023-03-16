@@ -5,6 +5,7 @@
 #include "future/node/node_control.h"
 #include "manager/PublishInnerManager.h"
 #include "simulation.h"
+#include "leave/reconfigure.h"
 
 void NodeControl::initialize(ros::NodeHandle handle) {
     nodeHandle = handle;
@@ -25,6 +26,19 @@ void NodeControl::initialize(ros::NodeHandle handle) {
         } else {
             system_start(n_tt_load_map);
         }
+    });
+    asyncOn([&handle]() {
+        bool end_loop = false;
+        while (!end_loop) {
+            bool start_finish = false;
+            handle.getParam("/node_controller/start_finish", start_finish);
+            if (start_finish)
+                end_loop = true;
+            sleep(1);
+        }
+        sleep(3);
+        DR OR_percent = DR("/2/inudev_ros_nodelet2", "OR_percent");
+        OR_percent.i(3);
     });
 }
 

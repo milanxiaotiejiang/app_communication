@@ -48,6 +48,7 @@ enum SelfCheckErrorType {
     LASER_RESTART_START,
     LASER_RESTART_SUCCEED,
     LASER_RESTART_FAILED,
+    LIFT_FAILED,
     //hls_error
     HLS_ERROR
 };

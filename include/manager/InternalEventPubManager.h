@@ -67,6 +67,8 @@ namespace internal_event {
         const AlarmEvent laser_restart_succeed = AlarmEvent("alarm", 4015, "COR_415", "雷达重启后数据恢复", "");
         const AlarmEvent laser_restart_failed = AlarmEvent("alarm", 3219, "CCR_219", "雷达连续重启失败任务提前结束", "");
 
+        const AlarmEvent lift_failed = AlarmEvent("alarm", 3332, "CCR_332", "机器处于电梯上", "");
+
         //尘推电机堵转
         const AlarmEvent motor_error_recovery_scceed = AlarmEvent("alarm", 4013, "COR_413", "尘推转速异常并成功恢复", "");
         const AlarmEvent motor_error_recovery_failed = AlarmEvent("alarm", 3218, "CCR_218", "尘推堵转，任务提前结束", "");
@@ -235,6 +237,9 @@ namespace internal_event {
                     break;
                 case LASER_RESTART_FAILED:
                     pubAlarmEvent(laser_restart_failed);
+                    break;
+                case LIFT_FAILED:
+                    pubAlarmEvent(lift_failed);
                     break;
                 case HLS_ERROR:
                     pubAlarmEvent(hls_error);

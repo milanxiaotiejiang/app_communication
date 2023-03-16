@@ -1,6 +1,5 @@
 #include "rec_app.h"
 #include "simulation.h"
-#include "leave/reconfigure.h"
 
 
 /**
@@ -96,9 +95,6 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle nh;
     initNodeParams(nh);
-
-    DR OR_percent = DR("/2/inudev_ros_nodelet2", "OR_percent");
-    OR_percent.i(3);
 
     ros::Publisher pub_current = nh.advertise<std_msgs::Int32>("/current_flag", 10);
     WsServerManager::instance().startWebSocket();

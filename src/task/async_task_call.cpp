@@ -107,6 +107,10 @@ void AsyncTaskCall::handleErrorOperation() {
             LOG(INFO) << "AsyncTaskCall : 退出手动模式";
             callManualCleanEnd();
             break;
+        case loop::error_epoll::error_lift:
+            LOG(INFO) << "AsyncTaskCall : 走到电梯上了 ... ";
+            triggerSuspend();
+            break;
         case loop::error_epoll::error_unrecoverable:
             LOG(INFO) << "AsyncTaskCall : 出现不可恢复的错误 ... ";
             triggerSuspend();
@@ -889,7 +893,9 @@ void AsyncTaskCall::executeLift(bool lift) {
         return;
     }
     if (lift) {
-
+        notify_one([this]() {
+            pushError(loop::error_epoll::error_lift);
+        });
     }
 }
 

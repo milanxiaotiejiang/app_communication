@@ -78,6 +78,9 @@ void ReservedCall::handleErrorOperation() {
             break;
         case loop::error_epoll::error_manual_clean_end:
             break;
+        case loop::error_epoll::error_lift:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LIFT_FAILED);
+            break;
         case loop::error_epoll::error_unrecoverable:
             InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_FAILED);
             CleanHistoryCenter::instance().laserInterrupt();

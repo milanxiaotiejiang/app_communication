@@ -150,6 +150,9 @@ loop::execute_handle AsyncTaskFramework::function_error_epoll() {
         case loop::error_epoll::error_manual_clean_end:
             epoll_error = loop::error_epoll::error_manual_clean_end;
             break;
+        case loop::error_epoll::error_lift:
+            epoll_error = loop::error_epoll::error_lift;
+            break;
         case loop::error_epoll::error_unrecoverable:
             epoll_error = loop::error_epoll::error_unrecoverable;
             break;
@@ -307,6 +310,7 @@ bool AsyncTaskFramework::isManualMode() {
 
 bool AsyncTaskFramework::isUnrecoverableError() {
     return epoll_error == loop::error_epoll::error_unrecoverable ||
+           epoll_error == loop::error_epoll::error_lift ||
            epoll_manual == loop::manual_epoll::manual_unknown ||
            epoll_special == loop::special_epoll::special_unknown ||
            epoll_error == loop::error_epoll::error_unknown;
