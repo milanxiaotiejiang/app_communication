@@ -6,6 +6,8 @@
 #include "tool/Queue.hpp"
 #include "simulation.h"
 #include "manager/PublishOutManager.h"
+#include "model/Twist.h"
+#include "manager/PublishInnerManager.h"
 #include <opencv2/opencv.hpp>
 #include <std_msgs/String.h>
 //#include "tool/ZLibString.hpp"
@@ -201,6 +203,17 @@ void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr m
                         std_msgs::String result;
                         result.data.append(data.getMsg().data);
                         PublishOutManager::instance().publishAppCommunication(result);
+                    } else if (topic == "/cmd_val") {
+                        auto data = jDecode.get<RequestModel<MyTwist>>();
+                        auto myTwist = data.getMsg();
+                        geometry_msgs::Twist twist;
+                        twist.linear.x = myTwist.linear.x;
+                        twist.linear.y = myTwist.linear.y;
+                        twist.linear.z = myTwist.linear.z;
+                        twist.angular.x = myTwist.angular.x;
+                        twist.angular.y = myTwist.angular.y;
+                        twist.angular.z = myTwist.angular.z;
+                        PublishInnerManager::instance().publishVelocity(twist);
                     }
                 }
             } catch (...) {
