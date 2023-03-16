@@ -32,6 +32,11 @@ void AsyncTaskFramework::execute() {
                    !urgencyStopDeque.empty() || !taskEpollDeque.empty() || !pointEpollDeque.empty();
         });
 
+        if (manualEpollDeque.size() + specialEpollDeque.size() + errorEpollDeque.size()
+            + urgencyStopDeque.size() + taskEpollDeque.size() + pointEpollDeque.size() != 1) {
+            LOG(ERROR) << "数据有误，请上传当前日志文件并联系开发者";
+        }
+
         loop::execute_handle handle = loop::execute_handle::handle_unknown;
         RealTask realTask;
         RealPoint realPoint;

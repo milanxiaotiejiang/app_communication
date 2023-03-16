@@ -12,6 +12,10 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "cppfs/fs.h"
+#include "cppfs/FileHandle.h"
+#include "cppfs/FilePath.h"
+
 TaskFeedback::TaskFeedback() {
     TaskFeedback::make_thread(run, this);
 }
@@ -48,7 +52,12 @@ void TaskFeedback::start() {
     rows = room_map.rows;
     cols = room_map.cols;
 
-    savePath = path::data_base_config_dir() + run_task_id + ".pgm";
+    std::string local_path = path::data_base_config_dir() + "local/";
+    cppfs::FileHandle dir = cppfs::fs::open(local_path);
+    if (!dir.isDirectory()) {
+        dir.createDirectory();
+    }
+    savePath = local_path + run_task_id + ".pgm";
 
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
     double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//网格正方形的边长
@@ -100,16 +109,24 @@ void TaskFeedback::feedback(geometry_msgs::Pose2D data) {
 
     auto pair = points.insert(PointVo(point.x, point.y));
     if (pair.second) {
-        auto task_mat = SegmentationCenter::instance().generateMat().clone();
+        auto generateMat = SegmentationCenter::instance().generateMat();
+        auto count_mat = generateMat.clone();
+        auto local_mat = generateMat.clone();
 
-        for (const auto &item: points) {
-            cv::circle(task_mat, cv::Point(item.getX(), item.getY()), spacing_half, cv::Scalar(200), CV_FILLED);
+        if (points.size() > 2) {
+            std::vector<PointVo> vector;
+            vector.assign(points.begin(), points.end());
+            for (int i = 1; i < vector.size(); ++i) {
+                cv::Point ps = cv::Point(vector[i - 1].getX(), vector[i - 1].getY());
+                cv::Point pe = cv::Point(vector[i].getX(), vector[i].getY());
+                cv::line(count_mat, ps, pe, cv::Scalar(200), spacing_half * 2);
+            }
         }
 
         int clear_px = 0;
-        for (int v = 0; v < task_mat.rows; ++v) {
-            for (int u = 0; u < task_mat.cols; ++u) {
-                if (task_mat.at<uchar>(v, u) == 200)
+        for (int v = 0; v < count_mat.rows; ++v) {
+            for (int u = 0; u < count_mat.cols; ++u) {
+                if (count_mat.at<uchar>(v, u) == 200)
                     clear_px++;
             }
         }
@@ -120,7 +137,11 @@ void TaskFeedback::feedback(geometry_msgs::Pose2D data) {
                       << " , 真实面积/规划面积 = " << (clear_px * 1.0 / plan_px);
         }
 
-        CvUtils::savePgm(savePath, task_mat.clone());
+        for (const auto &item: points) {
+            cv::circle(local_mat, cv::Point(item.getX(), item.getY()), 1, cv::Scalar(200), CV_FILLED);
+        }
+
+        CvUtils::savePgm(savePath, local_mat.clone());
     }
 }
 

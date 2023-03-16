@@ -176,7 +176,7 @@ void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr m
     string data = msg->get_extension_data();
     string raw = msg->get_raw_payload();
 
-    LOG(INFO) << "on_message remote : " << remoteEndPoint << " , payload : " << payload;
+//    LOG(INFO) << "on_message remote : " << remoteEndPoint << " , payload : " << payload;
     {
         std::unique_lock<std::mutex> lock(askMutex);
         if (mMap.find(hdl.lock().get()) != mMap.end()) {

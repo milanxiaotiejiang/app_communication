@@ -168,8 +168,10 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
     } else {
         const std::string &launchPeople = realTask.getLaunchPeople();
         if (isManualTask(launchPeople) && isFlowingWater(event_flow)) {
-            waitTaskQueue.push_back(realTask);
-            pushManual(loop::manual_epoll::manual_task_over);
+            notify_one([this, &realTask]() {
+                waitTaskQueue.push_back(realTask);
+                pushManual(loop::manual_epoll::manual_task_over);
+            });
         } else {
             LOG(INFO) << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : " << event_flow;
         }
@@ -232,7 +234,9 @@ void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
     callSelfCleanClose();
 
     //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
-    pushPoint(flowSeizeSeatPoint);
+    notify_one([this]() {
+        pushPoint(flowSeizeSeatPoint);
+    });
 }
 
 void AsyncTaskCall::handleAutoPoint(const RealPoint &point) {
@@ -533,8 +537,10 @@ void AsyncTaskCall::callResume() {
             LOG(INFO) << "AsyncTaskCall : 流水点的最后，点位规划队列为空，需要直接返回基站 ...";
             callBackBasePoint();
         } else {
-            setFlow(lastStack.flow);
-            pushPoint(lastStack.suspendPoint);
+            notify_one([this, &lastStack]() {
+                setFlow(lastStack.flow);
+                pushPoint(lastStack.suspendPoint);
+            });
         }
     }
 }
@@ -626,7 +632,6 @@ void AsyncTaskCall::executeOnNext(event::error error) {
             pushPoint(currentPoint);
         });
     } else {
-
         notify_one([this, &error]() {
             flowInBasePoint.realError.arrive = error == event::error::SUCCEEDED;
             pushPoint(flowInBasePoint);
@@ -827,11 +832,13 @@ void AsyncTaskCall::urgencyStopAndCharge() {
 
 void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
     LOG(INFO) << "NativeSystemManager : motorErrorEvent 3"
-              << "  IsCharging :" << ZooInnerStatus::instance().getIsCharging()
+              << "  IsCharging :" << isCharging()
               << "  isUrgencyStop :" << isUrgencyStop()
               << "  isUnrecoverableError :" << isUnrecoverableError()
+              << "  isRegularTask :" << isRegularTask(event_flow)
+              << "  isReturningBase :" << isReturningBase(event_flow)
               << " ...";
-    if (ZooInnerStatus::instance().getIsCharging()) {
+    if (isCharging()) {
         return;
     }
     if (isUrgencyStop()) {
@@ -840,22 +847,38 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
     if (isUnrecoverableError()) {
         return;
     }
-    pushSpecial(operation);
+    if (!isRegularTask(event_flow)) {
+        return;
+    }
+    if (isReturningBase(event_flow)) {
+        return;
+    }
+    notify_one([this, &operation]() {
+        pushSpecial(operation);
+    });
 }
 
 void AsyncTaskCall::executeCarpet(bool carpet) {
     LOG(INFO) << "NativeSystemManager : executeCarpet 1"
-              << "  IsCharging :" << ZooInnerStatus::instance().getIsCharging()
+              << "  IsCharging :" << isCharging()
               << "  isUrgencyStop :" << isUrgencyStop()
               << "  isUnrecoverableError :" << isUnrecoverableError()
+              << "  isRegularTask :" << isRegularTask(event_flow)
+              << "  isReturningBase :" << isReturningBase(event_flow)
               << " ...";
-    if (ZooInnerStatus::instance().getIsCharging()) {
+    if (isCharging()) {
         return;
     }
     if (isUrgencyStop()) {
         return;
     }
     if (isUnrecoverableError()) {
+        return;
+    }
+    if (!isRegularTask(event_flow)) {
+        return;
+    }
+    if (isReturningBase(event_flow)) {
         return;
     }
     if (carpet) {
@@ -882,6 +905,8 @@ void AsyncTaskCall::executeLift(bool lift) {
               << "  IsCharging :" << ZooInnerStatus::instance().getIsCharging()
               << "  isUrgencyStop :" << isUrgencyStop()
               << "  isUnrecoverableError :" << isUnrecoverableError()
+              << "  isRegularTask :" << isRegularTask(event_flow)
+              << "  isReturningBase :" << isReturningBase(event_flow)
               << " ...";
     if (ZooInnerStatus::instance().getIsCharging()) {
         return;
