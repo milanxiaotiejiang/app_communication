@@ -20,13 +20,7 @@ void NodeControl::initialize(ros::NodeHandle handle) {
 
     pub_clear_odom = handle.advertise<std_msgs::Int32>("/mrrobot/clear_odom", 1);
 
-    asyncOn([]() {
-        if (Environment::instance().isRealEnvironment) {
-            system_start(n_load_map);
-        } else {
-            system_start(n_tt_load_map);
-        }
-    });
+    onSleep();
     asyncOn([&handle]() {
         bool end_loop = false;
         while (!end_loop) {
@@ -134,6 +128,17 @@ void NodeControl::offMap() {
     system_kill("cartographer_node");
 }
 
+void NodeControl::onSleep() {
+    asyncOn([]() {
+        if (Environment::instance().isRealEnvironment) {
+            system_start(n_load_map);
+        } else {
+            system_start(n_tt_load_map);
+        }
+    });
+    setWorkMode(node::State::sleep);
+}
+
 void NodeControl::trySleep() {
     if (!isSleep()) {
         asyncOff(5, [this]() {
@@ -144,14 +149,7 @@ void NodeControl::trySleep() {
             if (isMap()) {
                 offMap();
             }
-            asyncOn([]() {
-                if (Environment::instance().isRealEnvironment) {
-                    system_start(n_load_map);
-                } else {
-                    system_start(n_tt_load_map);
-                }
-            });
-            setWorkMode(node::State::sleep);
+            onSleep();
             work_state_ = node::WorkState::normal;
             map_state_ = node::MapState::normal;
             state_ = node::State::sleep;

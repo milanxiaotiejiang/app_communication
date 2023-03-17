@@ -59,6 +59,8 @@ private:
 
     void offMap();
 
+    void onSleep();
+
     void trySleep();
 
     void clearOdom();
