@@ -494,6 +494,7 @@ void WsServerManager::startWebSocket() {
 
     std::string pid = get_pid_using_port(9090);
     if (!pid.empty()) {
+        LOG(INFO) << "进程 pid 为 " << pid << " 占用 9090 端口 ！！";
         kill_process(pid);
     }
 

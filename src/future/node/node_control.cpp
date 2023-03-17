@@ -22,6 +22,10 @@ void NodeControl::initialize(ros::NodeHandle handle) {
 
     onSleep();
     asyncOn([&handle]() {
+        int p_OR_percent_1;
+        handle.param("/OR_percent_1", p_OR_percent_1, 6);
+        int p_OR_percent_2;
+        handle.param("/OR_percent_2", p_OR_percent_2, 3);
         bool end_loop = false;
         while (!end_loop) {
             bool start_finish = false;
@@ -31,8 +35,10 @@ void NodeControl::initialize(ros::NodeHandle handle) {
             sleep(1);
         }
         sleep(3);
-        DR OR_percent = DR("/2/inudev_ros_nodelet2", "OR_percent");
-        OR_percent.i(3);
+        DR OR_percent_1 = DR("/1/inudev_ros_nodelet1", "OR_percent");
+        OR_percent_1.i(p_OR_percent_1);
+        DR OR_percent_2 = DR("/2/inudev_ros_nodelet2", "OR_percent");
+        OR_percent_2.i(p_OR_percent_2);
     });
 }
 
