@@ -72,9 +72,10 @@ void AsyncTaskCall::handleManualOperation() {
 
 void AsyncTaskCall::handleSpecialOperation() {
     switch (epoll_special) {
-        case loop::special_epoll::special_low_battery:
+        case loop::special_epoll::special_low_battery: {
             LOG(INFO) << "AsyncTaskCall : 低电量，低电量导致需要强制返回基站点 ...";
             break;
+        }
         case loop::special_epoll::special_branch_water: {
             LOG(INFO) << "AsyncTaskCall : 清水箱空，清水箱空导致需要强制返回基站点 ...";
             break;
@@ -87,9 +88,10 @@ void AsyncTaskCall::handleSpecialOperation() {
             LOG(INFO) << "AsyncTaskCall : 污水箱满/清水箱空，污水箱满/清水箱空导致需要强制返回基站点 ...";
             break;
         }
-        case loop::special_epoll::special_dust_push_anomaly:
+        case loop::special_epoll::special_dust_push_anomaly: {
             LOG(INFO) << "AsyncTaskCall : 电机堵转，尘推滚异常导致需要强制返回基站点 ...";
             break;
+        }
         default:
             LOG(INFO) << "AsyncTaskCall handleSpecialOperation : " << epoll_special << " ...";
             break;
@@ -831,13 +833,6 @@ void AsyncTaskCall::urgencyStopAndCharge() {
 }
 
 void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
-    LOG(INFO) << "NativeSystemManager : motorErrorEvent 3"
-              << "  IsCharging :" << isCharging()
-              << "  isUrgencyStop :" << isUrgencyStop()
-              << "  isUnrecoverableError :" << isUnrecoverableError()
-              << "  isRegularTask :" << isRegularTask(event_flow)
-              << "  isReturningBase :" << isReturningBase(event_flow)
-              << " ...";
     if (isCharging()) {
         return;
     }
@@ -859,13 +854,6 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
 }
 
 void AsyncTaskCall::executeCarpet(bool carpet) {
-    LOG(INFO) << "NativeSystemManager : executeCarpet 1"
-              << "  IsCharging :" << isCharging()
-              << "  isUrgencyStop :" << isUrgencyStop()
-              << "  isUnrecoverableError :" << isUnrecoverableError()
-              << "  isRegularTask :" << isRegularTask(event_flow)
-              << "  isReturningBase :" << isReturningBase(event_flow)
-              << " ...";
     if (isCharging()) {
         return;
     }
@@ -885,14 +873,14 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
         if (!isCarpetAndPack) {
             isCarpetAndPack = true;
             MechanismManager::instance().resetWorkStatus();
-            LOG(INFO) << "NativeSystemManager : executeCarpet 2"
+            LOG(INFO) << "NativeSystemManager : executeCarpet "
                       << "  检测到地毯并且已经收起清洁机构"
                       << " ...";
         }
     } else {
         if (isCarpetAndPack) {
             isCarpetAndPack = false;
-            LOG(INFO) << "NativeSystemManager : executeCarpet 2"
+            LOG(INFO) << "NativeSystemManager : executeCarpet "
                       << "  离开地毯，且机构已收起，执行再次放下清洁机构"
                       << " ...";
             MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
@@ -901,13 +889,6 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
 }
 
 void AsyncTaskCall::executeLift(bool lift) {
-    LOG(INFO) << "NativeSystemManager : executeLift 1"
-              << "  IsCharging :" << ZooInnerStatus::instance().getIsCharging()
-              << "  isUrgencyStop :" << isUrgencyStop()
-              << "  isUnrecoverableError :" << isUnrecoverableError()
-              << "  isRegularTask :" << isRegularTask(event_flow)
-              << "  isReturningBase :" << isReturningBase(event_flow)
-              << " ...";
     if (ZooInnerStatus::instance().getIsCharging()) {
         return;
     }

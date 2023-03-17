@@ -32,10 +32,11 @@ void ReservedCall::handleManualOperation() {
 
 void ReservedCall::handleSpecialOperation() {
     switch (epoll_special) {
-        case loop::special_epoll::special_low_battery:
+        case loop::special_epoll::special_low_battery: {
             InternalEventPubManager::get_instance()->pubOper(LOW_BATTERY_BACK_CHARGE);
             CleanHistoryCenter::instance().lowPowerBack();
             break;
+        }
         case loop::special_epoll::special_branch_water: {
             InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
             SpecialInfo si;
@@ -59,9 +60,10 @@ void ReservedCall::handleSpecialOperation() {
             CleanHistoryCenter::instance().equipmentErrorBack(si);
             break;
         }
-        case loop::special_epoll::special_dust_push_anomaly:
+        case loop::special_epoll::special_dust_push_anomaly: {
             InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_FAILED);
             break;
+        }
         default:
             break;
     }

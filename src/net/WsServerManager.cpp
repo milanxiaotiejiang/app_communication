@@ -8,6 +8,7 @@
 #include "manager/PublishOutManager.h"
 #include "model/Twist.h"
 #include "manager/PublishInnerManager.h"
+#include "net/kill_port.h"
 #include <opencv2/opencv.hpp>
 #include <std_msgs/String.h>
 //#include "tool/ZLibString.hpp"
@@ -323,6 +324,12 @@ public:
                                     wsServerSend(server, ask.second.hdl, realData, key);
                                     dataMap[key] = "";
                                 }
+                            } else if (key == ALARM_EVENT) {
+                                auto realData = dataMap[key];
+                                if (!realData.empty()) {
+                                    wsServerSend(server, ask.second.hdl, realData, key);
+                                    dataMap[key] = "";
+                                }
                             } else {
                                 auto realData = dataMap[key];
                                 if (!realData.empty()) {
@@ -484,6 +491,11 @@ void messageBusTopic(const string &message) {
 }
 
 void WsServerManager::startWebSocket() {
+
+    std::string pid = get_pid_using_port(9090);
+    if (!pid.empty()) {
+        kill_process(pid);
+    }
 
     //    MessageBusManager::get_instance()->getMessageBus()->attach(
     //            [](const string message) {
