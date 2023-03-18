@@ -79,20 +79,6 @@ int main(int argc, char **argv) {
     SelfCheckSubscribe selfCheckSubscribe(handle);
     MoveBaseRecoveryFailureSubscribe moveBaseRecoveryFailureSubscribe(handle);
 
-    std_msgs::String test;
-    /////////////////////////////////
-    ////////////////////////////////////////////
-
-    UpgradeManager::instance().updateCleanHistoryPrincipal();
-    UpgradeManager::instance().updateCombinationBase64();
-    UpgradeManager::instance().updateViewPartBase64();
-    UpgradeManager::instance().updateCleanHistoryBase64();
-    UpgradeManager::instance().updateTimeInfoBase64();
-    UpgradeManager::instance().updateTeachPoint();
-    UpgradeManager::instance().updateCombinationPrincipalWork();
-    UpgradeManager::instance().checkWhetherFileExists();
-    UpgradeManager::instance().removePolygonViewPart();
-
     ros::NodeHandle nh;
     initNodeParams(nh);
 
@@ -206,7 +192,7 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
     std::string crash_file_path = descriptor.path();
     unsigned long start = crash_file_path.find("app_dump/") + 9;
     auto crash_file = crash_file_path.substr(start);
-    LOG(ERROR) << sys_gettid() << " " << "Dump path : " << crash_file_path << " " << succeeded;
+    LOG(WARNING) << sys_gettid() << " " << "Dump path : " << crash_file_path << " " << succeeded;
 
     auto home = string(getenv_rec("HOME"));
 

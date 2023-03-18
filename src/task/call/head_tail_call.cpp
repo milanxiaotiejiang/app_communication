@@ -79,10 +79,11 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
         }
         case event::flow::preliminary_preparation_completed: {
             LOG(INFO) << "HeadTailPointCall : 前期的出站、睡眠等流程执行成功，现在启动清洁机构 ...";
-            callOpenMechanism(point.getWorkStatus(), [this]() {
-                flowOpenMechanismPoint.realError.arrive = true;
-                pushPoint(flowOpenMechanismPoint);
-            });
+//            callOpenMechanism(point.getWorkStatus(), [this]() {
+//                flowOpenMechanismPoint.realError.arrive = true;
+//                pushPoint(flowOpenMechanismPoint);
+//            });
+            callOpenMechanism(point.getWorkStatus(), []() {});
             break;
         }
         case event::flow::cleaning_mechanism_ready: {
@@ -170,9 +171,30 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
     }
 }
 
-/**
- * 作为
- */
+void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, function<void()> f) {
+//    AsyncTaskFramework::callOpenMechanism(status, f);
+
+    flowOpenMechanismPoint.realError.arrive = true;
+
+    MechanismManager::instance().controlWorkStatus(status);
+    if (!Environment::instance().isRealEnvironment) {
+        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this]() {
+            LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
+            notify_one([this]() {
+                pushPoint(flowOpenMechanismPoint);
+            });
+        });
+    } else {
+        async::TimerCall::instance().baseLoop()->scheduleLater(
+                std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this]() {
+                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
+                    notify_one([this]() {
+                        pushPoint(flowOpenMechanismPoint);
+                    });
+                });
+    }
+}
+
 void HeadTailPointCall::callCloseMechanism(function<void()> f) {
 //    AsyncTaskFramework::callCloseMechanism(f);
     LOG(INFO) << "AsyncTaskFramework : 准备关闭相应的清洁机构 ...";

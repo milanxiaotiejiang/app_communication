@@ -34,7 +34,7 @@ void AsyncTaskFramework::execute() {
 
         if (manualEpollDeque.size() + specialEpollDeque.size() + errorEpollDeque.size()
             + urgencyStopDeque.size() + taskEpollDeque.size() + pointEpollDeque.size() != 1) {
-            LOG(ERROR) << "数据有误，请上传当前日志文件并联系开发者 "
+            LOG(WARNING) << "数据有误，请上传当前日志文件并联系开发者 "
                        << " manualEpollDeque " << manualEpollDeque.size()
                        << ", specialEpollDeque " << specialEpollDeque.size()
                        << ", errorEpollDeque " << errorEpollDeque.size()

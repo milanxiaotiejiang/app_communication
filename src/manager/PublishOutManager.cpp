@@ -146,6 +146,5 @@ void PublishOutManager::publishKnob(const VersionSubscribe<KnobStatus> &versionS
 }
 
 void PublishOutManager::publishInternalEvent(const std_msgs::String &message) const {
-//    LOG(ERROR) << "publishInternalEvent message : " << message.data;
     pub_internal_event_.publish(message);
 }
