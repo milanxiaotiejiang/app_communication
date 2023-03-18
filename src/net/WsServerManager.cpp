@@ -103,11 +103,11 @@ void on_fail(server *s, websocketpp::connection_hdl hdl) {
         mMap.clear();
     }
 
-    LOG(ERROR) << "Fail handler: " << con->get_ec() << " " << con->get_ec().message();
+    LOG(WARNING) << "Fail handler: " << con->get_ec() << " " << con->get_ec().message();
 }
 
 void on_close(websocketpp::connection_hdl hdl) {
-    LOG(INFO) << "Close handler";
+    LOG(WARNING) << "Close handler";
     {
         std::unique_lock<std::mutex> lock(askMutex);
         mMap.erase(hdl.lock().get());
@@ -115,7 +115,7 @@ void on_close(websocketpp::connection_hdl hdl) {
 }
 
 void on_open(server *s, websocketpp::connection_hdl hdl) {
-    LOG(ERROR) << "Open handler" << std::endl;
+    LOG(WARNING) << "Open handler" << std::endl;
 
     auto con = s->get_con_from_hdl(hdl);
     auto path = con->get_resource();
@@ -513,7 +513,6 @@ void WsServerManager::startWebSocket() {
             auto m = q.get();
             auto &dm = dynamic_cast<PolyM::DataMsg<std::string> &>(*m);
             auto payload = dm.getPayload();
-//            LOG(ERROR) << "funTransformBuffer : " << payload;
             std_msgs::String result;
             result.data.append(payload);
             PublishOutManager::instance().publishAppJson(APP_JSON_VERSION::V1, result);

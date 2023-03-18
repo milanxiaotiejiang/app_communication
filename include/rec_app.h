@@ -49,7 +49,6 @@
 #include "manager/CombinationManager.h"
 #include "manager/NoticeManager.h"
 #include "manager/ViewPartManager.h"
-#include "manager/UpgradeManager.h"
 #include "manager/InternalEventPubManager.h"
 #include "net/WsServerManager.h"
 #include "net/MessageBusManager.h"

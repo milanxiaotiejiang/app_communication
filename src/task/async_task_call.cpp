@@ -292,7 +292,7 @@ void AsyncTaskCall::handlePointSpecialDevice(const RealPoint &point) {
 
 
 void AsyncTaskCall::goodGame() {
-    LOG(ERROR) << "AsyncTaskCall : goodGame";
+    LOG(WARNING) << "AsyncTaskCall : goodGame";
 
     setEpollManual(loop::manual_epoll::manual_normal);
     setEpollSpecial(loop::special_epoll::special_normal);
