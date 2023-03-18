@@ -842,15 +842,14 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
     if (isUnrecoverableError()) {
         return;
     }
-    if (!isRegularTask(event_flow)) {
+    if (isPlannerEmpty(event_flow)) {
         return;
     }
-    if (isReturningBase(event_flow)) {
-        return;
+    if (isFlowingWater(event_flow)) {
+        notify_one([this, &operation]() {
+            pushSpecial(operation);
+        });
     }
-    notify_one([this, &operation]() {
-        pushSpecial(operation);
-    });
 }
 
 void AsyncTaskCall::executeCarpet(bool carpet) {
@@ -863,33 +862,32 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
     if (isUnrecoverableError()) {
         return;
     }
-    if (!isRegularTask(event_flow)) {
+    if (isPlannerEmpty(event_flow)) {
         return;
     }
-    if (isReturningBase(event_flow)) {
-        return;
-    }
-    if (carpet) {
-        if (!isCarpetAndPack) {
-            isCarpetAndPack = true;
-            MechanismManager::instance().resetWorkStatus();
-            LOG(INFO) << "NativeSystemManager : executeCarpet "
-                      << "  检测到地毯并且已经收起清洁机构"
-                      << " ...";
-        }
-    } else {
-        if (isCarpetAndPack) {
-            isCarpetAndPack = false;
-            LOG(INFO) << "NativeSystemManager : executeCarpet "
-                      << "  离开地毯，且机构已收起，执行再次放下清洁机构"
-                      << " ...";
-            MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
+    if (isFlowingWater(event_flow)) {
+        if (carpet) {
+            if (!isCarpetAndPack) {
+                isCarpetAndPack = true;
+                MechanismManager::instance().resetWorkStatus();
+                LOG(INFO) << "NativeSystemManager : executeCarpet "
+                          << "  检测到地毯并且已经收起清洁机构"
+                          << " ...";
+            }
+        } else {
+            if (isCarpetAndPack) {
+                isCarpetAndPack = false;
+                LOG(INFO) << "NativeSystemManager : executeCarpet "
+                          << "  离开地毯，且机构已收起，执行再次放下清洁机构"
+                          << " ...";
+                MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
+            }
         }
     }
 }
 
 void AsyncTaskCall::executeLift(bool lift) {
-    if (ZooInnerStatus::instance().getIsCharging()) {
+    if (isCharging()) {
         return;
     }
     if (isUrgencyStop()) {
