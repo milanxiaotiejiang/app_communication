@@ -38,4 +38,9 @@ public:
     bool handler(string params) override;
 };
 
+class ExplorationTaskStrategy : public MessageStrategy<long, RoomCoverage> {
+public:
+    RoomCoverage handler(long params) override;
+};
+
 #endif //APP_COMMUNICATION_EXPLORATIONSTRATEGY_H

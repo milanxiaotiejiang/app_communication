@@ -19,7 +19,7 @@ private:
 
     TimerVo timerPo2Vo(const TimerPo &timerPo);
 
-    void addTaskVo(const std::string &mapId, const TaskVo &taskVo);
+    long addTaskVo(const std::string &mapId, const TaskVo &taskVo);
 
 public:
     static auto &instance() {
@@ -30,15 +30,9 @@ public:
     void initialize();
 
     //增
-    void addZoneTask(const std::string &mapId, const TaskVo &taskVo);
+    long addTask(const std::string &mapId, const TaskVo &taskVo);
 
-    void addCoverTask(const std::string &mapId, const TaskVo &taskVo);
-
-    void addSubregionTask(const std::string &mapId, const TaskVo &taskVo);
-
-    void addLineTask(const std::string &mapId, const TaskVo &taskVo);
-
-    void addTimer(const std::string &mapId, long taskId, const TimerVo &timer);
+    void addTimer(const std::string &mapId, const TimerVo &timer);
 
     //删
     void deleteOwnTask();
@@ -46,6 +40,10 @@ public:
     void deleteTaskFoId(long taskId);
 
     void deleteTaskFoMap(std::string mapId);
+
+    void deleteTaskFoMode(std::string mapId, TaskMode mode);
+
+    void deleteTaskFoMode(std::string mapId, TaskMode mode, bool partition);
 
     void deleteTimerForId(long timerId);
 

@@ -9,17 +9,12 @@
 #include "segmentation/map_modification.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
-    LOG(INFO) << "MapStrategy save_map ...";
-    MapAttribute::instance().setCreatingMap(true);
-
-    std_msgs::String map_save;
-    map_save.data.append("save_map");
-    PublishInnerManager::instance().publishCommand(map_save);
-
-    MapInfo param(1, params.getMapName());
-
-    sleep(5);
-    return param;
+    if (MapAttribute::instance().saveMap()) {
+        MapInfo param(1, params.getMapName());
+        return param;
+    } else {
+        throw app::exception(make_error_code(error::room_mb_file_open_fail));
+    }
 }
 
 vector<MapInfo> GetMultiMapsStrategy::handler(string params) {

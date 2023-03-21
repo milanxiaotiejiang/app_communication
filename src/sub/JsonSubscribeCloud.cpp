@@ -209,13 +209,13 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             messageStrategy = new UpdateTimerStrategy();
             break;
         case SET_TIMER_:
-            messageStrategy = new AddTimerStrategy();
+            messageStrategy = new SetTimerStrategy();
             break;
         case GET_TIMER_LIST_:
             messageStrategy = new GetTimerListStrategy();
             break;
         case DEL_TIMER_:
-            messageStrategy = new DeleteTimerStrategy();
+            messageStrategy = new DelTimerStrategy();
             break;
         case SAVE_LOCATION:
             messageStrategy = new LocationStrategy();

@@ -204,8 +204,10 @@ void NodeControl::update() {
             changeWorkMode();
         }
         if (isMap()) {
-            LOG(INFO) << "当前为建图模式，应该是建图模式中一些节点莫名崩溃导致，需要重新进入建图模式";
-            changeMapMode();
+//            LOG(INFO) << "当前为建图模式，应该是建图模式中一些节点莫名崩溃导致，需要重新进入建图模式";
+//            changeMapMode();
+            LOG(INFO) << "当前为建图模式，应该是建图模式中一些节点莫名崩溃导致，退出建图模式进入睡眠模式";
+            changeSleepMode();
         }
     }
 }

@@ -9,7 +9,7 @@
 #include <model/Entrance.h>
 
 
-string AddTimerStrategy::handler(TimerInfo params) {
+string SetTimerStrategy::handler(TimerInfo params) {
 
     string fileName;
     string sss;
@@ -188,7 +188,7 @@ vector<TimerInfo> GetTimerListStrategy::handler(string params) {
     return timer_info;
 }
 
-string DeleteTimerStrategy::handler(string params) {
+string DelTimerStrategy::handler(string params) {
     //    使能/失能清扫计时器
     string fileName;
     string path;

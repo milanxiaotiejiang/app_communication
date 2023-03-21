@@ -28,7 +28,7 @@ pid_t getProcessPidByName(const char *proc_name) {
 }
 
 
-int switch_ID(const std::string& str) {
+int switch_ID(const std::string &str) {
 
     if (str == "get_device_status") {
         return GET_DEVICE_STATUS_;
@@ -348,5 +348,29 @@ int switch_ID(const std::string& str) {
         return AUTOMATIC_OILING;
     }
 
+    if (str == "add_task") {
+        return ADD_TASK;
+    }
+    if (str == "delete_task") {
+        return DELETE_TASK;
+    }
+    if (str == "list_task") {
+        return LIST_TASK;
+    }
+    if (str == "query_id_task") {
+        return QUERY_ID_TASK;
+    }
+    if (str == "add_timer") {
+        return ADD_TIMER;
+    }
+    if (str == "delete_timer") {
+        return DELETE_TIMER;
+    }
+    if (str == "list_timer") {
+        return LIST_TIMER;
+    }
+    if (str == "exploration_task") {
+        return EXPLORATION_TASK;
+    }
     return -1;
 }

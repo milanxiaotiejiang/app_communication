@@ -20,7 +20,7 @@
 using json = nlohmann::json;
 using namespace std;
 
-class AddTimerStrategy : public MessageStrategy<TimerInfo, string> {
+class SetTimerStrategy : public MessageStrategy<TimerInfo, string> {
 public:
     string handler(TimerInfo params) override;
 };
@@ -35,7 +35,7 @@ public:
     vector<TimerInfo> handler(string params) override;
 };
 
-class DeleteTimerStrategy : public MessageStrategy<string, string> {
+class DelTimerStrategy : public MessageStrategy<string, string> {
 public:
     string handler(string method) override;
 };

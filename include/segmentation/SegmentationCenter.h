@@ -17,11 +17,11 @@ class SegmentationCenter {
 private:
     bool initialize_finish = false;
 
-    SegmentationSubscribe *segmentationSubscribe;
+//    SegmentationSubscribe *segmentationSubscribe;
 
-    bool detectionTooSmallRoom(const cv::Mat &segmented_map, Room room, PlanPo plan) const;
+    bool detectionTooSmallRoom(const cv::Mat &segmented_map, Room room, const PlanPo& plan) const;
 
-    bool pointInRoom(const cv::Mat &segmented_map, Room room, cv::Point point) const;
+    bool pointInRoom(const cv::Mat &segmented_map, Room room, const cv::Point& point) const;
 
     bool lineThroughRoom(const cv::Mat &segmented_map, Room room, const cv::Point &ps, const cv::Point &pe) const;
 
@@ -34,7 +34,7 @@ public:
     /**
      * 初始化
      */
-    void initialize(ros::NodeHandle handle);
+    void initialize(const ros::NodeHandle& handle);
 
     /**
      * 重置所有分区的设置
@@ -60,7 +60,7 @@ public:
                    int room_to_merge_index);
 
 
-    void reRoomName(int targetId, std::string name);
+    void reRoomName(int targetId, const std::string& name);
 
     /**
      * 落盘
@@ -87,7 +87,7 @@ public:
 
     bool checkPartition() const;
 
-    MapRoomVo toVoRoom(cv::Mat &segmented_map, std::vector<Room> &rooms) const;
+    MapRoomVo resultMapRoomVo() const;
 };
 
 

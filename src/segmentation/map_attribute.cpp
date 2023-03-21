@@ -2,8 +2,11 @@
 // Created by Looper on 2022/10/13.
 //
 
+#include <std_msgs/String.h>
 #include "segmentation/map_attribute.h"
 #include "db/segmentation_data_base.h"
+#include "manager/PublishInnerManager.h"
+#include "BaseThrowable.h"
 
 /**
  * map_origin_pose.position (0,0) 为显示地图的左下角，即 starting_position_pose.x 越大，机器人越靠右；starting_position_pose.y 越大，机器人越考上
@@ -165,6 +168,30 @@ bool MapAttribute::isCreatingMap() const {
     return creating_map;
 }
 
-void MapAttribute::setCreatingMap(bool creatingMap) {
-    creating_map = creatingMap;
+bool MapAttribute::saveMap() {
+    //防止二次进入
+    if (creating_map) {
+        throw app::exception(make_error_code(error::room_mb_file_open_fail));
+    }
+    creating_map = true;
+
+    //发送建图保存指令
+    std_msgs::String map_save;
+    map_save.data.append("save_map");
+    PublishInnerManager::instance().publishCommand(map_save);
+
+    //加锁
+    std::unique_lock<std::mutex> lck(wait_mutex);
+    if (wait_cv.wait_for(lck, std::chrono::seconds(5)) == std::cv_status::timeout) {
+        //timeout
+        creating_map = false;
+        return false;
+    } else {
+        creating_map = false;
+        return true;
+    }
+}
+
+void MapAttribute::notifySaveMap() {
+    wait_cv.notify_one();
 }

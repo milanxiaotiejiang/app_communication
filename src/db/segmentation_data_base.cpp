@@ -11,6 +11,7 @@
 
 #include "segmentation/Room.h"
 #include "BaseThrowable.h"
+#include "db/task_data_base.h"
 
 bool SegmentationDataBase::loadMap() {
     segmentationStorage.sync_schema();
@@ -28,19 +29,25 @@ MapPo &SegmentationDataBase::getDbMap() {
     return mapPo;
 }
 
-std::vector<RoomPo> SegmentationDataBase::selectByMapId(const std::string &mapId) {
+RoomPo SegmentationDataBase::selectRoomById(long roomId) {
+    return segmentationStorage.get<RoomPo>(roomId);
+}
+
+std::vector<RoomPo> SegmentationDataBase::selectRoomByMapId(const std::string &mapId) {
     return segmentationStorage.get_all<RoomPo>(where(c(&RoomPo::o_map_id) == mapId));
 }
 
 void SegmentationDataBase::removeAllRoom(const std::string &mapId) {
     segmentationStorage.remove_all<RoomPo>(where(c(&RoomPo::o_map_id) == mapId));
+    TaskDataBase::instance().deleteTaskFoMode(mapId, TaskMode::Subregion, true);
 }
 
 void SegmentationDataBase::memory2Storage(cv::Mat &mat, std::vector<Room> &rooms) {
 //    cv::imshow("memory2Storage", mat);
 //    cv::waitKey();
     segmentationStorage.transaction([&] {
-        segmentationStorage.remove_all<RoomPo>(where(c(&RoomPo::o_map_id) == mapPo.id));
+
+        removeAllRoom(mapPo.id);
 
         for (auto &item: rooms) {
             auto id = item.getID();
@@ -114,7 +121,7 @@ SegmentationDataBase::storage2Memory(cv::Mat &mat, std::vector<Room> &rooms, dou
             for (const auto &neighborRoomId: neighbor_room_ids) {
                 room.addNeighborID(neighborRoomId);
             }
-
+            room.setDbId(item.id);
             rooms.push_back(room);
         }
 //        cv::imshow("storage2Memory", mat);
@@ -126,16 +133,19 @@ SegmentationDataBase::storage2Memory(cv::Mat &mat, std::vector<Room> &rooms, dou
 }
 
 void SegmentationDataBase::reRoomName(int targetId, const std::string &name) {
-    auto results = segmentationStorage.get_all<RoomPo>(
-            where(c(&RoomPo::o_map_id) == mapPo.id and c(&RoomPo::value) == targetId)
-    );
-    segmentationStorage.transaction([results, name, this] {
-        for (auto item: results) {
-            item.name = name;
-            segmentationStorage.update(item);
-        }
-        return true;
-    });
+    RoomPo roomPo = SegmentationDataBase::instance().selectRoomById(targetId);
+    roomPo.name = name;
+    segmentationStorage.update(roomPo);
+//    auto results = segmentationStorage.get_all<RoomPo>(
+//            where(c(&RoomPo::o_map_id) == mapPo.id and c(&RoomPo::value) == targetId)
+//    );
+//    segmentationStorage.transaction([results, name, this] {
+//        for (auto item: results) {
+//            item.name = name;
+//            segmentationStorage.update(item);
+//        }
+//        return true;
+//    });
 }
 
 void SegmentationDataBase::setPlanParam(const std::string &mapId, double robotRadius,

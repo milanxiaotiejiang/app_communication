@@ -23,7 +23,9 @@ public:
 
     MapPo &getDbMap();
 
-    std::vector<RoomPo> selectByMapId(const std::string &mapId);
+    RoomPo selectRoomById(long roomId);
+
+    std::vector<RoomPo> selectRoomByMapId(const std::string &mapId);
 
     void removeAllRoom(const std::string &mapId);
 

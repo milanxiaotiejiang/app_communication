@@ -11,6 +11,7 @@
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <opencv2/opencv.hpp>
+#include <condition_variable>
 #include "yaml-cpp/yaml.h"
 
 #include "glog/logging.h"
@@ -26,7 +27,9 @@ class MapAttribute {
 private:
     bool initialize_finish = false;
 
-    bool creating_map = false;
+    std::atomic<bool> creating_map{false};
+    std::condition_variable wait_cv;
+    std::mutex wait_mutex;
 
     geometry_msgs::Pose map_origin_pose;
     cv::Point2d map_origin;
@@ -68,8 +71,6 @@ public:
     }
 
     bool isCreatingMap() const;
-
-    void setCreatingMap(bool creatingMap);
 
     const geometry_msgs::Pose &getMapOriginPose() const {
         return map_origin_pose;
@@ -113,6 +114,10 @@ public:
     cv::Point rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const;
 
     cv::Point rosPoint2MapPoint(double rows, double cols, const Point &point) const;
+
+    bool saveMap();
+
+    void notifySaveMap();
 };
 
 

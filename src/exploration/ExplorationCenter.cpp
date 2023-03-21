@@ -145,6 +145,7 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
     LOG(INFO) << "(infinitely near boundary) distance_from_obstacles: " << distance_from_obstacles;
     LOG(INFO) << "(infinitely near boundary) number_extension: " << number_extension;
     LOG(INFO) << "(infinitely near boundary) multiple_contour_spacing: " << multiple_contour_spacing;
+    LOG(INFO) << "(infinitely near boundary) random_number_generation_ratio: " << random_number_generation_ratio;
 
     morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
 
@@ -399,7 +400,7 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
         int pos = optimal_order[i];
         auto room = rooms[pos];
         auto members = room.getMembers();
-        auto one_map = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, room.getID());
+        auto one_map = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, room.getDbId());
 
         std::vector<std::vector<cv::Point>> contours;
         cv::findContours(one_map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);

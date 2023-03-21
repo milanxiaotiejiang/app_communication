@@ -44,7 +44,14 @@ TaskVo TaskDataBase::taskPo2Vo(const TaskPo &taskPo) {
         }
         task.setZones(zones);
     } else if (taskPo.mode == TaskMode::Subregion) {
-
+        std::vector<int> subregions;
+        auto range = taskPo.subregion_range;
+        std::vector<std::string> tokens;
+        split(range, tokens, ',');
+        for (const auto &item: tokens) {
+            subregions.push_back(atoi(item.c_str()));
+        }
+        task.setSubregions(subregions);
     }
     return task;
 }
@@ -55,7 +62,7 @@ TimerVo TaskDataBase::timerPo2Vo(const TimerPo &timerPo) {
                    timerPo.end_year, timerPo.end_month, timerPo.end_day);
 }
 
-void TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
+long TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
     TaskMode mode = SqliteDataBase::TaskModeFromInt(taskVo.getMode());
 
     std::vector<std::string> zoneRanges;
@@ -76,13 +83,12 @@ void TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
         }
     } else if (mode == TaskMode::Subregion) {
         std::vector<int> subregions = taskVo.getSubregions();
-        std::string subregionRange;
         for (int i = 0; i < subregions.size(); i++) {
             auto value = subregions[i];
             if (i == subregions.size() - 1) {
-                subregionRange.append(std::to_string(value));
+                subregion_range.append(std::to_string(value));
             } else {
-                subregionRange.append(std::to_string(value) + ",");
+                subregion_range.append(std::to_string(value) + ",");
             }
         }
     }
@@ -101,7 +107,7 @@ void TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
                   taskVo.getWorkStatus().getDisinfectStatus(),
                   v,
                   taskVo.isPartition(),
-                  "",
+                  subregion_range,
                   SqliteDataBase::TaskSourceFromString(taskVo.getSource()),
                   taskVo.getLaunchPeople(),
                   time_t(),
@@ -109,14 +115,20 @@ void TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
                   std::time(nullptr)
     );
 
-    taskStorage.transaction([this, taskPo, zoneRanges] {
-        auto taskId = taskStorage.insert(taskPo);
-        for (const auto &item: zoneRanges) {
-            const ZonePo &zonePo = ZonePo(0, taskId, item);
-            taskStorage.insert(zonePo);
-        }
-        return true;
-    });
+//    taskStorage.transaction([this, taskPo, zoneRanges] {
+//        auto taskId = taskStorage.insert(taskPo);
+//        for (const auto &item: zoneRanges) {
+//            const ZonePo &zonePo = ZonePo(0, taskId, item);
+//            taskStorage.insert(zonePo);
+//        }
+//        return true;
+//    });
+    auto taskId = taskStorage.insert(taskPo);
+    for (const auto &item: zoneRanges) {
+        const ZonePo &zonePo = ZonePo(0, taskId, item);
+        taskStorage.insert(zonePo);
+    }
+    return taskId;
 }
 
 //TEST_CASE() {
@@ -193,32 +205,12 @@ void TaskDataBase::initialize() {
     taskStorage.sync_schema();
 }
 
-void TaskDataBase::addZoneTask(const std::string &mapId, const TaskVo &taskVo) {
-    if (SqliteDataBase::TaskModeFromInt(taskVo.getMode()) == TaskMode::Zoned) {
-        addTaskVo(mapId, taskVo);
-    }
+long TaskDataBase::addTask(const std::string &mapId, const TaskVo &taskVo) {
+    return addTaskVo(mapId, taskVo);
 }
 
-void TaskDataBase::addCoverTask(const string &mapId, const TaskVo &taskVo) {
-    if (SqliteDataBase::TaskModeFromInt(taskVo.getMode()) == TaskMode::Cover) {
-        addTaskVo(mapId, taskVo);
-    }
-}
-
-void TaskDataBase::addSubregionTask(const string &mapId, const TaskVo &taskVo) {
-    if (SqliteDataBase::TaskModeFromInt(taskVo.getMode()) == TaskMode::Subregion) {
-        addTaskVo(mapId, taskVo);
-    }
-}
-
-void TaskDataBase::addLineTask(const string &mapId, const TaskVo &taskVo) {
-    if (SqliteDataBase::TaskModeFromInt(taskVo.getMode()) == TaskMode::Line) {
-        addTaskVo(mapId, taskVo);
-    }
-}
-
-void TaskDataBase::addTimer(const std::string &mapId, long taskId, const TimerVo &timer) {
-    TimerPo timerPo(0, mapId, taskId, timer.getTaskName(), timer.getTimerRule(), timer.getTimerName(),
+void TaskDataBase::addTimer(const std::string &mapId, const TimerVo &timer) {
+    TimerPo timerPo(0, mapId, timer.getTaskId(), timer.getTaskName(), timer.getTimerRule(), timer.getTimerName(),
                     timer.isExecute(), timer.getRate(), timer.isNever(), timer.isSkip(),
                     timer.getEndYear(), timer.getEndMonth(), timer.getEndDay());
     taskStorage.insert(timerPo);
@@ -239,6 +231,27 @@ void TaskDataBase::deleteTaskFoId(long taskId) {
 void TaskDataBase::deleteTaskFoMap(std::string mapId) {
     deleteTimerForMap(mapId);
     auto taskPos = taskStorage.get_all<TaskPo>(where(c(&TaskPo::o_map_id) == std::move(mapId)));
+    for (const auto &task: taskPos) {
+        deleteTaskFoId(task.id);
+    }
+}
+
+void TaskDataBase::deleteTaskFoMode(std::string mapId, TaskMode mode) {
+    const auto &taskPos = taskStorage.get_all<TaskPo>(
+            where(c(&TaskPo::o_map_id) == std::move(mapId) and c(&TaskPo::mode) == static_cast<int>(mode))
+    );
+    for (const auto &task: taskPos) {
+        deleteTaskFoId(task.id);
+    }
+}
+
+void TaskDataBase::deleteTaskFoMode(std::string mapId, TaskMode mode, bool partition) {
+    const auto &taskPos = taskStorage.get_all<TaskPo>(
+            where(c(&TaskPo::o_map_id) == std::move(mapId)
+                  and c(&TaskPo::mode) == static_cast<int>(mode)
+                  and c(&TaskPo::partition) == partition
+            )
+    );
     for (const auto &task: taskPos) {
         deleteTaskFoId(task.id);
     }
@@ -278,6 +291,10 @@ std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
 
 TaskVo TaskDataBase::loadTaskFoId(long taskId) {
     auto taskPo = taskStorage.get<TaskPo>(taskId);
+    auto zs = taskStorage.get_all<ZonePo>(where(c(&ZonePo::o_task_id) == taskPo.id));
+    for (const auto &z: zs) {
+        taskPo.zones.push_back(z);
+    }
     return taskPo2Vo(taskPo);
 }
 

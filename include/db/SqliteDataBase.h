@@ -54,33 +54,33 @@ public:
     static std::string SourceToString(TaskSource source) {
         switch (source) {
             case TaskSource::App:
-                return "app";
+                return "App";
             case TaskSource::Pad:
-                return "pad";
+                return "Pad";
             case TaskSource::Cloud:
-                return "cloud";
+                return "Cloud";
             default:
-                return "self";
+                return "Self";
         }
     }
 
     static std::unique_ptr<TaskSource> SourceFromString(const std::string &s) {
-        if (s == "app") {
+        if (s == "App") {
             return std::make_unique<TaskSource>(TaskSource::App);
-        } else if (s == "pad") {
+        } else if (s == "Pad") {
             return std::make_unique<TaskSource>(TaskSource::Pad);
-        } else if (s == "cloud") {
+        } else if (s == "Cloud") {
             return std::make_unique<TaskSource>(TaskSource::Cloud);
         }
         return std::make_unique<TaskSource>(TaskSource::Self);
     }
 
     static TaskSource TaskSourceFromString(const std::string &s) {
-        if (s == "app") {
+        if (s == "App") {
             return TaskSource::App;
-        } else if (s == "pad") {
+        } else if (s == "Pad") {
             return TaskSource::Pad;
-        } else if (s == "cloud") {
+        } else if (s == "Cloud") {
             return TaskSource::Cloud;
         }
         return TaskSource::Self;

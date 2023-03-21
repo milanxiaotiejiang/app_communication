@@ -137,10 +137,21 @@ enum MESSAGE_ID {
 
     AUTOMATIC_OILING,
 
+    ADD_TASK,
+    DELETE_TASK,
+    LIST_TASK,
+    QUERY_ID_TASK,
+
+    ADD_TIMER,
+    DELETE_TIMER,
+    LIST_TIMER,
+
+    EXPLORATION_TASK,
+
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };
 
-int switch_ID(const std::string& str);
+int switch_ID(const std::string &str);
 
 pid_t getProcessPidByName(const char *proc_name);
 

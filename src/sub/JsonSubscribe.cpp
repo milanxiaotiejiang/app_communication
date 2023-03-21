@@ -29,6 +29,7 @@
 
 #include "glog/logging.h"
 #include "simulation.h"
+#include "sub/json/DBTaskStrategy.h"
 
 JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
     sub_json_ = handle.subscribe(APP_JSON, 3, &JsonSubscribe::subscribeCallback, this);
@@ -342,6 +343,31 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case AUTOMATIC_OILING:
             messageStrategy = new AutomaticOilingStrategy();
+            break;
+
+        case ADD_TASK:
+            messageStrategy = new AddTaskStrategy();
+            break;
+        case DELETE_TASK:
+            messageStrategy = new DeleteTaskStrategy();
+            break;
+        case LIST_TASK:
+            messageStrategy = new ListTaskStrategy();
+            break;
+        case QUERY_ID_TASK:
+            messageStrategy = new QueryIdTaskStrategy();
+            break;
+        case ADD_TIMER:
+            messageStrategy = new AddTimerStrategy();
+            break;
+        case DELETE_TIMER:
+            messageStrategy = new DeleteTimerStrategy();
+            break;
+        case LIST_TIMER:
+            messageStrategy = new ListTimerStrategy();
+            break;
+        case EXPLORATION_TASK:
+            messageStrategy = new ExplorationTaskStrategy();
             break;
     }
     if (messageStrategy != nullptr) {
