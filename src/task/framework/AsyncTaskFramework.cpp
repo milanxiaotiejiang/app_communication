@@ -35,12 +35,12 @@ void AsyncTaskFramework::execute() {
         if (manualEpollDeque.size() + specialEpollDeque.size() + errorEpollDeque.size()
             + urgencyStopDeque.size() + taskEpollDeque.size() + pointEpollDeque.size() != 1) {
             LOG(WARNING) << "数据有误，请上传当前日志文件并联系开发者 "
-                       << " manualEpollDeque " << manualEpollDeque.size()
-                       << ", specialEpollDeque " << specialEpollDeque.size()
-                       << ", errorEpollDeque " << errorEpollDeque.size()
-                       << ", urgencyStopDeque " << urgencyStopDeque.size()
-                       << ", taskEpollDeque " << taskEpollDeque.size()
-                       << ", pointEpollDeque " << pointEpollDeque.size();
+                         << " manualEpollDeque " << manualEpollDeque.size()
+                         << ", specialEpollDeque " << specialEpollDeque.size()
+                         << ", errorEpollDeque " << errorEpollDeque.size()
+                         << ", urgencyStopDeque " << urgencyStopDeque.size()
+                         << ", taskEpollDeque " << taskEpollDeque.size()
+                         << ", pointEpollDeque " << pointEpollDeque.size();
         }
 
         loop::execute_handle handle = loop::execute_handle::handle_unknown;
@@ -358,10 +358,6 @@ void AsyncTaskFramework::callBackBasePoint() {
 void AsyncTaskFramework::callNeedPublishSleep() {
     LOG(INFO) << "AsyncTaskFramework : 等待充电成功即可发布睡眠模式 ...";
     ZooInnerStatus::instance().setNeedSleep(true);
-    if (!Environment::instance().isRealEnvironment) {
-        SwitchModePublish::instance().publish();
-        ZooInnerStatus::instance().setNeedSleep(false);
-    }
 }
 
 void AsyncTaskFramework::release() {

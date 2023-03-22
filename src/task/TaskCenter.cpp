@@ -132,10 +132,17 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
     flagInSubscribe = new FlagInSubscribe(handle);
     //地图管理类
     cartographerSubscribe = new CartographerSubscribe(handle);
+    //地毯检测
+    carpetDetectSubscribe = new CarpetDetectSubscribe(handle);
+    carpetDetectSubscribe->setAsyncTaskCall(asyncTaskCall);
+    //电梯
+    liftDetectSubscribe = new LiftDetectSubscribe(handle);
+    liftDetectSubscribe->setAsyncTaskCall(asyncTaskCall);
 
     if (!Environment::instance().isRealEnvironment) {
         std::thread moveBaseThread([]() {
             sleep(10);
+            NodeControl::instance().emulate();
             int last_machine_code = 10006;
             while (1) {
                 sleep(1);
@@ -178,6 +185,7 @@ void TaskCenter::uninstall() {
     delete flagOutSubscribe;
     delete flagInSubscribe;
     delete cartographerSubscribe;
+    delete carpetDetectSubscribe;
 }
 
 //executTask主要增加了一条历史记录

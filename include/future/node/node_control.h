@@ -124,6 +124,8 @@ public:
     void changeMapMode();
 
     void changeSleepMode();
+
+    void emulate();
 };
 
 #endif //APP_COMMUNICATION_NODE_CONTROL_H
