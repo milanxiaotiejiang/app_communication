@@ -152,30 +152,30 @@ cv::Point TaskFeedback::poseTransferPoint(float x, float y) {
 }
 
 void TaskFeedback::triggerStart(std::string taskId, const std::vector<RealPoint> &points) {
-    {
-        std::unique_lock<std::mutex> lock(cv_mut);
-        TaskFeedback::run_task_id = taskId;
-        planPoseVos.clear();
-        for (const auto &point: points) {
-            planPoseVos.emplace_back(point.realPosition.x, point.realPosition.y, .0);
-        }
-        orderDeque.push_back(1);
-    }
-    cv.notify_one();
+//    {
+//        std::unique_lock<std::mutex> lock(cv_mut);
+//        TaskFeedback::run_task_id = taskId;
+//        planPoseVos.clear();
+//        for (const auto &point: points) {
+//            planPoseVos.emplace_back(point.realPosition.x, point.realPosition.y, .0);
+//        }
+//        orderDeque.push_back(1);
+//    }
+//    cv.notify_one();
 }
 
 void TaskFeedback::triggerEnd() {
-    {
-        std::unique_lock<std::mutex> lock(cv_mut);
-        orderDeque.push_back(2);
-    }
-    cv.notify_one();
+//    {
+//        std::unique_lock<std::mutex> lock(cv_mut);
+//        orderDeque.push_back(2);
+//    }
+//    cv.notify_one();
 }
 
 void TaskFeedback::triggerFeedback(geometry_msgs::Pose2D data) {
-    {
-        std::unique_lock<std::mutex> lock(cv_mut);
-        dataDeque.push_back(data);
-    }
-    cv.notify_one();
+//    {
+//        std::unique_lock<std::mutex> lock(cv_mut);
+//        dataDeque.push_back(data);
+//    }
+//    cv.notify_one();
 }

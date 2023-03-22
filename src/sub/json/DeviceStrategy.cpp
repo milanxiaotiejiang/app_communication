@@ -51,7 +51,14 @@ DeviceStatus GetDeviceStatusStrategy::handler(string method) {
 }
 
 DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
-
+    /*
+    int sweep_status{-1};//清扫
+    int mop_status{-1};//湿拖
+    int vacuum_status{-1};//尘吸
+    int push_status{-1};//尘推
+    int aromatherapy_status{-1};//香薰
+    int disinfect_status{-1};//消杀
+     */
     WorkStatus workStatus(ZooInnerStatus::instance().getSweepStatus(),
                           ZooInnerStatus::instance().getMopStatus(),
                           0,
@@ -59,9 +66,9 @@ DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
                           ZooInnerStatus::instance().getAromStatus(),
                           0);
 
-    WorkStatusUpgrade workStatusUpgrade(ZooInnerStatus::instance().getSweepStatus(),
-                                        ZooInnerStatus::instance().getMopStatus(),
+    WorkStatusUpgrade workStatusUpgrade(ZooInnerStatus::instance().getMopStatus(),
                                         0,
+                                        ZooInnerStatus::instance().getVacuumStatus(),
                                         ZooInnerStatus::instance().getPushStatus(),
                                         ZooInnerStatus::instance().getAromStatus());
 
