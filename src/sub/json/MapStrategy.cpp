@@ -13,7 +13,7 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
         MapInfo param(1, params.getMapName());
         return param;
     } else {
-        throw app::exception(make_error_code(error::room_mb_file_open_fail));
+        throw app::exception(make_error_code(error::create_map_fail));
     }
 }
 

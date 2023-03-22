@@ -80,7 +80,7 @@ string SetTimerStrategy::handler(TimerInfo params) {
         js["timerid"] = params.getTimerId();
         ret.data.append(js.dump());
 
-        PublishOutManager::instance().publishAppSchedule(ret);
+        PublishInnerManager::instance().publishAppSchedule(ret);
 
     } else {
         throw app::exception(make_error_code(error::open_file_timer_fail));
@@ -149,7 +149,7 @@ string UpdateTimerStrategy::handler(TimerInfo params) {
         js["method"] = "upd";
         js["timerid"] = params.getTimerId();
         ret.data.append(js.dump());
-        PublishOutManager::instance().publishAppSchedule(ret);
+        PublishInnerManager::instance().publishAppSchedule(ret);
 
 
     } else {
@@ -239,7 +239,7 @@ string DelTimerStrategy::handler(string params) {
         cout << "280  " << js["timerid"] << endl;
         ret.data.append(js.dump());
 
-        PublishOutManager::instance().publishAppSchedule(ret);
+        PublishInnerManager::instance().publishAppSchedule(ret);
 
         // return "";
         json jj;

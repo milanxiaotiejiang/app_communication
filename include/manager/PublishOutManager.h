@@ -34,8 +34,6 @@ private:
     ros::Publisher acceptAppJsonV1;
     ros::Publisher acceptAppJsonV2;
     ros::Publisher acceptAppCommunication;
-    ros::Publisher acceptAppSchedule; //定时文件内容更新
-    ros::Publisher acceptAppError;
 public:
     static auto &instance() {
         static PublishOutManager obj;
@@ -61,10 +59,6 @@ public:
     void publishAppJson(int version, const std_msgs::String &message) const;
 
     void publishAppCommunication(const std_msgs::String &message) const;
-
-    void publishAppSchedule(const std_msgs::String &message) const;
-
-    void publishAppError(const std_msgs::String &message) const;
 
     void publishAlarm(const internal_event::AlarmEvent& alarmEvent) const;
 

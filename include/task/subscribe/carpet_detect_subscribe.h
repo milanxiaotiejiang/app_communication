@@ -13,6 +13,8 @@ class CarpetDetectSubscribe {
     ros::Subscriber sub_carpet_;
     AsyncTaskCall *asyncTaskCall;
 
+    std::atomic<int> count;
+
     void subscribeCallback(const std_msgs::Int32 &carto_result);
 
 public:
