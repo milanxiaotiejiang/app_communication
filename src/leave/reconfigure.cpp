@@ -3,6 +3,7 @@
 //
 
 #include "leave/reconfigure.h"
+#include "simulation.h"
 
 #include <utility>
 
@@ -16,7 +17,9 @@ void DR::call(std::string service_name, dynamic_reconfigure::Config config) {
     dynamic_reconfigure::ReconfigureRequest reconfigureRequest;
     reconfigureRequest.config = std::move(config);
 
-    ros::service::call(service_name + "/set_parameters", reconfigureRequest, reconfigureResponse);
+    if (Environment::instance().isRealEnvironment) {
+        ros::service::call(service_name + "/set_parameters", reconfigureRequest, reconfigureResponse);
+    }
 }
 
 void DR::d(double value) {

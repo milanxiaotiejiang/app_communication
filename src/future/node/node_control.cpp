@@ -139,7 +139,7 @@ void NodeControl::onSleep() {
         if (Environment::instance().isRealEnvironment) {
             system_start(n_load_map);
         } else {
-            system_start(n_tt_load_map);
+//            system_start(n_tt_load_map);
         }
     });
     setWorkMode(node::State::sleep);
@@ -234,4 +234,10 @@ void NodeControl::changeSleepMode() {
     pool_.execute([this]() {
         trySleep();
     });
+}
+
+void NodeControl::emulate() {
+    work_state_ = node::WorkState::complete;
+    map_state_ = node::MapState::normal;
+    state_ = node::State::work;
 }

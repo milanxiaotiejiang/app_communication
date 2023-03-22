@@ -12,6 +12,8 @@
 #include "task/subscribe/FlagResultSubscribe.h"
 #include "task/call/reserved_call.h"
 #include "task/subscribe/CartographerSubscribe.h"
+#include "task/subscribe/carpet_detect_subscribe.h"
+#include "task/subscribe/lift_detect_subscribe.h"
 
 const int LOW_RSOC = 10;
 
@@ -28,6 +30,8 @@ private:
     FlagOutSubscribe *flagOutSubscribe;
     FlagInSubscribe *flagInSubscribe;
     CartographerSubscribe *cartographerSubscribe;
+    CarpetDetectSubscribe *carpetDetectSubscribe;
+    LiftDetectSubscribe *liftDetectSubscribe;
 
     void task2RealTask(const Task &task, RealTask &realTask);
 
