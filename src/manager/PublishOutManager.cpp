@@ -18,8 +18,7 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
 
     acceptAppJsonV1 = handle.advertise<std_msgs::String>(APP_JSON, 1);
     acceptAppJsonV2 = handle.advertise<std_msgs::String>(APP_JSON_V2, 1);
-    acceptAppSchedule = handle.advertise<std_msgs::String>(APP_SCHEDULE, 1);
-    acceptAppError = handle.advertise<std_msgs::String>(APP_ERROR, 1);
+
     acceptAppCommunication = handle.advertise<std_msgs::String>(APP_COMMUNICATION, 1);
 
     pub_knob_ = handle.advertise<std_msgs::String>(KNOB_APP, 10);
@@ -107,14 +106,6 @@ void PublishOutManager::publishAppJson(int version, const std_msgs::String &mess
     } else if (version == APP_JSON_VERSION::V2) {
         acceptAppJsonV2.publish(message);
     }
-}
-
-void PublishOutManager::publishAppSchedule(const std_msgs::String &message) const {
-    acceptAppSchedule.publish(message);
-}
-
-void PublishOutManager::publishAppError(const std_msgs::String &message) const {
-    acceptAppError.publish(message);
 }
 
 void PublishOutManager::publishAlarm(const internal_event::AlarmEvent& alarmEvent) const {

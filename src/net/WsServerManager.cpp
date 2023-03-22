@@ -148,7 +148,6 @@ void on_open(server *s, websocketpp::connection_hdl hdl) {
     ask.subMap[ODOM_APP] = false;
     ask.subMap[ROBOT_STATUS] = false;
     ask.subMap[MATERIAL_STATUS] = false;
-    ask.subMap[ERROR_APP] = false;
     ask.subMap[NOTICE_APP] = false;
     ask.subMap[TASK_POINT] = false;
     ask.subMap[CHECK_APP] = false;
@@ -263,7 +262,6 @@ public:
         dataMap[ODOM_APP] = "";
         dataMap[ROBOT_STATUS] = "";
         dataMap[MATERIAL_STATUS] = "";
-        dataMap[ERROR_APP] = "";
         dataMap[NOTICE_APP] = "";
         dataMap[TASK_POINT] = "";
         dataMap[CHECK_APP] = "";

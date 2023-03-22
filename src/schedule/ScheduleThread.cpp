@@ -19,7 +19,7 @@
 #include "simulation.h"
 
 ScheduleThread::ScheduleThread(ros::NodeHandle handle) : handle(handle) {
-    sub_json_ = handle.subscribe(APP_SCHEDULE, 1, &ScheduleThread::subscribeCallback, this);
+    sub_json_ = handle.subscribe("/app_schedule", 1, &ScheduleThread::subscribeCallback, this);
 }
 
 ScheduleThread::~ScheduleThread() {

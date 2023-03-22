@@ -39,16 +39,12 @@ using json = nlohmann::json;
 
 const string APP_JSON = "/app_json";
 const string APP_JSON_V2 = "/app_json_v2";
-const string APP_SCHEDULE = "/app_schedule";
-const string APP_ERROR = "/error_code";
 const string APP_COMMUNICATION = "/app_communication";
-const string MOVEBASERECOVERYFAILURE = "/move_base/recovery_failure";
 
 const string MAP_APP = "/map_app";
 const string ODOM_APP = "/odom_app";
 const string ROBOT_STATUS = "/robot_status";
 const string MATERIAL_STATUS = "/material_status";
-const string ERROR_APP = "/error_app";
 const string NOTICE_APP = "/notice_app";
 const string TASK_POINT = "/task_point";
 const string CHECK_APP = "/check_app";
