@@ -6,7 +6,7 @@
 #define APP_COMMUNICATION_MAP_SAVED_SUBSCRIBE_H
 
 #include <ros/ros.h>
-#include <std_msgs/Int16.h>
+#include <std_msgs/Int32.h>
 
 class MapSavedSubscribe {
 
@@ -15,7 +15,7 @@ private:
 
     ros::Subscriber sub_map_saved_;
 
-    void subscribeCallback(const std_msgs::Int16 &msg);
+    void subscribeCallback(const std_msgs::Int32 &msg);
 
 public:
     MapSavedSubscribe(ros::NodeHandle handle);

@@ -16,6 +16,7 @@
 #include "task/subscribe/CartographerManager.h"
 #include "task/feedback.h"
 #include "task/manager/SwitchModePublish.h"
+#include "manager/PublishInnerManager.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -873,6 +874,10 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
                 LOG(INFO) << "NativeSystemManager : executeCarpet "
                           << "  检测到地毯并且已经收起清洁机构"
                           << " ...";
+                for (int i = 0; i < 15; i++) {
+                    carpetStop();
+                    ros::Duration(0.3).sleep();
+                }
             }
         } else {
             if (isCarpetAndPack) {
@@ -884,6 +889,17 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
             }
         }
     }
+}
+
+void AsyncTaskCall::carpetStop() {
+    geometry_msgs::Twist twist;
+    twist.linear.x = 0;
+    twist.linear.y = 0;
+    twist.linear.z = 0;
+    twist.angular.x = 0;
+    twist.angular.y = 0;
+    twist.angular.z = 0;
+    PublishInnerManager::instance().publishVelocity(twist);
 }
 
 void AsyncTaskCall::executeLift(bool lift) {

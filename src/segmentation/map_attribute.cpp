@@ -171,7 +171,7 @@ bool MapAttribute::isCreatingMap() const {
 bool MapAttribute::saveMap() {
     //防止二次进入
     if (creating_map) {
-        throw app::exception(make_error_code(error::room_mb_file_open_fail));
+        throw app::exception(make_error_code(error::in_creating_map));
     }
     creating_map = true;
 
@@ -180,9 +180,10 @@ bool MapAttribute::saveMap() {
     map_save.data.append("save_map");
     PublishInnerManager::instance().publishCommand(map_save);
 
+    LOG(INFO) << "save_map";
     //加锁
     std::unique_lock<std::mutex> lck(wait_mutex);
-    if (wait_cv.wait_for(lck, std::chrono::seconds(5)) == std::cv_status::timeout) {
+    if (wait_cv.wait_for(lck, std::chrono::seconds(20)) == std::cv_status::timeout) {
         //timeout
         creating_map = false;
         return false;
@@ -193,5 +194,6 @@ bool MapAttribute::saveMap() {
 }
 
 void MapAttribute::notifySaveMap() {
-    wait_cv.notify_one();
+    LOG(INFO) << "notify_save_map";
+    wait_cv.notify_all();
 }

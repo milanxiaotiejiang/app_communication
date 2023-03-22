@@ -154,6 +154,8 @@ public:
 
     void executeCarpet(bool carpet);
 
+    void carpetStop();
+
     void executeLift(bool lift);
 
 
