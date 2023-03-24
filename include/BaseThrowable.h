@@ -304,7 +304,7 @@ namespace error {
                 case error::mode_switching_is_not_supported:
                     return "暂不支持模式切换，请稍后调用";
                 case error::create_map_fail:
-                    return "create map fail";
+                    return "保存地图失败，请稍后调用";
                 default:
                     return "Unknown";
             }
