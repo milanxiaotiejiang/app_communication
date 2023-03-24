@@ -268,7 +268,7 @@ CombinationPointGenerator::generateRecPointListForViewPart(std::vector<Point> zo
     y_dir[1] = point_next.getY() - point.getY();
 
 
-    int num = 8;
+    int num = 12;
     if (x_len <= y_len) {
 
         CombinationPoseVo first(point.getX(), point.getY(), 0, 0);
