@@ -110,3 +110,22 @@ vector<TimerVo> ListTimerStrategy::handler(string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTimerFoMap(map.id);
 }
+
+TaskVo BuildPrincipalTaskStrategy::handler(long params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    return TaskDataBase::instance().modifyPrincipalTask(map.id, params, true);
+}
+
+TaskVo CancelPrincipalTaskStrategy::handler(long params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    return TaskDataBase::instance().modifyPrincipalTask(map.id, params, false);
+}
+
+TaskVo PrincipalTaskStrategy::handler(string params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    const TaskVo &vo = TaskDataBase::instance().loadPrincipalTask(map.id);
+    if (vo.getId() == -1) {
+        throw std::invalid_argument("The main task is not set");
+    }
+    return vo;
+}

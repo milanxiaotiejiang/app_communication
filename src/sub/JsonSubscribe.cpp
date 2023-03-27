@@ -190,13 +190,13 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new UpdateTimerStrategy();
             break;
         case SET_TIMER_:
-            messageStrategy = new AddTimerStrategy();
+            messageStrategy = new SetTimerStrategy();
             break;
         case GET_TIMER_LIST_:
             messageStrategy = new GetTimerListStrategy();
             break;
         case DEL_TIMER_:
-            messageStrategy = new DeleteTimerStrategy();
+            messageStrategy = new DelTimerStrategy();
             break;
         case SAVE_LOCATION:
             messageStrategy = new LocationStrategy();
@@ -356,6 +356,15 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case QUERY_ID_TASK:
             messageStrategy = new QueryIdTaskStrategy();
+            break;
+        case BUILD_PRINCIPAL_TASK:
+            messageStrategy = new BuildPrincipalTaskStrategy();
+            break;
+        case CANCEL_PRINCIPAL_TASK:
+            messageStrategy = new CancelPrincipalTaskStrategy();
+            break;
+        case PRINCIPAL_TASK:
+            messageStrategy = new PrincipalTaskStrategy();
             break;
         case ADD_TIMER:
             messageStrategy = new AddTimerStrategy();

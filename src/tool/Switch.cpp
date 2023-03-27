@@ -360,6 +360,15 @@ int switch_ID(const std::string &str) {
     if (str == "query_id_task") {
         return QUERY_ID_TASK;
     }
+    if (str == "build_principal_task") {
+        return BUILD_PRINCIPAL_TASK;
+    }
+    if (str == "cancel_principal_task") {
+        return CANCEL_PRINCIPAL_TASK;
+    }
+    if (str == "principal_task") {
+        return PRINCIPAL_TASK;
+    }
     if (str == "add_timer") {
         return ADD_TIMER;
     }

@@ -52,11 +52,14 @@ public:
     void deleteTimerForMap(std::string mapId);
 
     //改
+    TaskVo modifyPrincipalTask(std::string mapId, long taskId, bool principal);
 
     //查
     std::vector<TaskVo> loadTaskFoMap(std::string mapId);
 
     TaskVo loadTaskFoId(long taskId);
+
+    TaskVo loadPrincipalTask(std::string mapId);
 
     std::vector<TimerVo> loadTimerFoMap(std::string mapId);
 

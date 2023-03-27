@@ -67,7 +67,8 @@ public:
 
     ros::Publisher path_pub_;
 
-    CoveragePathGenerator pathGenerator;
+    CoveragePathGenerator coveragePathGenerator;
+    SubregionPathGenerator subregionPathGenerator;
 
     void initialize(ros::NodeHandle handle);
 
@@ -75,7 +76,11 @@ public:
 
     void repaintCoveragePath(bool retrieveStation, bool resetSegmentation);
 
+    void repaintSubregionPath();
+
     RoomCoverage obtainCoveragePath();
+
+    RoomCoverage obtainSubregionPath();
 
     void infinitelyNearBoundary(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
                                 std::vector<cv::Point> &point_path);

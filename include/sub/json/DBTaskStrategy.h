@@ -43,4 +43,19 @@ public:
     vector<TimerVo> handler(string params) override;
 };
 
+class BuildPrincipalTaskStrategy : public MessageStrategy<long, TaskVo> {
+public:
+    TaskVo handler(long params) override;
+};
+
+class CancelPrincipalTaskStrategy : public MessageStrategy<long, TaskVo> {
+public:
+    TaskVo handler(long params) override;
+};
+
+class PrincipalTaskStrategy : public MessageStrategy<string, TaskVo> {
+public:
+    TaskVo handler(string params) override;
+};
+
 #endif //APP_COMMUNICATION_DBTASKSTRATEGY_H

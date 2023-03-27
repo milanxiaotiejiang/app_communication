@@ -269,6 +269,18 @@ void TaskDataBase::deleteTimerForMap(std::string mapId) {
     taskStorage.remove_all<TimerPo>(where(c(&TimerPo::o_map_id) == std::move(mapId)));
 }
 
+TaskVo TaskDataBase::modifyPrincipalTask(std::string mapId, long taskId, bool principal) {
+    if (principal) {
+        taskStorage.update_all(sqlite_orm::set(c(&TaskPo::partition) = false),
+                               where(c(&TaskPo::o_map_id) == std::move(mapId))
+        );
+    }
+    auto task = taskStorage.get<TaskPo>(taskId);
+    task.principal = principal;
+    taskStorage.update(task);
+    return taskPo2Vo(task);
+}
+
 std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
     std::vector<TaskVo> tasks;
 
@@ -296,6 +308,29 @@ TaskVo TaskDataBase::loadTaskFoId(long taskId) {
         taskPo.zones.push_back(z);
     }
     return taskPo2Vo(taskPo);
+}
+
+TaskVo TaskDataBase::loadPrincipalTask(std::string mapId) {
+    TaskVo taskVo;
+    taskVo.setId(-1);
+
+    auto taskPos = taskStorage.get_all<TaskPo>(
+            where(
+                    c(&TaskPo::o_map_id) == std::move(mapId)
+                    and c(&TaskPo::principal) == true
+            )
+    );
+    if (taskPos.empty()) {
+        return taskVo;
+    }
+    if (taskPos.size() != 1) {
+        taskStorage.update_all(sqlite_orm::set(c(&TaskPo::partition) = false),
+                               where(c(&TaskPo::o_map_id) == std::move(mapId))
+        );
+        return taskVo;
+    }
+    auto principalTask = taskPos[0];
+    return taskPo2Vo(principalTask);
 }
 
 std::vector<TimerVo> TaskDataBase::loadTimerFoMap(std::string mapId) {

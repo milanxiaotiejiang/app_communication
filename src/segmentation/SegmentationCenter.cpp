@@ -409,6 +409,7 @@ void SegmentationCenter::memory2Storage(cv::Mat &segmented_map, std::vector<Room
         throw app::exception(make_error_code(error::in_creating_map));
     }
     SegmentationDataBase::instance().memory2Storage(segmented_map, rooms);
+    ExplorationCenter::instance().repaintSubregionPath();
 }
 
 void SegmentationCenter::storage2Memory(cv::Mat &segmented_map, std::vector<Room> &rooms) {

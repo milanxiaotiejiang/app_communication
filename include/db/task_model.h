@@ -55,9 +55,12 @@ struct TaskPo {
     int aromatherapy{-1};
     int disinfect{-1};
 
+    bool principal{false};
+
     std::vector<ZonePo> zones;
     bool partition;
     std::string subregion_range;
+    bool knife;
 
     TaskSource source;
     std::string launch_people;

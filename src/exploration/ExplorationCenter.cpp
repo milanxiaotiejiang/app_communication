@@ -37,7 +37,8 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
     initialize_finish = true;
 
     if (!DISPLAY_TRAJECTORY_EFFECT) {
-        pathGenerator.preloadCoveragePath();
+        coveragePathGenerator.preloadCoveragePath();
+        subregionPathGenerator.preloadCoveragePath();
     }
 
     //testing
@@ -90,13 +91,24 @@ void ExplorationCenter::repaintCoveragePath(bool retrieveStation, bool resetSegm
         MapAttribute::instance().loadStation();
     if (resetSegmentation)
         SegmentationCenter::instance().resetSegmentation();
-    pathGenerator.repaintCoveragePath();
+    coveragePathGenerator.repaintCoveragePath();
+    repaintSubregionPath();
+}
+
+void ExplorationCenter::repaintSubregionPath() {
+    subregionPathGenerator.repaintCoveragePath();
 }
 
 RoomCoverage ExplorationCenter::obtainCoveragePath() {
     auto map = SegmentationCenter::instance().generateMat();
     auto overtime = map.rows * map.cols / 20;
-    return pathGenerator.obtainCoveragePath(overtime);
+    return coveragePathGenerator.obtainCoveragePath(overtime);
+}
+
+RoomCoverage ExplorationCenter::obtainSubregionPath() {
+    auto map = SegmentationCenter::instance().generateMat();
+    auto overtime = map.rows * map.cols / 20;
+    return subregionPathGenerator.obtainCoveragePath(overtime);
 }
 
 void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
