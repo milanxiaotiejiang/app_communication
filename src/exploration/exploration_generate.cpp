@@ -20,10 +20,8 @@ CoveragePathGenerator::CoveragePathGenerator() {
 void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &exploration_path,
                                           std::vector<cv::Point> &point_path) {
     const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
-    ExplorationCenter::instance().generatePlanningPath(baseMap, ExplorationModel::FULL,
-                                                       BOUSTROPHEDON_EXPLORER_MODE, false,
-                                                       cv::Point(0, 0),
-                                                       exploration_path, point_path);
+    ExplorationCenter::instance().generatePlanningPathFull(baseMap, BOUSTROPHEDON_EXPLORER_MODE,
+                                                           exploration_path, point_path);
 }
 
 [[noreturn]] void CoveragePathGenerator::execute() {

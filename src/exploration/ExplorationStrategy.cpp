@@ -37,20 +37,17 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
 
         if (targetId == -1) {
             if (rooms.empty()) {
-                explorationCenter.generatePlanningPath(baseMap, ExplorationModel::FULL, explorerMode, false,
-                                                       cv::Point(0, 0), exploration_path, point_path);
+                explorationCenter.generatePlanningPathFull(baseMap, explorerMode, exploration_path, point_path);
             } else {
                 explorationCenter.generatePlanningSegmentationPath(baseMap, segmented_map, rooms, explorerMode,
                                                                    exploration_path, point_path);
             }
         } else {
             const cv::Mat &oneMap = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, targetId);
-            explorationCenter.generatePlanningPath(oneMap, ExplorationModel::SUB, explorerMode, false, cv::Point(0, 0),
-                                                   exploration_path, point_path);
+            explorationCenter.generatePlanningPathSub(oneMap, explorerMode, exploration_path, point_path);
         }
     } else {
-        explorationCenter.generatePlanningPath(baseMap, ExplorationModel::FULL, explorerMode, false, cv::Point(0, 0),
-                                               exploration_path, point_path);
+        explorationCenter.generatePlanningPathFull(baseMap, explorerMode, exploration_path, point_path);
     }
 
     explorationCenter.pathPublish(exploration_path);
@@ -171,8 +168,8 @@ RoomCoverage ExplorationTaskStrategy::handler(long params) {
             std::vector<geometry_msgs::Pose2D> sub_exploration_path;
             std::vector<cv::Point> sub_point_path;
             try {
-                ExplorationCenter::instance().generatePlanningPath(zoned_image, ExplorationModel::RECT,
-                                                                   sub_exploration_path, sub_point_path);
+                ExplorationCenter::instance().generatePlanningPathRect(zoned_image, BOUSTROPHEDON_EXPLORER_MODE,
+                                                                       sub_exploration_path, sub_point_path);
 
             } catch (app::exception const &e) {
                 LOG(ERROR) << e.what();
@@ -198,8 +195,8 @@ RoomCoverage ExplorationTaskStrategy::handler(long params) {
             coverage.setPoseList(obtainSubregion.getPoseList());
             coverage.setPointList(obtainSubregion.getPointList());
         } else {
-//            explorationCenter.generatePlanningPath(baseMap, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE,
-//                                                   false, cv::Point(0, 0), exploration_path, point_path);
+//            explorationCenter.generatePlanningPathFull(baseMap, BOUSTROPHEDON_EXPLORER_MODE,
+//                                                       exploration_path, point_path);
             auto obtainCoverage = ExplorationCenter::instance().obtainCoveragePath();
             coverage.setPoseList(obtainCoverage.getPoseList());
             coverage.setPointList(obtainCoverage.getPointList());
@@ -214,11 +211,9 @@ RoomCoverage ExplorationTaskStrategy::handler(long params) {
             std::vector<geometry_msgs::Pose2D> sub_exploration_path;
             std::vector<cv::Point> sub_point_path;
 
-//            SegmentationDataBase::instance().selectByMapId()
-//            targetId
             const cv::Mat &oneMap = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, subregionId);
-            explorationCenter.generatePlanningPath(oneMap, ExplorationModel::SUB, BOUSTROPHEDON_EXPLORER_MODE,
-                                                   false, cv::Point(0, 0), sub_exploration_path, sub_point_path);
+            explorationCenter.generatePlanningPathSub(oneMap, BOUSTROPHEDON_EXPLORER_MODE,
+                                                      sub_exploration_path, sub_point_path);
 
             for (const auto &item: sub_exploration_path) {
                 exploration_path.push_back(item);

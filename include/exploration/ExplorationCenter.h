@@ -13,6 +13,9 @@
 #include "model/RoomVo.h"
 #include "segmentation/Room.h"
 #include "exploration_generate.h"
+#include "future/thread_pool.h"
+
+#define  EXPLORATION_THREAD_POOL_MAX_NUM 1
 
 const int BOUSTROPHEDON_EXPLORER_MODE = 1;
 
@@ -25,12 +28,23 @@ enum ExplorationModel {
 class ExplorationCenter {
 private:
     bool initialize_finish = false;
-    std::mutex cv_mut;
+    std::recursive_mutex cv_mut;
 
     OdomSubscribe *poseSubscribe;
     MapSavedSubscribe *mapSavedSubscribe;
 
+    async::ThreadPool pool_;
+
     cache::lru_cache<std::string, RoomCoverage> coverageCache = cache::lru_cache<std::string, RoomCoverage>(3);
+
+    void generatePlanningPath(const cv::Mat &room_map, ExplorationModel model, int explorer_mode,
+                              bool ordain_start, const cv::Point &start_position,
+                              std::vector<geometry_msgs::Pose2D> &exploration_path,
+                              std::vector<cv::Point> &point_path);
+
+    void optimizePlanningPath(const cv::Mat &room_map,
+                              std::vector<geometry_msgs::Pose2D> &exploration_path,
+                              std::vector<cv::Point> &point_path);
 
     bool baseStationAvailable(cv::Mat &room_map, const cv::Point &point);
 
@@ -52,8 +66,6 @@ private:
                       const std::vector<cv::Point> &pointList, const cv::Point2d &map_origin);
 
     cv::Mat loadGenerateMap(int grid_spacing_in_pixel);
-
-    void optimizePathColumn(std::vector<geometry_msgs::Pose2D> &vector);
 
     bool detectionTooSmallRoom(const cv::Mat &map, int iterations) const;
 
@@ -85,14 +97,17 @@ public:
     void infinitelyNearBoundary(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
                                 std::vector<cv::Point> &point_path);
 
-    void generatePlanningPath(const cv::Mat &room_map, ExplorationModel model,
-                              std::vector<geometry_msgs::Pose2D> &exploration_path,
-                              std::vector<cv::Point> &point_path);
+    void generatePlanningPathRect(const cv::Mat &room_map, int explorer_mode,
+                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
+                                  std::vector<cv::Point> &point_path);
 
-    void generatePlanningPath(const cv::Mat &room_map, ExplorationModel model, int explorer_mode,
-                              bool ordain_start, const cv::Point &start_position,
-                              std::vector<geometry_msgs::Pose2D> &exploration_path,
-                              std::vector<cv::Point> &point_path);
+    void generatePlanningPathSub(const cv::Mat &room_map, int explorer_mode,
+                                 std::vector<geometry_msgs::Pose2D> &exploration_path,
+                                 std::vector<cv::Point> &point_path);
+
+    void generatePlanningPathFull(const cv::Mat &room_map, int explorer_mode,
+                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
+                                  std::vector<cv::Point> &point_path);
 
     void generatePlanningSegmentationPath(const cv::Mat &room_map, cv::Mat segmented_map, std::vector<Room> rooms,
                                           int explorer_mode,

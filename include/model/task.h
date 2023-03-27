@@ -227,5 +227,4 @@ public:
     }
 };
 
-
 #endif //APP_COMMUNICATION_TASK_H

@@ -206,8 +206,8 @@ std::vector<RealPoint> RectanglePointGenerator::taskGeneratePointList(RealTask t
 
     std::vector<geometry_msgs::Pose2D> exploration_path;
     std::vector<cv::Point> point_path;
-    ExplorationCenter::instance().generatePlanningPath(zoned_image, ExplorationModel::RECT,
-                                                       exploration_path, point_path);
+    ExplorationCenter::instance().generatePlanningPathRect(zoned_image, BOUSTROPHEDON_EXPLORER_MODE,
+                                                           exploration_path, point_path);
 
     ExplorationCenter::instance().pathPublish(exploration_path);
 

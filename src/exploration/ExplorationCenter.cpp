@@ -36,9 +36,13 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     initialize_finish = true;
 
+    pool_.setNumOfThreads(EXPLORATION_THREAD_POOL_MAX_NUM);
+
     if (!DISPLAY_TRAJECTORY_EFFECT) {
-        coveragePathGenerator.preloadCoveragePath();
-        subregionPathGenerator.preloadCoveragePath();
+        pool_.execute([this]() {
+            coveragePathGenerator.preloadCoveragePath();
+            subregionPathGenerator.preloadCoveragePath();
+        });
     }
 
     //testing
@@ -111,113 +115,10 @@ RoomCoverage ExplorationCenter::obtainSubregionPath() {
     return subregionPathGenerator.obtainCoveragePath(overtime);
 }
 
-void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
-                                               std::vector<geometry_msgs::Pose2D> &pose_path,
-                                               std::vector<cv::Point> &point_path) {
-    if (!initialize_finish) {
-        throw app::exception(make_error_code(error::exploration_initialize_fail));
-    }
-    if (MapAttribute::instance().isCreatingMap()) {
-        throw app::exception(make_error_code(error::in_creating_map));
-    }
-
-    std::unique_lock<std::mutex> lock(cv_mut);
-
-    cv::Mat map = room_map.clone();
-
-    cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
-    const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
-
-    //禁区虚拟墙
-    cv::Mat prohibition_image = prohibitionMat(map);
-    cv::Mat andMat;
-    cv::bitwise_and(map, prohibition_image, andMat);
-    cv::bitwise_xor(map, andMat, map);
-
-    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
-    double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
-    double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
-    int half_grid_spacing_as_int_ = (int) std::floor(0.5 * grid_spacing_in_pixel);
-
-    int distance_from_obstacles = plan.distance_from_obstacles;
-    if (distance_from_obstacles < -half_grid_spacing_as_int_) {
-        distance_from_obstacles = -half_grid_spacing_as_int_ + 1;
-    }
-    int number_extension = plan.number_extension > 0 ? plan.number_extension : 1;
-    int multiple_contour_spacing = plan.multiple_contour_spacing;
-    if (std::abs(multiple_contour_spacing) > half_grid_spacing_as_int_) {
-        if (multiple_contour_spacing > 0) {
-            multiple_contour_spacing = half_grid_spacing_as_int_;
-        } else {
-            multiple_contour_spacing = -half_grid_spacing_as_int_;
-        }
-    }
-    int random_number_generation_ratio = plan.random_number_generation_ratio;
-    int boundary_min_area = plan.boundary_min_area;
-    LOG(INFO) << "(infinitely near boundary) distance_from_obstacles: " << distance_from_obstacles;
-    LOG(INFO) << "(infinitely near boundary) number_extension: " << number_extension;
-    LOG(INFO) << "(infinitely near boundary) multiple_contour_spacing: " << multiple_contour_spacing;
-    LOG(INFO) << "(infinitely near boundary) random_number_generation_ratio: " << random_number_generation_ratio;
-
-    morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
-
-    drawBaseStation(map, stationPoint, grid_spacing_in_pixel + plan.range_near_base_station);
-
-    cv::Mat latelyMap = findClosestPointRoom(map, stationPoint);
-
-    if (!removeUnconnectedRoomParts(latelyMap)) {
-        LOG(ERROR)
-                << "RoomExplorationServer::infinitelyNearBoundary: Warning: the requested room is too small for generating exploration trajectories.";
-        throw app::exception(make_error_code(error::exploration_room_is_too_small));
-    }
-
-    if (!detectionTooSmallRoom(latelyMap, half_grid_spacing_as_int_ + plan.grid_obstacle_offset)) {
-        throw app::exception(make_error_code(error::room_has_too_small_room));
-    }
-
-    int start_time = ros::Time::now().sec;
-
-    InfinitelyNearBoundary infinitelyNearBoundary;
-    infinitelyNearBoundary.getExplorationPath(room_map.clone(), latelyMap, pose_path, point_path,
-                                              map_resolution_from_subscription,
-                                              stationPoint, map_origin,
-                                              plan.robot_radius,
-                                              number_extension,
-                                              distance_from_obstacles,
-                                              multiple_contour_spacing,
-                                              random_number_generation_ratio,
-                                              boundary_min_area
-    );
-
-    int end_time = ros::Time::now().sec;
-    std::cout << "cost infinitelyNearBoundary : " << end_time - start_time << " s " << std::endl;
-
-    if (pose_path.empty()) {
-        throw app::exception(make_error_code(error::exploration_path_planning_failed));
-    }
-
-    if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
-        planning_pose_path_display(room_map, map_origin, pose_path, 1, "planning_pose_path_display");
-}
-
-void
-ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, ExplorationModel model,
-                                        std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                        std::vector<cv::Point> &point_path) {
-    generatePlanningPath(room_map, model, BOUSTROPHEDON_EXPLORER_MODE, false, cv::Point(0, 0),
-                         exploration_path, point_path);
-}
-
 void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, ExplorationModel model, int explorer_mode,
                                              bool ordain_start, const cv::Point &start_position,
                                              std::vector<geometry_msgs::Pose2D> &exploration_path,
                                              std::vector<cv::Point> &point_path) {
-    if (!initialize_finish) {
-        throw app::exception(make_error_code(error::exploration_initialize_fail));
-    }
-
-    std::unique_lock<std::mutex> lock(cv_mut);
-
     cv::Mat map = room_map.clone();
 
     cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
@@ -342,31 +243,238 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
     int end_time = ros::Time::now().sec;
     std::cout << "cost getExplorationPath : " << (end_time - start_time) << " s " << std::endl;
+}
 
+void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
+                                             std::vector<geometry_msgs::Pose2D> &exploration_path,
+                                             std::vector<cv::Point> &point_path) {
     if (exploration_path.empty()) {
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
 
+    cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
+
     LOG(INFO) << "exploration_path front point size : " << exploration_path.size();
-    optimizePathColumn(exploration_path);
+    if (exploration_path.size() < 3) {
+        return;
+    }
+    std::vector<geometry_msgs::Pose2D> optimize;
+    optimize.push_back(exploration_path[0]);
+    geometry_msgs::Pose2D last = exploration_path[0];
+    for (int i = 1; i < exploration_path.size() - 1; ++i) {
+        if (!conversion::one_line(last, exploration_path[i], exploration_path[i + 1])) {
+            if (
+                    sqrt(pow(exploration_path[i].x - exploration_path[i + 1].x, 2) +
+                         pow(exploration_path[i + 1].y - exploration_path[i].y, 2)
+                    ) < 1.0
+                    ) {
+                last = exploration_path[i];
+                optimize.push_back(exploration_path[i]);
+            }
+        }
+    }
+    optimize.push_back(exploration_path[exploration_path.size() - 1]);
+
+    exploration_path.clear();
+    for (const auto &item: optimize) {
+        exploration_path.push_back(item);
+    }
     LOG(INFO) << "exploration_path after point size : " << exploration_path.size();
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
-        planning_pose_path_display(room_map, map_origin, exploration_path, 1, "planning_pose_path_display");
+        planning_pose_path_display(room_map, map_origin, exploration_path, 1, "optimizePlanningPath");
 
     pose2CVPoint(room_map, point_path, exploration_path, map_origin);
     if (DISPLAY_TRAJECTORY)
-        planning_point_path_display(room_map, point_path, 1, "planning_point_path_display");
+        planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
+}
 
+void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
+                                               std::vector<geometry_msgs::Pose2D> &pose_path,
+                                               std::vector<cv::Point> &point_path) {
+    if (!initialize_finish) {
+        throw app::exception(make_error_code(error::exploration_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
+
+    std::unique_lock<std::recursive_mutex> lock(cv_mut);
+
+    cv::Mat map = room_map.clone();
+
+    cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
+    const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
+
+    //禁区虚拟墙
+    cv::Mat prohibition_image = prohibitionMat(map);
+    cv::Mat andMat;
+    cv::bitwise_and(map, prohibition_image, andMat);
+    cv::bitwise_xor(map, andMat, map);
+
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
+    double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
+    int half_grid_spacing_as_int_ = (int) std::floor(0.5 * grid_spacing_in_pixel);
+
+    int distance_from_obstacles = plan.distance_from_obstacles;
+    if (distance_from_obstacles < -half_grid_spacing_as_int_) {
+        distance_from_obstacles = -half_grid_spacing_as_int_ + 1;
+    }
+    int number_extension = plan.number_extension > 0 ? plan.number_extension : 1;
+    int multiple_contour_spacing = plan.multiple_contour_spacing;
+    if (std::abs(multiple_contour_spacing) > half_grid_spacing_as_int_) {
+        if (multiple_contour_spacing > 0) {
+            multiple_contour_spacing = half_grid_spacing_as_int_;
+        } else {
+            multiple_contour_spacing = -half_grid_spacing_as_int_;
+        }
+    }
+    int random_number_generation_ratio = plan.random_number_generation_ratio;
+    int boundary_min_area = plan.boundary_min_area;
+    LOG(INFO) << "(infinitely near boundary) distance_from_obstacles: " << distance_from_obstacles;
+    LOG(INFO) << "(infinitely near boundary) number_extension: " << number_extension;
+    LOG(INFO) << "(infinitely near boundary) multiple_contour_spacing: " << multiple_contour_spacing;
+    LOG(INFO) << "(infinitely near boundary) random_number_generation_ratio: " << random_number_generation_ratio;
+
+    morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
+
+    drawBaseStation(map, stationPoint, grid_spacing_in_pixel + plan.range_near_base_station);
+
+    cv::Mat latelyMap = findClosestPointRoom(map, stationPoint);
+
+    if (!removeUnconnectedRoomParts(latelyMap)) {
+        LOG(ERROR)
+                << "RoomExplorationServer::infinitelyNearBoundary: Warning: the requested room is too small for generating exploration trajectories.";
+        throw app::exception(make_error_code(error::exploration_room_is_too_small));
+    }
+
+    if (!detectionTooSmallRoom(latelyMap, half_grid_spacing_as_int_ + plan.grid_obstacle_offset)) {
+        throw app::exception(make_error_code(error::room_has_too_small_room));
+    }
+
+    int start_time = ros::Time::now().sec;
+
+    InfinitelyNearBoundary infinitelyNearBoundary;
+    infinitelyNearBoundary.getExplorationPath(room_map.clone(), latelyMap, pose_path, point_path,
+                                              map_resolution_from_subscription,
+                                              stationPoint, map_origin,
+                                              plan.robot_radius,
+                                              number_extension,
+                                              distance_from_obstacles,
+                                              multiple_contour_spacing,
+                                              random_number_generation_ratio,
+                                              boundary_min_area
+    );
+
+    int end_time = ros::Time::now().sec;
+    std::cout << "cost infinitelyNearBoundary : " << end_time - start_time << " s " << std::endl;
+
+    if (pose_path.empty()) {
+        throw app::exception(make_error_code(error::exploration_path_planning_failed));
+    }
+
+    if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
+        planning_pose_path_display(room_map, map_origin, pose_path, 1, "planning_pose_path_display");
+}
+
+void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int explorer_mode,
+                                                 std::vector<geometry_msgs::Pose2D> &exploration_path,
+                                                 std::vector<cv::Point> &point_path) {
+    std::unique_lock<std::recursive_mutex> lock(cv_mut);
+
+    LOG(INFO) << "------------------------- start generatePlanningPathRect -------------------------";
+
+    if (!initialize_finish) {
+        throw app::exception(make_error_code(error::exploration_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
+
+    generatePlanningPath(room_map,
+                         ExplorationModel::RECT,
+                         explorer_mode,
+                         false,
+                         cv::Point(0, 0),
+                         exploration_path,
+                         point_path
+    );
+
+    optimizePlanningPath(room_map, exploration_path, point_path);
+
+    LOG(INFO) << "------------------------- end generatePlanningPathRect -------------------------";
+}
+
+void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, int explorer_mode,
+                                                std::vector<geometry_msgs::Pose2D> &exploration_path,
+                                                std::vector<cv::Point> &point_path) {
+    std::unique_lock<std::recursive_mutex> lock(cv_mut);
+
+    LOG(INFO) << "------------------------- start generatePlanningPathSub -------------------------";
+
+    if (!initialize_finish) {
+        throw app::exception(make_error_code(error::exploration_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
+
+    generatePlanningPath(room_map,
+                         ExplorationModel::SUB,
+                         explorer_mode,
+                         false,
+                         cv::Point(0, 0),
+                         exploration_path,
+                         point_path
+    );
+
+    optimizePlanningPath(room_map, exploration_path, point_path);
+
+    LOG(INFO) << "------------------------- end generatePlanningPathSub -------------------------";
+}
+
+void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int explorer_mode,
+                                                 std::vector<geometry_msgs::Pose2D> &exploration_path,
+                                                 std::vector<cv::Point> &point_path) {
+    std::unique_lock<std::recursive_mutex> lock(cv_mut);
+
+    LOG(INFO) << "------------------------- start generatePlanningPathFull -------------------------";
+
+    if (!initialize_finish) {
+        throw app::exception(make_error_code(error::exploration_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
+
+    generatePlanningPath(room_map,
+                         ExplorationModel::FULL,
+                         explorer_mode,
+                         false,
+                         cv::Point(0, 0),
+                         exploration_path,
+                         point_path
+    );
+
+    optimizePlanningPath(room_map, exploration_path, point_path);
+
+    LOG(INFO) << "------------------------- end generatePlanningPathFull -------------------------";
 }
 
 void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map, cv::Mat segmented_map,
                                                          std::vector<Room> rooms, int explorer_mode,
                                                          std::vector<geometry_msgs::Pose2D> &exploration_path,
                                                          std::vector<cv::Point> &point_path) {
+    std::unique_lock<std::recursive_mutex> lock(cv_mut);
+
+    LOG(INFO) << "------------------------- start generatePlanningSegmentationPath -------------------------";
 
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
 
     cv::Mat map = SegmentationCenter::instance().generateMat();
@@ -421,11 +529,15 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
         std::vector<geometry_msgs::Pose2D> child_exploration_path;
         std::vector<cv::Point> child_point_path;
         try {
-            ExplorationCenter::instance().generatePlanningPath(one_map, ExplorationModel::SUB, explorer_mode,
+            ExplorationCenter::instance().generatePlanningPath(one_map,
+                                                               ExplorationModel::SUB,
+                                                               explorer_mode,
                                                                i != 0, start_position,
-                                                               child_exploration_path, child_point_path);
-            if (DISPLAY_TRAJECTORY)
-                planning_point_path_display(map, child_point_path, 2, "planning_point_path_display");
+                                                               child_exploration_path,
+                                                               child_point_path
+            );
+
+            optimizePlanningPath(map, child_exploration_path, child_point_path);
 
             each_pose_map.insert(std::make_pair(pos, child_exploration_path));
             each_point_map.insert(std::make_pair(pos, child_point_path));
@@ -463,12 +575,9 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
         }
     }
 
-    cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
-    if (DISPLAY_TRAJECTORY)
-        planning_pose_path_display(room_map, map_origin, exploration_path, 2, "planning_pose_path_display");
+    optimizePlanningPath(room_map, exploration_path, point_path);
 
-    if (DISPLAY_TRAJECTORY)
-        planning_point_path_display(room_map, point_path, 2, "planning_point_path_display");
+    LOG(INFO) << "------------------------- end generatePlanningSegmentationPath -------------------------";
 }
 
 void ExplorationCenter::pathPublish(const std::vector<geometry_msgs::Pose2D> &exploration_path) const {
@@ -677,29 +786,6 @@ cv::Mat ExplorationCenter::loadGenerateMap(int grid_spacing_in_pixel) {
     cv::bitwise_xor(generate_map, andMat, generate_map);
     cv::erode(generate_map, generate_map, cv::Mat(), cv::Point(-1, -1), grid_spacing_in_pixel);
     return generate_map;
-}
-
-void ExplorationCenter::optimizePathColumn(std::vector<geometry_msgs::Pose2D> &vector) {
-    if (vector.size() < 3) {
-        return;
-    }
-    std::vector<geometry_msgs::Pose2D> optimize;
-    optimize.push_back(vector[0]);
-    geometry_msgs::Pose2D last = vector[0];
-    for (int i = 1; i < vector.size() - 1; ++i) {
-        if (!conversion::one_line(last, vector[i], vector[i + 1])) {
-            if (sqrt(pow(vector[i].x - vector[i + 1].x, 2) + pow(vector[i + 1].y - vector[i].y, 2)) < 1.0) {
-                last = vector[i];
-                optimize.push_back(vector[i]);
-            }
-        }
-    }
-    optimize.push_back(vector[vector.size() - 1]);
-
-    vector.clear();
-    for (const auto &item: optimize) {
-        vector.push_back(item);
-    }
 }
 
 bool ExplorationCenter::detectionTooSmallRoom(const cv::Mat &map, int iterations) const {
