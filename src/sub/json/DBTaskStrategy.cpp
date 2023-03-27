@@ -66,7 +66,7 @@ long AddTaskStrategy::handler(TaskVo params) {
     return TaskDataBase::instance().addTask(map.id, params);
 }
 
-string DeleteTaskStrategy::handler(int params) {
+string DeleteTaskStrategy::handler(long params) {
     TaskDataBase::instance().deleteTaskFoId(params);
 }
 

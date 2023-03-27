@@ -13,9 +13,9 @@ public:
     long handler(TaskVo params) override;
 };
 
-class DeleteTaskStrategy : public MessageStrategy<int, string> {
+class DeleteTaskStrategy : public MessageStrategy<long, string> {
 public:
-    string handler(int params) override;
+    string handler(long params) override;
 };
 
 class ListTaskStrategy : public MessageStrategy<string, vector<TaskVo>> {
