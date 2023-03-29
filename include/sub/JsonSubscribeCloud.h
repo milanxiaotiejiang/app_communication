@@ -9,7 +9,7 @@
 #define APP_COMMUNICATION_JsonSubscribeV3_H
 
 #include "boost/thread.hpp"
-#include <model/Entrance.h>
+#include "net/base/Entrance.h"
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 #include <sub/json/MessageContext.h>

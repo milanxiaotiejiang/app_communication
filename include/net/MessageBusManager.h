@@ -6,7 +6,7 @@
 #define APP_COMMUNICATION_MESSAGEBUSMANAGER_H
 
 #include "tool/DangerousThreadPool.h"
-#include "tool/CThread.h"
+#include "future/CThread.h"
 #include "sys/socket.h"
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -30,8 +30,8 @@ public:
         return obj;
     }
 
-    MessageBus *getMessageBus() const;
-};
+    MessageBus *getMessageBus() const { return messageBus; }
 
+};
 
 #endif //APP_COMMUNICATION_MESSAGEBUSMANAGER_H

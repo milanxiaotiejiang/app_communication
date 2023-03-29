@@ -6,7 +6,7 @@
 #include "ros/package.h"
 #include "glog/logging.h"
 #include "db/path.h"
-#include <model/Entrance.h>
+#include "net/base/Entrance.h"
 
 
 string SetTimerStrategy::handler(TimerInfo params) {

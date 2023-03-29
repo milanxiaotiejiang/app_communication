@@ -4,7 +4,7 @@
 #include "model/InternalEvent.h"
 #include "model/SelfCheckErrorType.h"
 #include "PublishOutManager.h"
-#include "model/RequestModel.h"
+#include "net/base/RequestModel.h"
 #include "net/WsServerManager.h"
 #include <mutex>
 

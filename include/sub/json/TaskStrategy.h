@@ -8,13 +8,13 @@
 #include "MessageStrategy.h"
 #include <std_msgs/Int32.h>
 
-#include "model/BaseResult.h"
+#include "net/base/BaseResult.h"
 #include "model/Partion.h"
 #include "model/Point.h"
 #include "model/Task.h"
 #include "string"
 #include "tool/write_file.hpp"
-#include <model/BaseMethod.h>
+#include "net/base/BaseMethod.h"
 
 #include <nlohmann/json.hpp>
 #include <opencv2/core/core.hpp>
@@ -33,7 +33,6 @@
 #include <tf/transform_datatypes.h>
 #include <tf/transform_listener.h>
 #include "glog/logging.h"
-#include "tool/ThreadPool.h"
 #include <chrono>
 #include "model/UpgradeModel.h"
 #include "task/model/PointProgressVo.h"

@@ -7,12 +7,11 @@
 
 #include "MessageStrategy.h"
 #include <geometry_msgs/Twist.h>
-#include <model/BaseMethod.h>
-#include <model/BaseResult.h>
+#include "net/base/BaseMethod.h"
+#include "net/base/BaseResult.h"
 #include <manager/NoticeManager.h>
 #include "Python.h"
 #include <fstream>
-#include "tool/ThreadPool.h"
 
 using json = nlohmann::json;
 using namespace std;

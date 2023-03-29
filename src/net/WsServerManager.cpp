@@ -3,10 +3,10 @@
 //
 
 #include "net/WsServerManager.h"
-#include "tool/Queue.hpp"
+#include "net/poly/Queue.hpp"
 #include "simulation.h"
 #include "manager/PublishOutManager.h"
-#include "model/Twist.h"
+#include "net/ros/Twist.h"
 #include "manager/PublishInnerManager.h"
 #include "net/kill_port.h"
 #include <opencv2/opencv.hpp>

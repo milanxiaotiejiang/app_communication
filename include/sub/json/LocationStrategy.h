@@ -7,7 +7,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "model/BaseResult.h"
+#include "net/base/BaseResult.h"
 #include "model/Location.h"
 #include "MessageStrategy.h"
 

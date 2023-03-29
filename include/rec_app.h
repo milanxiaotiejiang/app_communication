@@ -26,11 +26,9 @@
 #include <unistd.h>
 #include <vector>
 
-#include "model/BaseMethod.h"
-#include "model/BaseResult.h"
-#include "model/CurrentExecuteTime.h"
-#include "model/Entrance.h"
-#include "model/MapBan.h"
+#include "net/base/BaseMethod.h"
+#include "net/base/BaseResult.h"
+#include "net/base/Entrance.h"
 #include "model/Notice.h"
 #include "model/TeachModePoint.h"
 
@@ -59,9 +57,8 @@
 #include "sys/types.h"
 #include "schedule/ScheduleThread.h"
 #include "sub/DSVersionSubscribe.h"
-#include "tool/Msg.hpp"
-#include "tool/Queue.hpp"
-#include "tool/ThreadPool.h"
+#include "net/poly/Msg.hpp"
+#include "net/poly/Queue.hpp"
 #include "manager/PublishInnerManager.h"
 #include "manager/PublishOutManager.h"
 #include "segmentation/SegmentationCenter.h"
@@ -79,7 +76,6 @@
 #include "model/FullClean.h"
 #include "manager/FullCleanManager.h"
 #include "sys/wait.h"
-#include "net/WebSocketManager.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>

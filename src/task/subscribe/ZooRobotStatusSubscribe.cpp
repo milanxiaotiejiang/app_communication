@@ -6,7 +6,7 @@
 #include "task/subscribe/zoo_inner_status.h"
 #include "task/subscribe/async_machine.h"
 #include "model/ShowWorkStatus.h"
-#include "model/VersionSubscribe.h"
+#include "net/base/VersionSubscribe.h"
 #include "manager/PublishOutManager.h"
 #include "task/manager/SwitchModePublish.h"
 #include "task/manager/NativeSystemManager.h"

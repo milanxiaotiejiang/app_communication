@@ -7,10 +7,10 @@
 
 #include "MessageStrategy.h"
 #include "string"
-#include <model/BaseMethod.h>
+#include "net/base/BaseMethod.h"
 
 #include "model/MapInfo.h"
-#include "model/BaseResult.h"
+#include "net/base/BaseResult.h"
 #include "tool/write_file.hpp"
 
 #include "prohibition.h"

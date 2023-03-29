@@ -22,8 +22,7 @@ ScheduleThread::ScheduleThread(ros::NodeHandle handle) : handle(handle) {
     sub_json_ = handle.subscribe("/app_schedule", 1, &ScheduleThread::subscribeCallback, this);
 }
 
-ScheduleThread::~ScheduleThread() {
-}
+ScheduleThread::~ScheduleThread() = default;
 
 std::string fixWeek(std::string strin) {
     //处理cron中默认dayofweek，有的默认从1开始，有的默认从0开始。从0开始就加一

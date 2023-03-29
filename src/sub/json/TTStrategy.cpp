@@ -3,6 +3,7 @@
 //
 
 #include "sub/json/TTStrategy.h"
+#include "tool/DangerousThreadPool.h"
 
 string AppAlongCleanStrategy::handler(vector<float> params) {
     //发布贴边命令
@@ -25,8 +26,8 @@ string PowerReductionStrategy::handler(string params) {
 }
 
 string TTErrorCheck::handler(string params) {
-    extern ThreadPool pool;
-    auto pythonFun = []() {
+    DangerousThreadPool dangerousThreadPool(1);
+    dangerousThreadPool.enqueue([]() {
 //        Py_Initialize();
 //        PyRun_SimpleString("PyRun_SimpleString");
 //        PyRun_SimpleString("import sys");
@@ -50,8 +51,7 @@ string TTErrorCheck::handler(string params) {
 //        Py_Finalize();
 
         std::system("python3 /home/admin1/test/SystemErrorCheck_Robot.py");  // "ls -l > test.txt"
-    };
-    pool.submit(pythonFun);
+    });
 
     return "";
 }

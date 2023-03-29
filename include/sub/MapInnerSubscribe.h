@@ -15,13 +15,7 @@ private:
     ros::NodeHandle handle;
     ros::Subscriber sub_map_inner_;
 
-    nav_msgs::OccupancyGrid map_app;
-
     int lastTime;
-public:
-    const nav_msgs::OccupancyGrid &getMapApp() const;
-
-    void setMapApp(const nav_msgs::OccupancyGrid &mapApp);
 
 private:
 

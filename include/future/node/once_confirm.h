@@ -5,7 +5,6 @@
 #ifndef APP_COMMUNICATION_ONCE_CONFIRM_H
 #define APP_COMMUNICATION_ONCE_CONFIRM_H
 
-
 #include "node_chain.h"
 
 class OnceConfirm {

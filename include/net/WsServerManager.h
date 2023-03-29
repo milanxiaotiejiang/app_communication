@@ -11,20 +11,19 @@
 
 #include "nlohmann/json.hpp"
 
-#include "model/RegisterOperation.h"
-#include "model/RequestData.h"
-#include "model/RequestModel.h"
+#include "net/base/RequestData.h"
+#include "net/base/RequestModel.h"
 
-#include "BlockingCollection.h"
+#include "future/BlockingCollection.h"
 #include "sys/syscall.h"
-#include "tool/CThread.h"
+#include "future/CThread.h"
 
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/logger/syslog.hpp>
 #include <websocketpp/server.hpp>
 
 #include "model/NetModel.h"
-#include "model/RosBasic.h"
+#include "net/ros/RosBasic.h"
 #include "nav_msgs/Odometry.h"
 #include <nav_msgs/OccupancyGrid.h>
 #include <utility>
@@ -38,7 +37,6 @@ using namespace code_machina;
 using json = nlohmann::json;
 
 const string APP_JSON = "/app_json";
-const string APP_JSON_V2 = "/app_json_v2";
 const string APP_COMMUNICATION = "/app_communication";
 
 const string MAP_APP = "/map_app";

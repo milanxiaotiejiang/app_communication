@@ -34,10 +34,6 @@ internal_event::InternalEventPubManager *internal_event::InternalEventPubManager
 
 ScheduleThread *sThd = nullptr;
 
-MessageBus *MessageBusManager::getMessageBus() const { return messageBus; }
-
-ThreadPool pool(3);
-
 int main(int argc, char **argv) {
 
     current_program_string = argv[0];
@@ -53,7 +49,6 @@ int main(int argc, char **argv) {
 
     //新清洁历史
     clean_history_db::CleanHistoryCenter::instance().initialize();
-    pool.init();
 
     async::TimerInitCall::instance().initialize();
     UdpManager::instance().start();

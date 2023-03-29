@@ -8,9 +8,9 @@
 #include "RealPoint.h"
 #include <actionlib/client/simple_action_client.h>
 #include "move_base_msgs/MoveBaseAction.h"
-#include "model/Station.h"
-#include "model/DynamicParameter.h"
-#include "leave//reconfigure.h"
+#include "leave/reconfigure.h"
+
+const float RETURN_POINT_X_ = -0.3;
 
 class PointPlanner {
 private:

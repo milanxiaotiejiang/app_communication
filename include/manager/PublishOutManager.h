@@ -15,7 +15,7 @@
 #include "model/ShowWorkStatus.h"
 #include "model/SelfCheckStatus.h"
 #include "model/Notice.h"
-#include "model/VersionSubscribe.h"
+#include "net/base/VersionSubscribe.h"
 #include "model/MaterialStatus.h"
 #include "model/KnobStatus.h"
 #include "model/InternalEvent.h"
@@ -32,7 +32,6 @@ private:
     pub_knob_,           //knob
     pub_internal_event_;//发送给云端
     ros::Publisher acceptAppJsonV1;
-    ros::Publisher acceptAppJsonV2;
     ros::Publisher acceptAppCommunication;
 public:
     static auto &instance() {
@@ -41,8 +40,6 @@ public:
     }
 
     void initialize(ros::NodeHandle handle);
-
-    void publishResponse(const std_msgs::String &message) const;
 
     void publishJson(const std::string &message) const;
 

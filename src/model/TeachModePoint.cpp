@@ -5,10 +5,32 @@
 #include "model/TeachModePoint.h"
 #include "manager/ViewPartManager.h"
 #include "model/ViewPart.h"
-#include "tool/Tool_Function.h"
 #include "tool/Variable.h"
 #include "tool/write_file.hpp"
 #include <tinyxml.h>
+
+bool is_in_line(const geometry_msgs::Pose point1, const geometry_msgs::Pose point2, const geometry_msgs::Pose point3) {
+
+    if (abs(point2.orientation.w - point1.orientation.w) > 0.1) {
+        return false;
+    }
+
+
+    float x1, y1, x2, y2, x, y;
+    x1 = point1.position.x;
+    y1 = point1.position.y;
+    x2 = point2.position.x;
+    y2 = point2.position.y;
+    x = point3.position.x;
+    y = point3.position.y;
+    float judge_num = (y1 - y2) * (x - x2) - (x1 - x2) * (y - y2);
+    // cout<<"judge_num: "<<judge_num<<endl;
+    if (abs(judge_num) < 5 * 1e-3) {
+        return true;
+    } else
+        return false;
+
+}
 
 void TeachModeProcess() {
     bool is_saved = false;

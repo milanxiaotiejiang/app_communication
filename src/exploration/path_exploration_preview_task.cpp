@@ -9,14 +9,11 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "db/segmentation_data_base.h"
-#include "db/task_data_base.h"
 
-#include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Pose2D.h"
 
 #include "segmentation/SegmentationCenter.h"
 #include "exploration/ExplorationCenter.h"
-#include "exploration/handle_exploration_display.h"
 
 void TaskExploration::task2RealTask(const Task &task, RealTask &realTask) {
     realTask.setId(task.getTaskId());

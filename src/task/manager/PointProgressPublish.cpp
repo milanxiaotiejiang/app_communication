@@ -5,7 +5,7 @@
 #include <std_msgs/String.h>
 #include "task/manager/PointProgressPublish.h"
 #include "net/WsServerManager.h"
-#include "model/RequestModel.h"
+#include "net/base/RequestModel.h"
 
 void PointProgressPublish::initialize(ros::NodeHandle handle) {
     pub_task_point_ = handle.advertise<std_msgs::String>(TASK_POINT, 10);

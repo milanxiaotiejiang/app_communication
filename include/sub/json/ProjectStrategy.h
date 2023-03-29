@@ -6,7 +6,7 @@
 #define APP_COMMUNICATION_PROJECTSTRATEGY_H
 
 #include "MessageStrategy.h"
-#include "model/BaseResult.h"
+#include "net/base/BaseResult.h"
 #include "model/Project.h"
 
 #include "tool/write_file.hpp"

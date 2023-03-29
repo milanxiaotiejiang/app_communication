@@ -5,7 +5,6 @@
 #ifndef APP_COMMUNICATION_CLEANHISTORYVO_H
 #define APP_COMMUNICATION_CLEANHISTORYVO_H
 
-
 #include <string>
 #include "clean_history_model.h"
 

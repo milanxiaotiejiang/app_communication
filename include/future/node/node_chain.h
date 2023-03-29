@@ -5,7 +5,6 @@
 #ifndef APP_COMMUNICATION_NODE_CHAIN_H
 #define APP_COMMUNICATION_NODE_CHAIN_H
 
-
 #include "future/thread_pool.h"
 #include "node_observer_mode.h"
 

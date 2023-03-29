@@ -34,7 +34,7 @@
 #include <dynamic_reconfigure/Reconfigure.h>
 #include <thread>
 #include "manager/VersionManager.h"
-#include "model/VersionSubscribe.h"
+#include "net/base/VersionSubscribe.h"
 #include "model/SelfCheckParam.h"
 
 

@@ -7,37 +7,38 @@
 
 #include <iostream>
 #include "string"
-#include "RegisterOperation.h"
 
-using namespace std;
+#include "nlohmann/json.hpp"
+
+using json = nlohmann::json;
 
 template<class T>
 class RequestModel {
 private:
-    string op;
-    string topic;
+    std::string op;
+    std::string topic;
     T msg;
 
 public:
     RequestModel() = default;
 
-    RequestModel(const string &op, const string &topic, T msg) : op(op), topic(topic), msg(msg) {}
+    RequestModel(const std::string &op, const std::string &topic, T msg) : op(op), topic(topic), msg(msg) {}
 
     virtual ~RequestModel() = default;
 
-    const string &getOp() const {
+    const std::string &getOp() const {
         return op;
     }
 
-    void setOp(const string &op) {
+    void setOp(const std::string &op) {
         RequestModel::op = op;
     }
 
-    const string &getTopic() const {
+    const std::string &getTopic() const {
         return topic;
     }
 
-    void setTopic(const string &topic) {
+    void setTopic(const std::string &topic) {
         RequestModel::topic = topic;
     }
 
@@ -67,29 +68,29 @@ public:
 
 class AcceptRequestModel {
 private:
-    string op;
-    string topic;
+    std::string op;
+    std::string topic;
 
 public:
     AcceptRequestModel() = default;
 
-    AcceptRequestModel(const string &op, const string &topic) : op(op), topic(topic) {}
+    AcceptRequestModel(const std::string &op, const std::string &topic) : op(op), topic(topic) {}
 
     virtual ~AcceptRequestModel() = default;
 
-    const string &getOp() const {
+    const std::string &getOp() const {
         return op;
     }
 
-    void setOp(const string &op) {
+    void setOp(const std::string &op) {
         AcceptRequestModel::op = op;
     }
 
-    const string &getTopic() const {
+    const std::string &getTopic() const {
         return topic;
     }
 
-    void setTopic(const string &topic) {
+    void setTopic(const std::string &topic) {
         AcceptRequestModel::topic = topic;
     }
 

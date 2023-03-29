@@ -2,7 +2,7 @@
 // Created by lijiang on 2022/1/4.
 //
 
-#include "tool/CThread.h"
+#include "future/CThread.h"
 
 static void *runThread(void *arg) {
     return ((CThread *) arg)->run();

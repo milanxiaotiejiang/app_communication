@@ -3,7 +3,7 @@
 //
 
 #include "sub/json/MaterialStrategy.h"
-#include "model/VersionSubscribe.h"
+#include "net/base/VersionSubscribe.h"
 
 VersionSubscribe<MaterialStatus> GetMaterialStrategy::handler(string params) {
     MaterialDuration soft_brush(SOFT_BRUSH_EXPECTED_DURATION, 1000);

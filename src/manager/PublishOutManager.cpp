@@ -17,15 +17,10 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
     pub_internal_event_ = handle.advertise<std_msgs::String>(INTERNAL_EVENT, 10);
 
     acceptAppJsonV1 = handle.advertise<std_msgs::String>(APP_JSON, 1);
-    acceptAppJsonV2 = handle.advertise<std_msgs::String>(APP_JSON_V2, 1);
 
     acceptAppCommunication = handle.advertise<std_msgs::String>(APP_COMMUNICATION, 1);
 
     pub_knob_ = handle.advertise<std_msgs::String>(KNOB_APP, 10);
-}
-
-void PublishOutManager::publishResponse(const std_msgs::String &message) const {
-    // pub_response_.publish(message);
 }
 
 void PublishOutManager::publishJson(const std::string &message) const {
@@ -103,8 +98,6 @@ void PublishOutManager::publishNotice(const Notice &notice) const {
 void PublishOutManager::publishAppJson(int version, const std_msgs::String &message) const {
     if (version == APP_JSON_VERSION::V1) {
         acceptAppJsonV1.publish(message);
-    } else if (version == APP_JSON_VERSION::V2) {
-        acceptAppJsonV2.publish(message);
     }
 }
 

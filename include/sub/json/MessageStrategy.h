@@ -12,9 +12,9 @@
 #include "string"
 #include <iostream>
 
-#include "model/BaseMethod.h"
-#include "model/BaseResult.h"
-#include "model/RequestModel.h"
+#include "net/base/BaseMethod.h"
+#include "net/base/BaseResult.h"
+#include "net/base/RequestModel.h"
 #include "BaseThrowable.h"
 
 #include "manager/PublishInnerManager.h"
