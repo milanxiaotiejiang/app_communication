@@ -38,7 +38,7 @@ JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
 JsonSubscribe::~JsonSubscribe() {}
 
 void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
-//    LOG(INFO) << "subscribeCallback : " << syscall(SYS_gettid) << " " << result.data;
+    LOG(INFO) << "subscribeCallback : " << syscall(SYS_gettid) << " " << result.data;
 
     json jDecode = json::parse(result.data);
 
@@ -366,17 +366,23 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case PRINCIPAL_TASK:
             messageStrategy = new PrincipalTaskStrategy();
             break;
-        case ADD_TIMER:
-            messageStrategy = new AddTimerStrategy();
+        case CLEAR_CURRENT_LIST_TASK:
+            messageStrategy = new ClearCurrentListTaskStrategy();
             break;
-        case DELETE_TIMER:
-            messageStrategy = new DeleteTimerStrategy();
+        case ADD_TIMER_TASK:
+            messageStrategy = new AddTimerTaskStrategy();
             break;
-        case LIST_TIMER:
-            messageStrategy = new ListTimerStrategy();
+        case DELETE_TIMER_TASK:
+            messageStrategy = new DeleteTimerTaskStrategy();
+            break;
+        case LIST_TIMER_TASK:
+            messageStrategy = new ListTimerTaskStrategy();
             break;
         case EXPLORATION_TASK:
             messageStrategy = new ExplorationTaskStrategy();
+            break;
+        case PERFORM_TASK:
+            messageStrategy = new PerformTaskStrategy();
             break;
     }
     if (messageStrategy != nullptr) {

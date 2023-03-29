@@ -18,6 +18,7 @@
 #include "tool/Variable.h"
 #include "segmentation/SegmentationCenter.h"
 #include "task/model/CombinationPoseVo.h"
+#include "exploration/path_exploration_preview_task.h"
 
 void PointGenerator::pose2RealPoint(const RealTask &realTask, std::vector<PoseVo> poseList,
                                     std::vector<RealPoint> &realPointList) {
@@ -186,7 +187,7 @@ std::vector<RealPoint> CoveragePointGenerator::taskGeneratePointList(RealTask ta
 }
 
 std::vector<RealPoint> RectanglePointGenerator::taskGeneratePointList(RealTask task) {
-    std::vector<float> zoned = task.getZoned();
+    std::vector<float> zoned = task.getZoned0();
     if (zoned.size() != 8)
         throw app::exception(make_error_code(error::room_mb_file_open_fail));
 
@@ -390,5 +391,16 @@ std::vector<RealPoint> FullPointGenerator::taskGeneratePointList(RealTask task) 
     auto poseList = roomCoverage.getPoseList();
     std::vector<RealPoint> realPoints;
     pose2RealPoint(task, poseList, realPoints);
+    return realPoints;
+}
+
+std::vector<RealPoint> ExplorationGenerator::taskGeneratePointList(RealTask task) {
+
+    auto coverage = TaskExploration::explorationPlanningPath(task);
+
+    const auto &poseList = coverage.getPoseList();
+    std::vector<RealPoint> realPoints;
+    pose2RealPoint(task, poseList, realPoints);
+
     return realPoints;
 }

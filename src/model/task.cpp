@@ -6,21 +6,40 @@
 
 TaskVo::TaskVo() {}
 
-TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode,
-               const WorkStatus &workStatus, const std::vector<std::vector<PointVo>> &zones, bool partition,
-               const std::vector<int> &subregions, const std::string &source, const std::string &launchPeople,
-               long launchTime, long updateTime, long createTime) : id(id), o_map_id(oMapId), name(name), rate(rate),
-                                                                    mode(mode), workStatus(workStatus), zones(zones),
-                                                                    partition(partition), subregions(subregions),
-                                                                    source(source), launch_people(launchPeople),
-                                                                    launch_time(launchTime), update_time(updateTime),
-                                                                    create_time(createTime) {}
+TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode, bool principal,
+               bool partition, bool knife, const std::string &source, const std::string &launchPeople, long launchTime,
+               long updateTime, long createTime) : id(id), o_map_id(oMapId), name(name), rate(rate), mode(mode),
+                                                   principal(principal), partition(partition), knife(knife),
+                                                   source(source), launch_people(launchPeople), launch_time(launchTime),
+                                                   update_time(updateTime), create_time(createTime) {}
 
-TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode, bool partition,
-               const std::string &source, const std::string &launchPeople, long launchTime, long updateTime,
-               long createTime) : id(id), o_map_id(oMapId), name(name), rate(rate), mode(mode), partition(partition),
-                                  source(source), launch_people(launchPeople), launch_time(launchTime),
-                                  update_time(updateTime), create_time(createTime) {}
+TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode,
+               const WorkStatus &workStatus, bool principal, const std::vector<std::vector<PointVo>> &zones,
+               bool partition, const std::vector<int> &subregions, bool knife, const std::string &source,
+               const std::string &launchPeople, long launchTime, long updateTime, long createTime) : id(id),
+                                                                                                     o_map_id(oMapId),
+                                                                                                     name(name),
+                                                                                                     rate(rate),
+                                                                                                     mode(mode),
+                                                                                                     workStatus(
+                                                                                                             workStatus),
+                                                                                                     principal(
+                                                                                                             principal),
+                                                                                                     zones(zones),
+                                                                                                     partition(
+                                                                                                             partition),
+                                                                                                     subregions(
+                                                                                                             subregions),
+                                                                                                     knife(knife),
+                                                                                                     source(source),
+                                                                                                     launch_people(
+                                                                                                             launchPeople),
+                                                                                                     launch_time(
+                                                                                                             launchTime),
+                                                                                                     update_time(
+                                                                                                             updateTime),
+                                                                                                     create_time(
+                                                                                                             createTime) {}
 
 void TaskVo::setId(long id) {
     TaskVo::id = id;
@@ -62,6 +81,10 @@ const WorkStatus &TaskVo::getWorkStatus() const {
     return workStatus;
 }
 
+bool TaskVo::isPrincipal() const {
+    return principal;
+}
+
 const std::vector<std::vector<PointVo>> &TaskVo::getZones() const {
     return zones;
 }
@@ -72,6 +95,10 @@ bool TaskVo::isPartition() const {
 
 const std::vector<int> &TaskVo::getSubregions() const {
     return subregions;
+}
+
+bool TaskVo::isKnife() const {
+    return knife;
 }
 
 const std::string &TaskVo::getSource() const {

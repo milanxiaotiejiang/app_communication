@@ -18,11 +18,15 @@ string ExecuteTaskStrategy::handler(Task task) {
     return "";
 }
 
+string PerformTaskStrategy::handler(long params) {
+    return TaskCenter::instance().performTask(params);
+}
+
 vector<Task> GetTaskListStrategy::handler(string params) {
     std::vector<Task> task_list;
     for (const auto &item: ManualManager::instance().runTaskList()) {
         Task task(item.getId(), item.getMode(), item.getRate(), item.getWorkStatus(),
-                  CleanPolygon(), item.getZoned(), CleanContinuity(), TeachPathInfo(),
+                  CleanPolygon(), item.getZoned0(), CleanContinuity(), TeachPathInfo(),
                   item.getLaunchPeople(), item.getLaunchTime(), item.getTimeMode(), true);
         if (item.getMode() == 7) {
             task.setCombination(item.getCombination());

@@ -369,17 +369,23 @@ int switch_ID(const std::string &str) {
     if (str == "principal_task") {
         return PRINCIPAL_TASK;
     }
-    if (str == "add_timer") {
-        return ADD_TIMER;
+    if (str == "clear_current_list_task") {
+        return CLEAR_CURRENT_LIST_TASK;
     }
-    if (str == "delete_timer") {
-        return DELETE_TIMER;
+    if (str == "add_timer_task") {
+        return ADD_TIMER_TASK;
     }
-    if (str == "list_timer") {
-        return LIST_TIMER;
+    if (str == "delete_timer_task") {
+        return DELETE_TIMER_TASK;
+    }
+    if (str == "list_timer_task") {
+        return LIST_TIMER_TASK;
     }
     if (str == "exploration_task") {
         return EXPLORATION_TASK;
+    }
+    if (str == "perform_task") {
+        return PERFORM_TASK;
     }
     return -1;
 }

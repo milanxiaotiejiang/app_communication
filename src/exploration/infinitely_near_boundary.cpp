@@ -173,7 +173,6 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
         pose_path.push_back(current_pose);
     }
 
-    optimizePathColumn(pose_path);
 }
 
 void InfinitelyNearBoundary::transformPointPathToPosePath(const std::vector<cv::Point2f> &point_path,
@@ -203,28 +202,5 @@ void InfinitelyNearBoundary::transformPointPathToPosePath(const std::vector<cv::
                 pose_path.push_back(current_pose);
             }
         }
-    }
-}
-
-void InfinitelyNearBoundary::optimizePathColumn(std::vector<geometry_msgs::Pose2D> &vector) {
-    if (vector.size() < 3) {
-        return;
-    }
-    std::vector<geometry_msgs::Pose2D> optimize;
-    optimize.push_back(vector[0]);
-    geometry_msgs::Pose2D last = vector[0];
-    for (int i = 1; i < vector.size() - 1; ++i) {
-        if (!conversion::one_line(last, vector[i], vector[i + 1])) {
-            if (sqrt(pow(vector[i].x - vector[i + 1].x, 2) + pow(vector[i + 1].y - vector[i].y, 2)) < 1.0) {
-                last = vector[i];
-                optimize.push_back(vector[i]);
-            }
-        }
-    }
-    optimize.push_back(vector[vector.size() - 1]);
-
-    vector.clear();
-    for (const auto &item: optimize) {
-        vector.push_back(item);
     }
 }

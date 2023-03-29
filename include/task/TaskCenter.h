@@ -7,6 +7,7 @@
 
 #include "glog/logging.h"
 #include "model/Task.h"
+#include "model/task.h"
 #include "task/RealTask.h"
 #include "task/subscribe/ZooRobotStatusSubscribe.h"
 #include "task/subscribe/FlagResultSubscribe.h"
@@ -33,9 +34,11 @@ private:
     CarpetDetectSubscribe *carpetDetectSubscribe;
     LiftDetectSubscribe *liftDetectSubscribe;
 
-    void task2RealTask(const Task &task, RealTask &realTask);
+    std::string preTask(const RealTask &task);
 
-    void realExecuteTask(const Task &task);
+    std::string proTask(const RealTask &task);
+
+    static std::string realTask(RealTask task);
 
 public:
     static auto &instance() {
@@ -48,6 +51,8 @@ public:
     void uninstall();
 
     void executeTask(const Task &task);
+
+    std::string performTask(const long taskId);
 
 };
 

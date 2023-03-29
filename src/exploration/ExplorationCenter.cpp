@@ -374,8 +374,8 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
 
-    if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
-        planning_pose_path_display(room_map, map_origin, pose_path, 1, "planning_pose_path_display");
+    optimizePlanningPath(room_map, pose_path, point_path);
+
 }
 
 void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int explorer_mode,

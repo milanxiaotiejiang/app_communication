@@ -38,9 +38,9 @@ struct TaskPo {
     TaskPo();
 
     TaskPo(long id, const std::string &oMapId, const std::string &name, int rate, TaskMode mode, int sweep, int mop,
-           int vacuum, int push, int aromatherapy, int disinfect, const std::vector<ZonePo> &zones, bool partition,
-           const std::string &subregionRange, TaskSource source, const std::string &launchPeople, long launchTime,
-           time_t updateTime, time_t createTime);
+           int vacuum, int push, int aromatherapy, int disinfect, bool principal, const std::vector<ZonePo> &zones,
+           bool partition, const std::string &subregionRange, bool knife, TaskSource source,
+           const std::string &launchPeople, long launchTime, time_t updateTime, time_t createTime);
 
     long id;
     std::string o_map_id;
@@ -83,11 +83,11 @@ struct ZonePo {
 struct TimerPo {
     TimerPo();
 
-    TimerPo(int id, const std::string &oMapId, long oTaskId, const std::string &oTaskName, const std::string &rule,
+    TimerPo(long id, const std::string &oMapId, long oTaskId, const std::string &oTaskName, const std::string &rule,
             const std::string &name, bool isExecute, int rate, bool isNever, bool isSkip, int endYear, int endMonth,
             int endDay);
 
-    int id;
+    long id;
     std::string o_map_id;
     long o_task_id;
     std::string o_task_name;

@@ -23,9 +23,12 @@ private:
 
     WorkStatus workStatus;
 
+    bool principal{false};
+
     std::vector<std::vector<PointVo>> zones;
     bool partition;
     std::vector<int> subregions;
+    bool knife;
 
     std::string source;
     std::string launch_people;
@@ -37,16 +40,15 @@ private:
 public:
     TaskVo();
 
+    TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode, bool principal,
+           bool partition, bool knife, const std::string &source, const std::string &launchPeople, long launchTime,
+           long updateTime, long createTime);
+
     TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode,
-           const WorkStatus &workStatus, const std::vector<std::vector<PointVo>> &zones, bool partition,
-           const std::vector<int> &subregions, const std::string &source, const std::string &launchPeople,
+           const WorkStatus &workStatus, bool principal, const std::vector<std::vector<PointVo>> &zones, bool partition,
+           const std::vector<int> &subregions, bool knife, const std::string &source, const std::string &launchPeople,
            long launchTime, long updateTime, long createTime);
 
-    TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode, bool partition,
-           const std::string &source, const std::string &launchPeople, long launchTime, long updateTime,
-           long createTime);
-
-    void setId(long id);
 
     void setWorkStatus(const WorkStatus &workStatus);
 
@@ -66,11 +68,15 @@ public:
 
     const WorkStatus &getWorkStatus() const;
 
+    bool isPrincipal() const;
+
     const std::vector<std::vector<PointVo>> &getZones() const;
 
     bool isPartition() const;
 
     const std::vector<int> &getSubregions() const;
+
+    bool isKnife() const;
 
     const std::string &getSource() const;
 
@@ -92,9 +98,11 @@ public:
                 {"rate",          vo.rate},
                 {"mode",          vo.mode},
                 {"workStatus",    vo.workStatus},
+                {"principal",     vo.principal},
                 {"zones",         vo.zones},
                 {"partition",     vo.partition},
                 {"subregions",    vo.subregions},
+                {"knife",         vo.knife},
                 {"source",        vo.source},
                 {"launch_people", vo.launch_people},
                 {"launch_time",   vo.launch_time},
@@ -111,15 +119,20 @@ public:
         j.at("rate").get_to(vo.rate);
         j.at("mode").get_to(vo.mode);
         j.at("workStatus").get_to(vo.workStatus);
+        j.at("principal").get_to(vo.principal);
         j.at("zones").get_to(vo.zones);
         j.at("partition").get_to(vo.partition);
         j.at("subregions").get_to(vo.subregions);
+        j.at("knife").get_to(vo.knife);
         j.at("source").get_to(vo.source);
         j.at("launch_people").get_to(vo.launch_people);
         j.at("launch_time").get_to(vo.launch_time);
         j.at("update_time").get_to(vo.update_time);
         j.at("create_time").get_to(vo.create_time);
     }
+
+    void setId(long id);
+
 };
 
 class TimerVo {

@@ -43,6 +43,11 @@ public:
     string handler(Task params) override;
 };
 
+class PerformTaskStrategy : public MessageStrategy<long, string> {
+public:
+    string handler(long params) override;
+};
+
 class GetTaskListStrategy : public MessageStrategy<string, std::vector<Task>> {
 public:
     vector<Task> handler(string params) override;

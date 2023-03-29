@@ -33,16 +33,16 @@ namespace clean_history_db {
         return true;
     }
 
-    bool CleanHistoryCenter::addCleanHistory(const Task &task) {
+    bool CleanHistoryCenter::addCleanHistory(const RealTask &task) {
         std::cout << "add clean history" << std::endl;
-        std::cout << "task id " << task.getTaskId() << std::endl;
+        std::cout << "task id " << task.getId() << std::endl;
         std::unique_lock<std::mutex> lock(history_update_mutex_);
         long launch_time;//记录时间
         time_t timep;
         time(&timep);
         launch_time = timep * 1000;//毫秒
         //根据当前任务生成一个CleanHistory
-        CleanHistory new_clean_history(task.getTaskId(), task.getMode(),
+        CleanHistory new_clean_history(task.getId(), task.getMode(),
                                        task.getRate(), task.getLaunchPeople(),
                                        task.getTimeMode(), launch_time);
         CleanHistoryDataBase::instance().addCleanHistory(new_clean_history);
@@ -50,9 +50,9 @@ namespace clean_history_db {
         return true;
     }
 
-    bool CleanHistoryCenter::launchFailed(const Task &task, const app::exception &e) {
+    bool CleanHistoryCenter::launchFailed(const RealTask &task, const app::exception &e) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
-        CleanHistory history = CleanHistoryDataBase::instance().getCleanHistory(task.getTaskId());
+        CleanHistory history = CleanHistoryDataBase::instance().getCleanHistory(task.getId());
         //设置错误码
         std::tuple<int, std::string, std::string> error_pair = generateErrorMessageFromException(e);
         history.error_code_ = std::get<0>(error_pair);//待定

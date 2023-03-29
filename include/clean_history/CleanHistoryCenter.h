@@ -27,10 +27,10 @@ namespace clean_history_db {
         bool initialize();
 
         //下任务时新增一条历史
-        bool addCleanHistory(const Task &task);
+        bool addCleanHistory(const RealTask &task);
 
         //下任务失败结束该条历史
-        bool launchFailed(const Task &task, const app::exception &e);
+        bool launchFailed(const RealTask &task, const app::exception &e);
 
         //设置清洁模式
         void upDateByRealTask(const RealTask &real_task);

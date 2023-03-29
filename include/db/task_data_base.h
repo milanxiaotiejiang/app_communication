@@ -32,7 +32,7 @@ public:
     //增
     long addTask(const std::string &mapId, const TaskVo &taskVo);
 
-    void addTimer(const std::string &mapId, const TimerVo &timer);
+    long addTimer(const std::string &mapId, const TimerVo &timer);
 
     //删
     void deleteOwnTask();

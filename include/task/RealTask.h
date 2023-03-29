@@ -9,20 +9,37 @@
 #include "model/WorkStatus.h"
 #include "model/Task.h"
 #include "RealPoint.h"
+#include "model/RoomVo.h"
 
 class RealTask {
 private:
     std::string id;
-    int mode{};
-    int rate{};
+
+    bool renew;
+
+    std::string map_id;
+    long task_id;
+    std::string name;
+    int rate;
+    int mode;
+
     WorkStatus work_status;
-    std::vector<float> zoned;
+
+    bool principal;
+
+    std::vector<std::vector<PointVo>> zoned;
+    bool partition;
+    std::vector<int> subregions;
+    bool knife;
+
+    std::vector<float> zoned0;
     Combination combination;
     int combination_type;
+    std::string time_mode;
 
+    std::string source;
     std::string launch_people;
     long launch_time;
-    std::string time_mode;
 
     std::vector<RealPoint> planPoints;
     std::vector<RealPoint> realPoints;
@@ -30,33 +47,44 @@ private:
 public:
     RealTask() = default;
 
-    RealTask(const string &id, int mode, int rate, const WorkStatus &workStatus) : id(id),
-                                                                                   mode(mode),
-                                                                                   rate(rate),
-                                                                                   work_status(workStatus) {}
-
-    const string &getId() const {
+    const std::string &getId() const {
         return id;
     }
 
-    void setId(const string &id) {
+    void setId(const std::string &id) {
         RealTask::id = id;
     }
 
-    const int &getCombinationType() const {
-        return combination_type;
+    bool isRenew() const {
+        return renew;
     }
 
-    void setCombinationType(int type) {
-        combination_type = type;
+    void setRenew(bool renew) {
+        RealTask::renew = renew;
     }
 
-    int getMode() const {
-        return mode;
+    const std::string &getMapId() const {
+        return map_id;
     }
 
-    void setMode(int mode) {
-        RealTask::mode = mode;
+    void setMapId(const std::string &mapId) {
+        map_id = mapId;
+    }
+
+    long getTaskId() const {
+        return task_id;
+    }
+
+    void setTaskId(long taskId) {
+        task_id = taskId;
+    }
+
+    const std::string &getName() const {
+        return name;
+    }
+
+    void setName(const std::string &name) {
+        RealTask::name = name;
     }
 
     int getRate() const {
@@ -67,6 +95,14 @@ public:
         RealTask::rate = rate;
     }
 
+    int getMode() const {
+        return mode;
+    }
+
+    void setMode(int mode) {
+        RealTask::mode = mode;
+    }
+
     const WorkStatus &getWorkStatus() const {
         return work_status;
     }
@@ -75,12 +111,52 @@ public:
         work_status = workStatus;
     }
 
-    const vector<float> &getZoned() const {
+    bool isPrincipal() const {
+        return principal;
+    }
+
+    void setPrincipal(bool principal) {
+        RealTask::principal = principal;
+    }
+
+    const std::vector<std::vector<PointVo>> &getZoned() const {
         return zoned;
     }
 
-    void setZoned(const vector<float> &zoned) {
+    void setZoned(const std::vector<std::vector<PointVo>> &zoned) {
         RealTask::zoned = zoned;
+    }
+
+    bool isPartition() const {
+        return partition;
+    }
+
+    void setPartition(bool partition) {
+        RealTask::partition = partition;
+    }
+
+    const std::vector<int> &getSubregions() const {
+        return subregions;
+    }
+
+    void setSubregions(const std::vector<int> &subregions) {
+        RealTask::subregions = subregions;
+    }
+
+    bool isKnife() const {
+        return knife;
+    }
+
+    void setKnife(bool knife) {
+        RealTask::knife = knife;
+    }
+
+    const std::vector<float> &getZoned0() const {
+        return zoned0;
+    }
+
+    void setZoned0(const std::vector<float> &zoned0) {
+        RealTask::zoned0 = zoned0;
     }
 
     const Combination &getCombination() const {
@@ -91,27 +167,35 @@ public:
         RealTask::combination = combination;
     }
 
-    const vector<RealPoint> &getPlanPoints() const {
-        return planPoints;
+    int getCombinationType() const {
+        return combination_type;
     }
 
-    void setPlanPoints(const vector<RealPoint> &planPoints) {
-        RealTask::planPoints = planPoints;
+    void setCombinationType(int combinationType) {
+        combination_type = combinationType;
     }
 
-    const vector<RealPoint> &getRealPoints() const {
-        return realPoints;
+    const std::string &getTimeMode() const {
+        return time_mode;
     }
 
-    void setRealPoints(const vector<RealPoint> &realPoints) {
-        RealTask::realPoints = realPoints;
+    void setTimeMode(const std::string &timeMode) {
+        time_mode = timeMode;
     }
 
-    const string &getLaunchPeople() const {
+    const std::string &getSource() const {
+        return source;
+    }
+
+    void setSource(const std::string &source) {
+        RealTask::source = source;
+    }
+
+    const std::string &getLaunchPeople() const {
         return launch_people;
     }
 
-    void setLaunchPeople(const string &launchPeople) {
+    void setLaunchPeople(const std::string &launchPeople) {
         launch_people = launchPeople;
     }
 
@@ -123,12 +207,20 @@ public:
         launch_time = launchTime;
     }
 
-    const string &getTimeMode() const {
-        return time_mode;
+    const std::vector<RealPoint> &getPlanPoints() const {
+        return planPoints;
     }
 
-    void setTimeMode(const string &timeMode) {
-        time_mode = timeMode;
+    void setPlanPoints(const std::vector<RealPoint> &planPoints) {
+        RealTask::planPoints = planPoints;
+    }
+
+    const std::vector<RealPoint> &getRealPoints() const {
+        return realPoints;
+    }
+
+    void setRealPoints(const std::vector<RealPoint> &realPoints) {
+        RealTask::realPoints = realPoints;
     }
 
     void assignmentPoint(RealPoint &realPoint, int pointId) {

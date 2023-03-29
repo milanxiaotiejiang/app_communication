@@ -28,17 +28,22 @@ public:
     TaskVo handler(long params) override;
 };
 
-class AddTimerStrategy : public MessageStrategy<TimerVo, int> {
+class ClearCurrentListTaskStrategy : public MessageStringStrategy {
 public:
-    int handler(TimerVo params) override;
+    void handler() override;
 };
 
-class DeleteTimerStrategy : public MessageStrategy<int, string> {
+class AddTimerTaskStrategy : public MessageStrategy<TimerVo, long> {
 public:
-    string handler(int params) override;
+    long handler(TimerVo params) override;
 };
 
-class ListTimerStrategy : public MessageStrategy<string, vector<TimerVo>> {
+class DeleteTimerTaskStrategy : public MessageStrategy<long, string> {
+public:
+    string handler(long params) override;
+};
+
+class ListTimerTaskStrategy : public MessageStrategy<string, vector<TimerVo>> {
 public:
     vector<TimerVo> handler(string params) override;
 };

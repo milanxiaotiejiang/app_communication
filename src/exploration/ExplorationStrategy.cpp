@@ -13,6 +13,8 @@
 
 #include "leave/ParamManager.h"
 #include "db/task_data_base.h"
+#include "exploration/path_exploration_preview_task.h"
+#include "task/TaskCenter.h"
 
 const int DATA_MODE_GEOMETRY_POSE = 1;
 const int DATA_MODE_OPEN_CV_POINT = 2;
@@ -138,121 +140,13 @@ bool GetExplorerEnergyStrategy::handler(string params) {
 
 RoomCoverage ExplorationTaskStrategy::handler(long params) {
     const TaskVo &task = TaskDataBase::instance().loadTaskFoId(params);
-    TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
-
-    const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
-
-    std::vector<geometry_msgs::Pose2D> exploration_path;
-    std::vector<cv::Point> point_path;
-
-    RoomCoverage coverage;
-    bool preLoaded;
-
-    ExplorationCenter &explorationCenter = ExplorationCenter::instance();
-
-    if (mode == TaskMode::Zoned) {
-        vector<std::vector<PointVo>> zones = task.getZones();
-        for (const auto &zone: zones) {
-            std::vector<std::vector<cv::Point>> polygon_array;
-
-            std::vector<cv::Point> cvPoints;
-            for (const auto &item: zone) {
-                cvPoints.emplace_back(item.getX(), item.getY());
-            }
-
-            polygon_array.push_back(cvPoints);
-
-
-            cv::Mat zoned_image = cv::Mat::zeros(baseMap.rows, baseMap.cols, CV_8UC1);
-            cv::fillPoly(zoned_image, polygon_array, cv::Scalar(255));
-            std::vector<geometry_msgs::Pose2D> sub_exploration_path;
-            std::vector<cv::Point> sub_point_path;
-            try {
-                ExplorationCenter::instance().generatePlanningPathRect(zoned_image, BOUSTROPHEDON_EXPLORER_MODE,
-                                                                       sub_exploration_path, sub_point_path);
-
-            } catch (app::exception const &e) {
-                LOG(ERROR) << e.what();
-            }
-
-            for (const auto &item: sub_exploration_path) {
-                exploration_path.push_back(item);
-            }
-            for (const auto &item: point_path) {
-                point_path.push_back(item);
-            }
-
-        }
-    } else if (mode == TaskMode::Cover) {
-        if (task.isPartition()) {
-//            cv::Mat segmented_map;
-//            std::vector<Room> rooms;
-//            SegmentationCenter::instance().storage2Memory(segmented_map, rooms);
-//            explorationCenter.generatePlanningSegmentationPath(baseMap, segmented_map, rooms,
-//                                                               BOUSTROPHEDON_EXPLORER_MODE,
-//                                                               exploration_path, point_path);
-            auto obtainSubregion = ExplorationCenter::instance().obtainSubregionPath();
-            coverage.setPoseList(obtainSubregion.getPoseList());
-            coverage.setPointList(obtainSubregion.getPointList());
-        } else {
-//            explorationCenter.generatePlanningPathFull(baseMap, BOUSTROPHEDON_EXPLORER_MODE,
-//                                                       exploration_path, point_path);
-            auto obtainCoverage = ExplorationCenter::instance().obtainCoveragePath();
-            coverage.setPoseList(obtainCoverage.getPoseList());
-            coverage.setPointList(obtainCoverage.getPointList());
-        }
-    } else if (mode == TaskMode::Subregion) {
-        std::vector<int> subregions = task.getSubregions();
-        cv::Mat segmented_map;
-        std::vector<Room> rooms;
-        SegmentationCenter::instance().storage2Memory(segmented_map, rooms);
-
-        for (const auto subregionId: subregions) {
-            std::vector<geometry_msgs::Pose2D> sub_exploration_path;
-            std::vector<cv::Point> sub_point_path;
-
-            const cv::Mat &oneMap = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, subregionId);
-            explorationCenter.generatePlanningPathSub(oneMap, BOUSTROPHEDON_EXPLORER_MODE,
-                                                      sub_exploration_path, sub_point_path);
-
-            for (const auto &item: sub_exploration_path) {
-                exploration_path.push_back(item);
-            }
-            for (const auto &item: point_path) {
-                point_path.push_back(item);
-            }
-
-        }
-    } else if (mode == TaskMode::Line) {
-        explorationCenter.infinitelyNearBoundary(baseMap, exploration_path, point_path);
-    }
-
-    boost::uuids::uuid uuid = boost::uuids::random_generator()();
-    string uuid_string = boost::uuids::to_string(uuid);
-    coverage.setCoverageId(uuid_string);
-
-    if (preLoaded) {
-
-    } else {
-        explorationCenter.pathPublish(exploration_path);
-
-        std::vector<PoseVo> poseList;
-        std::vector<PointVo> pointList;
-        for (const auto &item: exploration_path) {
-            poseList.emplace_back(item.y, item.x, item.theta);
-        }
-        for (const auto &item: point_path) {
-            pointList.emplace_back(item.x, item.y);
-        }
-
-        coverage.setPointList(pointList);
-        coverage.setPoseList(poseList);
-    }
-
-    explorationCenter.cacheRoomCoverage(coverage);
+    RealTask realTask;
+    TaskExploration::task2RealTask(task, realTask);
+    auto coverage = TaskExploration::explorationPlanningPath(realTask);
 
     RoomCoverage result;
     result.setCoverageId(coverage.getCoverageId());
     result.setPoseList(coverage.getPoseList());
+    result.setPointList(coverage.getPointList());
     return result;
 }

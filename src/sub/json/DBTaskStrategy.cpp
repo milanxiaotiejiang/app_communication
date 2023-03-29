@@ -68,6 +68,7 @@ long AddTaskStrategy::handler(TaskVo params) {
 
 string DeleteTaskStrategy::handler(long params) {
     TaskDataBase::instance().deleteTaskFoId(params);
+    return "";
 }
 
 vector<TaskVo> ListTaskStrategy::handler(string params) {
@@ -79,7 +80,11 @@ TaskVo QueryIdTaskStrategy::handler(long params) {
     return TaskDataBase::instance().loadTaskFoId(params);
 }
 
-int AddTimerStrategy::handler(TimerVo params) {
+void ClearCurrentListTaskStrategy::handler() {
+    TaskDataBase::instance().deleteTaskFoMap(SegmentationDataBase::instance().getDbMap().id);
+}
+
+long AddTimerTaskStrategy::handler(TimerVo params) {
     const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params.getTaskId());
     if (taskVo.getName() != params.getTaskName()) {
         throw std::invalid_argument("Invalid task_name");
@@ -89,7 +94,7 @@ int AddTimerStrategy::handler(TimerVo params) {
         throw std::invalid_argument("Invalid timer_name");
     }
     const string &timerRule = params.getTimerRule();
-    if (is_valid_crontab(timerRule)) {
+    if (!is_valid_crontab(timerRule)) {
         throw std::invalid_argument("Invalid timer_rule");
     }
     int rate = params.getRate();
@@ -98,15 +103,15 @@ int AddTimerStrategy::handler(TimerVo params) {
     }
 
     MapPo map = SegmentationDataBase::instance().getDbMap();
-    TaskDataBase::instance().addTimer(map.id, params);
-    return 0;
+    return TaskDataBase::instance().addTimer(map.id, params);
 }
 
-string DeleteTimerStrategy::handler(int params) {
+string DeleteTimerTaskStrategy::handler(long params) {
     TaskDataBase::instance().deleteTimerForId(params);
+    return "";
 }
 
-vector<TimerVo> ListTimerStrategy::handler(string params) {
+vector<TimerVo> ListTimerTaskStrategy::handler(string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTimerFoMap(map.id);
 }

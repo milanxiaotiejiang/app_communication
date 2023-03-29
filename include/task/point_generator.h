@@ -50,5 +50,9 @@ protected:
     std::vector<RealPoint> taskGeneratePointList(RealTask task) override;
 };
 
+class ExplorationGenerator : public PointGenerator {
+public:
+    std::vector<RealPoint> taskGeneratePointList(RealTask task) override;
+};
 
 #endif //APP_COMMUNICATION_POINT_GENERATOR_H

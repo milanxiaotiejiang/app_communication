@@ -21,8 +21,8 @@ void TaskDataBase::split(const std::string &s, std::vector<std::string> &tokens,
 
 TaskVo TaskDataBase::taskPo2Vo(const TaskPo &taskPo) {
     TaskVo task(taskPo.id, taskPo.o_map_id, taskPo.name, taskPo.rate, SqliteDataBase::ModeToInt(taskPo.mode),
-                taskPo.partition, SqliteDataBase::SourceToString(taskPo.source), taskPo.launch_people,
-                taskPo.launch_time, taskPo.update_time, taskPo.create_time);
+                taskPo.principal, taskPo.partition, taskPo.knife, SqliteDataBase::SourceToString(taskPo.source),
+                taskPo.launch_people, taskPo.launch_time, taskPo.update_time, taskPo.create_time);
 
     if (taskPo.mode == TaskMode::Zoned) {
         std::vector<std::vector<PointVo>> zones;
@@ -105,9 +105,11 @@ long TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
                   taskVo.getWorkStatus().getPushStatus(),
                   taskVo.getWorkStatus().getAromatherapyStatus(),
                   taskVo.getWorkStatus().getDisinfectStatus(),
+                  taskVo.isPrincipal(),
                   v,
                   taskVo.isPartition(),
                   subregion_range,
+                  taskVo.isKnife(),
                   SqliteDataBase::TaskSourceFromString(taskVo.getSource()),
                   taskVo.getLaunchPeople(),
                   time_t(),
@@ -209,11 +211,11 @@ long TaskDataBase::addTask(const std::string &mapId, const TaskVo &taskVo) {
     return addTaskVo(mapId, taskVo);
 }
 
-void TaskDataBase::addTimer(const std::string &mapId, const TimerVo &timer) {
+long TaskDataBase::addTimer(const std::string &mapId, const TimerVo &timer) {
     TimerPo timerPo(0, mapId, timer.getTaskId(), timer.getTaskName(), timer.getTimerRule(), timer.getTimerName(),
                     timer.isExecute(), timer.getRate(), timer.isNever(), timer.isSkip(),
                     timer.getEndYear(), timer.getEndMonth(), timer.getEndDay());
-    taskStorage.insert(timerPo);
+    return taskStorage.insert(timerPo);
 }
 
 void TaskDataBase::deleteOwnTask() {
