@@ -240,4 +240,76 @@ public:
     }
 };
 
+struct ModifyTaskName {
+    long id;
+    std::string name;
+
+    friend void to_json(json &j, const ModifyTaskName &vo) {
+        j = json{
+                {"id",   vo.id},
+                {"name", vo.name},
+        };
+    }
+
+    friend void from_json(const json &j, ModifyTaskName &vo) {
+        j.at("id").get_to(vo.id);
+        j.at("name").get_to(vo.name);
+    }
+
+};
+
+struct ModifyTaskRate {
+    long id;
+    int rate;
+
+    friend void to_json(json &j, const ModifyTaskRate &vo) {
+        j = json{
+                {"id",   vo.id},
+                {"rate", vo.rate},
+        };
+    }
+
+    friend void from_json(const json &j, ModifyTaskRate &vo) {
+        j.at("id").get_to(vo.id);
+        j.at("rate").get_to(vo.rate);
+    }
+
+};
+
+struct ModifyTaskWorkStatus {
+    long id;
+    WorkStatus workStatus;
+
+    friend void to_json(json &j, const ModifyTaskWorkStatus &vo) {
+        j = json{
+                {"id",         vo.id},
+                {"workStatus", vo.workStatus},
+        };
+    }
+
+    friend void from_json(const json &j, ModifyTaskWorkStatus &vo) {
+        j.at("id").get_to(vo.id);
+        j.at("workStatus").get_to(vo.workStatus);
+    }
+
+};
+
+struct ModifyTaskKnife {
+    long id;
+    bool knife;
+
+    friend void to_json(json &j, const ModifyTaskKnife &vo) {
+        j = json{
+                {"id",    vo.id},
+                {"knife", vo.knife},
+        };
+    }
+
+    friend void from_json(const json &j, ModifyTaskKnife &vo) {
+        j.at("id").get_to(vo.id);
+        j.at("knife").get_to(vo.knife);
+    }
+
+};
+
 #endif //APP_COMMUNICATION_TASK_H

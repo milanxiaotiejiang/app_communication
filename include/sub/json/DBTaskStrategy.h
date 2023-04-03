@@ -63,4 +63,24 @@ public:
     TaskVo handler(string params) override;
 };
 
+class ModifyTaskNameStrategy : public MessageStrategy<ModifyTaskName, string> {
+public:
+    string handler(ModifyTaskName params) override;
+};
+
+class ModifyTaskRateStrategy : public MessageStrategy<ModifyTaskRate, string> {
+public:
+    string handler(ModifyTaskRate params) override;
+};
+
+class ModifyTaskWorkStatusStrategy : public MessageStrategy<ModifyTaskWorkStatus, string> {
+public:
+    string handler(ModifyTaskWorkStatus params) override;
+};
+
+class ModifyTaskKnifeStrategy : public MessageStrategy<ModifyTaskKnife, string> {
+public:
+    string handler(ModifyTaskKnife params) override;
+};
+
 #endif //APP_COMMUNICATION_DBTASKSTRATEGY_H

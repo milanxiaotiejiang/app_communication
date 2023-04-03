@@ -54,6 +54,14 @@ public:
     //改
     TaskVo modifyPrincipalTask(std::string mapId, long taskId, bool principal);
 
+    void modifyName(long taskId, std::string name);
+
+    void modifyRate(long taskId, int rate);
+
+    void modifyWorkStatus(long taskId, const WorkStatus& status);
+
+    void modifyKnife(long taskId, bool knife);
+
     //查
     std::vector<TaskVo> loadTaskFoMap(std::string mapId);
 

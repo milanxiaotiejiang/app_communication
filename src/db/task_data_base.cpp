@@ -283,6 +283,35 @@ TaskVo TaskDataBase::modifyPrincipalTask(std::string mapId, long taskId, bool pr
     return taskPo2Vo(task);
 }
 
+void TaskDataBase::modifyName(long taskId, std::string name) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    task.name = std::move(name);
+    taskStorage.update(task);
+}
+
+void TaskDataBase::modifyRate(long taskId, int rate) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    task.rate = rate;
+    taskStorage.update(task);
+}
+
+void TaskDataBase::modifyWorkStatus(long taskId, const WorkStatus &status) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    task.sweep = status.getSweepStatus();
+    task.mop = status.getMopStatus();
+    task.vacuum = status.getVacuumStatus();
+    task.push = status.getPushStatus();
+    task.aromatherapy = status.getAromatherapyStatus();
+    task.disinfect = status.getDisinfectStatus();
+    taskStorage.update(task);
+}
+
+void TaskDataBase::modifyKnife(long taskId, bool knife) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    task.knife = knife;
+    taskStorage.update(task);
+}
+
 std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
     std::vector<TaskVo> tasks;
 

@@ -357,6 +357,7 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case QUERY_ID_TASK:
             messageStrategy = new QueryIdTaskStrategy();
             break;
+
         case BUILD_PRINCIPAL_TASK:
             messageStrategy = new BuildPrincipalTaskStrategy();
             break;
@@ -366,9 +367,24 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case PRINCIPAL_TASK:
             messageStrategy = new PrincipalTaskStrategy();
             break;
+
         case CLEAR_CURRENT_LIST_TASK:
             messageStrategy = new ClearCurrentListTaskStrategy();
             break;
+
+        case MODIFY_TASK_NAME:
+            messageStrategy = new ModifyTaskNameStrategy();
+            break;
+        case MODIFY_TASK_RATE:
+            messageStrategy = new ModifyTaskRateStrategy();
+            break;
+        case MODIFY_TASK_WORK_STATUS:
+            messageStrategy = new ModifyTaskWorkStatusStrategy();
+            break;
+        case MODIFY_TASK_KNIFE:
+            messageStrategy = new ModifyTaskKnifeStrategy();
+            break;
+
         case ADD_TIMER_TASK:
             messageStrategy = new AddTimerTaskStrategy();
             break;
@@ -378,6 +394,7 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case LIST_TIMER_TASK:
             messageStrategy = new ListTimerTaskStrategy();
             break;
+
         case EXPLORATION_TASK:
             messageStrategy = new ExplorationTaskStrategy();
             break;

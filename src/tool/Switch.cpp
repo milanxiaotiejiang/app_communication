@@ -369,9 +369,24 @@ int switch_ID(const std::string &str) {
     if (str == "principal_task") {
         return PRINCIPAL_TASK;
     }
+
     if (str == "clear_current_list_task") {
         return CLEAR_CURRENT_LIST_TASK;
     }
+
+    if (str == "modify_task_name") {
+        return MODIFY_TASK_NAME;
+    }
+    if (str == "modify_task_rate") {
+        return MODIFY_TASK_RATE;
+    }
+    if (str == "modify_task_work_status") {
+        return MODIFY_TASK_WORK_STATUS;
+    }
+    if (str == "modify_task_knife") {
+        return MODIFY_TASK_KNIFE;
+    }
+
     if (str == "add_timer_task") {
         return ADD_TIMER_TASK;
     }
@@ -381,6 +396,7 @@ int switch_ID(const std::string &str) {
     if (str == "list_timer_task") {
         return LIST_TIMER_TASK;
     }
+
     if (str == "exploration_task") {
         return EXPLORATION_TASK;
     }

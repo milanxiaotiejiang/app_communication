@@ -108,7 +108,20 @@ namespace error {
         failed_to_parse_speed_related_files,
         failed_to_parse_fall_prevention_related_files,
         mode_switching_is_not_supported,
-        create_map_fail
+        create_map_fail,
+        the_main_task_is_not_set,
+        invalid_sweep_status,
+        invalid_mop_status,
+        invalid_vacuum_status,
+        invalid_push_status,
+        invalid_aromatherapy_status,
+        invalid_disinfect_status,
+        invalid_name,
+        invalid_rate,
+        invalid_mode,
+        invalid_source,
+        invalid_zones,
+        invalid_subregions
     };// enum value
 
     class category : public std::error_category {
@@ -305,6 +318,32 @@ namespace error {
                     return "暂不支持模式切换，请稍后调用";
                 case error::create_map_fail:
                     return "保存地图失败，请稍后调用";
+                case error::the_main_task_is_not_set:
+                    return "The main task is not set";
+                case error::invalid_sweep_status:
+                    return "Invalid sweep_status";
+                case error::invalid_mop_status:
+                    return "Invalid mop_status";
+                case error::invalid_vacuum_status:
+                    return "Invalid vacuum_status";
+                case error::invalid_push_status:
+                    return "Invalid push_status";
+                case error::invalid_aromatherapy_status:
+                    return "Invalid aromatherapy_status";
+                case error::invalid_disinfect_status:
+                    return "Invalid disinfect_status";
+                case error::invalid_name:
+                    return "Invalid name";
+                case error::invalid_rate:
+                    return "Invalid rate";
+                case error::invalid_mode:
+                    return "Invalid mode";
+                case error::invalid_source:
+                    return "Invalid source";
+                case error::invalid_zones:
+                    return "Invalid zones";
+                case error::invalid_subregions:
+                    return "Invalid subregions";
                 default:
                     return "Unknown";
             }
