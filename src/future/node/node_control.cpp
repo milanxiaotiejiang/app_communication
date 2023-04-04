@@ -6,6 +6,7 @@
 #include "manager/PublishInnerManager.h"
 #include "simulation.h"
 #include "leave/reconfigure.h"
+#include "ros/xmlrpc_manager.h"
 
 void NodeControl::initialize(ros::NodeHandle handle) {
     nodeHandle = handle;
@@ -185,13 +186,17 @@ void NodeControl::setWorkMode(node::State state) {
 void NodeControl::resetLocalization(bool open) {
     ros::param::set("/localization", open);
     if (open) {
-        ros::param::set("/set_initial_pose_x", 0.0);
-        ros::param::set("/set_initial_pose_y", 0.0);
-        ros::param::set("/set_initial_pose_z", 0.0);
-        ros::param::set("/set_initial_pose_ox", 0.0);
-        ros::param::set("/set_initial_pose_oy", 0.0);
-        ros::param::set("/set_initial_pose_oz", 0.0);
-        ros::param::set("/set_initial_pose_ow", 1.0);
+        //生成一个Pose消息，摆渡点出发，建图起点为基站，所以是-1.0
+        geometry_msgs::Pose pose;
+        pose.position.x = -1.0;
+        pose.position.y = 0.0;
+        pose.position.z = 0.0;
+        pose.orientation.x = 0.0;
+        pose.orientation.y = 0.0;
+        pose.orientation.z = 0.0;
+        pose.orientation.w = 1.0;
+        // 将 Pose 消息转换为字典
+        paramPose("/set_initial_pose", pose);
     }
 }
 
@@ -240,4 +245,22 @@ void NodeControl::emulate() {
     work_state_ = node::WorkState::complete;
     map_state_ = node::MapState::normal;
     state_ = node::State::work;
+}
+
+void NodeControl::shutdownCartoNodeOnly() {
+    system_kill("cartographer_node");
+}
+
+void NodeControl::paramPose(const std::string &key, const geometry_msgs::Pose pose) {
+    // 将 Pose 消息转换为字典
+    XmlRpc::XmlRpcValue pose_dict;
+    pose_dict["position"]["x"] = pose.position.x;
+    pose_dict["position"]["y"] = pose.position.y;
+    pose_dict["position"]["z"] = pose.position.z;
+    pose_dict["orientation"]["x"] = pose.orientation.x;
+    pose_dict["orientation"]["y"] = pose.orientation.y;
+    pose_dict["orientation"]["z"] = pose.orientation.z;
+    pose_dict["orientation"]["w"] = pose.orientation.w;
+    // 将字典存储为 ROS 参数
+    ros::param::set(key, pose_dict);
 }

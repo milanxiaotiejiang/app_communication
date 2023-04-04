@@ -10,7 +10,7 @@
 #include "move_base_msgs/MoveBaseAction.h"
 #include "leave/reconfigure.h"
 
-const float RETURN_POINT_X_ = -0.3;
+const float RETURN_POINT_X_ = -1.3;
 
 class PointPlanner {
 private:

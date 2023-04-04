@@ -18,6 +18,7 @@
 #include "machine.h"
 #include "node_control_subscribe.h"
 #include "heart_beat.h"
+#include "geometry_msgs/Pose.h"
 
 #define  THREAD_POOL_MAX_NUM 16
 
@@ -126,6 +127,10 @@ public:
     void changeSleepMode();
 
     void emulate();
+
+    void shutdownCartoNodeOnly();
+
+    static void paramPose(const std::string& key, const geometry_msgs::Pose pose);
 };
 
 #endif //APP_COMMUNICATION_NODE_CONTROL_H
