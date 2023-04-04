@@ -19,9 +19,13 @@ public:
         return obj;
     }
 
-    bool loadMap();
+    bool loadMainMap();
 
     MapPo &getDbMap();
+
+    MapPo installMap(std::string name);
+
+    MapPo installDefaultMap();
 
     RoomPo selectRoomById(long roomId);
 

@@ -7,9 +7,20 @@
 #include "segmentation/map_attribute.h"
 #include "exploration/ExplorationCenter.h"
 #include "segmentation/map_modification.h"
+#include "db/segmentation_data_base.h"
+#include "leave/map_control.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
+    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+    MapControl::instance().use2Store(oldMap.id);
     if (MapAttribute::instance().saveMap()) {
+        const MapPo &newMap = SegmentationDataBase::instance().installMap(params.getMapName());
+
+        SegmentationDataBase::instance().loadMainMap();
+        MapControl::instance().use2Store(newMap.id);
+
+        ExplorationCenter::instance().repaintCoveragePath(true, true);
+
         MapInfo param(1, params.getMapName());
         return param;
     } else {

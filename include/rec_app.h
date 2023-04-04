@@ -76,6 +76,7 @@
 #include "model/FullClean.h"
 #include "manager/FullCleanManager.h"
 #include "sys/wait.h"
+#include "leave/map_control.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>

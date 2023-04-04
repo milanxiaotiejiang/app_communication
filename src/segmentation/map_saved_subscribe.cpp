@@ -13,7 +13,6 @@ MapSavedSubscribe::MapSavedSubscribe(ros::NodeHandle handle) : handle(handle) {
 
 void MapSavedSubscribe::subscribeCallback(const std_msgs::Int32 &msg) {
     MapAttribute::instance().notifySaveMap();
-    ExplorationCenter::instance().repaintCoveragePath(true, true);
 }
 
 MapSavedSubscribe::~MapSavedSubscribe() = default;

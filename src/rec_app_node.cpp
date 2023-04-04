@@ -71,6 +71,11 @@ int main(int argc, char **argv) {
 
     ParamManager::instance().loadDefaultParam();
 
+    if (!MapControl::instance().initialize()) {
+        LOG(ERROR) << "data DB Map load fail !";
+        return 0;
+    }
+
     SegmentationCenter::instance().initialize(handle);
     ExplorationCenter::instance().initialize(handle);
 //    AlignmentCenter::instance().initialize(handle);

@@ -25,6 +25,10 @@ RoomPo::RoomPo() = default;
 MapPo::MapPo(std::string id, std::string name, std::string path) : id(std::move(id)), name(std::move(name)),
                                                                    path(std::move(path)) {}
 
+MapPo::MapPo(const std::string &id, const std::string &name, const std::string &path, bool main) : id(id), name(name),
+                                                                                                   path(path),
+                                                                                                   main(main) {}
+
 MapPo::MapPo() = default;
 
 PlanPo::PlanPo() = default;

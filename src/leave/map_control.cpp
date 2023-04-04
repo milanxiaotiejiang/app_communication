@@ -8,12 +8,47 @@
 #include "cppfs/fs.h"
 #include "cppfs/FilePath.h"
 #include "cppfs/FileHandle.h"
+#include "exploration/ExplorationCenter.h"
 
-void MapControl::changeMap(std::string map_id) {
-    MapPo &po = SegmentationDataBase::instance().getDbMap();
-    std::string name = po.name;
+bool MapControl::initialize() {
+    if (!SegmentationDataBase::instance().loadMainMap()) {
+        return false;
+    }
+    MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
+    store2Use(mapPo.id);
+    return true;
+}
 
-    cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + map_id);
+bool MapControl::store2Use(const string &map_id) {
+    std::string dir = path::robot_slam_map_dir() + map_id + path::separator();
+
+    cppfs::FileHandle omy = cppfs::fs::open(dir + path::mymap_yaml);
+    cppfs::FileHandle omp = cppfs::fs::open(dir + path::mymap_pgm);
+    cppfs::FileHandle oms = cppfs::fs::open(dir + path::mymap_segmentation);
+    cppfs::FileHandle opa = cppfs::fs::open(dir + path::prohibition_areas_yaml);
+
+    if (omy.exists()) {
+        cppfs::FileHandle nmy = cppfs::fs::open(path::robot_slam_map_dir());
+        omy.copy(nmy);
+    }
+    if (omp.exists()) {
+        cppfs::FileHandle nmp = cppfs::fs::open(path::robot_slam_map_dir());
+        omp.copy(nmp);
+    }
+    if (oms.exists()) {
+        cppfs::FileHandle nms = cppfs::fs::open(path::robot_slam_map_dir());
+        oms.copy(nms);
+    }
+    if (opa.exists()) {
+        cppfs::FileHandle npa = cppfs::fs::open(path::data_base_config_dir());
+        opa.copy(npa);
+    }
+
+    return true;
+}
+
+bool MapControl::use2Store(const string &map_id) {
+    cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + map_id + path::separator());
     if (!dir.isDirectory())
         dir.createDirectory();
 
@@ -22,9 +57,34 @@ void MapControl::changeMap(std::string map_id) {
     cppfs::FileHandle nms = cppfs::fs::open(path::map_segmentation_path());
     cppfs::FileHandle npa = cppfs::fs::open(path::prohibition_areas_path());
 
-    nmy.copy(dir);
-    nmp.copy(dir);
-    nms.copy(dir);
-    npa.copy(dir);
+    if (nmy.exists()) {
+        nmy.copy(dir);
+        nmy.remove();
+    }
+    if (nmp.exists()) {
+        nmp.copy(dir);
+        nmp.remove();
+    }
+    if (nms.exists()) {
+        nms.copy(dir);
+        nms.remove();
+    }
+    if (npa.exists()) {
+        npa.copy(dir);
+        npa.remove();
+    }
 
+    return true;
+}
+
+void MapControl::tt() {
+    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+    MapControl::instance().use2Store(oldMap.id);
+
+    const MapPo &newMap = SegmentationDataBase::instance().installMap("tt");
+
+    SegmentationDataBase::instance().loadMainMap();
+    MapControl::instance().use2Store(newMap.id);
+
+    ExplorationCenter::instance().repaintCoveragePath(true, true);
 }

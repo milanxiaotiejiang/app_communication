@@ -13,11 +13,24 @@
 #include "BaseThrowable.h"
 #include "db/task_data_base.h"
 
-bool SegmentationDataBase::loadMap() {
+bool SegmentationDataBase::loadMainMap() {
     segmentationStorage.sync_schema();
     try {
-        auto againMap = segmentationStorage.get_all<MapPo>(limit(1));
-        mapPo = againMap.front();
+        std::vector<MapPo> mainMaps = segmentationStorage.get_all<MapPo>(where(c(&MapPo::main) == true));
+        if (mainMaps.empty()) {
+            const MapPo &defaultMap = installDefaultMap();
+            mainMaps.push_back(defaultMap);
+        }
+
+        for (const auto &map: mainMaps) {
+            if (map.main) {
+                mapPo.id = map.id;
+                mapPo.name = map.name;
+                mapPo.path = map.path;
+                mapPo.main = map.main;
+                break;
+            }
+        }
         return true;
     } catch (const std::system_error &e) {
         LOG(ERROR) << e.what();
@@ -27,6 +40,28 @@ bool SegmentationDataBase::loadMap() {
 
 MapPo &SegmentationDataBase::getDbMap() {
     return mapPo;
+}
+
+MapPo SegmentationDataBase::installMap(std::string name) {
+    segmentationStorage.update_all(sqlite_orm::set(c(&MapPo::main) = false));
+
+    MapPo map;
+    map.id = boost::uuids::to_string(boost::uuids::random_generator()());
+    map.name = std::move(name);
+    map.path = "";
+    map.main = true;
+    segmentationStorage.replace(map);
+    return map;
+}
+
+MapPo SegmentationDataBase::installDefaultMap() {
+    MapPo map;
+    map.id = "default_map_uuid_0123456789";
+    map.name = "default";
+    map.path = "";
+    map.main = true;
+    segmentationStorage.replace(map);
+    return map;
 }
 
 RoomPo SegmentationDataBase::selectRoomById(long roomId) {

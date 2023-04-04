@@ -93,7 +93,8 @@ public:
                             make_table("map",
                                        make_column("id", &MapPo::id, primary_key()),
                                        make_column("name", &MapPo::name),
-                                       make_column("path", &MapPo::path)
+                                       make_column("path", &MapPo::path),
+                                       make_column("main", &MapPo::main, default_value(false))
                             ),
                             make_table("segmentation",
                                        make_column("id", &RoomPo::id, autoincrement(), primary_key()),

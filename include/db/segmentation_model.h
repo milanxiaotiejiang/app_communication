@@ -13,10 +13,13 @@ public:
     std::string id;
     std::string name;
     std::string path;
+    bool main;
 
     MapPo();
 
     MapPo(std::string id, std::string name, std::string path);
+
+    MapPo(const std::string &id, const std::string &name, const std::string &path, bool main);
 };
 
 class RoomPo {

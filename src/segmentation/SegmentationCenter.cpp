@@ -100,11 +100,7 @@ bool SegmentationCenter::lineThroughRoom(const cv::Mat &segmented_map, Room room
 void SegmentationCenter::initialize(const ros::NodeHandle &handle) {
     ros::Time::init();
     // 1.加载需要的地图的信息（仅地图信息）
-    initialize_finish = SegmentationDataBase::instance().loadMap();
-    if (!initialize_finish) {
-        LOG(ERROR) << "data DB Map load fail !";
-        return;
-    }
+    // MapControl::instance().initialize()
     // 2.根据地图的信息检查分区地图的数据完整性
     if (!checkPartition()) {
         resetSegmentation();

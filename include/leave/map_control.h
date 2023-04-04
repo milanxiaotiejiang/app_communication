@@ -14,7 +14,13 @@ public:
         return obj;
     }
 
-    void changeMap(std::string map_id);
+    bool initialize();
+
+    bool store2Use(const std::string &map_id);
+
+    bool use2Store(const std::string &map_id);
+
+    void tt();
 
 };
 
