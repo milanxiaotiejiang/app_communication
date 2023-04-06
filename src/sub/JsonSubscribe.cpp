@@ -401,6 +401,13 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case PERFORM_TASK:
             messageStrategy = new PerformTaskStrategy();
             break;
+
+        case GET_CONSUMABLE:
+            messageStrategy = new GetConsumableStrategy();
+            break;
+        case RESET_CONSUMABLE:
+            messageStrategy = new ResetConsumableStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);

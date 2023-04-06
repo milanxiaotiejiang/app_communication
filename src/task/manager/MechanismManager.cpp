@@ -42,6 +42,26 @@ void MechanismManager::resetWorkStatus() {
     std_msgs::Int16 disinfect_status;
 }
 
+void MechanismManager::resetBelowWorkStatus() {
+    LOG(INFO) << "MechanismManager : 收起下方清洁机构.";
+//    std_msgs::Int16 sweep_status;
+//    sweep_status.data = 0;
+//    PublishInnerManager::instance().publishSweepMode(sweep_status);
+
+    std_msgs::Int16 mop_status;
+    mop_status.data = 0;
+    PublishInnerManager::instance().publishMopMode(mop_status);
+
+//    std_msgs::Int16 vacuum_status;
+//    vacuum_status.data = 0;
+//    PublishInnerManager::instance().publishVacuumMode(vacuum_status);
+
+    std_msgs::Int16 push_status;
+    push_status.data = 0;
+    PublishInnerManager::instance().publishPushMode(push_status);
+
+}
+
 void MechanismManager::controlWorkStatus(const WorkStatus &workStatus) {
     LOG(INFO) << "MechanismManager : 打开清洁机构.";
     //扫

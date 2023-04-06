@@ -125,17 +125,6 @@ void ZooRobotStatusSubscribe::subscribeCallback(const zoo_bringup::robot_status 
     }
 }
 
-void ZooRobotStatusSubscribe::pubMaterial() const {
-    MaterialDuration soft_brush(SOFT_BRUSH_EXPECTED_DURATION, 1000);
-    MaterialDuration carpet_brush(CARPET_BRUSH_EXPECTED_DURATION, 1001);
-    MaterialDuration push_brush(PUSH_BRUSH_EXPECTED_DURATION, 1002);
-    MaterialDuration fan_filter(FAN_FILTER_EXPECTED_DURATION, 1003);
-    MaterialStatus materialStatus(soft_brush, carpet_brush, push_brush, fan_filter);
-    //回复，带参数，包括分配的id
-    VersionSubscribe<MaterialStatus> materialResponse(MATERIAL_STATUS_VERSION, materialStatus);
-    PublishOutManager::instance().publishMaterialStatus(materialResponse);
-}
-
 void ZooRobotStatusSubscribe::pubKnob(const zoo_bringup::robot_status &robot_status) const {
     bool knob_available = robot_status.knob_available;
     auto knob_task = robot_status.knob_task;

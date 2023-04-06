@@ -5,6 +5,7 @@
 #include "task/call/reserved_call.h"
 #include "clean_history/CleanHistoryCenter.h"
 #include "manager/InternalEventPubManager.h"
+#include "db/property_data_base.h"
 
 using namespace internal_event;
 using namespace clean_history_db;
@@ -158,6 +159,7 @@ void ReservedCall::softwareInterruptTask(const RealPoint &point) {
     CleanHistoryCenter::instance().errorComplete(
             std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair)
     );
+    updateProperty();
     garbage();
 }
 
@@ -166,6 +168,7 @@ void ReservedCall::goodGame() {
     runTask;
     InternalEventPubManager::get_instance()->taskStop(runTask.getId());
     CleanHistoryCenter::instance().complete();
+    updateProperty();
     AsyncTaskCall::goodGame();
 }
 
@@ -225,6 +228,20 @@ std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint
             break;
     }
     return make_tuple(error_code, error_string, error_code2);
+}
+
+void ReservedCall::updateProperty() {
+    const CleanHistory &cleanHistory = CleanHistoryDataBase::instance().getCleanHistory(runTask.getId());
+    long cleanTime = (cleanHistory.end_time_ - cleanHistory.execute_time_) / 1000;
+    WorkStatus workStatus = runTask.getWorkStatus();
+    PropertyDataBase::instance().updateConsumable(
+            workStatus.getSweepStatus() > 0 ? cleanTime : 0,
+            workStatus.getMopStatus() > 0 ? cleanTime : 0,
+            workStatus.getVacuumStatus() > 0 ? cleanTime : 0,
+            workStatus.getPushStatus() > 0 ? cleanTime : 0,
+            workStatus.getAromatherapyStatus() > 0 ? cleanTime : 0,
+            workStatus.getDisinfectStatus() > 0 ? cleanTime : 0
+    );
 }
 
 void ReservedCall::recordMotorError() {

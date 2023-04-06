@@ -11,10 +11,7 @@ using json = nlohmann::json;
 
 const int MATERIAL_STATUS_VERSION = 1;
 
-const long SOFT_BRUSH_EXPECTED_DURATION = 56 * 60 * 60;
-const long CARPET_BRUSH_EXPECTED_DURATION = 112 * 60 * 60;
-const long PUSH_BRUSH_EXPECTED_DURATION = 56 * 60 * 60;
-const long FAN_FILTER_EXPECTED_DURATION = 56 * 60 * 60;
+
 
 class MaterialDuration {
 private:

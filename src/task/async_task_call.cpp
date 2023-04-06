@@ -870,7 +870,7 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
         if (carpet) {
             if (!isCarpetAndPack) {
                 isCarpetAndPack = true;
-                MechanismManager::instance().resetWorkStatus();
+                MechanismManager::instance().resetBelowWorkStatus();
                 LOG(INFO) << "NativeSystemManager : executeCarpet "
                           << "  检测到地毯并且已经收起清洁机构"
                           << " ...";

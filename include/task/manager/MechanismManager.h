@@ -17,6 +17,8 @@ public:
 public:
     void resetWorkStatus();
 
+    void resetBelowWorkStatus();
+
     void controlWorkStatus(const WorkStatus &workStatus);
 
     void forceControlWorkStatus(const WorkStatus &workStatus);

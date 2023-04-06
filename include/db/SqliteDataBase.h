@@ -12,10 +12,13 @@
 #include "task_model.h"
 #include "path.h"
 #include <ros/package.h>
+#include "consumable_model.h"
 
 const std::string SEGMENTATION_SQLITE_PATH = path::robot_slam_map_dir() + "Map.sqlite";
 
 const std::string TASK_SQLITE_PATH = path::data_base_config_dir() + "Task.sqlite";
+
+const std::string PROPERTY_SQLITE_PATH = path::data_base_config_dir() + "Property.sqlite";
 
 using namespace sqlite_orm;
 
@@ -183,10 +186,44 @@ public:
         );
     }
 
+    static auto initPropertyStorage() {
+        return make_storage(PROPERTY_SQLITE_PATH,
+                            make_table("consumable",
+                                       make_column("id", &Consumable::id, primary_key(), autoincrement()),
+                                       make_column("sweep_expected", &Consumable::sweep_expected,
+                                                   default_value(SWEEP_EXPECTED_DURATION)),
+                                       make_column("mop_expected", &Consumable::mop_expected,
+                                                   default_value(MOP_EXPECTED_DURATION)),
+                                       make_column("vacuum_expected", &Consumable::vacuum_expected,
+                                                   default_value(VACUUM_EXPECTED_DURATION)),
+                                       make_column("push_expected", &Consumable::push_expected,
+                                                   default_value(PUSH_EXPECTED_DURATION)),
+                                       make_column("aromatherapy_expected", &Consumable::aromatherapy_expected,
+                                                   default_value(AROMATHERAPY_EXPECTED_DURATION)),
+                                       make_column("disinfect_expected", &Consumable::disinfect_expected,
+                                                   default_value(DISINFECT_EXPECTED_DURATION)),
+                                       make_column("sweep_use", &Consumable::sweep_use,
+                                                   default_value(0L)),
+                                       make_column("mop_use", &Consumable::mop_use,
+                                                   default_value(0L)),
+                                       make_column("vacuum_use", &Consumable::vacuum_use,
+                                                   default_value(0L)),
+                                       make_column("push_use", &Consumable::push_use,
+                                                   default_value(0L)),
+                                       make_column("aromatherapy_use", &Consumable::aromatherapy_use,
+                                                   default_value(0L)),
+                                       make_column("disinfect_use", &Consumable::disinfect_use,
+                                                   default_value(0L)
+                                       )
+                            )
+        );
+    }
+
 };
 
 using MapStorage = decltype(SqliteDataBase::initMapStorage());
 using TaskStorage = decltype(SqliteDataBase::initTaskStorage());
+using PropertyStorage = decltype(SqliteDataBase::initPropertyStorage());
 
 
 namespace sqlite_orm {

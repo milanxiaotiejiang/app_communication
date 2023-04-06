@@ -2,22 +2,6 @@
 #include "simulation.h"
 
 /**
-1.仅在尘推和湿拖模式下识别到地毯后抬起清洁机构；
-2.识别到地毯后不关闭香氛或消杀。
-
-1. 完成沿边功能内部交付
-新增独立任务模式：沿边清洁任务
-1 在任务功能了可以新增、删除、修改多条沿边清洁任务
-3 任务管理中对于沿边清洁任务可以选择是否开启风刀功能（沿边强力清洁），默认关闭
-
-制定多并实现地图通信接口，地图切换逻辑等
-
-1“健康管理”，作为各部件耗材使用情况说明，耗材使用计时的形式，使用时长不足10%的情况会提示用户更换。本期增加湿拖滚刷、尘推滚刷维护页面提示
-2小程序端维护视频，上线湿拖滚刷维护、尘推滚刷维护、清水箱维护、污水箱维护"
-
-
- */
-/**
  * https://github.com/fnc12/sqlite_orm
  * https://github.com/cginternals/cppfs
  */
@@ -61,6 +45,7 @@ int main(int argc, char **argv) {
 
     //新清洁历史
     clean_history_db::CleanHistoryCenter::instance().initialize();
+    PropertyDataBase::instance().initProperty();
 
     async::TimerInitCall::instance().initialize();
     UdpManager::instance().start();

@@ -39,8 +39,6 @@ public:
 
     void pubKnob(const zoo_bringup::robot_status &robot_status) const;
 
-    void pubMaterial() const;
-
 };
 
 

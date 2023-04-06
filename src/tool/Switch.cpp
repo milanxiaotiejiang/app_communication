@@ -403,5 +403,12 @@ int switch_ID(const std::string &str) {
     if (str == "perform_task") {
         return PERFORM_TASK;
     }
+
+    if (str == "get_consumable") {
+        return GET_CONSUMABLE;
+    }
+    if (str == "reset_consumable") {
+        return RESET_CONSUMABLE;
+    }
     return -1;
 }
