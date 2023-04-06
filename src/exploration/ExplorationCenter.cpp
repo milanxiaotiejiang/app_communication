@@ -71,15 +71,14 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//        generatePlanningPath(map, ExplorationModel::FULL, BOUSTROPHEDON_EXPLORER_MODE, true, cv::Point(0, 0),
-//                             exploration_path, point_path);
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        generatePlanningPathFull(map, 0, exploration_path, point_path);
     }
 
     //4
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        infinitelyNearBoundary(map, exploration_path, point_path);
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        infinitelyNearBoundary(map, exploration_path, point_path);
     }
 
 //    pathPublish(exploration_path);
@@ -287,6 +286,39 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
     pose2CVPoint(room_map, point_path, exploration_path, map_origin);
     if (DISPLAY_TRAJECTORY)
         planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
+
+
+//    std_msgs::Header header;
+//    header.stamp = ros::Time::now();
+//    header.frame_id = "/map";
+//
+//    float distance = 0;
+//
+//    Point lastPoint(point_path[0].x, point_path[0].y);
+//    for (int i = 1; i < point_path.size(); i++) {
+//        auto cvPoint = point_path[i];
+//        Point point(cvPoint.x, cvPoint.y);
+//
+//        distance = distance + conversion::cal_distance(lastPoint, point);
+//
+//        lastPoint.setX(point.getX());
+//        lastPoint.setY(point.getY());
+//    }
+//
+//    //平均速度 0.5m/s
+//    //掉头 0.5s
+//    long time = distance * 0.05 / 0.5 + point_path.size() * 1;
+//    int hour = time / 3600;
+//    int min = (time - hour * 3600) / 60;
+//    int sec = time - hour * 3600 - min * 60;
+//
+//    LOG(ERROR) << "distance : " << distance * 0.05 << " , size : " << exploration_path.size()
+//               << " , time : " << time << " " << hour << "时" << min << "分" << sec << "秒";
+//
+//
+//    if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
+//        planning_pose_path_display(room_map, map_origin, exploration_path, 0.3, "optimizePlanningPath");
+
 }
 
 void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,

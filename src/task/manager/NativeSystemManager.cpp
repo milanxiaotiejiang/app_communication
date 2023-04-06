@@ -29,8 +29,8 @@ void NativeSystemManager::motorErrorEvent(int error_event) {
 }
 
 void NativeSystemManager::hlsErrorEvent(int error_event) {
-    if (error_event == 1) {
-        asyncTaskCall->recordHlsError();
+    if (error_event > 0) {
+        asyncTaskCall->recordHlsError(error_event);
     }
 }
 

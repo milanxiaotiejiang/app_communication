@@ -248,8 +248,55 @@ void ReservedCall::recordMotorError() {
     InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_SCCEED);
 }
 
-void ReservedCall::recordHlsError() {
-    InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR);
+void ReservedCall::recordHlsError(int error_event) {
+    switch (error_event) {
+        case 1:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_1);
+            break;
+        case 2:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_2);
+            break;
+        case 3:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_3);
+            break;
+        case 4:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_4);
+            break;
+        case 5:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_5);
+            break;
+        case 6:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_6);
+            break;
+        case 7:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_7);
+            break;
+        case 8:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_8);
+            break;
+        case 9:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_9);
+            break;
+        case 10:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_10);
+            break;
+        case 11:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_11);
+            break;
+        case 12:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_12);
+            break;
+        case 13:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_13);
+            break;
+        case 14:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_14);
+            break;
+        case 15:
+            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_15);
+            break;
+    }
+//    InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR);
 }
 
 void ReservedCall::recordLaserError(std::string error_event) {

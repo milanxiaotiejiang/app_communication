@@ -74,7 +74,21 @@ namespace internal_event {
         const AlarmEvent motor_error_recovery_failed = AlarmEvent("alarm", 3218, "CCR_218", "尘推堵转，任务提前结束", "");
 
         //底盘电机失能
-        const AlarmEvent hls_error = AlarmEvent("alarm", 4016, "COR_416", "底盘电机失能", "");
+        const AlarmEvent hls_error_1 = AlarmEvent("alarm", 4016, "COR_416", "电机失能，编码器故障ABZ报警", "");
+        const AlarmEvent hls_error_2 = AlarmEvent("alarm", 4017, "COR_417", "电机失能，编码器故障UVW报警", "");
+        const AlarmEvent hls_error_3 = AlarmEvent("alarm", 4018, "COR_418", "电机失能，位置超差", "");
+        const AlarmEvent hls_error_4 = AlarmEvent("alarm", 4019, "COR_419", "电机失能，失速", "");
+        const AlarmEvent hls_error_5 = AlarmEvent("alarm", 4020, "COR_420", "电机失能，电流采样（中点）故障", "");
+        const AlarmEvent hls_error_6 = AlarmEvent("alarm", 4021, "COR_421", "电机失能，过载", "");
+        const AlarmEvent hls_error_7 = AlarmEvent("alarm", 4022, "COR_422", "电机失能，欠压", "");
+        const AlarmEvent hls_error_8 = AlarmEvent("alarm", 4023, "COR_423", "电机失能，过压", "");
+        const AlarmEvent hls_error_9 = AlarmEvent("alarm", 4024, "COR_424", "电机失能，过流", "");
+        const AlarmEvent hls_error_10 = AlarmEvent("alarm", 4025, "COR_425", "电机失能，放电报警瞬时功率大", "");
+        const AlarmEvent hls_error_11 = AlarmEvent("alarm", 4026, "COR_426", "电机失能，放电回路频繁动作平均功率大", "");
+        const AlarmEvent hls_error_12 = AlarmEvent("alarm", 4027, "COR_427", "电机失能，参数读写异常", "");
+        const AlarmEvent hls_error_13 = AlarmEvent("alarm", 4028, "COR_428", "电机失能，输入口功能定义重复", "");
+        const AlarmEvent hls_error_14 = AlarmEvent("alarm", 4029, "COR_429", "电机失能，通讯看门狗触发", "");
+        const AlarmEvent hls_error_15 = AlarmEvent("alarm", 4030, "COR_430", "底盘电电机失能，电机过温报警机失能", "");
 
     public:
         static InternalEventPubManager *instance_;
@@ -241,8 +255,50 @@ namespace internal_event {
                 case LIFT_FAILED:
                     pubAlarmEvent(lift_failed);
                     break;
-                case HLS_ERROR:
-                    pubAlarmEvent(hls_error);
+                case HLS_ERROR_1:
+                    pubAlarmEvent(hls_error_1);
+                    break;
+                case HLS_ERROR_2:
+                    pubAlarmEvent(hls_error_2);
+                    break;
+                case HLS_ERROR_3:
+                    pubAlarmEvent(hls_error_3);
+                    break;
+                case HLS_ERROR_4:
+                    pubAlarmEvent(hls_error_4);
+                    break;
+                case HLS_ERROR_5:
+                    pubAlarmEvent(hls_error_5);
+                    break;
+                case HLS_ERROR_6:
+                    pubAlarmEvent(hls_error_6);
+                    break;
+                case HLS_ERROR_7:
+                    pubAlarmEvent(hls_error_7);
+                    break;
+                case HLS_ERROR_8:
+                    pubAlarmEvent(hls_error_8);
+                    break;
+                case HLS_ERROR_9:
+                    pubAlarmEvent(hls_error_9);
+                    break;
+                case HLS_ERROR_10:
+                    pubAlarmEvent(hls_error_10);
+                    break;
+                case HLS_ERROR_11:
+                    pubAlarmEvent(hls_error_11);
+                    break;
+                case HLS_ERROR_12:
+                    pubAlarmEvent(hls_error_12);
+                    break;
+                case HLS_ERROR_13:
+                    pubAlarmEvent(hls_error_13);
+                    break;
+                case HLS_ERROR_14:
+                    pubAlarmEvent(hls_error_14);
+                    break;
+                case HLS_ERROR_15:
+                    pubAlarmEvent(hls_error_15);
                     break;
                 default:
                     break;

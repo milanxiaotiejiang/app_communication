@@ -50,7 +50,21 @@ enum SelfCheckErrorType {
     LASER_RESTART_FAILED,
     LIFT_FAILED,
     //hls_error
-    HLS_ERROR
+    HLS_ERROR_1,
+    HLS_ERROR_2,
+    HLS_ERROR_3,
+    HLS_ERROR_4,
+    HLS_ERROR_5,
+    HLS_ERROR_6,
+    HLS_ERROR_7,
+    HLS_ERROR_8,
+    HLS_ERROR_9,
+    HLS_ERROR_10,
+    HLS_ERROR_11,
+    HLS_ERROR_12,
+    HLS_ERROR_13,
+    HLS_ERROR_14,
+    HLS_ERROR_15,
 };
 
 #endif //APP_COMMUNICATION_SELFCHECKERRORTYPE_H
