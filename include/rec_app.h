@@ -62,7 +62,6 @@
 #include "manager/PublishInnerManager.h"
 #include "manager/PublishOutManager.h"
 #include "segmentation/SegmentationCenter.h"
-#include "segmentation/SegmentationSubscribe.h"
 #include "exploration/ExplorationCenter.h"
 #include "alignment/map_alignment_center.h"
 #include "client/linux/handler/exception_handler.h"

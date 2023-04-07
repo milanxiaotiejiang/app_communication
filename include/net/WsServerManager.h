@@ -42,7 +42,6 @@ const string APP_COMMUNICATION = "/app_communication";
 const string MAP_APP = "/map_app";
 const string ODOM_APP = "/odom_app";
 const string ROBOT_STATUS = "/robot_status";
-const string MATERIAL_STATUS = "/material_status";
 const string NOTICE_APP = "/notice_app";
 const string TASK_POINT = "/task_point";
 const string CHECK_APP = "/check_app";

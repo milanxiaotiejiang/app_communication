@@ -12,7 +12,6 @@
 #include "BaseThrowable.h"
 #include "exploration/ExplorationCenter.h"
 #include "simulation.h"
-#include "segmentation/SegmentationSubscribe.h"
 #include "db/task_data_base.h"
 
 static bool DEBUG_DISPLAYS_SHOW = false;
@@ -113,8 +112,6 @@ void SegmentationCenter::initialize(const ros::NodeHandle &handle) {
     MapAttribute::instance().loadPenaltyZone();
     // 6.加载参数
     MapAttribute::instance().loadPlanParam();
-
-//    segmentationSubscribe = new SegmentationSubscribe(handle);
 
     // test
 //    resetSegmentation();

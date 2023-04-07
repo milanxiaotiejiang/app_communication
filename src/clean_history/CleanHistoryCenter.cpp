@@ -30,9 +30,6 @@ namespace clean_history_db {
             //更新到数据库
             CleanHistoryDataBase::instance().updateHistory(item);
         }
-
-
-
         return true;
     }
 

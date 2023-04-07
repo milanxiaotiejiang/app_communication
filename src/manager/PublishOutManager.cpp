@@ -9,7 +9,6 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
     pub_response_ = handle.advertise<std_msgs::String>(RESPONSE, 1);
     pub_response_json_ = handle.advertise<std_msgs::String>(RESPONSE_JSON, 1);
     pub_robot_status_ = handle.advertise<std_msgs::String>(ROBOT_STATUS, 10);
-    pub_material_status_ = handle.advertise<std_msgs::String>(MATERIAL_STATUS, 10);
     pub_map_ = handle.advertise<nav_msgs::OccupancyGrid>(MAP_APP, 10);
 
     pub_self_check_ = handle.advertise<std_msgs::String>(CHECK_APP, 1);
@@ -44,20 +43,6 @@ void PublishOutManager::publishStatus(const VersionSubscribe<ShowWorkStatus> &ve
     std_msgs::String result;
     result.data.append(jsonResult.dump());
     pub_robot_status_.publish(result);
-}
-
-void PublishOutManager::publishMaterialStatus(const VersionSubscribe<MaterialStatus> &versionSubscribe) const {
-    RequestModel<VersionSubscribe<MaterialStatus>> requestModel(
-            "publish", MATERIAL_STATUS, versionSubscribe
-    );
-
-    json jsonResult = requestModel;
-
-    WsServerManager::instance().sendRequestData(MATERIAL_STATUS, jsonResult.dump());
-
-    std_msgs::String result;
-    result.data.append(jsonResult.dump());
-    pub_material_status_.publish(result);
 }
 
 void PublishOutManager::publishMap(const nav_msgs::OccupancyGrid &message) const {

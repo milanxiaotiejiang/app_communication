@@ -12,7 +12,9 @@
 class NodeControlSubscribe {
 private:
     ros::Subscriber sub_node_control_, sub_initial_pose_;
+
     void nodeControlSubscribeCallback(const std_msgs::Int32 &flag);
+
     void initialPoseSubscribeCallback(const geometry_msgs::PoseWithCovarianceStampedConstPtr &pose);
 
 public:

@@ -147,7 +147,6 @@ void on_open(server *s, websocketpp::connection_hdl hdl) {
     ask.subMap[MAP_APP] = false;
     ask.subMap[ODOM_APP] = false;
     ask.subMap[ROBOT_STATUS] = false;
-    ask.subMap[MATERIAL_STATUS] = false;
     ask.subMap[NOTICE_APP] = false;
     ask.subMap[TASK_POINT] = false;
     ask.subMap[CHECK_APP] = false;
@@ -261,7 +260,6 @@ public:
     explicit WsServerSubThread(websocketpp::server<websocketpp::config::asio> *server) : server(server) {
         dataMap[ODOM_APP] = "";
         dataMap[ROBOT_STATUS] = "";
-        dataMap[MATERIAL_STATUS] = "";
         dataMap[NOTICE_APP] = "";
         dataMap[TASK_POINT] = "";
         dataMap[CHECK_APP] = "";

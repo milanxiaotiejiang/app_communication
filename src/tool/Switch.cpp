@@ -205,9 +205,6 @@ int switch_ID(const std::string &str) {
     if (str == "main_combination_way") {
         return MAIN_COMBINATION_WAY;
     }
-    if (str == "get_material_status") {
-        return GET_MATERIAL_STATUS;
-    }
     if (str == "cancel_main_combination") {
         return CANCEL_MAIN_COMBINATION;
     }

@@ -16,7 +16,6 @@
 #include "model/SelfCheckStatus.h"
 #include "model/Notice.h"
 #include "net/base/VersionSubscribe.h"
-#include "model/MaterialStatus.h"
 #include "model/KnobStatus.h"
 #include "model/InternalEvent.h"
 
@@ -25,7 +24,6 @@ private:
     ros::Publisher pub_response_,//原协议
     pub_response_json_,  //新协议
     pub_robot_status_,   //机器人状态
-    pub_material_status_,//
     pub_map_,            //地图
     pub_self_check_,     //目标点
     pub_notice_,         //notice
@@ -44,8 +42,6 @@ public:
     void publishJson(const std::string &message) const;
 
     void publishStatus(const VersionSubscribe<ShowWorkStatus> &versionSubscribe) const;
-
-    void publishMaterialStatus(const VersionSubscribe<MaterialStatus> &versionSubscribe) const;
 
     void publishMap(const nav_msgs::OccupancyGrid &message) const;
 
