@@ -45,6 +45,10 @@ namespace path {
         return robot_slam_map_dir() + mymap_pgm;
     }
 
+    std::string map_pbstream_path() {
+        return robot_slam_map_dir() + mymap_pbstream;
+    }
+
     std::string map_segmentation_path() {
         return robot_slam_map_dir() + mymap_segmentation;
     }

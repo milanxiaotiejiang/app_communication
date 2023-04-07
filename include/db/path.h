@@ -35,6 +35,8 @@ namespace path {
 
     std::string map_pgm_path();
 
+    std::string map_pbstream_path();
+
     std::string map_segmentation_path();
 
     std::string prohibition_areas_path();

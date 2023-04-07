@@ -24,6 +24,7 @@ bool MapControl::store2Use(const string &map_id) {
 
     cppfs::FileHandle omy = cppfs::fs::open(dir + path::mymap_yaml);
     cppfs::FileHandle omp = cppfs::fs::open(dir + path::mymap_pgm);
+    cppfs::FileHandle ompb = cppfs::fs::open(dir + path::mymap_pbstream);
     cppfs::FileHandle oms = cppfs::fs::open(dir + path::mymap_segmentation);
     cppfs::FileHandle opa = cppfs::fs::open(dir + path::prohibition_areas_yaml);
 
@@ -34,6 +35,10 @@ bool MapControl::store2Use(const string &map_id) {
     if (omp.exists()) {
         cppfs::FileHandle nmp = cppfs::fs::open(path::robot_slam_map_dir());
         omp.copy(nmp);
+    }
+    if (ompb.exists()) {
+        cppfs::FileHandle nmpb = cppfs::fs::open(path::robot_slam_map_dir());
+        ompb.copy(nmpb);
     }
     if (oms.exists()) {
         cppfs::FileHandle nms = cppfs::fs::open(path::robot_slam_map_dir());
@@ -54,6 +59,7 @@ bool MapControl::use2Store(const string &map_id) {
 
     cppfs::FileHandle nmy = cppfs::fs::open(path::map_yaml_path());
     cppfs::FileHandle nmp = cppfs::fs::open(path::map_pgm_path());
+    cppfs::FileHandle nmpb = cppfs::fs::open(path::map_pbstream_path());
     cppfs::FileHandle nms = cppfs::fs::open(path::map_segmentation_path());
     cppfs::FileHandle npa = cppfs::fs::open(path::prohibition_areas_path());
 
@@ -64,6 +70,10 @@ bool MapControl::use2Store(const string &map_id) {
     if (nmp.exists()) {
         nmp.copy(dir);
         nmp.remove();
+    }
+    if (nmpb.exists()) {
+        nmpb.copy(dir);
+        nmpb.remove();
     }
     if (nms.exists()) {
         nms.copy(dir);
