@@ -5,53 +5,27 @@
 #ifndef APP_COMMUNICATION_WSSERVERMANAGER_H
 #define APP_COMMUNICATION_WSSERVERMANAGER_H
 
-#include "unordered_map"
-#include "vector"
-#include <iostream>
+#include "string"
 
-#include "nlohmann/json.hpp"
-
-#include "net/base/RequestData.h"
-#include "net/base/RequestModel.h"
-
-#include "future/BlockingCollection.h"
-#include "sys/syscall.h"
-#include "future/CThread.h"
-
-#include <websocketpp/config/asio_no_tls.hpp>
-#include <websocketpp/logger/syslog.hpp>
-#include <websocketpp/server.hpp>
-
-#include "model/NetModel.h"
-#include "net/ros/RosBasic.h"
 #include "nav_msgs/Odometry.h"
 #include <nav_msgs/OccupancyGrid.h>
-#include <utility>
 
-#include "glog/logging.h"
-#include "net/MessageBusManager.h"
+const std::string APP_JSON = "/app_json";
+const std::string APP_COMMUNICATION = "/app_communication";
 
-using namespace std;
-using namespace code_machina;
+const std::string MAP_APP = "/map_app";
+const std::string ODOM_APP = "/odom_app";
+const std::string ROBOT_STATUS = "/robot_status";
+const std::string NOTICE_APP = "/notice_app";
+const std::string TASK_POINT = "/task_point";
+const std::string CHECK_APP = "/check_app";
+const std::string KNOB_APP = "/knob_app";
+const std::string INTERNAL_EVENT = "/robot_internal_event";
+const std::string ALARM_EVENT = "/alarm_event";
+const std::string RESPONSE = "/response";
+const std::string RESPONSE_JSON = "/response_json";
 
-using json = nlohmann::json;
-
-const string APP_JSON = "/app_json";
-const string APP_COMMUNICATION = "/app_communication";
-
-const string MAP_APP = "/map_app";
-const string ODOM_APP = "/odom_app";
-const string ROBOT_STATUS = "/robot_status";
-const string NOTICE_APP = "/notice_app";
-const string TASK_POINT = "/task_point";
-const string CHECK_APP = "/check_app";
-const string KNOB_APP = "/knob_app";
-const string INTERNAL_EVENT = "/robot_internal_event";
-const string ALARM_EVENT = "/alarm_event";
-const string RESPONSE = "/response";
-const string RESPONSE_JSON = "/response_json";
-
-const string MESSAGE_BUS_TOPIC = "message_bus_topic";
+const std::string MESSAGE_BUS_TOPIC = "message_bus_topic";
 
 const int NET_MODEL_MAP = 0;
 const int NET_MODEL_ODOM = 1;
@@ -86,9 +60,9 @@ public:
 
     static void setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr);
 
-    static void sendRequestData(const string &key, const std::string &data);
+    static void sendRequestData(const std::string &key, const std::string &data);
 
-    static void sendMessageBusTopic(const string &string);
+    static void sendMessageBusTopic(const std::string &string);
 };
 
 

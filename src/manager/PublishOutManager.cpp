@@ -4,6 +4,7 @@
 
 #include "manager/PublishOutManager.h"
 #include "net/WsServerManager.h"
+#include "net/base/RequestModel.h"
 
 void PublishOutManager::initialize(ros::NodeHandle handle) {
     pub_response_ = handle.advertise<std_msgs::String>(RESPONSE, 1);

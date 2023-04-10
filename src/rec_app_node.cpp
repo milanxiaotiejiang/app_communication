@@ -84,6 +84,7 @@ int main(int argc, char **argv) {
 
     ros::Publisher pub_current = nh.advertise<std_msgs::Int32>("/current_flag", 10);
     WsServerManager::instance().startWebSocket();
+    AiServerManager::instance().startWebSocket();
 
     string last_task;
     nh.param<string>("last_task", last_task, "");//上次执行的任务
@@ -353,6 +354,7 @@ void release() {
     google::ShutdownGoogleLogging(); // 全局关闭glog
     UdpManager::instance().stop();
     WsServerManager::instance().stopWebSocket();
+    AiServerManager::instance().stopWebSocket();
     TaskCenter::instance().uninstall();
     ExplorationCenter::instance().uninstall();
 }

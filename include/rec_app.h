@@ -50,6 +50,7 @@
 #include "manager/InternalEventPubManager.h"
 #include "net/WsServerManager.h"
 #include "net/MessageBusManager.h"
+#include "net/AiServerManager.h"
 
 #include "net/UdpManager.h"
 #include "glog/logging.h"
