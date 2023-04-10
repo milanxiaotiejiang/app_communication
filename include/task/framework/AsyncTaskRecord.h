@@ -16,6 +16,9 @@ const int FLOW_END_SLEEP = -14;
 const int FLOW_IN_BASE_POINT = -15;
 const int FLOW_IN_STATION = -16;
 
+const int FLOW_ERROR_UNRECOVERABLE = -20;
+const int FLOW_ERROR_LIFT = -21;
+
 const int MAX_RECORD_TASK_STACK_SIZE = 3;
 
 class AsyncTaskRecord : public AsyncTaskFramework {

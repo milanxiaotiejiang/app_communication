@@ -154,12 +154,29 @@ void ReservedCall::handlePlannerPoint(const RealPoint &point) {
     AsyncTaskCall::handlePlannerPoint(point);
 }
 
-void ReservedCall::softwareInterruptTask(const RealPoint &point) {
-    auto error_pair = generateErrorByRealPoint(point);
+void ReservedCall::forceInterruptTask() {
+    int errorId = FLOW_ERROR_UNRECOVERABLE;
+    switch (epoll_error) {
+        case loop::error_epoll::error_lift:
+            errorId = FLOW_ERROR_LIFT;
+            break;
+    }
+    auto error_pair = generateErrorByRealPoint(errorId);
     CleanHistoryCenter::instance().errorComplete(
             std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair)
     );
-    updateProperty();
+
+    AsyncTaskCall::forceInterruptTask();
+
+    garbage();
+}
+
+void ReservedCall::softwareInterruptTask(const RealPoint &point) {
+    auto error_pair = generateErrorByRealPoint(point.getId());
+    CleanHistoryCenter::instance().errorComplete(
+            std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair)
+    );
+
     garbage();
 }
 
@@ -173,16 +190,17 @@ void ReservedCall::goodGame() {
 }
 
 void ReservedCall::garbage() {
+    updateProperty();
     InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::SOFTWARE_INTERRUPT);
     InternalEventPubManager::get_instance()->taskStop(runTask.getId());
     AsyncTaskCall::garbage();
 }
 
-std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint(const RealPoint &real_point) {
+std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint(int errorId) {
     std::string error_string;
     int error_code;
     std::string error_code2;
-    switch (real_point.getId()) {
+    switch (errorId) {
         case FLOW_SEIZE_SEAT:
             error_string = "默认状态下出错";
             error_code = 3210;
@@ -218,11 +236,21 @@ std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint
             error_code = 3216;
             error_code2 = "CCR_216";
             break;
+        case FLOW_ERROR_LIFT:
+            error_string = "触发电梯";
+            error_code = 3221;
+            error_code2 = "CCR_221";
+            break;
+        case FLOW_ERROR_UNRECOVERABLE:
+            error_string = "未知错误";
+            error_code = 3220;
+            error_code2 = "CCR_220";
+            break;
         default:
             error_string = "未知错误";
-            error_code = 3200 - real_point.getId();
+            error_code = 3200 - errorId;
             std::string base_string = "CCR_";
-            std::string flow_string = to_string(200 - real_point.getId());
+            std::string flow_string = to_string(200 - errorId);
             error_code2 = base_string + flow_string;
 
             break;

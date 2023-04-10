@@ -113,7 +113,7 @@ protected:
 
     void cancelTask();
 
-    void triggerSuspend();
+    virtual void forceInterruptTask();
 
 public:
     AsyncTaskCall();

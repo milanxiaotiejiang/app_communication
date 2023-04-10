@@ -112,11 +112,11 @@ void AsyncTaskCall::handleErrorOperation() {
             break;
         case loop::error_epoll::error_lift:
             LOG(INFO) << "AsyncTaskCall : 走到电梯上了 ... ";
-            triggerSuspend();
+            forceInterruptTask();
             break;
         case loop::error_epoll::error_unrecoverable:
             LOG(INFO) << "AsyncTaskCall : 出现不可恢复的错误 ... ";
-            triggerSuspend();
+            forceInterruptTask();
             break;
         default:
             LOG(INFO) << "AsyncTaskCall handleErrorOperation : " << epoll_error << " ...";
@@ -454,7 +454,7 @@ void AsyncTaskCall::callManualCleanEnd() {//退出手动模式
 
 void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
     LOG(INFO) << "AsyncTaskCall : 处理 WorkStatus " << status << " ...";
-    if (!ZooInnerStatus::instance().getIsCharging()) {
+    if (!isCharging()) {
         return;
     }
     if (status.getMopStatus() > 0) {
@@ -590,7 +590,7 @@ void AsyncTaskCall::cancelTask() {
     }
 }
 
-void AsyncTaskCall::triggerSuspend() {
+void AsyncTaskCall::forceInterruptTask() {
     if (event_flow != event::flow::waiting_for_task &&
         event_flow != event::flow::hardware_interrupt_task &&
         event_flow != event::flow::software_interrupt_task) {
@@ -599,8 +599,6 @@ void AsyncTaskCall::triggerSuspend() {
         async::TimerCall::instance().baseLoop()->cancelAny();
         waitTaskQueue.clear();
     }
-
-    garbage();
 }
 
 
@@ -629,9 +627,14 @@ void AsyncTaskCall::executeOneTask(const RealTask &task) {
 }
 
 void AsyncTaskCall::executeOnNext(event::error error) {
+    if (isPreparation(event_flow)) {
+        return;
+    }
+
     if (error != event::error::TIMEOUT) {
         async::TimerCall::instance().baseLoop()->cancelAny();
     }
+
     if (!plannerQueue.empty()) {
         notify_one([this, &error]() {
             auto currentPoint = findFrontPoint();
@@ -643,8 +646,8 @@ void AsyncTaskCall::executeOnNext(event::error error) {
             flowInBasePoint.realError.arrive = error == event::error::SUCCEEDED;
             pushPoint(flowInBasePoint);
         });
-
     }
+
 }
 
 void AsyncTaskCall::executePointFeedback(geometry_msgs::Pose2D pose) {

@@ -26,6 +26,8 @@ protected:
 
     void softwareInterruptTask(const RealPoint &point) override;
 
+    void forceInterruptTask() override;
+
     void goodGame() override;
 
     void garbage() override;
@@ -37,7 +39,7 @@ protected:
 public:
 
 
-    std::tuple<int, std::string, std::string> generateErrorByRealPoint(const RealPoint &real_point);
+    std::tuple<int, std::string, std::string> generateErrorByRealPoint(int errorId);
 
     void recordMotorError();
 

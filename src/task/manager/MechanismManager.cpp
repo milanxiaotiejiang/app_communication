@@ -8,7 +8,7 @@
 #include "glog/logging.h"
 
 void MechanismManager::resetWorkStatus() {
-    LOG(INFO) << "MechanismManager : 收起清洁机构.";
+    LOG(INFO) << "MechanismManager : 收起清洁机构 . ";
     std_msgs::Int16 sweep_status;
 //    if (ZooInnerStatus::instance().getSweepStatus() != 0 && ZooInnerStatus::instance().getSweepStatus() != -1) {
     sweep_status.data = 0;
@@ -63,7 +63,7 @@ void MechanismManager::resetBelowWorkStatus() {
 }
 
 void MechanismManager::controlWorkStatus(const WorkStatus &workStatus) {
-    LOG(INFO) << "MechanismManager : 打开清洁机构.";
+    LOG(INFO) << "MechanismManager : 打开清洁机构 " << workStatus << " . ";
     //扫
     std_msgs::Int16 sweep_status;
     if (workStatus.getSweepStatus() >= 0 && workStatus.getSweepStatus() <= 2) {
@@ -116,7 +116,7 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus) {
 }
 
 void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus) {
-    LOG(INFO) << "MechanismManager : 强制打开清洁机构.";
+    LOG(INFO) << "MechanismManager : 强制打开清洁机构 " << workStatus << " . ";
     //扫
     std_msgs::Int16 sweep_status;
     sweep_status.data = ((int16_t) workStatus.getSweepStatus());
