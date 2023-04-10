@@ -43,15 +43,20 @@ then
     rm /home/admin1/test_ws/install/share/robot_slam/params/cartographer_localization.lua
     cp /home/admin1/AirCore/cartographer_localization.lua /home/admin1/test_ws/install/share/robot_slam/params/
 fi
-echo "Updating 0.9.7"
-echo "Updating environment"
-rm /home/admin1/test_ws/install/_setup_util.py
-cp /home/admin1/AirCore/_setup_util.py /home/admin1/test_ws/install/
-echo "Updating sensor topic names"
-rm /home/admin1/test_ws/install/share/robot_slam/params/sensor/realworld_sensor_params.yaml
-cp /home/admin1/AirCore/realworld_sensor_params.yaml /home/admin1/test_ws/install/share/robot_slam/params/sensor/
-echo "Updating inu"
-echo "123456" | sudo -S bash /home/admin1/AirCore/package18_2023_03_15/uninstall.sh
-sleep 5
-echo "123456" | sudo -S bash /home/admin1/AirCore/package18_2023_03_15/install.sh
-echo "Update complete!!!"
+
+if [ $version_index -lt 3 ]
+then
+    echo "Updating 0.9.7"
+    echo "Updating environment"
+    rm /home/admin1/test_ws/install/_setup_util.py
+    cp /home/admin1/AirCore/_setup_util.py /home/admin1/test_ws/install/
+    echo "Updating sensor topic names"
+    rm /home/admin1/test_ws/install/share/robot_slam/params/sensor/realworld_sensor_params.yaml
+    cp /home/admin1/AirCore/realworld_sensor_params.yaml /home/admin1/test_ws/install/share/robot_slam/params/sensor/
+    echo "Updating inu"
+    echo "123456" | sudo -S bash /home/admin1/AirCore/package18_2023_03_15/uninstall.sh
+    sleep 5
+    echo "123456" | sudo -S bash /home/admin1/AirCore/package18_2023_03_15/install.sh
+    echo "Update complete!!!"
+fi
+
