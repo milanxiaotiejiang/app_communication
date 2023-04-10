@@ -6,6 +6,6 @@ has_knob: false
 has_voice: false
 self_check_version: 1
 update_map: false
-OR_percent_1: 10
+OR_percent_1: 15
 OR_percent_2: 4
 
