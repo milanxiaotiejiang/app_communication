@@ -24,6 +24,9 @@ TaskVo TaskDataBase::taskPo2Vo(const TaskPo &taskPo) {
                 taskPo.principal, taskPo.partition, taskPo.knife, SqliteDataBase::SourceToString(taskPo.source),
                 taskPo.launch_people, taskPo.launch_time, taskPo.update_time, taskPo.create_time);
 
+    WorkStatus ws(taskPo.sweep, taskPo.mop, taskPo.vacuum, taskPo.push, taskPo.aromatherapy, taskPo.disinfect);
+    task.setWorkStatus(ws);
+
     if (taskPo.mode == TaskMode::Zoned) {
         std::vector<std::vector<PointVo>> zones;
         for (const auto &zone: taskPo.zones) {

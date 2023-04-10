@@ -200,16 +200,16 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
 
             if (coverage_need_again) {
                 coverage_need_again = false;
-                LOG(INFO) << "SubregionPathGenerator : 处理需要再次进行的规划请求，准备开始规划 ...";
+                LOG(INFO) << "SubregionPathGenerator : 分区处理需要再次进行的规划请求，准备开始规划 ...";
             } else {
                 coverage_planner_done = true;
                 wait_cv.notify_one();
 
                 coverage_obtain_path = false;
-                LOG(INFO) << "SubregionPathGenerator : 规划全部完成，支持获取全覆盖路径 ...";
+                LOG(INFO) << "SubregionPathGenerator : 分区规划全部完成，支持获取全覆盖路径 ...";
             }
         } else {
-            LOG(INFO) << "SubregionPathGenerator : 全覆盖规划有异常情况，停止当前规划 ...";
+            LOG(INFO) << "SubregionPathGenerator : 分区全覆盖规划有异常情况，停止当前规划 ...";
             coverage_need_again = false;
 
             coverage_obtain_path = false;
@@ -256,7 +256,7 @@ void SubregionPathGenerator::preloadCoveragePath() {
 
 void SubregionPathGenerator::repaintCoveragePath() {
     if (coverage_need_again) {
-        LOG(INFO) << "SubregionPathGenerator : 已通知需要重新规划，此处拦截多次的请求 ...";
+        LOG(INFO) << "SubregionPathGenerator : 分区已通知需要重新规划，此处拦截多次的请求 ...";
         return;
     }
 
