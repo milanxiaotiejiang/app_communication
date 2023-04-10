@@ -15,6 +15,12 @@ bool MapControl::initialize() {
         return false;
     }
     MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
+
+    cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + mapPo.id + path::separator());
+    if (!dir.exists()) {
+        use2Store(mapPo.id);
+    }
+
     store2Use(mapPo.id);
     return true;
 }
