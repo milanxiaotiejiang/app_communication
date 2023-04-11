@@ -48,7 +48,7 @@ private:
 
     bool baseStationAvailable(cv::Mat &room_map, const cv::Point &point);
 
-    cv::Mat findClosestPointRoom(cv::Mat &room_map, const cv::Point &point);
+    cv::Mat findClosestPointRoom(cv::Mat &room_map, const cv::Point &point, double min_cell_area);
 
     bool removeUnconnectedRoomParts(cv::Mat &room_map);
 

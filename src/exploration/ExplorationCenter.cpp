@@ -209,7 +209,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
     cv::Mat latelyMap;
     if (model == ExplorationModel::FULL) {
-        latelyMap = findClosestPointRoom(map, stationPoint);
+        latelyMap = findClosestPointRoom(map, stationPoint, min_cell_area_);
     } else {
         latelyMap = map;
     }
@@ -349,6 +349,17 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
     int half_grid_spacing_as_int_ = (int) std::floor(0.5 * grid_spacing_in_pixel);
 
+    int area_px = 0;
+    for (int v = 0; v < map.rows; ++v)
+        for (int u = 0; u < map.cols; ++u)
+            if (map.at<uchar>(v, u) >= 250)
+                area_px++;
+    LOG(INFO) << "### room area = "
+              << area_px * map_resolution_from_subscription * map_resolution_from_subscription
+              << " m^2";
+
+    double min_cell_area_ = std::max(area_px / 2000.0, plan.min_cell_area);
+
     int distance_from_obstacles = plan.distance_from_obstacles;
     if (distance_from_obstacles < -half_grid_spacing_as_int_) {
         distance_from_obstacles = -half_grid_spacing_as_int_ + 1;
@@ -373,7 +384,7 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
 
     drawBaseStation(map, stationPoint, grid_spacing_in_pixel + plan.range_near_base_station);
 
-    cv::Mat latelyMap = findClosestPointRoom(map, stationPoint);
+    cv::Mat latelyMap = findClosestPointRoom(map, stationPoint, min_cell_area_);
 
     if (!removeUnconnectedRoomParts(latelyMap)) {
         LOG(ERROR)
@@ -651,18 +662,21 @@ bool ExplorationCenter::baseStationAvailable(cv::Mat &room_map, const cv::Point 
 
 /**
  * 移除距离 point 点远的区域
- * 当多个区域不相连时，找里机器人或者基站最近的区域（应该为包含此点的区域）
- * @param room_map
+ * 1. 当多个区域不相连时，找里机器人或者基站最近的区域（应该为包含此点的区域）
+ * 2. 移除面积过小的区域，以防个别“点”造成的影响，这里按最小面积来
  * @return
  */
-cv::Mat ExplorationCenter::findClosestPointRoom(cv::Mat &room_map, const cv::Point &point) {
+cv::Mat ExplorationCenter::findClosestPointRoom(cv::Mat &room_map, const cv::Point &point, double min_cell_area) {
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(room_map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     cv::Mat image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
     double distance = -100000;
     for (int i = 0; i < contours.size(); ++i) {
-
-        double d = cv::pointPolygonTest(contours[i], point, true);
+        std::vector<cv::Point> contour = contours[i];
+        if (contour.size() < min_cell_area) {
+            continue;
+        }
+        double d = cv::pointPolygonTest(contour, point, true);
         if (d > distance) {
             distance = d;
             cv::drawContours(image, contours, i, cv::Scalar(255), CV_FILLED);
