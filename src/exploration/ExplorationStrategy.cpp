@@ -113,7 +113,7 @@ bool PlanParamSetStrategy::handler(PlanParam params) {
             params.getRandomNumberGenerationRatio(),
             params.getBoundaryMinArea()
     );
-    ExplorationCenter::instance().repaintCoveragePath(false, false);
+    ExplorationCenter::instance().repaintCoveragePath(false);
 }
 
 PlanParam PlanParamResetStrategy::handler(string params) {

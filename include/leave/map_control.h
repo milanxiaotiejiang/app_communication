@@ -16,11 +16,13 @@ public:
 
     bool initialize();
 
-    bool store2Use(const std::string &map_id);
+    bool loadInformation(const std::string &map_id);
 
-    bool use2Store(const std::string &map_id);
+    bool backupAndRetrieve(const std::string &map_id);
 
-    void tt();
+    bool backupProhibition(const std::string &map_id, bool retrieve);
+
+    bool backupMap(const std::string &map_id, bool retrieve);
 
 };
 

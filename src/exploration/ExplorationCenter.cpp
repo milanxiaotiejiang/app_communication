@@ -22,6 +22,7 @@
 #include "exploration/infinitely_near_boundary.h"
 #include "simulation.h"
 #include "leave/ParamManager.h"
+#include "leave/map_control.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 static bool DISPLAY_TRAJECTORY_EFFECT = false;
@@ -87,11 +88,12 @@ void ExplorationCenter::uninstall() {
     delete poseSubscribe;
 }
 
-void ExplorationCenter::repaintCoveragePath(bool retrieveStation, bool resetSegmentation) {
-    if (retrieveStation)
+void ExplorationCenter::repaintCoveragePath(bool isMapChange) {
+    if (isMapChange) {
+        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
         MapAttribute::instance().loadStation();
-    if (resetSegmentation)
         SegmentationCenter::instance().resetSegmentation();
+    }
     coveragePathGenerator.repaintCoveragePath();
     repaintSubregionPath();
 }

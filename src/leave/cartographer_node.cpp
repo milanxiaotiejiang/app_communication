@@ -82,7 +82,7 @@ void CartographerSubscribe::initialize(ros::NodeHandle handle) {
 
 void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_result) {
     if (carto_result.data == 1) {
-        ExplorationCenter::instance().repaintCoveragePath(true, true);
+        ExplorationCenter::instance().repaintCoveragePath(true);
         CartographerSubscribe::instance().coverResult();
     }
 }

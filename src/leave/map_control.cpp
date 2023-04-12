@@ -18,14 +18,14 @@ bool MapControl::initialize() {
 
     cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + mapPo.id + path::separator());
     if (!dir.exists()) {
-        use2Store(mapPo.id);
+        backupAndRetrieve(mapPo.id);
     }
 
-    store2Use(mapPo.id);
+    loadInformation(mapPo.id);
     return true;
 }
 
-bool MapControl::store2Use(const string &map_id) {
+bool MapControl::loadInformation(const string &map_id) {
     std::string dir = path::robot_slam_map_dir() + map_id + path::separator();
 
     cppfs::FileHandle omy = cppfs::fs::open(dir + path::mymap_yaml);
@@ -58,7 +58,28 @@ bool MapControl::store2Use(const string &map_id) {
     return true;
 }
 
-bool MapControl::use2Store(const string &map_id) {
+bool MapControl::backupAndRetrieve(const string &map_id) {
+    backupMap(map_id, true);
+    backupProhibition(map_id, true);
+    return true;
+}
+
+bool MapControl::backupProhibition(const string &map_id, bool retrieve) {
+    cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + map_id + path::separator());
+    if (!dir.isDirectory())
+        dir.createDirectory();
+
+    cppfs::FileHandle npa = cppfs::fs::open(path::prohibition_areas_path());
+    if (npa.exists()) {
+        npa.copy(dir);
+        if (retrieve)
+            npa.remove();
+    }
+
+    return true;
+}
+
+bool MapControl::backupMap(const string &map_id, bool retrieve) {
     cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + map_id + path::separator());
     if (!dir.isDirectory())
         dir.createDirectory();
@@ -67,40 +88,27 @@ bool MapControl::use2Store(const string &map_id) {
     cppfs::FileHandle nmp = cppfs::fs::open(path::map_pgm_path());
     cppfs::FileHandle nmpb = cppfs::fs::open(path::map_pbstream_path());
     cppfs::FileHandle nms = cppfs::fs::open(path::map_segmentation_path());
-    cppfs::FileHandle npa = cppfs::fs::open(path::prohibition_areas_path());
 
     if (nmy.exists()) {
         nmy.copy(dir);
-        nmy.remove();
+        if (retrieve)
+            nmy.remove();
     }
     if (nmp.exists()) {
         nmp.copy(dir);
-        nmp.remove();
+        if (retrieve)
+            nmp.remove();
     }
     if (nmpb.exists()) {
         nmpb.copy(dir);
-        nmpb.remove();
+        if (retrieve)
+            nmpb.remove();
     }
     if (nms.exists()) {
         nms.copy(dir);
-        nms.remove();
-    }
-    if (npa.exists()) {
-        npa.copy(dir);
-        npa.remove();
+        if (retrieve)
+            nms.remove();
     }
 
     return true;
-}
-
-void MapControl::tt() {
-    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
-    MapControl::instance().use2Store(oldMap.id);
-
-    const MapPo &newMap = SegmentationDataBase::instance().installMap("tt");
-
-    SegmentationDataBase::instance().loadMainMap();
-    MapControl::instance().use2Store(newMap.id);
-
-    ExplorationCenter::instance().repaintCoveragePath(true, true);
 }

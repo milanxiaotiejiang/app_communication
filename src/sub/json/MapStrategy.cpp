@@ -11,15 +11,15 @@
 #include "leave/map_control.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
-    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
-    MapControl::instance().use2Store(oldMap.id);
+    // todo 此版本为单地图
+//    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+//    MapControl::instance().backupAndRetrieve(oldMap.id);
     if (MapAttribute::instance().saveMap()) {
-        const MapPo &newMap = SegmentationDataBase::instance().installMap(params.getMapName());
+        // todo 此版本为单地图
+//        const MapPo &newMap = SegmentationDataBase::instance().installMap(params.getMapName());
+//        SegmentationDataBase::instance().loadMainMap();
 
-        SegmentationDataBase::instance().loadMainMap();
-        MapControl::instance().use2Store(newMap.id);
-
-        ExplorationCenter::instance().repaintCoveragePath(true, true);
+        ExplorationCenter::instance().repaintCoveragePath(true);
 
         MapInfo param(1, params.getMapName());
         return param;
@@ -63,7 +63,8 @@ string EditMapStrategy::handler(vector<std::vector<float>> params) {
     MapAttribute::instance().resetProhibition();
     MapAttribute::instance().loadVirtualWall();
     MapAttribute::instance().loadPenaltyZone();
-    ExplorationCenter::instance().repaintCoveragePath(false, false);
+    MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false);
+    ExplorationCenter::instance().repaintCoveragePath(false);
     return "";
 }
 

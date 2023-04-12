@@ -84,7 +84,7 @@ public:
 
     void uninstall();
 
-    void repaintCoveragePath(bool retrieveStation, bool resetSegmentation);
+    void repaintCoveragePath(bool isMapChange);
 
     void repaintSubregionPath();
 
