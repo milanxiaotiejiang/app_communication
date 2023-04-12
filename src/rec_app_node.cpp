@@ -56,6 +56,7 @@ int main(int argc, char **argv) {
 
     ParamManager::instance().loadDefaultParam();
 
+    TaskDataBase::instance().initialize();
     if (!MapControl::instance().initialize()) {
         LOG(ERROR) << "data DB Map load fail !";
         return 0;
@@ -65,7 +66,6 @@ int main(int argc, char **argv) {
     ExplorationCenter::instance().initialize(handle);
 //    AlignmentCenter::instance().initialize(handle);
     TaskCenter::instance().initialize(handle);
-    TaskDataBase::instance().initialize();
 
     NodeControl::instance().initialize(handle);
 

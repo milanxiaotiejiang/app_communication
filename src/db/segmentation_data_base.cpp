@@ -55,6 +55,13 @@ MapPo SegmentationDataBase::installMap(std::string name) {
 }
 
 MapPo SegmentationDataBase::installDefaultMap() {
+    auto mapList = segmentationStorage.get_all<MapPo>();
+    for (const auto &item: mapList) {
+        removeAllRoom(item.id);
+        segmentationStorage.remove_all<PlanPo>(where(c(&PlanPo::map_id) == item.id));
+    }
+    segmentationStorage.remove_all<MapPo>();
+
     MapPo map;
     map.id = "default_map_uuid_0123456789";
     map.name = "default";
