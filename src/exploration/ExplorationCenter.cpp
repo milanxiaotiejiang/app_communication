@@ -30,7 +30,6 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
     ros::Time::init();
 
     poseSubscribe = new OdomSubscribe(handle);
-    mapSavedSubscribe = new MapSavedSubscribe(handle);
 
     path_pub_ = handle.advertise<nav_msgs::Path>("exploration_coverage_path", 2);
 
@@ -86,7 +85,6 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
 void ExplorationCenter::uninstall() {
     delete poseSubscribe;
-    delete mapSavedSubscribe;
 }
 
 void ExplorationCenter::repaintCoveragePath(bool retrieveStation, bool resetSegmentation) {

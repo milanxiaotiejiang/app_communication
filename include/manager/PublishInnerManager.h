@@ -27,7 +27,6 @@ private:
     pub_darwer_cmd_, //开抽屉
     pub_arom_status_, //香薰机
     pub_light_mode_,  //
-    pub_mode_command_,   //内部指令
     pub_velocity_,       //速度
     pub_passed_path_,    //走过的路径
     pub_music,           //播放音乐
@@ -63,8 +62,6 @@ public:
     void publishLightCmd(const std_msgs::Int16 &message) const;
 
     void publishAromStatus(const std_msgs::Int16 &message) const;
-
-    void publishCommand(const std_msgs::String &message) const;
 
     void publishVelocity(const geometry_msgs::Twist &message) const;
 

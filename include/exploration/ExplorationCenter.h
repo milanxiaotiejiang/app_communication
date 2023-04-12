@@ -8,7 +8,6 @@
 #include <ros/ros.h>
 #include "odom_subscribe.h"
 #include "segmentation/map_attribute.h"
-#include "segmentation/map_saved_subscribe.h"
 #include "lru_cache.h"
 #include "model/RoomVo.h"
 #include "segmentation/Room.h"
@@ -31,7 +30,6 @@ private:
     std::recursive_mutex cv_mut;
 
     OdomSubscribe *poseSubscribe;
-    MapSavedSubscribe *mapSavedSubscribe;
 
     async::ThreadPool pool_;
 

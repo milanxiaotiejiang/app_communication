@@ -264,9 +264,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case MANUAL_PUSH_RESET:
             messageStrategy = new ManualPushResetStrategy();
             break;
-        case MANUAL_PUSH_SAVE:
-            messageStrategy = new ManualPushSaveStrategy();
-            break;
         case GET_FULL_CLEANING_MODE:
             messageStrategy = new GetFullCleaningModeStrategy();
             break;

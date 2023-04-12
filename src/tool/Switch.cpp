@@ -261,9 +261,6 @@ int switch_ID(const std::string &str) {
     if (str == "manual_push_reset") {
         return MANUAL_PUSH_RESET;
     }
-    if (str == "manual_push_save") {
-        return MANUAL_PUSH_SAVE;
-    }
     if (str == "get_full_cleaning_mode") {
         return GET_FULL_CLEANING_MODE;
     }

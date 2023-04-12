@@ -13,7 +13,6 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_darwer_cmd_ = handle.advertise<std_msgs::Int16>("/mrrobot/drawer_cmd", 1);
     pub_arom_status_ = handle.advertise<std_msgs::Int16>("/mrrobot/arom_status_control", 1);
     pub_light_mode_ = handle.advertise<std_msgs::Int16>("/mrrobot/light_mode", 1);
-    pub_mode_command_ = handle.advertise<std_msgs::String>("/mrrobot/mode_command", 1);
     pub_velocity_ = handle.advertise<geometry_msgs::Twist>("/cmd_vel/app", 1);
     pub_passed_path_ = handle.advertise<nav_msgs::Path>("/clean_robot/passed_path", 10);
     pub_music = handle.advertise<std_msgs::Int32>("/play_music", 1);
@@ -58,10 +57,6 @@ void PublishInnerManager::publishDrawerCmd(const std_msgs::Int16 &message) const
 
 void PublishInnerManager::publishLightCmd(const std_msgs::Int16 &message) const {
     pub_light_mode_.publish(message);
-}
-
-void PublishInnerManager::publishCommand(const std_msgs::String &message) const {
-    pub_mode_command_.publish(message);
 }
 
 void PublishInnerManager::publishVelocity(const geometry_msgs::Twist &message) const {

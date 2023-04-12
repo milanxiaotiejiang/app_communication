@@ -93,20 +93,6 @@ int ManualPushResetStrategy::handler(string params) {
     return 5;
 }
 
-MapInfo ManualPushSaveStrategy::handler(MapInfo params) {
-    std_msgs::String map_save;
-    map_save.data.append("save_map");
-    PublishInnerManager::instance().publishCommand(map_save);
-
-    MapInfo param(1, params.getMapName());
-
-    std_msgs::Int8 map_start;
-    map_start.data = 0;
-    PublishInnerManager::instance().publishKnobTask(map_start);
-
-    return param;
-}
-
 string MapObstaclesStrategy::handler(vector<vector<PointVo>> params) {
     std::vector<std::vector<cv::Point>> points;
 

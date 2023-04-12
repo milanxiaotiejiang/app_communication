@@ -6,8 +6,11 @@
 #define APP_COMMUNICATION_MODE_VALIDATE_H
 
 
-class ModeValidate {
+#include "machine.h"
 
+class ModeValidate {
+public:
+    static bool validate(node::State state);
 };
 
 

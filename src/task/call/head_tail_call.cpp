@@ -10,16 +10,19 @@
 
 void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
     if (point.getId() == FLOW_SEIZE_SEAT) {
-        setFlow(event::flow::out_base_station);
+//        setFlow(event::flow::out_base_station);
+        setFlow(event::flow::switch_node_work_mode);
     } else if (point.getId() == FLOW_OUT_STATION) {
         if (point.realError.arrive) {
-            setFlow(event::flow::switch_node_work_mode);
+//            setFlow(event::flow::switch_node_work_mode);
+            setFlow(event::flow::preliminary_preparation_completed);
         } else {
             setFlow(event::flow::software_interrupt_task);
         }
     } else if (point.getId() == FLOW_END_SLEEP) {
         if (point.realError.arrive) {
-            setFlow(event::flow::preliminary_preparation_completed);
+//            setFlow(event::flow::preliminary_preparation_completed);
+            setFlow(event::flow::out_base_station);
         } else {
             setFlow(event::flow::software_interrupt_task);
         }

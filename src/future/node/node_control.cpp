@@ -7,21 +7,20 @@
 #include "simulation.h"
 #include "leave/reconfigure.h"
 #include "ros/xmlrpc_manager.h"
+#include "future/node/mode_validate.h"
+#include "leave/cartographer_node.h"
 
 void NodeControl::initialize(ros::NodeHandle handle) {
     nodeHandle = handle;
     pool_.setNumOfThreads(THREAD_POOL_MAX_NUM);
 
     subscribe = new NodeControlSubscribe(handle);
-    cartoHeartBeat = new CartoHeartBeat(handle);
 
     nodeSubject = new AbnormalSubject();
     nodeObserver = new AbnormalObserver(nodeSubject);
     nodeSubject->attach(nodeObserver);
 
-    pub_clear_odom = handle.advertise<std_msgs::Int32>("/mrrobot/clear_odom", 1);
-
-    onSleep();
+//    onSleep();
     asyncOn([&handle]() {
         int p_OR_percent_1 = 6;
         ros::param::set("/OR_percent_1", p_OR_percent_1);
@@ -51,25 +50,37 @@ void NodeControl::release() {
 
 void NodeControl::onWork() {
     work_state_ = node::WorkState::way;
+//    asyncOn([this]() {
+//        NodeChain chain(&pool_);
+//
+//        resetLocalization(true);
+//        clearOdom();
+//
+//        auto *pFilterManager = new NodeManager(new OnceConfirm());
+//        pFilterManager->setNodeSubject(nodeSubject);
+//        if (Environment::instance().isRealEnvironment) {
+//            pFilterManager->addActivateNode(new NavigationActivateNode(2));
+//            pFilterManager->addActivateNode(new LoadMapActivateNode(2));
+//            pFilterManager->addActivateNode(new LocalizationActivateNode(2));
+//        } else {
+//            pFilterManager->addActivateNode(new NavigationActivateNode(1));
+//            pFilterManager->addActivateNode(new LoadMapActivateNode(1));
+//            pFilterManager->addActivateNode(new RvizActivateNode(1));
+//        }
+//
+//        bool isSuccessful = pFilterManager->activateNode(chain);
+//        if (isSuccessful) {
+//            setWorkMode(node::State::work);
+//            state_ = node::State::work;
+//            work_state_ = node::WorkState::complete;
+//        } else {
+//            trySleep();
+//        }
+//        delete pFilterManager;
+//    });
     asyncOn([this]() {
-        NodeChain chain(&pool_);
-
-        resetLocalization(true);
-        clearOdom();
-
-        auto *pFilterManager = new NodeManager(new OnceConfirm());
-        pFilterManager->setNodeSubject(nodeSubject);
-        if (Environment::instance().isRealEnvironment) {
-            pFilterManager->addActivateNode(new NavigationActivateNode(2));
-            pFilterManager->addActivateNode(new LoadMapActivateNode(2));
-            pFilterManager->addActivateNode(new LocalizationActivateNode(2));
-        } else {
-            pFilterManager->addActivateNode(new NavigationActivateNode(1));
-            pFilterManager->addActivateNode(new LoadMapActivateNode(1));
-            pFilterManager->addActivateNode(new RvizActivateNode(1));
-        }
-
-        bool isSuccessful = pFilterManager->activateNode(chain);
+        CartographerPublisher::instance().publishStartCartoLocalization();
+        bool isSuccessful = ModeValidate::validate(node::State::work);
         if (isSuccessful) {
             setWorkMode(node::State::work);
             state_ = node::State::work;
@@ -77,25 +88,36 @@ void NodeControl::onWork() {
         } else {
             trySleep();
         }
-        delete pFilterManager;
     });
 }
 
 void NodeControl::onMap() {
     map_state_ = node::MapState::way;
+//    asyncOn([this]() {
+//        NodeChain chain(&pool_);
+//
+//        resetLocalization(false);
+//        clearOdom();
+//
+//        auto *pFilterManager = new NodeManager(new OnceConfirm());
+//        pFilterManager->setNodeSubject(nodeSubject);
+//        pFilterManager->addActivateNode(new KillMapServerActivateNode(1));
+//        pFilterManager->addActivateNode(new BuildMappingActivateNode(2));
+//        pFilterManager->addActivateNode(new SubmapToMapActivateNode(2));
+//
+//        bool isSuccessful = pFilterManager->activateNode(chain);
+//        if (isSuccessful) {
+//            setWorkMode(node::State::map);
+//            state_ = node::State::map;
+//            map_state_ = node::MapState::complete;
+//        } else {
+//            trySleep();
+//        }
+//        delete pFilterManager;
+//    });
     asyncOn([this]() {
-        NodeChain chain(&pool_);
-
-        resetLocalization(false);
-        clearOdom();
-
-        auto *pFilterManager = new NodeManager(new OnceConfirm());
-        pFilterManager->setNodeSubject(nodeSubject);
-        pFilterManager->addActivateNode(new KillMapServerActivateNode(1));
-        pFilterManager->addActivateNode(new BuildMappingActivateNode(2));
-        pFilterManager->addActivateNode(new SubmapToMapActivateNode(2));
-
-        bool isSuccessful = pFilterManager->activateNode(chain);
+        CartographerPublisher::instance().publishStartCartoMapping();
+        bool isSuccessful = ModeValidate::validate(node::State::map);
         if (isSuccessful) {
             setWorkMode(node::State::map);
             state_ = node::State::map;
@@ -103,74 +125,80 @@ void NodeControl::onMap() {
         } else {
             trySleep();
         }
-        delete pFilterManager;
     });
 }
 
 void NodeControl::offSleep() {
-    system_kill("map_server");
+//    system_kill("map_server");
 }
 
 void NodeControl::offWork() {
-    //at this time the truth was invalid
-//    system_kill(n_localization);
-//    system_kill(n_load_map);
-//    system_kill(n_navigation);
-    //this simplest way
-    if (Environment::instance().isRealEnvironment) {
-        system_kill("cartographer_node");
-        system_kill("map_server");
-        system_kill("bump_back_node");
-        system_kill("move_base");
-    } else {
-        system_kill("rviz");
-        system_kill("map_server");
-        system_kill("amcl");
-        system_kill("move_base");
-    }
+//    //at this time the truth was invalid
+////    system_kill(n_localization);
+////    system_kill(n_load_map);
+////    system_kill(n_navigation);
+//    //this simplest way
+//    if (Environment::instance().isRealEnvironment) {
+//        system_kill("cartographer_node");
+//        system_kill("map_server");
+//        system_kill("bump_back_node");
+//        system_kill("move_base");
+//    } else {
+//        system_kill("rviz");
+//        system_kill("map_server");
+//        system_kill("amcl");
+//        system_kill("move_base");
+//    }
 }
 
 void NodeControl::offMap() {
-    system_kill("cartographer_occupancy_grid_node");
-    system_kill("cartographer_node");
+//    system_kill("cartographer_occupancy_grid_node");
+//    system_kill("cartographer_node");
 }
 
 void NodeControl::onSleep() {
-    asyncOn([]() {
-        if (Environment::instance().isRealEnvironment) {
-            system_start(n_load_map);
-        } else {
-//            system_start(n_tt_load_map);
-        }
-    });
-    setWorkMode(node::State::sleep);
+//    asyncOn([]() {
+//        if (Environment::instance().isRealEnvironment) {
+//            system_start(n_load_map);
+//        } else {
+////            system_start(n_tt_load_map);
+//        }
+//    });
+//    setWorkMode(node::State::sleep);
 }
 
 void NodeControl::trySleep() {
-    if (!isSleep()) {
-        asyncOff(5, [this]() {
-            clearOdom();
-            if (isWork()) {
-                offWork();
-            }
-            if (isMap()) {
-                offMap();
-            }
-            onSleep();
+//    if (!isSleep()) {
+//        asyncOff(5, [this]() {
+//            clearOdom();
+//            if (isWork()) {
+//                offWork();
+//            }
+//            if (isMap()) {
+//                offMap();
+//            }
+//            onSleep();
+//            work_state_ = node::WorkState::normal;
+//            map_state_ = node::MapState::normal;
+//            state_ = node::State::sleep;
+//        });
+//        if (!isSleep()) {
+//            LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
+//        }
+//    }
+    asyncOn([this]() {
+        CartographerPublisher::instance().publishShutdownCarto();
+        CartographerPublisher::instance().publishClearCurrentPose();
+        bool isSuccessful = ModeValidate::validate(node::State::sleep);
+        if (isSuccessful) {
+            setWorkMode(node::State::sleep);
             work_state_ = node::WorkState::normal;
             map_state_ = node::MapState::normal;
             state_ = node::State::sleep;
-        });
-        if (!isSleep()) {
+        } else {
             LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
         }
-    }
-}
-
-void NodeControl::clearOdom() {
-    std_msgs::Int32 message;
-    message.data = 1;
-    pub_clear_odom.publish(message);
+    });
 }
 
 void NodeControl::setWorkMode(node::State state) {
@@ -218,20 +246,26 @@ void NodeControl::update() {
 }
 
 void NodeControl::changeWorkMode() {
+//    pool_.execute([this]() {
+//        trySleep();
+//        if (isSleep()) {
+//            onWork();
+//        }
+//    });
     pool_.execute([this]() {
-        trySleep();
-        if (isSleep()) {
-            onWork();
-        }
+        onWork();
     });
 }
 
 void NodeControl::changeMapMode() {
+//    pool_.execute([this]() {
+//        trySleep();
+//        if (isSleep()) {
+//            onMap();
+//        }
+//    });
     pool_.execute([this]() {
-        trySleep();
-        if (isSleep()) {
-            onMap();
-        }
+        onMap();
     });
 }
 
@@ -242,13 +276,9 @@ void NodeControl::changeSleepMode() {
 }
 
 void NodeControl::emulate() {
-    work_state_ = node::WorkState::complete;
-    map_state_ = node::MapState::normal;
-    state_ = node::State::work;
-}
-
-void NodeControl::shutdownCartoNodeOnly() {
-    system_kill("cartographer_node");
+//    work_state_ = node::WorkState::complete;
+//    map_state_ = node::MapState::normal;
+//    state_ = node::State::work;
 }
 
 void NodeControl::paramPose(const std::string &key, const geometry_msgs::Pose pose) {

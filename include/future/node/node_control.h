@@ -17,7 +17,6 @@
 #include "node_observer_mode.h"
 #include "machine.h"
 #include "node_control_subscribe.h"
-#include "heart_beat.h"
 #include "geometry_msgs/Pose.h"
 
 #define  THREAD_POOL_MAX_NUM 16
@@ -27,8 +26,6 @@ private:
     ros::NodeHandle nodeHandle;
     async::ThreadPool pool_;
     NodeControlSubscribe *subscribe;
-    CartoHeartBeat *cartoHeartBeat;
-    ros::Publisher pub_clear_odom;
 
     std::atomic<node::State> state_{node::State::sleep};
     std::atomic<node::WorkState> work_state_{node::WorkState::normal};
@@ -64,14 +61,13 @@ private:
 
     void trySleep();
 
-    void clearOdom();
-
     void setWorkMode(node::State state);
 
     void resetLocalization(bool open);
 
 public:
     std::atomic<int> heart_beat;
+    std::atomic<int> carto_mode;
 
     static auto &instance() {
         static NodeControl obj;
@@ -127,8 +123,6 @@ public:
     void changeSleepMode();
 
     void emulate();
-
-    void shutdownCartoNodeOnly();
 
     static void paramPose(const std::string& key, const geometry_msgs::Pose pose);
 };

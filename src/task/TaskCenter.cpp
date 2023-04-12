@@ -16,7 +16,6 @@
 #include "task/manager/StationManager.h"
 #include "task/manager/NativeSystemManager.h"
 
-#include "task/subscribe/CartographerManager.h"
 #include "task/subscribe/zoo_inner_status.h"
 #include "task/subscribe/async_machine.h"
 
@@ -142,8 +141,9 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
     StationManager::instance().setAsyncTaskCall(asyncTaskCall);
 
     //地图管理类
-    CartographerManager::instance().initialize(handle);
-    CartographerManager::instance().setAsyncTaskCall(asyncTaskCall);
+    CartographerPublisher::instance().initialize(handle);
+    CartographerSubscribe::instance().initialize(handle);
+    CartographerSubscribe::instance().setAsyncTaskCall(asyncTaskCall);
 
     //手动管理类
     ManualManager::instance().setAsyncTaskCall(asyncTaskCall);
@@ -159,8 +159,6 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
     flagOutSubscribe = new FlagOutSubscribe(handle);
     //进站管理类
     flagInSubscribe = new FlagInSubscribe(handle);
-    //地图管理类
-    cartographerSubscribe = new CartographerSubscribe(handle);
     //地毯检测
     carpetDetectSubscribe = new CarpetDetectSubscribe(handle);
     carpetDetectSubscribe->setAsyncTaskCall(asyncTaskCall);
@@ -213,7 +211,6 @@ void TaskCenter::uninstall() {
     delete zooRobotStatusSubscribe;
     delete flagOutSubscribe;
     delete flagInSubscribe;
-    delete cartographerSubscribe;
     delete carpetDetectSubscribe;
 }
 

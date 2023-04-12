@@ -7,6 +7,7 @@
 #include "db/segmentation_data_base.h"
 #include "manager/PublishInnerManager.h"
 #include "BaseThrowable.h"
+#include "leave/cartographer_node.h"
 
 /**
  * map_origin_pose.position (0,0) 为显示地图的左下角，即 starting_position_pose.x 越大，机器人越靠右；starting_position_pose.y 越大，机器人越考上
@@ -176,11 +177,8 @@ bool MapAttribute::saveMap() {
     creating_map = true;
 
     //发送建图保存指令
-    std_msgs::String map_save;
-    map_save.data.append("save_map");
-    PublishInnerManager::instance().publishCommand(map_save);
+    CartographerPublisher::instance().publishSaveMap();
 
-    LOG(INFO) << "save_map";
     //加锁
     std::unique_lock<std::mutex> lck(wait_mutex);
     if (wait_cv.wait_for(lck, std::chrono::seconds(20)) == std::cv_status::timeout) {
@@ -194,6 +192,5 @@ bool MapAttribute::saveMap() {
 }
 
 void MapAttribute::notifySaveMap() {
-    LOG(INFO) << "notify_save_map";
     wait_cv.notify_all();
 }

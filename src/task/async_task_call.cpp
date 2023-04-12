@@ -13,10 +13,10 @@
 #include "task/manager/PointProgressPublish.h"
 #include "task/manager/MechanismManager.h"
 #include "leave/ParamManager.h"
-#include "task/subscribe/CartographerManager.h"
 #include "task/feedback.h"
 #include "task/manager/SwitchModePublish.h"
 #include "manager/PublishInnerManager.h"
+#include "leave/cartographer_node.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -488,7 +488,7 @@ void AsyncTaskCall::callSubsequentMode(int mode) {
     if (mode == 6 && runTask.getRealPoints().size() == runTask.getPlanPoints().size() &&
         Environment::instance().update_map) {
         LOG(INFO) << "AsyncTaskCall : 全覆盖清洁后需要更新地图信息 ...";
-        CartographerManager::instance().pubCover();
+        CartographerPublisher::instance().publishUpdateMap();
     } else {
         callNeedPublishSleep();
         LOG(ERROR) << "AsyncTaskCall : gg";
