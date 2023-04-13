@@ -86,7 +86,7 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
 //                flowOpenMechanismPoint.realError.arrive = true;
 //                pushPoint(flowOpenMechanismPoint);
 //            });
-            callOpenMechanism(point.getWorkStatus(), []() {});
+            callOpenMechanism(point.getWorkStatus(), runTask.isKnife(), []() {});
             break;
         }
         case event::flow::cleaning_mechanism_ready: {
@@ -174,12 +174,12 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
     }
 }
 
-void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, function<void()> f) {
+void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, bool knife, function<void()> f) {
 //    AsyncTaskFramework::callOpenMechanism(status, f);
 
     flowOpenMechanismPoint.realError.arrive = true;
 
-    MechanismManager::instance().controlWorkStatus(status);
+    MechanismManager::instance().controlWorkStatus(status, knife);
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this]() {
             LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";

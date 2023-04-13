@@ -20,7 +20,7 @@ protected:
 
     virtual void softwareInterruptTask(const RealPoint &point) = 0;
 
-    void callOpenMechanism(const WorkStatus &status, function<void()> f) override;
+    void callOpenMechanism(const WorkStatus &status, bool knife, function<void()> f) override;
 
     void callCloseMechanism(function<void()> f) override;
 

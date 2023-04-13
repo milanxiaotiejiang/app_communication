@@ -121,7 +121,8 @@ namespace error {
         invalid_mode,
         invalid_source,
         invalid_zones,
-        invalid_subregions
+        invalid_subregions,
+        no_task_for_return_base_station,
     };// enum value
 
     class category : public std::error_category {
@@ -344,6 +345,8 @@ namespace error {
                     return "Invalid zones";
                 case error::invalid_subregions:
                     return "Invalid subregions";
+                case error::no_task_for_return_base_station:
+                    return "当前无任务，返回基站需要拍急停后推回基站位置";
                 default:
                     return "Unknown";
             }

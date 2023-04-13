@@ -10,6 +10,15 @@
 
 using json = nlohmann::json;
 
+/**
+ * 超静音尘推      push_status
+ * 扫吸           vacuum_status
+ * 尘推 & 扫吸     vacuum_status + push_status
+ * 湿拖           mop_status
+ *
+ * 尘推滚刷     push_status
+ * 湿拖滚刷     mop_status + vacuum_status
+ */
 class WorkStatus {
 private:
     int sweep_status{-1};//清扫

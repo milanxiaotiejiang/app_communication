@@ -128,15 +128,21 @@ void AsyncTaskCall::handleStop() {
     switch (urgency_stop) {
         case loop::urgency_stop::trigger_urgency_stop:
             LOG(INFO) << "AsyncTaskCall : 急停了 ... ";
-            callUrgencyStop();
+            if (!isWaitTask(currentFlow())) {
+                callUrgencyStop();
+            }
             break;
         case loop::urgency_stop::recovery_urgency_stop:
             LOG(INFO) << "AsyncTaskCall : 急停后推回基站，任务结束 ... ";
-            callRecoveryStop();
+            if (!isWaitTask(currentFlow())) {
+                callRecoveryStop();
+            }
             break;
         case loop::urgency_stop::release_urgency_stop:
             LOG(INFO) << "AsyncTaskCall : 解除急停了 ... ";
-            callReleaseStop();
+            if (!isWaitTask(currentFlow())) {
+                callReleaseStop();
+            }
             break;
         default:
             break;
@@ -518,7 +524,7 @@ void AsyncTaskCall::callReleaseStop() {
             if (recoverableSuspend()) {
                 LOG(INFO) << "AsyncTaskCall : 急停可恢复暂停状态 ... ";
 //                if (!isReturningBase(event_flow)) {
-                MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
+                MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus(), runTask.isKnife());
 //                }
             }
         }
@@ -536,7 +542,7 @@ void AsyncTaskCall::callResume() {
     setEpollManual(loop::manual_epoll::manual_normal);
     if (recoverableSuspend()) {
         LOG(INFO) << "AsyncTaskCall : 可继续执行任务 ...";
-        MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
+        MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus(), runTask.isKnife());
         auto lastStack = lastEmergencyStop();
         LOG(INFO) << "AsyncTaskCall : 继续 lastStack : " << lastStack << " ...";
 
@@ -676,6 +682,9 @@ void AsyncTaskCall::executeCover() {
 
 
 void AsyncTaskCall::manualBackToBase(bool force) {
+    if (isWaitTask(currentFlow())) {
+        throw app::exception(make_error_code(error::no_task_for_return_base_station));
+    }
     if (isCharging()) {
         throw app::exception(make_error_code(error::already_in_the_base_station));
     }
@@ -874,25 +883,30 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
         return;
     }
     if (isFlowingWater(event_flow)) {
-        if (carpet) {
-            if (!isCarpetAndPack) {
-                isCarpetAndPack = true;
-                MechanismManager::instance().resetBelowWorkStatus();
-                LOG(INFO) << "NativeSystemManager : executeCarpet "
-                          << "  检测到地毯并且已经收起清洁机构"
-                          << " ...";
-                for (int i = 0; i < 15; i++) {
-                    carpetStop();
-                    ros::Duration(0.3).sleep();
+//        "1.仅在尘推和湿拖模式下识别到地毯后抬起清洁机构；
+//        2.识别到地毯后不关闭香氛或消杀。"
+        WorkStatus workStatus = runTask.getWorkStatus();
+        if (workStatus.getPushStatus() > 0 && workStatus.getMopStatus() > 0) {
+            if (carpet) {
+                if (!isCarpetAndPack) {
+                    isCarpetAndPack = true;
+                    MechanismManager::instance().resetBelowWorkStatus();
+                    LOG(INFO) << "NativeSystemManager : executeCarpet "
+                              << "  检测到地毯并且已经收起清洁机构"
+                              << " ...";
+                    for (int i = 0; i < 15; i++) {
+                        carpetStop();
+                        ros::Duration(0.3).sleep();
+                    }
                 }
-            }
-        } else {
-            if (isCarpetAndPack) {
-                isCarpetAndPack = false;
-                LOG(INFO) << "NativeSystemManager : executeCarpet "
-                          << "  离开地毯，且机构已收起，执行再次放下清洁机构"
-                          << " ...";
-                MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus());
+            } else {
+                if (isCarpetAndPack) {
+                    isCarpetAndPack = false;
+                    LOG(INFO) << "NativeSystemManager : executeCarpet "
+                              << "  离开地毯，且机构已收起，执行再次放下清洁机构"
+                              << " ...";
+                    MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus(), runTask.isKnife());
+                }
             }
         }
     }

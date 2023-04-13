@@ -107,7 +107,7 @@ namespace clean_history_db {
 
         //获取task_id的清洁历史
         CleanHistory getCleanHistory(std::string task_id) {
-            return clean_history_storage_.get_all<CleanHistory>(where(c(&CleanHistory::task_id_) == task_id))[0];
+            return clean_history_storage_.get_all<CleanHistory>(where(c(&CleanHistory::task_id_) == std::move(task_id)))[0];
         }
 
         //获取所有未完成的历史

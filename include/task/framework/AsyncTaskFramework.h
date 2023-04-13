@@ -105,7 +105,7 @@ protected:
 
     void callSwitchWorkMode(function<void(bool work)> f);
 
-    virtual void callOpenMechanism(const WorkStatus &status, function<void()> f) = 0;
+    virtual void callOpenMechanism(const WorkStatus &status, bool knife, function<void()> f) = 0;
 
     virtual void callCloseMechanism(function<void()> f) = 0;
 

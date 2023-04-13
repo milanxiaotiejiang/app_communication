@@ -19,9 +19,9 @@ public:
 
     void resetBelowWorkStatus();
 
-    void controlWorkStatus(const WorkStatus &workStatus);
+    void controlWorkStatus(const WorkStatus &workStatus, bool knife);
 
-    void forceControlWorkStatus(const WorkStatus &workStatus);
+    void forceControlWorkStatus(const WorkStatus &workStatus, bool knife);
 
     void enterManualControl();
 
@@ -30,6 +30,10 @@ public:
     void openHotWind();
 
     void closeHotWind();
+
+    void openKnife();
+
+    void closeKnife();
 };
 
 

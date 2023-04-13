@@ -40,6 +40,8 @@ void MechanismManager::resetWorkStatus() {
 //    }
 
     std_msgs::Int16 disinfect_status;
+
+    closeKnife();
 }
 
 void MechanismManager::resetBelowWorkStatus() {
@@ -60,9 +62,10 @@ void MechanismManager::resetBelowWorkStatus() {
     push_status.data = 0;
     PublishInnerManager::instance().publishPushMode(push_status);
 
+    closeKnife();
 }
 
-void MechanismManager::controlWorkStatus(const WorkStatus &workStatus) {
+void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knife) {
     LOG(INFO) << "MechanismManager : 打开清洁机构 " << workStatus << " . ";
     //扫
     std_msgs::Int16 sweep_status;
@@ -113,9 +116,12 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus) {
     }
 
     std_msgs::Int16 disinfect_status;
+
+    if (knife)
+        openKnife();
 }
 
-void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus) {
+void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus, bool knife) {
     LOG(INFO) << "MechanismManager : 强制打开清洁机构 " << workStatus << " . ";
     //扫
     std_msgs::Int16 sweep_status;
@@ -145,6 +151,9 @@ void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus) {
     aromatherapy_status.data = ((int16_t) workStatus.getAromatherapyStatus());
     PublishInnerManager::instance().publishAromStatus(aromatherapy_status);
     std_msgs::Int16 disinfect_status;
+
+    if (knife)
+        openKnife();
 }
 
 void MechanismManager::enterManualControl() {
@@ -171,4 +180,18 @@ void MechanismManager::closeHotWind() {
     std_msgs::Int16 msg;
     msg.data = 0;
     PublishInnerManager::instance().publishSelfClean(msg);
+}
+
+void MechanismManager::openKnife() {
+    LOG(INFO) << "MechanismManager : 开启风刀.";
+    std_msgs::Int32 msg;
+    msg.data = 1;
+    PublishInnerManager::instance().pubKnife(msg);
+}
+
+void MechanismManager::closeKnife() {
+    LOG(INFO) << "MechanismManager : 关闭风刀.";
+    std_msgs::Int32 msg;
+    msg.data = 0;
+    PublishInnerManager::instance().pubKnife(msg);
 }

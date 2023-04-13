@@ -117,7 +117,7 @@ DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
 }
 
 string ChangeWorkModeStrategy::handler(WorkStatus params) {
-    MechanismManager::instance().controlWorkStatus(params);
+    MechanismManager::instance().controlWorkStatus(params, false);
     return "";
 }
 
