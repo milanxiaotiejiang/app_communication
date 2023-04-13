@@ -30,7 +30,7 @@ private:
     std::vector<std::vector<PointVo>> zoned;
     bool partition;
     std::vector<int> subregions;
-    bool knife;
+    bool knife{false};
 
     std::vector<float> zoned0;
     Combination combination;
