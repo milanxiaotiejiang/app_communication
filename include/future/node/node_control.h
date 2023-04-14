@@ -67,7 +67,6 @@ private:
 
 public:
     std::atomic<int> heart_beat;
-    std::atomic<int> carto_mode;
 
     static auto &instance() {
         static NodeControl obj;
@@ -122,9 +121,11 @@ public:
 
     void changeSleepMode();
 
+    int cartoMode();
+
     void emulate();
 
-    static void paramPose(const std::string& key, const geometry_msgs::Pose pose);
+    static void paramPose(const std::string &key, const geometry_msgs::Pose pose);
 };
 
 #endif //APP_COMMUNICATION_NODE_CONTROL_H

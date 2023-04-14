@@ -72,7 +72,6 @@ private:
     ros::Subscriber build_map_finish;
     ros::Subscriber carto_heart_beat;
     ros::Subscriber current_cartographer_pose;
-    ros::Subscriber cartographer_work_mode;
 
     void updateFinishCallback(const std_msgs::Int32 &carto_result);
 
@@ -81,8 +80,6 @@ private:
     void cartoHeartBeatCallback(const std_msgs::Int32 &carto_result);
 
     void currentCartographerPoseCallback(const geometry_msgs::PoseWithCovarianceStamped &carto_result);
-
-    void cartographerWorkModeCallback(const std_msgs::Int32 &carto_result);
 
 public:
     static auto &instance() {

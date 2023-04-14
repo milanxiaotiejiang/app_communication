@@ -275,6 +275,12 @@ void NodeControl::changeSleepMode() {
     });
 }
 
+int NodeControl::cartoMode() {
+    int cartoMode = 0;
+    ros::param::get("/cartographer_work_mode", cartoMode);
+    return cartoMode;
+}
+
 void NodeControl::emulate() {
 //    work_state_ = node::WorkState::complete;
 //    map_state_ = node::MapState::normal;
