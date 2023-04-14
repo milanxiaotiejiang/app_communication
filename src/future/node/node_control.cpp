@@ -23,9 +23,15 @@ void NodeControl::initialize(ros::NodeHandle handle) {
 //    onSleep();
     asyncOn([&handle]() {
         int p_OR_percent_1 = 6;
-        ros::param::set("/OR_percent_1", p_OR_percent_1);
+        if (ros::param::has("/OR_percent_1")) {
+            ros::param::get("/OR_percent_1", p_OR_percent_1);
+        }
+
         int p_OR_percent_2 = 3;
-        ros::param::set("/OR_percent_2", p_OR_percent_2);
+        if (ros::param::has("/OR_percent_2")) {
+            ros::param::get("/OR_percent_2", p_OR_percent_2);
+        }
+
         bool end_loop = false;
         while (!end_loop) {
             bool start_finish = false;
