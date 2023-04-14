@@ -60,6 +60,14 @@ string EditMapStrategy::handler(vector<std::vector<float>> params) {
             ROS_ERROR("Failed to set wall!");
         }
     }
+    //更新costmap
+    std::string local_costmap =
+            "rosparam load " + path::prohibition_areas_path() + " /move_base/local_costmap/costmap_prohibition_layer";
+    std::string global_costmap =
+            "rosparam load " + path::prohibition_areas_path() + " /move_base/global_costmap/costmap_prohibition_layer";
+    std::system(local_costmap.data());
+    std::system(global_costmap.data());
+
     MapAttribute::instance().resetProhibition();
     MapAttribute::instance().loadVirtualWall();
     MapAttribute::instance().loadPenaltyZone();
