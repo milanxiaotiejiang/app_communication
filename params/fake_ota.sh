@@ -2,9 +2,9 @@
 echo "Upgrade Aircore"
 version=$(rosparam get /ros_version)
 major=${version:0:5}
-old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8")
+old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9")
 version_index=0
-for i in 1 2 3 4
+for i in 1 2 3 4 5
 do
   echo "${old_version[$i]}"
   if [[ $major = ${old_version[$i]} ]]
@@ -16,7 +16,7 @@ echo "current major version is $major"
 echo "version_index is $version_index"
 if [ $version_index -lt 1 ]
 then
-    echo "this is a 2301A version"
+    echo "Updating 0.9.5"
     echo "Upgrading tf"
     mkdir /home/admin1/test_ws/install/share/data_base/tf_params/
     cp /home/admin1/AirCore/camera_link1.yaml /home/admin1/test_ws/install/share/data_base/tf_params/
@@ -36,7 +36,7 @@ then
 fi
 if [ $version_index -lt 2 ]
 then
-    echo "this is a 2302B version"
+    echo "Updating 0.9.6"
     echo "Upgrading libcartographer.so"
     echo "123456" | sudo -S cp /home/admin1/AirCore/libcartographer.so /usr/local/lib/
     echo "Upgrading cartographer_localization.lua"
@@ -58,5 +58,11 @@ then
     sleep 5
     echo "123456" | sudo -S bash /home/admin1/AirCore/package18_2023_03_15/install.sh
     echo "Update complete!!!"
+fi
+if [ $version_index -lt 4 ]
+then
+    echo "Updating 0.9.8"
+    echo "Upgrading libcartographer.so"
+    echo "123456" | sudo -S cp /home/admin1/AirCore/libcartographer.so /usr/local/lib/
 fi
 
