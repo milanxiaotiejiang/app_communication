@@ -76,8 +76,6 @@ void CartographerSubscribe::initialize(ros::NodeHandle handle) {
     carto_heart_beat = handle.subscribe("/carto_heart_beat", 1, &CartographerSubscribe::cartoHeartBeatCallback, this);
     current_cartographer_pose = handle.subscribe("/current_cartographer_pose", 1,
                                                  &CartographerSubscribe::currentCartographerPoseCallback, this);
-    cartographer_work_mode = handle.subscribe("/cartographer_work_mode", 1,
-                                              &CartographerSubscribe::cartographerWorkModeCallback, this);
 }
 
 void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_result) {
@@ -104,10 +102,6 @@ void CartographerSubscribe::cartoHeartBeatCallback(const std_msgs::Int32 &carto_
 void
 CartographerSubscribe::currentCartographerPoseCallback(const geometry_msgs::PoseWithCovarianceStamped &carto_result) {
 
-}
-
-void CartographerSubscribe::cartographerWorkModeCallback(const std_msgs::Int32 &carto_result) {
-    NodeControl::instance().carto_mode = carto_result.data;
 }
 
 void CartographerSubscribe::coverResult() {
