@@ -66,9 +66,9 @@ protected:
 
     void handlePointSpecialDevice(const RealPoint &point);
 
-    virtual void goodGame();
+    virtual void goodGame(event::GG gg);
 
-    virtual void garbage();
+    virtual void garbage(event::SB sb);
 
     void reset();
 
@@ -113,7 +113,7 @@ protected:
 
     void cancelTask();
 
-    virtual void forceInterruptTask();
+    virtual void forceInterruptTask(event::SB sb);
 
 public:
     AsyncTaskCall();

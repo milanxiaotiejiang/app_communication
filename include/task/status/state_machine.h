@@ -40,6 +40,19 @@ namespace event {
         TIMEOUT
     };
 
+    enum GG {
+        gg_normal_flow,
+        gg_task_over,
+        gg_manual_mode,
+        gg_urgency_stop
+    };
+
+    enum SB {
+        sb_software,
+        sb_lift,
+        sb_unrecoverable,
+    };
+
 }
 
 namespace loop {

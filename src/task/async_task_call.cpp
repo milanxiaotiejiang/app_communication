@@ -63,7 +63,7 @@ void AsyncTaskCall::handleManualOperation() {
             LOG(INFO) << "AsyncTaskCall : 有 App 或 Pad 下发任务，停止当前任务 ...";
             PointPlanner::instance().cancelGoal();
             async::TimerCall::instance().baseLoop()->cancelAny();
-            goodGame();
+            goodGame(event::GG::gg_task_over);
             break;
         default:
             LOG(INFO) << "AsyncTaskCall handleManualOperation : " << epoll_manual << " ...";
@@ -112,11 +112,11 @@ void AsyncTaskCall::handleErrorOperation() {
             break;
         case loop::error_epoll::error_lift:
             LOG(INFO) << "AsyncTaskCall : 走到电梯上了 ... ";
-            forceInterruptTask();
+            forceInterruptTask(event::SB::sb_lift);
             break;
         case loop::error_epoll::error_unrecoverable:
             LOG(INFO) << "AsyncTaskCall : 出现不可恢复的错误 ... ";
-            forceInterruptTask();
+            forceInterruptTask(event::SB::sb_unrecoverable);
             break;
         default:
             LOG(INFO) << "AsyncTaskCall handleErrorOperation : " << epoll_error << " ...";
@@ -298,7 +298,7 @@ void AsyncTaskCall::handlePointSpecialDevice(const RealPoint &point) {
 }
 
 
-void AsyncTaskCall::goodGame() {
+void AsyncTaskCall::goodGame(event::GG gg) {
     LOG(WARNING) << "AsyncTaskCall : goodGame";
 
     setEpollManual(loop::manual_epoll::manual_normal);
@@ -308,10 +308,9 @@ void AsyncTaskCall::goodGame() {
     }
 
     setFlow(event::flow::waiting_for_task);
+    reset();
 
     MechanismManager::instance().resetWorkStatus();
-
-    reset();
 
     if (!waitTaskQueue.empty()) {
         notify_one([this]() {
@@ -320,13 +319,15 @@ void AsyncTaskCall::goodGame() {
             waitTaskQueue.pop_front();
         });
     } else {
-        callSubsequentSelfClean(runTask.getWorkStatus());
+        if (gg == event::GG::gg_normal_flow) {
+            callSubsequentSelfClean(runTask.getWorkStatus());
+        }
         callSubsequentMode(runTask.getMode());
     }
 }
 
 
-void AsyncTaskCall::garbage() {
+void AsyncTaskCall::garbage(event::SB sb) {
     LOG(INFO) << "AsyncTaskCall : 程序出现严重错误，不可恢复，以下是现场可保存的信息 ";
     LOG(INFO) << " start ————————————————————————————————————————————————————";
 
@@ -444,8 +445,10 @@ void AsyncTaskCall::callPointComplete(const std::function<void()> &f) {
 
 
 void AsyncTaskCall::callManualCleanStart() {
-    cancelTask();
-    goodGame();
+    if (!isWaitTask(currentFlow())) {
+        cancelTask();
+        goodGame(event::GG::gg_manual_mode);
+    }
     //电机失能
     MechanismManager::instance().enterManualControl();
 }
@@ -535,7 +538,7 @@ void AsyncTaskCall::callRecoveryStop() {
     setEpollManual(loop::manual_epoll::manual_normal);
     MechanismManager::instance().resetWorkStatus();
     cancelTask();
-    goodGame();
+    goodGame(event::GG::gg_urgency_stop);
 }
 
 void AsyncTaskCall::callResume() {
@@ -596,7 +599,7 @@ void AsyncTaskCall::cancelTask() {
     }
 }
 
-void AsyncTaskCall::forceInterruptTask() {
+void AsyncTaskCall::forceInterruptTask(event::SB sb) {
     if (event_flow != event::flow::waiting_for_task &&
         event_flow != event::flow::hardware_interrupt_task &&
         event_flow != event::flow::software_interrupt_task) {
@@ -886,7 +889,7 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
 //        "1.仅在尘推和湿拖模式下识别到地毯后抬起清洁机构；
 //        2.识别到地毯后不关闭香氛或消杀。"
         WorkStatus workStatus = runTask.getWorkStatus();
-        if (workStatus.getPushStatus() > 0 && workStatus.getMopStatus() > 0) {
+        if (workStatus.getPushStatus() > 0 || workStatus.getMopStatus() > 0) {
             if (carpet) {
                 if (!isCarpetAndPack) {
                     isCarpetAndPack = true;

@@ -154,7 +154,7 @@ void ReservedCall::handlePlannerPoint(const RealPoint &point) {
     AsyncTaskCall::handlePlannerPoint(point);
 }
 
-void ReservedCall::forceInterruptTask() {
+void ReservedCall::forceInterruptTask(event::SB sb) {
     int errorId = FLOW_ERROR_UNRECOVERABLE;
     switch (epoll_error) {
         case loop::error_epoll::error_lift:
@@ -166,9 +166,9 @@ void ReservedCall::forceInterruptTask() {
             std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair)
     );
 
-    AsyncTaskCall::forceInterruptTask();
+    AsyncTaskCall::forceInterruptTask(sb);
 
-    garbage();
+    garbage(sb);
 }
 
 void ReservedCall::softwareInterruptTask(const RealPoint &point) {
@@ -177,23 +177,23 @@ void ReservedCall::softwareInterruptTask(const RealPoint &point) {
             std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair)
     );
 
-    garbage();
+    garbage(event::SB::sb_software);
 }
 
-void ReservedCall::goodGame() {
+void ReservedCall::goodGame(event::GG gg) {
     fbPtr->triggerEnd();
     runTask;
     InternalEventPubManager::get_instance()->taskStop(runTask.getId());
     CleanHistoryCenter::instance().complete();
     updateProperty();
-    AsyncTaskCall::goodGame();
+    AsyncTaskCall::goodGame(gg);
 }
 
-void ReservedCall::garbage() {
+void ReservedCall::garbage(event::SB sb) {
     updateProperty();
     InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::SOFTWARE_INTERRUPT);
     InternalEventPubManager::get_instance()->taskStop(runTask.getId());
-    AsyncTaskCall::garbage();
+    AsyncTaskCall::garbage(sb);
 }
 
 std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint(int errorId) {

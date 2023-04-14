@@ -26,11 +26,11 @@ protected:
 
     void softwareInterruptTask(const RealPoint &point) override;
 
-    void forceInterruptTask() override;
+    void forceInterruptTask(event::SB sb) override;
 
-    void goodGame() override;
+    void goodGame(event::GG gg) override;
 
-    void garbage() override;
+    void garbage(event::SB sb) override;
 
     void handlePlannerPoint(const RealPoint &point) override;
 

@@ -146,7 +146,7 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
         }
         case event::flow::arrive_base_station_success: {
             LOG(INFO) << "HeadTailPointCall : 回到基站，且已充电 ...";
-            goodGame();
+            goodGame(event::GG::gg_normal_flow);
             break;
         }
         case event::flow::try_recharging_again: {
