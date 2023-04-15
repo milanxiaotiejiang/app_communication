@@ -89,13 +89,13 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
         std::vector<std::vector<cv::Point>> borderContours;
         cv::findContours(borderMat, borderContours, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
 
-        for (const auto &vector: borderContours) {
+        for (const auto &borderContour: borderContours) {
 
-            if (vector.empty())
+            if (borderContour.empty())
                 continue;
 
             cv::Mat room_mat = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
-            cv::drawContours(room_mat, std::vector<std::vector<cv::Point> >(1, vector), -1, cv::Scalar(255), CV_FILLED);
+            cv::drawContours(room_mat, std::vector<std::vector<cv::Point> >(1, borderContour), -1, cv::Scalar(255), CV_FILLED);
 
             if (DISPLAY_TRAJECTORY) {
                 cv::imshow("m " + std::to_string(r) + " " + std::to_string(scale_in_pixel), room_mat);
@@ -116,11 +116,11 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
             bool isEligible = false;
             int accessibleCount = 0;
 
-            int maxTraversal = vector.size() / random_number_generation_ratio;
+            int maxTraversal = borderContour.size() / random_number_generation_ratio;
 
             for (int i = 0; i < maxTraversal; i++) {
-                auto random = rand() % vector.size();
-                auto randomPoint = vector[random];
+                auto random = rand() % borderContour.size();
+                auto randomPoint = borderContour[random];
                 double length = path_planner.planPath(original_map, reachablePoint, randomPoint,
                                                       1, robot_radius, map_resolution);
 //                LOG(INFO) << "InfinitelyNearBoundary : r = " << std::to_string(r) << " , p = "
@@ -129,20 +129,20 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
                 if (length < 1e90) {
                     accessibleCount++;
                 }
-                if (accessibleCount > maxTraversal * 0.5) {
+                if (accessibleCount >= maxTraversal * 0.5) {
                     isEligible = true;
                     break;
                 }
             }
 
             if (isEligible) {
-                for (const auto &point: vector) {
+                for (const auto &point: borderContour) {
                     middle_point_path.push_back(point);
                 }
-                middle_point_path.push_back(vector.front());
+                middle_point_path.push_back(borderContour.front());
             } else {
-//                LOG(INFO) << "InfinitelyNearBoundary : maxTraversal =" << maxTraversal
-//                          << " , accessibleCount = " << accessibleCount;
+                LOG(INFO) << "InfinitelyNearBoundary : maxTraversal =" << maxTraversal
+                          << " , accessibleCount = " << accessibleCount;
             }
 
         }
