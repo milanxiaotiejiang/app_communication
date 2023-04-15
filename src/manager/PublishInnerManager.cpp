@@ -23,6 +23,7 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_reboot = handle.advertise<std_msgs::Int32>("/reboot_flag", 1);
     pub_shutdown = handle.advertise<std_msgs::Int32>("/shutdown_flag", 1);
     pub_oil = handle.advertise<std_msgs::Int32>("/mrrobot/pop_sweep_oil", 1);
+    pub_reset_prohibition = handle.advertise<std_msgs::Int32>("/reset_prohibition", 1);
     pub_knife = handle.advertise<std_msgs::Int32>("/mrrobot/control_wind_knife", 1);
     acceptAppSchedule = handle.advertise<std_msgs::String>("/app_schedule", 1);
 }
@@ -77,6 +78,12 @@ void PublishInnerManager::publishOtaLow(const std_msgs::String &message) const {
 
 void PublishInnerManager::publishDSVersion(const std_msgs::Int16 &message) const {
     pub_ds_version.publish(message);
+}
+
+void PublishInnerManager::publishResetProhibition() {
+    std_msgs::Int32 data;
+    data.data = 1;
+    pub_reset_prohibition.publish(data);
 }
 
 void PublishInnerManager::publishKnobAvailable(const std_msgs::Bool &message) const {

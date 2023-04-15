@@ -32,6 +32,7 @@ private:
     pub_music,           //播放音乐
     pub_otalow,           //下位机ota
     pub_ds_version,     //下位机版本
+    pub_reset_prohibition,//禁行区
     pub_knob_available,  //
     pub_knob_task,//
     pub_shutdown,//
@@ -72,6 +73,8 @@ public:
     void publishOtaLow(const std_msgs::String &message) const;
 
     void publishDSVersion(const std_msgs::Int16 &message) const;
+
+    void publishResetProhibition();
 
     void publishKnobAvailable(const std_msgs::Bool &message) const;
 

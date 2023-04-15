@@ -67,6 +67,7 @@ string EditMapStrategy::handler(vector<std::vector<float>> params) {
             "rosparam load " + path::prohibition_areas_path() + " /move_base/global_costmap/costmap_prohibition_layer";
     std::system(local_costmap.data());
     std::system(global_costmap.data());
+    PublishInnerManager::instance().publishResetProhibition();
 
     MapAttribute::instance().resetProhibition();
     MapAttribute::instance().loadVirtualWall();
