@@ -31,8 +31,9 @@ struct TaskPo {
 
     TaskPo(long id, const std::string &oMapId, const std::string &name, int rate, TaskMode mode, int sweep, int mop,
            int vacuum, int push, int aromatherapy, int disinfect, bool principal, const std::vector<ZonePo> &zones,
-           bool partition, const std::string &subregionRange, bool knife, TaskSource source,
-           const std::string &launchPeople, long launchTime, time_t updateTime, time_t createTime);
+           bool partition, const std::string &subregionRange, const std::vector<SubregionPo> &subregions,
+           bool knife, TaskSource source, const std::string &launchPeople, long launchTime, time_t updateTime,
+           time_t createTime);
 
     long id;
     std::string o_map_id;
@@ -52,6 +53,7 @@ struct TaskPo {
     std::vector<ZonePo> zones;
     bool partition;
     std::string subregion_range;
+    std::vector<SubregionPo> subregions;
     bool knife;
 
     TaskSource source;

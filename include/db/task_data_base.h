@@ -70,7 +70,9 @@ public:
 
     void modifyPartition(long taskId, bool partition);
 
-    void modifySubregion(long taskId, const std::vector<SubregionVo> &subregions);
+    long operateAddSubregion(long taskId, const SubregionVo &subregion);
+
+    void operateDeleteSubregion(long taskId, const SubregionVo &subregion);
 
     void modifyTimerName(long timerId, std::string name);
 

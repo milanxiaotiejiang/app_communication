@@ -103,7 +103,12 @@ public:
     string handler(ModifyTaskPartition params) override;
 };
 
-class ModifyTaskSubregionStrategy : public MessageStrategy<ModifyTaskSubregion, string> {
+class OperateAddSubregionStrategy : public MessageStrategy<ModifyTaskSubregion, long> {
+public:
+    long handler(ModifyTaskSubregion params) override;
+};
+
+class OperateDeleteSubregionStrategy : public MessageStrategy<ModifyTaskSubregion, string> {
 public:
     string handler(ModifyTaskSubregion params) override;
 };

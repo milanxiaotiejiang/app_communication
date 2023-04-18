@@ -364,8 +364,14 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case MODIFY_TASK_PARTITION:
             messageStrategy = new ModifyTaskPartitionStrategy();
             break;
-        case MODIFY_TASK_SUBREGION:
-            messageStrategy = new ModifyTaskSubregionStrategy();
+        case OPERATE_ADD_SUBREGION:
+            messageStrategy = new OperateAddSubregionStrategy();
+            break;
+        case OPERATE_DELETE_SUBREGION:
+            messageStrategy = new OperateDeleteSubregionStrategy();
+            break;
+        case MODIFY_TIMER_NAME:
+            messageStrategy = new ModifyTimerNameStrategy();
             break;
 
         case ADD_TIMER_TASK:

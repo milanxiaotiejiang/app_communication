@@ -76,6 +76,14 @@ void checkZoned(const std::vector<ZoneVo> &zones) {
     }
 }
 
+void checkSubregion(const SubregionVo &subregion) {
+    try {
+        const RoomPo &po = SegmentationDataBase::instance().selectRoomById(subregion.getSubregionValue());
+    } catch (...) {
+        throw app::exception(make_error_code(error::invalid_subregions));
+    }
+}
+
 void checkSubregion(const std::vector<SubregionVo> &subregions) {
     if (subregions.empty()) {
         throw app::exception(make_error_code(error::invalid_subregions));

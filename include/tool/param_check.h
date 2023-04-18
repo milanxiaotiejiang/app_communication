@@ -19,9 +19,11 @@ void checkMode(int mode);
 
 void checkSource(const std::string &source);
 
-void checkZoned(const ZoneVo& zone);
+void checkZoned(const ZoneVo &zone);
 
 void checkZoned(const std::vector<ZoneVo> &zones);
+
+void checkSubregion(const SubregionVo &subregion);
 
 void checkSubregion(const std::vector<SubregionVo> &subregions);
 

@@ -122,7 +122,7 @@ long OperateAddZoneStrategy::handler(ModifyTaskZone params) {
     checkZoned(params.zone);
     long zoneId = TaskDataBase::instance().operateAddZone(params.id, params.zone);
     if (zoneId == -1) {
-        throw app::exception(make_error_code(error::the_main_task_is_not_set));
+        throw app::exception(make_error_code(error::add_zone_fail));
     }
     return zoneId;
 }
@@ -143,10 +143,17 @@ string ModifyTaskPartitionStrategy::handler(ModifyTaskPartition params) {
     return "";
 }
 
-string ModifyTaskSubregionStrategy::handler(ModifyTaskSubregion params) {
-    checkSubregion(params.subregions);
-    TaskDataBase::instance().modifySubregion(params.id, params.subregions);
-    return "";
+long OperateAddSubregionStrategy::handler(ModifyTaskSubregion params) {
+    checkSubregion(params.subregion);
+    long subregionId = TaskDataBase::instance().operateAddSubregion(params.id, params.subregion);
+    if (subregionId == -1) {
+        throw app::exception(make_error_code(error::add_subregion_fail));
+    }
+    return subregionId;
+}
+
+string OperateDeleteSubregionStrategy::handler(ModifyTaskSubregion params) {
+    TaskDataBase::instance().operateDeleteSubregion(params.id, params.subregion);
 }
 
 string ModifyTimerNameStrategy::handler(ModifyTimerName params) {

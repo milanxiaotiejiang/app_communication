@@ -54,7 +54,7 @@ public:
 
     friend void to_json(json &j, const SubregionVo &vo) {
         j = json{
-                {"subregionId", vo.subregionId},
+                {"subregionId",    vo.subregionId},
                 {"subregionValue", vo.subregionValue}
         };
     }
@@ -107,7 +107,8 @@ public:
 
     TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode,
            const WorkStatus &workStatus, bool principal, const std::vector<ZoneVo> &zones, bool partition,
-           const std::vector<SubregionVo> &subregions, bool knife, const std::string &source, const std::string &launchPeople,
+           const std::vector<SubregionVo> &subregions, bool knife, const std::string &source,
+           const std::string &launchPeople,
            long launchTime, long updateTime, long createTime);
 
 
@@ -404,18 +405,18 @@ struct ModifyTaskPartition {
 
 struct ModifyTaskSubregion {
     long id;
-    std::vector<SubregionVo> subregions;
+    SubregionVo subregion;
 
     friend void to_json(json &j, const ModifyTaskSubregion &vo) {
         j = json{
-                {"id",         vo.id},
-                {"subregions", vo.subregions},
+                {"id",        vo.id},
+                {"subregion", vo.subregion},
         };
     }
 
     friend void from_json(const json &j, ModifyTaskSubregion &vo) {
         j.at("id").get_to(vo.id);
-        j.at("subregions").get_to(vo.subregions);
+        j.at("subregion").get_to(vo.subregion);
     }
 };
 

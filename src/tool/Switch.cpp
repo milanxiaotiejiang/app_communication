@@ -366,8 +366,14 @@ int switch_ID(const std::string &str) {
     if (str == "modify_task_partition") {
         return MODIFY_TASK_PARTITION;
     }
-    if (str == "modify_task_subregion") {
-        return MODIFY_TASK_SUBREGION;
+    if (str == "operate_add_subregion") {
+        return OPERATE_ADD_SUBREGION;
+    }
+    if (str == "operate_delete_subregion") {
+        return OPERATE_DELETE_SUBREGION;
+    }
+    if (str == "modify_timer_name") {
+        return MODIFY_TIMER_NAME;
     }
 
     if (str == "add_timer_task") {

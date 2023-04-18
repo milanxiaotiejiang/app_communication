@@ -124,6 +124,7 @@ namespace error {
         invalid_subregions,
         no_task_for_return_base_station,
         add_zone_fail,
+        add_subregion_fail,
     };// enum value
 
     class category : public std::error_category {
@@ -350,6 +351,8 @@ namespace error {
                     return "当前无任务，返回基站需要拍急停后推回基站位置";
                 case error::add_zone_fail:
                     return "矩形框添加失败";
+                case error::add_subregion_fail:
+                    return "区域添加失败";
                 default:
                     return "Unknown";
             }
