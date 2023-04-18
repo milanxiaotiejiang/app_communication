@@ -5,7 +5,7 @@
 #ifndef APP_COMMUNICATION_DBTASKSTRATEGY_H
 #define APP_COMMUNICATION_DBTASKSTRATEGY_H
 
-#include "MessageStrategy.h"
+#include "sub/json/MessageStrategy.h"
 #include "model/task.h"
 
 class AddTaskStrategy : public MessageStrategy<TaskVo, long> {
@@ -46,6 +46,11 @@ public:
 class ListTimerTaskStrategy : public MessageStrategy<string, vector<TimerVo>> {
 public:
     vector<TimerVo> handler(string params) override;
+};
+
+class ModifyTimerTaskStrategy : public MessageStrategy<TimerVo, string> {
+public:
+    string handler(TimerVo params) override;
 };
 
 class BuildPrincipalTaskStrategy : public MessageStrategy<long, TaskVo> {

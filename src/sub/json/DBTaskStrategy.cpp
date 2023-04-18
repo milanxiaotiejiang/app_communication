@@ -76,6 +76,12 @@ vector<TimerVo> ListTimerTaskStrategy::handler(string params) {
     return TaskDataBase::instance().loadTimerFoMap(map.id);
 }
 
+string ModifyTimerTaskStrategy::handler(TimerVo params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    TaskDataBase::instance().modifyTimer(map.id, params);
+    ScheduleManagerSingleton::instance().trigger_task_update();
+}
+
 TaskVo BuildPrincipalTaskStrategy::handler(long params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().modifyPrincipalTask(map.id, params, true);

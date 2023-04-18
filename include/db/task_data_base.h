@@ -76,6 +76,8 @@ public:
 
     void modifyTimerName(long timerId, std::string name);
 
+    void modifyTimer(const std::string &mapId, const TimerVo &timer);
+
     //查
     std::vector<TaskVo> loadTaskFoMap(std::string mapId);
 

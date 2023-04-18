@@ -345,6 +345,10 @@ void TaskDataBase::modifyTimerName(long timerId, std::string name) {
     taskStorage.update(timer);
 }
 
+void TaskDataBase::modifyTimer(const string &mapId, const TimerVo &timer) {
+    taskStorage.update(timer);
+}
+
 std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
     std::vector<TaskVo> tasks;
 

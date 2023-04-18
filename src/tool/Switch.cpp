@@ -372,9 +372,6 @@ int switch_ID(const std::string &str) {
     if (str == "operate_delete_subregion") {
         return OPERATE_DELETE_SUBREGION;
     }
-    if (str == "modify_timer_name") {
-        return MODIFY_TIMER_NAME;
-    }
 
     if (str == "add_timer_task") {
         return ADD_TIMER_TASK;
@@ -384,6 +381,12 @@ int switch_ID(const std::string &str) {
     }
     if (str == "list_timer_task") {
         return LIST_TIMER_TASK;
+    }
+    if (str == "modify_timer_task") {
+        return MODIFY_TIMER_TASK;
+    }
+    if (str == "modify_timer_name") {
+        return MODIFY_TIMER_NAME;
     }
 
     if (str == "exploration_task") {
