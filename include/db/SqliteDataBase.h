@@ -168,6 +168,13 @@ public:
                                        make_column("point_range", &ZonePo::point_range),
                                        foreign_key(&ZonePo::o_task_id).references(&TaskPo::id).on_delete.set_default()
                             ),
+                            make_table("subregion",
+                                       make_column("id", &SubregionPo::id, primary_key(), autoincrement()),
+                                       make_column("o_task_id", &SubregionPo::o_task_id),
+                                       make_column("subregion_id", &SubregionPo::subregion_value),
+                                       foreign_key(&SubregionPo::o_task_id).references(
+                                               &TaskPo::id).on_delete.set_default()
+                            ),
                             make_table("timer",
                                        make_column("id", &TimerPo::id, primary_key(), autoincrement()),
                                        make_column("o_map_id", &TimerPo::o_map_id),

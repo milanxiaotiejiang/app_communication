@@ -35,7 +35,6 @@ public:
         m_filename.append(path::data_base_config_dir());
 //        m_filename.append("/config/combination_list.txt");
         m_filename.append("combination_list_principal_json_work.txt");
-        cout << "combination_list_path:" << m_filename << endl;
         // m_filename.append("/home/admin1/test_ws/src/data_base/config/combination_list.txt");
         //m_file_ptr = new sh::File(m_filename);
         m_file_ptr = make_shared<sh::File>(m_filename);

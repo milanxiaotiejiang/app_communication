@@ -10,7 +10,7 @@
 #include "vector"
 #include "string"
 #include "set"
-#include <opencv2/core/types.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "glog/logging.h"
 

@@ -77,13 +77,12 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //4
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        try {
-            const cv::Mat &map = SegmentationCenter::instance().generateMat();
-            infinitelyNearBoundary(map, exploration_path, point_path);
-        } catch (...) {
-
-        }
-
+//        try {
+//            const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//            infinitelyNearBoundary(map, exploration_path, point_path);
+//        } catch (...) {
+//
+//        }
     }
 
 //    pathPublish(exploration_path);

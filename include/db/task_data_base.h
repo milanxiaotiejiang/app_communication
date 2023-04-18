@@ -58,18 +58,30 @@ public:
 
     void modifyRate(long taskId, int rate);
 
-    void modifyWorkStatus(long taskId, const WorkStatus& status);
+    void modifyWorkStatus(long taskId, const WorkStatus &status);
 
     void modifyKnife(long taskId, bool knife);
+
+    long operateAddZone(long taskId, const ZoneVo &zone);
+
+    void operateDeleteZone(long taskId, const ZoneVo &zone);
+
+    void operateModifyZone(long taskId, const ZoneVo &zone);
+
+    void modifyPartition(long taskId, bool partition);
+
+    void modifySubregion(long taskId, const std::vector<SubregionVo> &subregions);
+
+    void modifyTimerName(long timerId, std::string name);
 
     //查
     std::vector<TaskVo> loadTaskFoMap(std::string mapId);
 
     TaskVo loadTaskFoId(long taskId);
 
-    TaskVo loadPrincipalTask(std::string mapId);
+    TaskVo loadPrincipalTask(const std::string &mapId);
 
-    std::vector<TimerVo> loadTimerFoMap(std::string mapId);
+    std::vector<TimerVo> loadTimerFoMap(const std::string &mapId);
 
     TimerVo loadTimerFoId(long timerId);
 

@@ -521,6 +521,7 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
     cv::Point cell_robot_pos;
     bool start = true;
     std::vector<cv::Point> current_fov_path;
+    bool first = true;
     if (start_from_upper_path) {
 
         for (BoustrophedonGrid::iterator line = grid_lines.begin(); line != grid_lines.end(); ++line) {
@@ -530,6 +531,10 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
                 else
                     cell_robot_pos = line->upper_line.back();
                 start = false;
+            }
+            if (first) {
+                first = false;
+                current_fov_path.push_back(cell_robot_pos);
             }
 
             if (start_from_left) {
@@ -567,6 +572,10 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
                 else
                     cell_robot_pos = line->upper_line.back();
                 start = false;
+            }
+            if (first) {
+                first = false;
+                current_fov_path.push_back(cell_robot_pos);
             }
 
             if (start_from_left) {

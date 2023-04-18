@@ -83,4 +83,34 @@ public:
     string handler(ModifyTaskKnife params) override;
 };
 
+class OperateAddZoneStrategy : public MessageStrategy<ModifyTaskZone, long> {
+public:
+    long handler(ModifyTaskZone params) override;
+};
+
+class OperateDeleteZoneStrategy : public MessageStrategy<ModifyTaskZone, string> {
+public:
+    string handler(ModifyTaskZone params) override;
+};
+
+class OperateModifyZoneStrategy : public MessageStrategy<ModifyTaskZone, string> {
+public:
+    string handler(ModifyTaskZone params) override;
+};
+
+class ModifyTaskPartitionStrategy : public MessageStrategy<ModifyTaskPartition, string> {
+public:
+    string handler(ModifyTaskPartition params) override;
+};
+
+class ModifyTaskSubregionStrategy : public MessageStrategy<ModifyTaskSubregion, string> {
+public:
+    string handler(ModifyTaskSubregion params) override;
+};
+
+class ModifyTimerNameStrategy : public MessageStrategy<ModifyTimerName, string> {
+public:
+    string handler(ModifyTimerName params) override;
+};
+
 #endif //APP_COMMUNICATION_DBTASKSTRATEGY_H

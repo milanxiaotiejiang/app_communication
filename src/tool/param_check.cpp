@@ -53,13 +53,19 @@ void checkSource(const std::string &source) {
     }
 }
 
-void checkZoned(const std::vector<std::vector<PointVo>> &zones) {
+void checkZoned(const ZoneVo &zone) {
+    if (zone.getPoints().size() != 4) {
+        throw app::exception(make_error_code(error::invalid_zones));
+    }
+}
+
+void checkZoned(const std::vector<ZoneVo> &zones) {
     if (zones.empty()) {
         throw app::exception(make_error_code(error::invalid_zones));
     } else {
         bool zone_standard = true;
         for (const auto &child: zones) {
-            if (child.size() != 4) {
+            if (child.getPoints().size() != 4) {
                 zone_standard = false;
                 break;
             }
@@ -70,14 +76,14 @@ void checkZoned(const std::vector<std::vector<PointVo>> &zones) {
     }
 }
 
-void checkSubregion(const std::vector<int> &subregions) {
+void checkSubregion(const std::vector<SubregionVo> &subregions) {
     if (subregions.empty()) {
         throw app::exception(make_error_code(error::invalid_subregions));
     } else {
         bool sub_pass = true;
-        for (const auto &roomId: subregions) {
+        for (const auto &subregion: subregions) {
             try {
-                const RoomPo &po = SegmentationDataBase::instance().selectRoomById(roomId);
+                const RoomPo &po = SegmentationDataBase::instance().selectRoomById(subregion.getSubregionValue());
             } catch (...) {
                 sub_pass = false;
             }

@@ -6,10 +6,6 @@
 #include "manager/FullPlanWorkStatusManager.h"
 #include "manager/ViewPartManager.h"
 
-WorkStatus GetFullCleaningModeStrategy::handler(string params) {
-    return FullPlanWorkStatusManager::instance().getFullCleanWorkStatus();
-}
-
 //获取全部
 //////////////////////////////////////////////////////////////////
 vector<FullCleanBrief> FullCLeanListStrategy::handler(string params) {
@@ -24,18 +20,6 @@ vector<FullCleanBrief> FullCLeanListStrategy::handler(string params) {
     } else {
         return vector<FullCleanBrief>();
     }
-}
-
-string SetFullCleaningModeStrategy::handler(WorkStatus params) {
-    std::string filePath;
-    filePath.append(path::data_base_config_dir());
-    filePath.append(FULL_CLEANING_MODE);
-
-    json currentJson = params;
-    if (!sh::File::saveTextTo(filePath, currentJson.dump())) {
-        throw app::exception(make_error_code(error::full_cleaning_mode_error));
-    }
-    return "";
 }
 
 string FullCLeaningAddStrategy::handler(FullCleanBrief params) {

@@ -264,32 +264,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case MANUAL_PUSH_RESET:
             messageStrategy = new ManualPushResetStrategy();
             break;
-        case GET_FULL_CLEANING_MODE:
-            messageStrategy = new GetFullCleaningModeStrategy();
-            break;
-        case SET_FULL_CLEANING_MODE:
-            messageStrategy = new SetFullCleaningModeStrategy();
-            break;
-        case GET_FULL_CLEAN_LIST:
-
-        case FULL_CLEANING_ADD:
-            messageStrategy = new FullCLeaningAddStrategy();
-            break;
-        case FULL_CLEANING_UPDATE:
-            messageStrategy = new FullCleaningUpdateStrategy();
-            break;
-        case FULL_CLEANING_DELETE:
-            messageStrategy = new FullCLeaningDeleteStrategy();
-            break;
-        case FULL_CLEANING_DETAIL:
-            messageStrategy = new FullCleaningDetailsStrategy();
-            break;
-        case FULL_CLEANING_MAIN:
-            messageStrategy = new FullCleaningMainStrategy();
-            break;
-        case FULL_CLEANING_MAIN_CANCEL:
-            messageStrategy = new CancelFullCleaningMainStrategy();
-            break;
         case ENTER_MANUAL_MODE:
             messageStrategy = new EnterManualStrategy();
             break;
@@ -377,6 +351,21 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case MODIFY_TASK_KNIFE:
             messageStrategy = new ModifyTaskKnifeStrategy();
+            break;
+        case OPERATE_ADD_ZONE:
+            messageStrategy = new OperateAddZoneStrategy();
+            break;
+        case OPERATE_DELETE_ZONE:
+            messageStrategy = new OperateDeleteZoneStrategy();
+            break;
+        case OPERATE_MODIFY_ZONE:
+            messageStrategy = new OperateModifyZoneStrategy();
+            break;
+        case MODIFY_TASK_PARTITION:
+            messageStrategy = new ModifyTaskPartitionStrategy();
+            break;
+        case MODIFY_TASK_SUBREGION:
+            messageStrategy = new ModifyTaskSubregionStrategy();
             break;
 
         case ADD_TIMER_TASK:

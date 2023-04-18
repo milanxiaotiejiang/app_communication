@@ -261,33 +261,7 @@ int switch_ID(const std::string &str) {
     if (str == "manual_push_reset") {
         return MANUAL_PUSH_RESET;
     }
-    if (str == "get_full_cleaning_mode") {
-        return GET_FULL_CLEANING_MODE;
-    }
-    if (str == "set_full_cleaning_mode") {
-        return SET_FULL_CLEANING_MODE;
-    }
-    if (str == "get_full_cleaning_list") {
-        return GET_FULL_CLEAN_LIST;
-    }
-    if (str == "full_cleaning_add") {
-        return FULL_CLEANING_ADD;
-    }
-    if (str == "full_cleaning_update") {
-        return FULL_CLEANING_UPDATE;
-    }
-    if (str == "full_cleaning_delete") {
-        return FULL_CLEANING_DELETE;
-    }
-    if (str == "full_cleaning_detail") {
-        return FULL_CLEANING_DETAIL;
-    }
-    if (str == "full_cleaning_main") {
-        return FULL_CLEANING_MAIN;
-    }
-    if (str == "full_cleaning_main_cancel") {
-        return FULL_CLEANING_MAIN_CANCEL;
-    }
+
     if (str == "enter_manual_mode") {
         return ENTER_MANUAL_MODE;
     }
@@ -379,6 +353,21 @@ int switch_ID(const std::string &str) {
     }
     if (str == "modify_task_knife") {
         return MODIFY_TASK_KNIFE;
+    }
+    if (str == "operate_add_zone") {
+        return OPERATE_ADD_ZONE;
+    }
+    if (str == "operate_delete_zone") {
+        return OPERATE_DELETE_ZONE;
+    }
+    if (str == "operate_modify_zone") {
+        return OPERATE_MODIFY_ZONE;
+    }
+    if (str == "modify_task_partition") {
+        return MODIFY_TASK_PARTITION;
+    }
+    if (str == "modify_task_subregion") {
+        return MODIFY_TASK_SUBREGION;
     }
 
     if (str == "add_timer_task") {

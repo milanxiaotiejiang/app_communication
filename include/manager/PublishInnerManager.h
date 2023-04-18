@@ -38,8 +38,7 @@ private:
     pub_shutdown,//
     pub_reboot,//
     pub_oil,//
-    pub_knife,//
-    acceptAppSchedule;
+    pub_knife;//
 public:
     static auto &instance() {
         static PublishInnerManager obj;
@@ -88,7 +87,6 @@ public:
 
     void pubKnife(const std_msgs::Int32 &message) const;
 
-    void publishAppSchedule(const std_msgs::String &message) const;
 };
 
 #endif //APP_COMMUNICATION_PUBLISHINNERMANAGER_H

@@ -3,6 +3,8 @@
 //
 
 #include "tool/regex_valid.h"
+#include "schedule/croncpp.h"
+#include "iostream"
 
 bool is_valid_name(const std::string &str) {
 //    std::regex pattern(R"([ )"); // 匹配3-10个中文、英文字母、数字、下划线
@@ -12,9 +14,13 @@ bool is_valid_name(const std::string &str) {
 }
 
 bool is_valid_crontab(const std::string &expression) {
-    croncpp::CronData cron_parser;
-    cron_parser.parse("0 " + expression);
-    return cron_parser.is_valid();
+    try {
+        cron::cronexpr cron_expression = cron::make_cron("0 " + expression);
+        return true;
+    } catch (const cron::bad_cronexpr &ex) {
+        std::cerr << "Invalid cron expression: " << ex.what() << std::endl;
+        return false;
+    }
 }
 
 

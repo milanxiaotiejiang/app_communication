@@ -10,6 +10,7 @@
 #include "model/Task.h"
 #include "RealPoint.h"
 #include "model/RoomVo.h"
+#include "model/task.h"
 
 class RealTask {
 private:
@@ -27,9 +28,9 @@ private:
 
     bool principal;
 
-    std::vector<std::vector<PointVo>> zoned;
+    std::vector<ZoneVo> zoned;
     bool partition;
-    std::vector<int> subregions;
+    std::vector<SubregionVo> subregions;
     bool knife{false};
 
     std::vector<float> zoned0;
@@ -119,11 +120,11 @@ public:
         RealTask::principal = principal;
     }
 
-    const std::vector<std::vector<PointVo>> &getZoned() const {
+    const std::vector<ZoneVo> &getZoned() const {
         return zoned;
     }
 
-    void setZoned(const std::vector<std::vector<PointVo>> &zoned) {
+    void setZoned(const std::vector<ZoneVo> &zoned) {
         RealTask::zoned = zoned;
     }
 
@@ -135,11 +136,11 @@ public:
         RealTask::partition = partition;
     }
 
-    const std::vector<int> &getSubregions() const {
+    const std::vector<SubregionVo> &getSubregions() const {
         return subregions;
     }
 
-    void setSubregions(const std::vector<int> &subregions) {
+    void setSubregions(const std::vector<SubregionVo> &subregions) {
         RealTask::subregions = subregions;
     }
 

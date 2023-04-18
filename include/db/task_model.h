@@ -10,15 +10,7 @@
 #include "vector"
 
 struct ZonePo;
-
-struct PointPo {
-    PointPo();
-
-    PointPo(int x, int y);
-
-    int x;
-    int y;
-};
+struct SubregionPo;
 
 enum class TaskMode {
     Zoned,
@@ -78,6 +70,16 @@ struct ZonePo {
     long id;
     decltype(TaskPo::id) o_task_id;
     std::string point_range;
+};
+
+struct SubregionPo {
+    SubregionPo();
+
+    SubregionPo(long id, long oTaskId, long subregionValue);
+
+    long id;
+    decltype(TaskPo::id) o_task_id;
+    long subregion_value;
 };
 
 struct TimerPo {

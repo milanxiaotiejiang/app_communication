@@ -4,10 +4,6 @@
 
 #include "db/task_model.h"
 
-PointPo::PointPo() {}
-
-PointPo::PointPo(int x, int y) : x(x), y(y) {}
-
 TaskPo::TaskPo() {}
 
 TaskPo::TaskPo(long id, const std::string &oMapId, const std::string &name, int rate, TaskMode mode, int sweep, int mop,
@@ -59,3 +55,9 @@ TimerPo::TimerPo(long id, const std::string &oMapId, long oTaskId, const std::st
                                              rule(rule), name(name), is_execute(isExecute), rate(rate),
                                              is_never(isNever), is_skip(isSkip), end_year(endYear), end_month(endMonth),
                                              end_day(endDay) {}
+
+SubregionPo::SubregionPo() {}
+
+SubregionPo::SubregionPo(long id, long oTaskId, long subregionValue) : id(id), o_task_id(oTaskId),
+                                                                       subregion_value(subregionValue) {}
+

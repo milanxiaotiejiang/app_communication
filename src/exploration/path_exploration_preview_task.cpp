@@ -68,13 +68,13 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
 
 
     if (mode == TaskMode::Zoned) {
-        vector<std::vector<PointVo>> zones = task.getZoned();
+        vector<ZoneVo> zones = task.getZoned();
         for (const auto &zone: zones) {
             std::vector<std::vector<cv::Point>> polygon_array;
 
             std::vector<cv::Point> cvPoints;
-            for (const auto &item: zone) {
-                cvPoints.emplace_back(item.getX(), item.getY());
+            for (const auto &point: zone.getPoints()) {
+                cvPoints.emplace_back(point.getX(), point.getY());
             }
 
             polygon_array.push_back(cvPoints);
@@ -163,16 +163,16 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
         }
 
     } else if (mode == TaskMode::Subregion) {
-        std::vector<int> subregions = task.getSubregions();
+        std::vector<SubregionVo> subregions = task.getSubregions();
         cv::Mat segmented_map;
         std::vector<Room> rooms;
         segmentationCenter.storage2Memory(segmented_map, rooms);
 
-        for (const auto subregionId: subregions) {
+        for (const auto &subregion: subregions) {
             std::vector<geometry_msgs::Pose2D> sub_exploration_path;
             std::vector<cv::Point> sub_point_path;
 
-            const cv::Mat &oneMap = segmentationCenter.choiceOneRoom(segmented_map, rooms, subregionId);
+            const cv::Mat &oneMap = segmentationCenter.choiceOneRoom(segmented_map, rooms, subregion.getSubregionValue());
             explorationCenter.generatePlanningPathSub(oneMap, BOUSTROPHEDON_EXPLORER_MODE,
                                                       sub_exploration_path, sub_point_path);
 

@@ -1,5 +1,6 @@
 #include "rec_app.h"
 #include "simulation.h"
+#include "manager/UpgradeManager.h"
 
 /**
  * https://github.com/fnc12/sqlite_orm
@@ -27,8 +28,6 @@ CombinationManager *CombinationManager::m_instance_ptr = nullptr;
 FullCleanManager *FullCleanManager::m_instance_ptr = nullptr;
 
 internal_event::InternalEventPubManager *internal_event::InternalEventPubManager::instance_ = nullptr;
-
-ScheduleThread *sThd = nullptr;
 
 int main(int argc, char **argv) {
 
@@ -82,17 +81,15 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
     initNodeParams(nh);
 
-    ros::Publisher pub_current = nh.advertise<std_msgs::Int32>("/current_flag", 10);
     WsServerManager::instance().startWebSocket();
     AiServerManager::instance().startWebSocket();
 
-    string last_task;
-    nh.param<string>("last_task", last_task, "");//上次执行的任务
-    restartAfterCrash(last_task);
-    ///////////////////////////////////////////////
-    sThd = new ScheduleThread(handle);
-    sThd->start();
-    sThd->detach();
+
+    UpgradeManager::instance().upgradeTask();
+    UpgradeManager::instance().upgradeTimer();
+    UpgradeManager::instance().deleteExcessive();
+
+    ScheduleManagerSingleton::instance().start(handle);
 
     ros::MultiThreadedSpinner spinner;
     spinner.spin();
@@ -297,26 +294,6 @@ void initDump() {
 void initTest(int argc, char **argv) {
     if (!Environment::instance().isRealEnvironment) {
         Catch::Session().run(argc, argv);
-    }
-}
-
-//本函数用于rec_app_node 节点发生崩溃后继续执行任务
-//当下达任务时，TaskManager::addOnceTask函数会记录一个task对象到last_task并存入参数服务器
-//当任务正常结束时，服务器中参数被清空
-//当节点发生崩溃时，进入主循环之前调用此函数，解析参数服务器中的last_task参数
-//如果为空则无事发生，如果非空则继续执行该任务
-void restartAfterCrash(string &last_task) {
-    if (last_task.empty()) {
-        return;
-    } else {
-        LOG(INFO) << "last_task  " << last_task;
-//        string decode = base64_decode(last_task);//转化成base64
-        LOG(INFO) << "after decode";
-        json jdecode = json::parse(last_task);
-        LOG(INFO) << "after parse";
-        auto last_task = jdecode.get<Task>();
-        //全局清扫
-        TaskCenter::instance().executeTask(last_task);
     }
 }
 

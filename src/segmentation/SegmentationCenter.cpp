@@ -113,6 +113,8 @@ void SegmentationCenter::initialize(const ros::NodeHandle &handle) {
     // 6.加载参数
     MapAttribute::instance().loadPlanParam();
 
+    segmentationSubscribe = new SegmentationSubscribe(handle);
+
     // test
 //    resetSegmentation();
 
@@ -448,7 +450,7 @@ void SegmentationCenter::automaticSegmentation(cv::Mat &segmented_map, std::vect
 
 }
 
-cv::Mat SegmentationCenter::choiceOneRoom(cv::Mat &segmented_map, std::vector<Room> &rooms, int targetId) {
+cv::Mat SegmentationCenter::choiceOneRoom(cv::Mat &segmented_map, std::vector<Room> &rooms, long targetId) {
     int targetIndex = -1;
     for (int i = 0; i < rooms.size(); ++i) {
         auto room = rooms[i];

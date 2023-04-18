@@ -5,7 +5,7 @@
 #ifndef APP_COMMUNICATION_ROOMVO_H
 #define APP_COMMUNICATION_ROOMVO_H
 
-#include <opencv2/core/types.hpp>
+#include <opencv2/opencv.hpp>
 #include "string"
 #include "vector"
 

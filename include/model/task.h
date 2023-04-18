@@ -12,6 +12,67 @@
 #include "RoomVo.h"
 #include "WorkStatus.h"
 
+class ZoneVo {
+private:
+    long zoneId;
+    std::vector<PointVo> points;
+public:
+    ZoneVo();
+
+    ZoneVo(long zoneId, const std::vector<PointVo> &points);
+
+    long getZoneId() const;
+
+    void setZoneId(long zoneId);
+
+    const std::vector<PointVo> &getPoints() const;
+
+    void setPoints(const std::vector<PointVo> &points);
+
+    friend void to_json(json &j, const ZoneVo &vo) {
+        j = json{
+                {"zoneId", vo.zoneId},
+                {"points", vo.points},
+        };
+    }
+
+    friend void from_json(const json &j, ZoneVo &vo) {
+        j.at("zoneId").get_to(vo.zoneId);
+        j.at("points").get_to(vo.points);
+    }
+};
+
+class SubregionVo {
+private:
+    long subregionId;
+    long subregionValue;
+public:
+
+    SubregionVo();
+
+    SubregionVo(long subregionId, long subregionValue);
+
+    friend void to_json(json &j, const SubregionVo &vo) {
+        j = json{
+                {"subregionId", vo.subregionId},
+                {"subregionValue", vo.subregionValue}
+        };
+    }
+
+    friend void from_json(const json &j, SubregionVo &vo) {
+        j.at("subregionId").get_to(vo.subregionId);
+        j.at("subregionValue").get_to(vo.subregionValue);
+    }
+
+    long getSubregionId() const;
+
+    void setSubregionId(long subregionId);
+
+    long getSubregionValue() const;
+
+    void setSubregionValue(long subregionValue);
+};
+
 class TaskVo {
 
 private:
@@ -25,9 +86,9 @@ private:
 
     bool principal{false};
 
-    std::vector<std::vector<PointVo>> zones;
+    std::vector<ZoneVo> zones;
     bool partition;
-    std::vector<int> subregions;
+    std::vector<SubregionVo> subregions;
     bool knife;
 
     std::string source;
@@ -45,16 +106,16 @@ public:
            long updateTime, long createTime);
 
     TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode,
-           const WorkStatus &workStatus, bool principal, const std::vector<std::vector<PointVo>> &zones, bool partition,
-           const std::vector<int> &subregions, bool knife, const std::string &source, const std::string &launchPeople,
+           const WorkStatus &workStatus, bool principal, const std::vector<ZoneVo> &zones, bool partition,
+           const std::vector<SubregionVo> &subregions, bool knife, const std::string &source, const std::string &launchPeople,
            long launchTime, long updateTime, long createTime);
 
 
     void setWorkStatus(const WorkStatus &workStatus);
 
-    void setZones(const std::vector<std::vector<PointVo>> &zones);
+    void setZones(const std::vector<ZoneVo> &zones);
 
-    void setSubregions(const std::vector<int> &subregions);
+    void setSubregions(const std::vector<SubregionVo> &subregions);
 
     long getId() const;
 
@@ -70,11 +131,11 @@ public:
 
     bool isPrincipal() const;
 
-    const std::vector<std::vector<PointVo>> &getZones() const;
+    const std::vector<ZoneVo> &getZones() const;
 
     bool isPartition() const;
 
-    const std::vector<int> &getSubregions() const;
+    const std::vector<SubregionVo> &getSubregions() const;
 
     bool isKnife() const;
 
@@ -143,13 +204,13 @@ private:
     long task_id;
     std::string timer_name;
     std::string task_name;
-    bool is_execute{true};
+    bool is_execute{true};//是否开启
     int rate;
-    bool is_never;
-    bool is_skip{true};
-    int end_year;
-    int end_month;
-    int end_day;
+    bool is_never;//True 不结束 False 截止日期
+    bool is_skip{true};//跳过节假日
+    int end_year;//截止日期年
+    int end_month;//截止日期月
+    int end_day;//截止日期日
 
 public:
     TimerVo();
@@ -206,7 +267,6 @@ public:
 
     void setEndDay(int endDay);
 
-
     friend void to_json(json &j, const TimerVo &vo) {
         j = json{
                 {"timer_id",   vo.timer_id},
@@ -255,7 +315,6 @@ struct ModifyTaskName {
         j.at("id").get_to(vo.id);
         j.at("name").get_to(vo.name);
     }
-
 };
 
 struct ModifyTaskRate {
@@ -273,7 +332,6 @@ struct ModifyTaskRate {
         j.at("id").get_to(vo.id);
         j.at("rate").get_to(vo.rate);
     }
-
 };
 
 struct ModifyTaskWorkStatus {
@@ -291,7 +349,6 @@ struct ModifyTaskWorkStatus {
         j.at("id").get_to(vo.id);
         j.at("workStatus").get_to(vo.workStatus);
     }
-
 };
 
 struct ModifyTaskKnife {
@@ -309,7 +366,74 @@ struct ModifyTaskKnife {
         j.at("id").get_to(vo.id);
         j.at("knife").get_to(vo.knife);
     }
+};
 
+struct ModifyTaskZone {
+    long id;
+    ZoneVo zone;
+
+    friend void to_json(json &j, const ModifyTaskZone &vo) {
+        j = json{
+                {"id",   vo.id},
+                {"zone", vo.zone},
+        };
+    }
+
+    friend void from_json(const json &j, ModifyTaskZone &vo) {
+        j.at("id").get_to(vo.id);
+        j.at("zone").get_to(vo.zone);
+    }
+};
+
+struct ModifyTaskPartition {
+    long id;
+    bool partition;
+
+    friend void to_json(json &j, const ModifyTaskPartition &vo) {
+        j = json{
+                {"id",        vo.id},
+                {"partition", vo.partition},
+        };
+    }
+
+    friend void from_json(const json &j, ModifyTaskPartition &vo) {
+        j.at("id").get_to(vo.id);
+        j.at("partition").get_to(vo.partition);
+    }
+};
+
+struct ModifyTaskSubregion {
+    long id;
+    std::vector<SubregionVo> subregions;
+
+    friend void to_json(json &j, const ModifyTaskSubregion &vo) {
+        j = json{
+                {"id",         vo.id},
+                {"subregions", vo.subregions},
+        };
+    }
+
+    friend void from_json(const json &j, ModifyTaskSubregion &vo) {
+        j.at("id").get_to(vo.id);
+        j.at("subregions").get_to(vo.subregions);
+    }
+};
+
+struct ModifyTimerName {
+    long id;
+    std::string timer_name;
+
+    friend void to_json(json &j, const ModifyTimerName &vo) {
+        j = json{
+                {"id",         vo.id},
+                {"timer_name", vo.timer_name},
+        };
+    }
+
+    friend void from_json(const json &j, ModifyTimerName &vo) {
+        j.at("id").get_to(vo.id);
+        j.at("timer_name").get_to(vo.timer_name);
+    }
 };
 
 #endif //APP_COMMUNICATION_TASK_H

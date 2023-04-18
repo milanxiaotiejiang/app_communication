@@ -2,12 +2,13 @@
 // Created by Looper on 2023/3/20.
 //
 
-#include <regex>
 #include "sub/json/DBTaskStrategy.h"
+#include <regex>
 #include "db/segmentation_data_base.h"
 #include "db/task_data_base.h"
 #include "tool/regex_valid.h"
 #include "tool/param_check.h"
+#include "schedule/schedule_manager_singleton.h"
 
 long AddTaskStrategy::handler(TaskVo params) {
     checkWorkStatus(params.getWorkStatus());
@@ -58,11 +59,15 @@ long AddTimerTaskStrategy::handler(TimerVo params) {
     }
 
     MapPo map = SegmentationDataBase::instance().getDbMap();
-    return TaskDataBase::instance().addTimer(map.id, params);
+    long timer = TaskDataBase::instance().addTimer(map.id, params);
+
+    ScheduleManagerSingleton::instance().trigger_task_update();
+    return timer;
 }
 
 string DeleteTimerTaskStrategy::handler(long params) {
     TaskDataBase::instance().deleteTimerForId(params);
+    ScheduleManagerSingleton::instance().trigger_task_update();
     return "";
 }
 
@@ -110,5 +115,42 @@ string ModifyTaskWorkStatusStrategy::handler(ModifyTaskWorkStatus params) {
 
 string ModifyTaskKnifeStrategy::handler(ModifyTaskKnife params) {
     TaskDataBase::instance().modifyKnife(params.id, params.knife);
+    return "";
+}
+
+long OperateAddZoneStrategy::handler(ModifyTaskZone params) {
+    checkZoned(params.zone);
+    long zoneId = TaskDataBase::instance().operateAddZone(params.id, params.zone);
+    if (zoneId == -1) {
+        throw app::exception(make_error_code(error::the_main_task_is_not_set));
+    }
+    return zoneId;
+}
+
+string OperateDeleteZoneStrategy::handler(ModifyTaskZone params) {
+    TaskDataBase::instance().operateDeleteZone(params.id, params.zone);
+    return "";
+}
+
+string OperateModifyZoneStrategy::handler(ModifyTaskZone params) {
+    checkZoned(params.zone);
+    TaskDataBase::instance().operateModifyZone(params.id, params.zone);
+    return "";
+}
+
+string ModifyTaskPartitionStrategy::handler(ModifyTaskPartition params) {
+    TaskDataBase::instance().modifyPartition(params.id, params.partition);
+    return "";
+}
+
+string ModifyTaskSubregionStrategy::handler(ModifyTaskSubregion params) {
+    checkSubregion(params.subregions);
+    TaskDataBase::instance().modifySubregion(params.id, params.subregions);
+    return "";
+}
+
+string ModifyTimerNameStrategy::handler(ModifyTimerName params) {
+    checkName(params.timer_name);
+    TaskDataBase::instance().modifyTimerName(params.id, params.timer_name);
     return "";
 }

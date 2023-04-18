@@ -28,7 +28,7 @@ TaskVo TaskDataBase::taskPo2Vo(const TaskPo &taskPo) {
     task.setWorkStatus(ws);
 
     if (taskPo.mode == TaskMode::Zoned) {
-        std::vector<std::vector<PointVo>> zones;
+        std::vector<ZoneVo> zones;
         for (const auto &zone: taskPo.zones) {
             auto range = zone.point_range;
             std::vector<std::string> tokens;
@@ -43,16 +43,21 @@ TaskVo TaskDataBase::taskPo2Vo(const TaskPo &taskPo) {
                 PointVo pointVo(x, y);
                 points.push_back(pointVo);
             }
-            zones.push_back(points);
+
+            ZoneVo zoneVo;
+            zoneVo.setZoneId(zone.id);
+            zoneVo.setPoints(points);
+            zones.push_back(zoneVo);
         }
         task.setZones(zones);
     } else if (taskPo.mode == TaskMode::Subregion) {
-        std::vector<int> subregions;
+        std::vector<SubregionVo> subregions;
         auto range = taskPo.subregion_range;
         std::vector<std::string> tokens;
         split(range, tokens, ',');
         for (const auto &item: tokens) {
-            subregions.push_back(atoi(item.c_str()));
+            SubregionVo sub(0, atoi(item.c_str()));
+            subregions.push_back(sub);
         }
         task.setSubregions(subregions);
     }
@@ -71,12 +76,13 @@ long TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
     std::vector<std::string> zoneRanges;
     std::string subregion_range;
     if (mode == TaskMode::Zoned) {
-        std::vector<std::vector<PointVo>> zones = taskVo.getZones();
+        std::vector<ZoneVo> zones = taskVo.getZones();
         for (const auto &zs: zones) {
             std::string pointRange;
-            for (int i = 0; i < zs.size(); i++) {
-                auto point = zs[i];
-                if (i == zs.size() - 1) {
+            std::vector<PointVo> points = zs.getPoints();
+            for (int i = 0; i < points.size(); i++) {
+                auto point = points[i];
+                if (i == points.size() - 1) {
                     pointRange.append(std::to_string(point.getX()) + "," + std::to_string(point.getY()));
                 } else {
                     pointRange.append(std::to_string(point.getX()) + "," + std::to_string(point.getY()) + ",");
@@ -85,13 +91,13 @@ long TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
             zoneRanges.push_back(pointRange);
         }
     } else if (mode == TaskMode::Subregion) {
-        std::vector<int> subregions = taskVo.getSubregions();
+        std::vector<SubregionVo> subregions = taskVo.getSubregions();
         for (int i = 0; i < subregions.size(); i++) {
-            auto value = subregions[i];
+            auto subregion = subregions[i];
             if (i == subregions.size() - 1) {
-                subregion_range.append(std::to_string(value));
+                subregion_range.append(std::to_string(subregion.getSubregionValue()));
             } else {
-                subregion_range.append(std::to_string(value) + ",");
+                subregion_range.append(std::to_string(subregion.getSubregionValue()) + ",");
             }
         }
     }
@@ -311,8 +317,89 @@ void TaskDataBase::modifyWorkStatus(long taskId, const WorkStatus &status) {
 
 void TaskDataBase::modifyKnife(long taskId, bool knife) {
     TaskPo task = taskStorage.get<TaskPo>(taskId);
-    task.knife = knife;
-    taskStorage.update(task);
+    if (task.mode == TaskMode::Line) {
+        task.knife = knife;
+        taskStorage.update(task);
+    }
+}
+
+long TaskDataBase::operateAddZone(long taskId, const ZoneVo &zone) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    if (task.mode == TaskMode::Zoned) {
+        std::string pointRange;
+        std::vector<PointVo> points = zone.getPoints();
+        for (int i = 0; i < points.size(); i++) {
+            auto point = points[i];
+            if (i == points.size() - 1) {
+                pointRange.append(std::to_string(point.getX()) + "," + std::to_string(point.getY()));
+            } else {
+                pointRange.append(std::to_string(point.getX()) + "," + std::to_string(point.getY()) + ",");
+            }
+        }
+
+        const ZonePo &zonePo = ZonePo(0, taskId, pointRange);
+        auto zoneId = taskStorage.insert(zonePo);
+        return zoneId;
+    }
+    return -1;
+}
+
+void TaskDataBase::operateDeleteZone(long taskId, const ZoneVo &zone) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    if (task.mode == TaskMode::Zoned) {
+        taskStorage.remove<ZonePo>(zone.getZoneId());
+    }
+}
+
+void TaskDataBase::operateModifyZone(long taskId, const ZoneVo &zone) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    if (task.mode == TaskMode::Zoned) {
+        ZonePo zonePo = taskStorage.get<ZonePo>(zone.getZoneId());
+
+        std::string pointRange;
+        std::vector<PointVo> points = zone.getPoints();
+        for (int i = 0; i < points.size(); i++) {
+            auto point = points[i];
+            if (i == points.size() - 1) {
+                pointRange.append(std::to_string(point.getX()) + "," + std::to_string(point.getY()));
+            } else {
+                pointRange.append(std::to_string(point.getX()) + "," + std::to_string(point.getY()) + ",");
+            }
+        }
+        zonePo.point_range = pointRange;
+        taskStorage.update(zonePo);
+    }
+}
+
+void TaskDataBase::modifyPartition(long taskId, bool partition) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    if (task.mode == TaskMode::Cover) {
+        task.partition = partition;
+        taskStorage.update(task);
+    }
+}
+
+void TaskDataBase::modifySubregion(long taskId, const vector<SubregionVo> &subregions) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    if (task.mode == TaskMode::Subregion) {
+        std::string subregion_range;
+        for (int i = 0; i < subregions.size(); i++) {
+            auto subregion = subregions[i];
+            if (i == subregions.size() - 1) {
+                subregion_range.append(std::to_string(subregion.getSubregionValue()));
+            } else {
+                subregion_range.append(std::to_string(subregion.getSubregionValue()) + ",");
+            }
+        }
+        task.subregion_range = subregion_range;
+        taskStorage.update(task);
+    }
+}
+
+void TaskDataBase::modifyTimerName(long timerId, std::string name) {
+    TimerPo timer = taskStorage.get<TimerPo>(timerId);
+    timer.name = std::move(name);
+    taskStorage.update(timer);
 }
 
 std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
@@ -344,13 +431,13 @@ TaskVo TaskDataBase::loadTaskFoId(long taskId) {
     return taskPo2Vo(taskPo);
 }
 
-TaskVo TaskDataBase::loadPrincipalTask(std::string mapId) {
+TaskVo TaskDataBase::loadPrincipalTask(const std::string &mapId) {
     TaskVo taskVo;
     taskVo.setId(-1);
 
     auto taskPos = taskStorage.get_all<TaskPo>(
             where(
-                    c(&TaskPo::o_map_id) == std::move(mapId)
+                    c(&TaskPo::o_map_id) == mapId
                     and c(&TaskPo::principal) == true
             )
     );
@@ -359,7 +446,7 @@ TaskVo TaskDataBase::loadPrincipalTask(std::string mapId) {
     }
     if (taskPos.size() != 1) {
         taskStorage.update_all(sqlite_orm::set(c(&TaskPo::partition) = false),
-                               where(c(&TaskPo::o_map_id) == std::move(mapId))
+                               where(c(&TaskPo::o_map_id) == mapId)
         );
         return taskVo;
     }
@@ -367,7 +454,7 @@ TaskVo TaskDataBase::loadPrincipalTask(std::string mapId) {
     return taskPo2Vo(principalTask);
 }
 
-std::vector<TimerVo> TaskDataBase::loadTimerFoMap(std::string mapId) {
+std::vector<TimerVo> TaskDataBase::loadTimerFoMap(const std::string &mapId) {
     auto results = taskStorage.select(
             distinct(columns(&TimerPo::id,
                              &TimerPo::o_map_id,
@@ -383,8 +470,8 @@ std::vector<TimerVo> TaskDataBase::loadTimerFoMap(std::string mapId) {
                              &TimerPo::end_month,
                              &TimerPo::end_day
             )),
-            inner_join<ZonePo>(on(c(&TaskPo::id) == &TimerPo::o_task_id)),
-            where(c(&TimerPo::o_map_id) == std::move(mapId))
+            inner_join<TaskPo>(on(c(&TaskPo::id) == &TimerPo::o_task_id)),
+            where(c(&TimerPo::o_map_id) == mapId)
     );
 
     std::vector<TimerVo> vos;

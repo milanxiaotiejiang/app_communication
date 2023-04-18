@@ -15,16 +15,6 @@ public:
     vector<FullCleanBrief> handler(string params) override;
 };
 
-class GetFullCleaningModeStrategy : public MessageStrategy<string, WorkStatus> {
-public:
-    WorkStatus handler(string params) override;
-};
-
-class SetFullCleaningModeStrategy : public MessageStrategy<WorkStatus, string> {
-public:
-    string handler(WorkStatus params) override;
-};
-
 class FullCLeaningAddStrategy : public MessageStrategy<FullCleanBrief, string> {
 public:
     string handler(FullCleanBrief params) override;

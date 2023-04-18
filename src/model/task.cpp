@@ -4,6 +4,47 @@
 
 #include "model/task.h"
 
+ZoneVo::ZoneVo() {}
+
+ZoneVo::ZoneVo(long zoneId, const std::vector<PointVo> &points) : zoneId(zoneId), points(points) {}
+
+long ZoneVo::getZoneId() const {
+    return zoneId;
+}
+
+void ZoneVo::setZoneId(long zoneId) {
+    ZoneVo::zoneId = zoneId;
+}
+
+const std::vector<PointVo> &ZoneVo::getPoints() const {
+    return points;
+}
+
+void ZoneVo::setPoints(const std::vector<PointVo> &points) {
+    ZoneVo::points = points;
+}
+
+SubregionVo::SubregionVo() {}
+
+SubregionVo::SubregionVo(long subregionId, long subregionValue) : subregionId(subregionId),
+                                                                  subregionValue(subregionValue) {}
+
+long SubregionVo::getSubregionId() const {
+    return subregionId;
+}
+
+void SubregionVo::setSubregionId(long subregionId) {
+    SubregionVo::subregionId = subregionId;
+}
+
+long SubregionVo::getSubregionValue() const {
+    return subregionValue;
+}
+
+void SubregionVo::setSubregionValue(long subregionValue) {
+    SubregionVo::subregionValue = subregionValue;
+}
+
 TaskVo::TaskVo() {}
 
 TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode, bool principal,
@@ -14,8 +55,8 @@ TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int 
                                                    update_time(updateTime), create_time(createTime) {}
 
 TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode,
-               const WorkStatus &workStatus, bool principal, const std::vector<std::vector<PointVo>> &zones,
-               bool partition, const std::vector<int> &subregions, bool knife, const std::string &source,
+               const WorkStatus &workStatus, bool principal, const std::vector<ZoneVo> &zones,
+               bool partition, const std::vector<SubregionVo> &subregions, bool knife, const std::string &source,
                const std::string &launchPeople, long launchTime, long updateTime, long createTime) : id(id),
                                                                                                      o_map_id(oMapId),
                                                                                                      name(name),
@@ -49,11 +90,11 @@ void TaskVo::setWorkStatus(const WorkStatus &workStatus) {
     TaskVo::workStatus = workStatus;
 }
 
-void TaskVo::setZones(const std::vector<std::vector<PointVo>> &zones) {
+void TaskVo::setZones(const std::vector<ZoneVo> &zones) {
     TaskVo::zones = zones;
 }
 
-void TaskVo::setSubregions(const std::vector<int> &subregions) {
+void TaskVo::setSubregions(const std::vector<SubregionVo> &subregions) {
     TaskVo::subregions = subregions;
 }
 
@@ -85,7 +126,7 @@ bool TaskVo::isPrincipal() const {
     return principal;
 }
 
-const std::vector<std::vector<PointVo>> &TaskVo::getZones() const {
+const std::vector<ZoneVo> &TaskVo::getZones() const {
     return zones;
 }
 
@@ -93,7 +134,7 @@ bool TaskVo::isPartition() const {
     return partition;
 }
 
-const std::vector<int> &TaskVo::getSubregions() const {
+const std::vector<SubregionVo> &TaskVo::getSubregions() const {
     return subregions;
 }
 

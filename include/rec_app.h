@@ -56,12 +56,12 @@
 #include "glog/logging.h"
 #include "sys/stat.h"
 #include "sys/types.h"
-#include "schedule/ScheduleThread.h"
 #include "sub/DSVersionSubscribe.h"
 #include "net/poly/Msg.hpp"
 #include "net/poly/Queue.hpp"
 #include "manager/PublishInnerManager.h"
 #include "manager/PublishOutManager.h"
+#include "schedule/schedule_manager_singleton.h"
 #include "segmentation/SegmentationCenter.h"
 #include "exploration/ExplorationCenter.h"
 #include "alignment/map_alignment_center.h"
@@ -106,9 +106,6 @@ void initLog(char *const *argv);
 void initDump();
 
 void initTest(int i, char **pString);
-
-//重启续扫
-void restartAfterCrash(string &last_task);
 
 void initNodeParams(const ros::NodeHandle &nh);
 

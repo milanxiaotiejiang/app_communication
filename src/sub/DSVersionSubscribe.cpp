@@ -13,7 +13,6 @@ DSVersionSubscribe::DSVersionSubscribe(ros::NodeHandle handle) : handle(handle) 
     sub_ds_hw = handle.subscribe("/dasheng/hw", 1, &DSVersionSubscribe::subscribeHWCallback, this);
     sub_ds_sw = handle.subscribe("/dasheng/sw", 1, &DSVersionSubscribe::subscribeSWCallback, this);
 
-    std::cout << "DSVersionSubscribe" << std::endl;
     std_msgs::Int16 version;
     version.data = 0;
     PublishInnerManager::instance().publishDSVersion(version);
