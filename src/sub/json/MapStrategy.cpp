@@ -117,6 +117,7 @@ string MapObstaclesStrategy::handler(vector<vector<PointVo>> params) {
 
     MapModification mapModification;
     mapModification.addObstacles(points);
+    return "";
 }
 
 string MapFeasibleZoneStrategy::handler(vector<vector<PointVo>> params) {
@@ -133,4 +134,11 @@ string MapFeasibleZoneStrategy::handler(vector<vector<PointVo>> params) {
 
     MapModification mapModification;
     mapModification.addFeasibleZone(points);
+    return "";
+}
+
+string MapApplyIncreaseArea::handler(vector<int> params) {
+    MapModification mapModification;
+    mapModification.applyIncreaseArea(params);
+    return "";
 }

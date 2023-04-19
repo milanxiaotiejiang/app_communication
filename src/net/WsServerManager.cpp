@@ -37,6 +37,8 @@
 
 #include <opencv2/opencv.hpp>
 
+#include "tool/map_compress.h"
+
 //#include "tool/ZLibString.hpp"
 
 using namespace code_machina;
@@ -595,8 +597,6 @@ void WsServerManager::setMapApp(const nav_msgs::OccupancyGrid &occupancyGrid) {
 //    cv::waitKey();
     cv::normalize(mat, mat, 0, 255, cv::NORM_MINMAX);
 
-    std::vector<int> mapDataList;
-
     /*
      * 调试 log ，误删
      * -1 34518
@@ -642,17 +642,7 @@ void WsServerManager::setMapApp(const nav_msgs::OccupancyGrid &occupancyGrid) {
 //    for (const auto &item: occupancyList) {
 //        mapDataList.push_back(item);
 //    }
-    for (int y = 0; y < mat.rows; y++) {
-        for (int x = 0; x < mat.cols; x++) {
-            if (mat.at<unsigned char>(y, x) == 0) {
-                mapDataList.push_back(0);
-            } else if (mat.at<unsigned char>(y, x) == 255) {
-                mapDataList.push_back(-1);
-            } else {
-                mapDataList.push_back(-1);
-            }
-        }
-    }
+    std::vector<int> mapDataList = mat2Vector(mat);
 
 //    std::set<int> sets;
 //    for (const auto &item: mapDataList) {
@@ -663,33 +653,7 @@ void WsServerManager::setMapApp(const nav_msgs::OccupancyGrid &occupancyGrid) {
 //        LOG(ERROR) << item << " ";
 //    }
 
-    std::vector<int> dataList;
-    int temp;
-    int count = 1;
-    for (int i = 0; i < mapDataList.size(); ++i) {
-        auto data = mapDataList[i];
-        if (i == 0) {
-            dataList.push_back(data);
-        } else if (i == mapDataList.size() - 1) {
-            if (data != temp) {
-                dataList.push_back(count);
-                dataList.push_back(data);
-                dataList.push_back(1);
-            } else {
-                count++;
-                dataList.push_back(count);
-            }
-        } else {
-            if (data != temp) {
-                dataList.push_back(count);
-                dataList.push_back(data);
-                count = 1;
-            } else {
-                count++;
-            }
-        }
-        temp = data;
-    }
+    vector<int> dataList = compressValueQuantity(mapDataList);
 
     RosMap map(dataList, header, info);
 

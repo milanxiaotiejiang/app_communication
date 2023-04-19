@@ -305,6 +305,9 @@ int switch_ID(const std::string &str) {
     if (str == "map_feasible_zone") {
         return MAP_FEASIBLE_ZONE;
     }
+    if (str == "map_apply_increase_area") {
+        return MAP_APPLY_INCREASE_AREA;
+    }
 
     if (str == "set_explorer_energy") {
         return SET_EXPLORER_ENERGY;

@@ -66,4 +66,9 @@ public:
     string handler(vector<vector<PointVo>> params) override;
 };
 
+class MapApplyIncreaseArea : public MessageStrategy<vector<int>, string> {
+public:
+    string handler(vector<int> params) override;
+};
+
 #endif //APP_COMMUNICATION_MAPSTRATEGY_H

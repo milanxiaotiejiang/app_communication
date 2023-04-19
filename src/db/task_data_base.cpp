@@ -346,7 +346,11 @@ void TaskDataBase::modifyTimerName(long timerId, std::string name) {
 }
 
 void TaskDataBase::modifyTimer(const string &mapId, const TimerVo &timer) {
-    taskStorage.update(timer);
+    TimerPo timerPo(timer.getTimerId(), mapId, timer.getTaskId(), timer.getTaskName(),
+                    timer.getTimerRule(), timer.getTimerName(),
+                    timer.isExecute(), timer.getRate(), timer.isNever(), timer.isSkip(),
+                    timer.getEndYear(), timer.getEndMonth(), timer.getEndDay());
+    taskStorage.update(timerPo);
 }
 
 std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
