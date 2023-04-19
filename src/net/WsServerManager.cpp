@@ -52,6 +52,8 @@ struct Ask {
     map<string, bool> subMap;
     string osVersion = "";
     string osSystem = "";
+    string osModel = "";
+    string osSource = "";
 
     friend ostream &operator<<(ostream &os, const Ask &ask) {
         std_msgs::String mapStr;
@@ -169,13 +171,17 @@ void on_open(server *s, websocketpp::connection_hdl hdl) {
     string osVersion = headers["os-version"];
     string osSystem = headers["os-system"];
     string osModel = headers["os-model"];
+    string osSource = headers["os-source"];
     LOG(INFO) << "Connected to remote : " << remoteEndPoint
-              << " , osVersion : " + osVersion + " , osSystem : " + osSystem + " , osModel : " + osModel;
+              << " , osVersion : " + osVersion + " , osSystem : " + osSystem +
+                 " , osModel : " + osModel + " , osSource : " + osSource;
 
     Ask ask = Ask();
     ask.hdl = hdl;
     ask.osVersion = osVersion;
     ask.osSystem = osSystem;
+    ask.osModel = osModel;
+    ask.osSource = osSource;
     ask.subMap[MAP_APP] = false;
     ask.subMap[ODOM_APP] = false;
     ask.subMap[ROBOT_STATUS] = false;

@@ -16,20 +16,23 @@
 #include "exploration/ExplorationCenter.h"
 
 void TaskExploration::task2RealTask(const Task &task, RealTask &realTask) {
+    realTask.setRenew(false);
+
     realTask.setId(task.getTaskId());
-    realTask.setMode(task.getMode());
     realTask.setRate(task.getRate());
+    realTask.setMode(task.getMode());
     realTask.setZoned0(task.getZoned());
     realTask.setCombination(task.getCombination());
     realTask.setLaunchPeople(task.getLaunchPeople());
     realTask.setLaunchTime(task.getLaunchTime());
-
-    realTask.setRenew(false);
 }
 
 void TaskExploration::task2RealTask(const TaskVo &task, RealTask &realTask) {
+    realTask.setRenew(true);
+
     auto uuid = boost::uuids::to_string(boost::uuids::random_generator()());
     realTask.setId(uuid);
+
     realTask.setMapId(task.getOMapId());
     realTask.setTaskId(task.getId());
     realTask.setName(task.getName());
@@ -48,8 +51,6 @@ void TaskExploration::task2RealTask(const TaskVo &task, RealTask &realTask) {
     realTask.setSource(task.getSource());
     realTask.setLaunchPeople(task.getLaunchPeople());
     realTask.setLaunchTime(std::time(nullptr));
-
-    realTask.setRenew(true);
 }
 
 RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {

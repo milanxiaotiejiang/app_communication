@@ -33,7 +33,7 @@ public:
 
     bool taskRunning();
 
-    std::string runTaskId();
+    RealTask runningTask() const;
 
     std::vector<RealTask> runTaskList();
 

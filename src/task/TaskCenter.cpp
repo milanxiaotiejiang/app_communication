@@ -214,16 +214,16 @@ void TaskCenter::uninstall() {
     delete carpetDetectSubscribe;
 }
 
-//executTask主要增加了一条历史记录
 void TaskCenter::executeTask(const Task &task) {
     RealTask realTask;
     TaskExploration::task2RealTask(task, realTask);
     preTask(realTask);
 }
 
-std::string TaskCenter::performTask(const long taskId) {
+std::string TaskCenter::performTask(const long taskId, TaskSource on_source) {
     auto task = TaskDataBase::instance().loadTaskFoId(taskId);
     RealTask realTask;
+    realTask.setOnSource(SqliteDataBase::SourceToString(on_source));
     TaskExploration::task2RealTask(task, realTask);
     return preTask(realTask);
 }

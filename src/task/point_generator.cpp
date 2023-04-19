@@ -20,7 +20,30 @@
 #include "task/model/CombinationPoseVo.h"
 #include "exploration/path_exploration_preview_task.h"
 
-void PointGenerator::pose2RealPoint(const RealTask &realTask, std::vector<PoseVo> poseList,
+RealPoint PointGenerator::buildPoint(int id, const RealTask &task) {
+    RealPoint point;
+    point.id = id;
+    point.taskId = task.getId();
+
+    point.renew = task.isRenew();
+    if (task.isRenew()) {
+        point.newTaskId = task.getTaskId();
+    } else {
+        if (task.getMode() == 7) {
+            point.oldTaskId = task.getCombination().getCombinationID();
+        }
+    }
+
+    point.name = task.getName();
+    point.rate = task.getRate();
+    point.mode = task.getMode();
+
+    point.knife = task.isKnife();
+    point.work_status = task.getWorkStatus();
+    return point;
+}
+
+void PointGenerator::pose2RealPoint(RealTask realTask, std::vector<PoseVo> poseList,
                                     std::vector<RealPoint> &realPointList) {
     auto originPose = MapAttribute::instance().getMapOriginPose();
 
@@ -77,15 +100,16 @@ void PointGenerator::pose2RealPoint(const RealTask &realTask, std::vector<PoseVo
             RealOrientation realOrientation(pose.pose.orientation.x, pose.pose.orientation.y,
                                             pose.pose.orientation.z, pose.pose.orientation.w);
             RealProgress realProgress(j + 1, totalStep, i + 1, rate);
-            RealError realError(false, "");
-            realError.timeout = conversion::cal_distance(lastPose, pose.pose.position) * 20 + 5;//掉头5s
 
-            auto realPoint = RealPoint(accumulation, realTask.getId(), realTask.getMode(), realTask.getWorkStatus());
-            realPoint.setInClean(j != 0);
+            auto realPoint = buildPoint(accumulation, realTask);
+
             realPoint.realPosition = std::move(realPosition);
             realPoint.realOrientation = std::move(realOrientation);
             realPoint.realProgress = std::move(realProgress);
-            realPoint.realError = std::move(realError);
+
+            realPoint.timeout = conversion::cal_distance(lastPose, pose.pose.position) * 20 + 5;//掉头5s
+
+            realPoint.inClean = j != 0;
 
             realPointList.push_back(realPoint);
 
@@ -97,9 +121,11 @@ void PointGenerator::pose2RealPoint(const RealTask &realTask, std::vector<PoseVo
         }
     }
 
+    realTask.setTotalStep(totalStep);
+    realTask.setTotalFrequency(rate);
 }
 
-void PointGenerator::combinationPose2RealPoint(const RealTask &realTask, std::vector<CombinationPoseVo> poseList,
+void PointGenerator::combinationPose2RealPoint(RealTask realTask, std::vector<CombinationPoseVo> poseList,
                                                vector<RealPoint> &realPointList) {
     auto originPose = MapAttribute::instance().getMapOriginPose();
 
@@ -155,15 +181,15 @@ void PointGenerator::combinationPose2RealPoint(const RealTask &realTask, std::ve
             RealOrientation realOrientation(pose.pose.orientation.x, pose.pose.orientation.y,
                                             pose.pose.orientation.z, pose.pose.orientation.w);
             RealProgress realProgress(j + 1, totalStep, i + 1, rate);
-            RealError realError(false, "");
-            realError.timeout = conversion::cal_distance(lastPose, pose.pose.position) * 20 + 5;//掉头5s
 
-            auto realPoint = RealPoint(accumulation, realTask.getId(), realTask.getMode(), realTask.getWorkStatus());
-            realPoint.setInClean(vo.getIndex() != 0);
+            auto realPoint = buildPoint(accumulation, realTask);
             realPoint.realPosition = std::move(realPosition);
             realPoint.realOrientation = std::move(realOrientation);
             realPoint.realProgress = std::move(realProgress);
-            realPoint.realError = std::move(realError);
+
+            realPoint.timeout = conversion::cal_distance(lastPose, pose.pose.position) * 20 + 5;//掉头5s
+
+            realPoint.inClean = j != 0;
 
             realPointList.push_back(realPoint);
 
@@ -174,6 +200,9 @@ void PointGenerator::combinationPose2RealPoint(const RealTask &realTask, std::ve
             lastPose.z = pose.pose.position.z;
         }
     }
+
+    realTask.setTotalStep(totalStep);
+    realTask.setTotalFrequency(rate);
 }
 
 std::vector<RealPoint> CoveragePointGenerator::taskGeneratePointList(RealTask task) {

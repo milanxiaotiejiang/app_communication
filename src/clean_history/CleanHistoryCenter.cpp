@@ -251,8 +251,8 @@ namespace clean_history_db {
         history.disinfect_status_ = real_task.getWorkStatus().getDisinfectStatus();
         //更新遍数和点数
         if (!real_task.getPlanPoints().empty()) {
-            history.total_step_ = real_task.getPlanPoints().front().getRealProgress().totalStep;
-            history.total_frequency_ = real_task.getPlanPoints().front().getRealProgress().totalFrequency;
+            history.total_step_ = real_task.getTotalStep();
+            history.total_frequency_ = real_task.getTotalFrequency();
         }
         //更新历史纪录
         CleanHistoryDataBase::instance().updateHistory(history);
@@ -338,18 +338,22 @@ namespace clean_history_db {
         return true;
     }
 
-    bool CleanHistoryCenter::equipmentErrorBack(SpecialInfo mode) {
+    bool CleanHistoryCenter::equipmentErrorBack(
+            bool clean_water_level_check_failed_,
+            bool dirty_water_level_check_failed_,
+            bool motor_error_
+    ) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
         if (current_history_.task_id_.empty()) {
             return false;
         }
-        if (mode.clean_water_level_check_failed_) {
+        if (clean_water_level_check_failed_) {
             current_history_.oper_event_.push_back(internal_event::CLEAN_WATER_LEVEL_CHECK_FAILED);
         }
-        if (mode.dirty_water_level_check_failed_) {
+        if (dirty_water_level_check_failed_) {
             current_history_.oper_event_.push_back(internal_event::DIRTY_WATER_LEVEL_CHECK_FAILED);
         }
-        if (mode.motor_error_) {
+        if (motor_error_) {
             current_history_.oper_event_.push_back(internal_event::MOTOR_ERROR_RECOVERY_FAILED);
         }
         CleanHistoryDataBase::instance().updateHistory(current_history_);
@@ -408,10 +412,10 @@ namespace clean_history_db {
         current_time = timep * 1000;//毫秒
         current_history_.clean_time_ = (current_time - current_history_.execute_time_) / 1000 / 60;
         //更新点位执行情况
-        current_history_.current_frequency_ = real_point.getRealProgress().currentFrequency;
-        current_history_.current_step_ = real_point.getRealProgress().currentStep;
+        current_history_.current_frequency_ = real_point.realProgress.currentFrequency;
+        current_history_.current_step_ = real_point.realProgress.currentStep;
         //更新清洁面积
-        current_history_.clean_area_ += (abs((double) real_point.getRealError().timeout - 5.0) / 20 * 0.35);
+        current_history_.clean_area_ += (abs((double) real_point.timeout - 5.0) / 20 * 0.35);
         //更新到数据库
         CleanHistoryDataBase::instance().updateHistory(current_history_);
         return true;
@@ -528,6 +532,7 @@ namespace clean_history_db {
         current_history_ = default_history;
         return true;
     }
+
     bool CleanHistoryCenter::successComplete(int error_code, std::string error_string, std::string error_code2) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
         if (current_history_.task_id_.empty()) {

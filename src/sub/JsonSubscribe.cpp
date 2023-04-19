@@ -78,6 +78,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case GET_TASK_LIST_:
             messageStrategy = new GetTaskListStrategy();
             break;
+        case RUNNING_TASK:
+            messageStrategy = new RunningTaskStrategy();
+            break;
         case GET_FINISHED_POINT_:
             messageStrategy = new GetFinishedPointStrategy();
             break;

@@ -36,20 +36,26 @@
 #include <chrono>
 #include "model/UpgradeModel.h"
 #include "task/model/PointProgressVo.h"
+#include "model/task.h"
 
 class ExecuteTaskStrategy : public MessageStrategy<Task, string> {
 public:
     string handler(Task params) override;
 };
 
-class PerformTaskStrategy : public MessageStrategy<long, string> {
+class PerformTaskStrategy : public MessageStrategy<OnTask, string> {
 public:
-    string handler(long params) override;
+    string handler(OnTask params) override;
 };
 
 class GetTaskListStrategy : public MessageStrategy<string, std::vector<Task>> {
 public:
     vector<Task> handler(string params) override;
+};
+
+class RunningTaskStrategy : public MessageStrategy<string, RunTask> {
+public:
+    RunTask handler(string params) override;
 };
 
 class GetTaskListStrategyV2 : public MessageStrategy<string, std::vector<TaskUpgrade>> {

@@ -98,6 +98,10 @@ void TaskVo::setSubregions(const std::vector<SubregionVo> &subregions) {
     TaskVo::subregions = subregions;
 }
 
+void TaskVo::setSource(const std::string &source) {
+    TaskVo::source = source;
+}
+
 long TaskVo::getId() const {
     return id;
 }

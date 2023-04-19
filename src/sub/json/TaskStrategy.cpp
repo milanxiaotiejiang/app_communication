@@ -12,14 +12,15 @@
 #include "exploration/ExplorationCenter.h"
 #include "db/segmentation_data_base.h"
 #include "simulation.h"
+#include "db/SqliteDataBase.h"
 
 string ExecuteTaskStrategy::handler(Task task) {
     TaskCenter::instance().executeTask(task);
     return "";
 }
 
-string PerformTaskStrategy::handler(long params) {
-    return TaskCenter::instance().performTask(params);
+string PerformTaskStrategy::handler(OnTask params) {
+    return TaskCenter::instance().performTask(params.task_id, SqliteDataBase::TaskSourceFromString(params.on_source));
 }
 
 vector<Task> GetTaskListStrategy::handler(string params) {
@@ -34,6 +35,23 @@ vector<Task> GetTaskListStrategy::handler(string params) {
         task_list.push_back(task);
     }
     return task_list;
+}
+
+RunTask RunningTaskStrategy::handler(string params) {
+    RunTask runTask("");
+    const RealTask &runningTask = ManualManager::instance().runningTask();
+    if (!runningTask.getId().empty()) {
+        runTask.taskId = runningTask.getId();
+        runTask.renew = runningTask.isRenew();
+        if (runningTask.isRenew()) {
+            runTask.newTaskId = runningTask.getTaskId();
+        } else {
+            if (runningTask.getMode() == 7) {
+                runTask.oldTaskId = runningTask.getCombination().getCombinationID();
+            }
+        }
+    }
+    return runTask;
 }
 
 vector<TaskUpgrade> GetTaskListStrategyV2::handler(string params) {
@@ -83,10 +101,11 @@ deque<PointProgressVo> GetFinishedPointStrategy::handler(string params) {
     //操作，获取当前任务状态
     deque<PointProgressVo> finished_point_list;
     for (const auto &point: ManualManager::instance().runTaskPoint()) {
-        PointProgressVo pointProgressVo(point.task_id, point.realPosition.x, point.realPosition.y,
+        PointProgressVo pointProgressVo(point.realPosition.x, point.realPosition.y,
                                         point.realProgress.currentStep, point.realProgress.totalStep,
                                         point.realProgress.currentFrequency, point.realProgress.totalFrequency,
-                                        point.work_status, point.mode, point.inClean);
+                                        point.work_status, point.mode, point.inClean,
+                                        point.taskId, point.renew, point.oldTaskId, point.newTaskId);
         finished_point_list.push_back(pointProgressVo);
     }
     return finished_point_list;

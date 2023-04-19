@@ -22,6 +22,7 @@ public:
     std::map<std::string, long> taskMaps;
 
     void upgradeTask() {
+        return;
         MapPo map = SegmentationDataBase::instance().getDbMap();
 
         const cv::Mat room_map = SegmentationCenter::instance().generateMat();
@@ -109,6 +110,7 @@ public:
     }
 
     void upgradeTimer() {
+        return;
         MapPo map = SegmentationDataBase::instance().getDbMap();
 
         //定时任务
@@ -163,22 +165,23 @@ public:
      * param_app.yaml
      */
     void deleteExcessive() {
-//        cppfs::FileHandle fh = cppfs::fs::open(path::data_base_config_dir());
-//        if (fh.isDirectory()) {
-//            const vector<std::string> &files = fh.listFiles();
-//            for (const auto &item: files) {
-//                if (item != "cleanHistory.sqlite" && item != "Property.sqlite" && item != "Task.sqlite" &&
-//                    item != "move.mp3" && item != "out.mp3" && item != "pad_version_info.txt" &&
-//                    item != "param_app.yaml" && item != "prohibition_areas.yaml") {
-//                    cppfs::FileHandle file = cppfs::fs::open(path::data_base_config_dir() + item);
-//                    if (file.isDirectory()) {
-//                        file.removeDirectory();
-//                    } else if (file.isFile()) {
-//                        file.remove();
-//                    }
-//                }
-//            }
-//        }
+        return;
+        cppfs::FileHandle fh = cppfs::fs::open(path::data_base_config_dir());
+        if (fh.isDirectory()) {
+            const vector<std::string> &files = fh.listFiles();
+            for (const auto &item: files) {
+                if (item != "cleanHistory.sqlite" && item != "Property.sqlite" && item != "Task.sqlite" &&
+                    item != "move.mp3" && item != "out.mp3" && item != "pad_version_info.txt" &&
+                    item != "param_app.yaml" && item != "prohibition_areas.yaml") {
+                    cppfs::FileHandle file = cppfs::fs::open(path::data_base_config_dir() + item);
+                    if (file.isDirectory()) {
+                        file.removeDirectory();
+                    } else if (file.isFile()) {
+                        file.remove();
+                    }
+                }
+            }
+        }
     }
 
 };

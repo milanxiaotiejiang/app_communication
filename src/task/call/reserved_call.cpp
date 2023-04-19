@@ -40,25 +40,18 @@ void ReservedCall::handleSpecialOperation() {
         }
         case loop::special_epoll::special_branch_water: {
             InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
-            SpecialInfo si;
-            si.clean_water_level_check_failed_ = true;
-            CleanHistoryCenter::instance().equipmentErrorBack(si);
+            CleanHistoryCenter::instance().equipmentErrorBack(true, false, false);
             break;
         }
         case loop::special_epoll::special_sewage_water: {
             InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
-            SpecialInfo si;
-            si.dirty_water_level_check_failed_ = true;
-            CleanHistoryCenter::instance().equipmentErrorBack(si);
+            CleanHistoryCenter::instance().equipmentErrorBack(false, true, false);
             break;
         }
         case loop::special_epoll::special_branch_sewage_water: {
             InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
             InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
-            SpecialInfo si;
-            si.clean_water_level_check_failed_ = true;
-            si.dirty_water_level_check_failed_ = true;
-            CleanHistoryCenter::instance().equipmentErrorBack(si);
+            CleanHistoryCenter::instance().equipmentErrorBack(true, true, false);
             break;
         }
         case loop::special_epoll::special_dust_push_anomaly: {
@@ -121,24 +114,24 @@ void ReservedCall::handleExecuteTask(const RealTask &task) {
 }
 
 void ReservedCall::handleFlowPoint(const RealPoint &point) {
-    if (point.getId() == FLOW_SEIZE_SEAT) {
+    if (point.id == FLOW_SEIZE_SEAT) {
         setFlow(event::flow::out_base_station);
-    } else if (point.getId() == FLOW_OUT_STATION) {
-        CleanHistoryCenter::instance().setOutStation(point.realError.arrive ? SUCCEED : FAIL);
-    } else if (point.getId() == FLOW_END_SLEEP) {
-        CleanHistoryCenter::instance().setEndSleep(point.realError.arrive ? SUCCEED : FAIL);
-    } else if (point.getId() == FLOW_IN_BASE_POINT) {
+    } else if (point.id == FLOW_OUT_STATION) {
+        CleanHistoryCenter::instance().setOutStation(point.arrive ? SUCCEED : FAIL);
+    } else if (point.id == FLOW_END_SLEEP) {
+        CleanHistoryCenter::instance().setEndSleep(point.arrive ? SUCCEED : FAIL);
+    } else if (point.id == FLOW_IN_BASE_POINT) {
         CleanHistoryCenter::instance().setBackBasePointArrived(
-                point.realError.arrive ? SUCCEED :
+                point.arrive ? SUCCEED :
                 (backBaseRetryCount < MAX_BASE_POINT_RETRY_COUNT ? (int) backBaseRetryCount : FAIL));
-    } else if (point.getId() == FLOW_IN_STATION) {
+    } else if (point.id == FLOW_IN_STATION) {
         CleanHistoryCenter::instance().setStationArrived(
-                point.realError.arrive ? SUCCEED :
+                point.arrive ? SUCCEED :
                 (rechargeRetryCount < MAX_RECHARGE_RETRY_COUNT) ? (int) rechargeRetryCount : FAIL);
-    } else if (point.getId() == FLOW_CLOSE_MECHANISM) {
-        CleanHistoryCenter::instance().setCloseMechanism(point.realError.arrive ? SUCCEED : FAIL);
-    } else if (point.getId() == FLOW_OPEN_MECHANISM) {
-        CleanHistoryCenter::instance().setOpenMechanism(point.realError.arrive ? SUCCEED : FAIL);
+    } else if (point.id == FLOW_CLOSE_MECHANISM) {
+        CleanHistoryCenter::instance().setCloseMechanism(point.arrive ? SUCCEED : FAIL);
+    } else if (point.id == FLOW_OPEN_MECHANISM) {
+        CleanHistoryCenter::instance().setOpenMechanism(point.arrive ? SUCCEED : FAIL);
     }
     HeadTailPointCall::handleFlowPoint(point);
 }
@@ -172,7 +165,7 @@ void ReservedCall::forceInterruptTask(event::SB sb) {
 }
 
 void ReservedCall::softwareInterruptTask(const RealPoint &point) {
-    auto error_pair = generateErrorByRealPoint(point.getId());
+    auto error_pair = generateErrorByRealPoint(point.id);
     CleanHistoryCenter::instance().errorComplete(
             std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair)
     );
@@ -183,7 +176,7 @@ void ReservedCall::softwareInterruptTask(const RealPoint &point) {
 void ReservedCall::goodGame(event::GG gg) {
     fbPtr->triggerEnd();
     runTask;
-    InternalEventPubManager::get_instance()->taskStop(runTask.getId());
+    InternalEventPubManager::get_instance()->taskStop(runTaskId());
     CleanHistoryCenter::instance().complete();
     updateProperty();
     AsyncTaskCall::goodGame(gg);
@@ -192,7 +185,7 @@ void ReservedCall::goodGame(event::GG gg) {
 void ReservedCall::garbage(event::SB sb) {
     updateProperty();
     InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::SOFTWARE_INTERRUPT);
-    InternalEventPubManager::get_instance()->taskStop(runTask.getId());
+    InternalEventPubManager::get_instance()->taskStop(runTaskId());
     AsyncTaskCall::garbage(sb);
 }
 
@@ -261,7 +254,7 @@ std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint
 void ReservedCall::updateProperty() {
     const CleanHistory &cleanHistory = CleanHistoryDataBase::instance().getCleanHistory(runTask.getId());
     long cleanTime = (cleanHistory.end_time_ - cleanHistory.execute_time_) / 1000;
-    WorkStatus workStatus = runTask.getWorkStatus();
+    WorkStatus workStatus = baseWorkStatus();
     PropertyDataBase::instance().updateConsumable(
             workStatus.getSweepStatus() > 0 ? cleanTime : 0,
             workStatus.getMopStatus() > 0 ? cleanTime : 0,

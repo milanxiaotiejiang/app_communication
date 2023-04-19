@@ -46,8 +46,8 @@ bool ManualManager::taskRunning() {
     return asyncTaskCall->taskRunning();
 }
 
-std::string ManualManager::runTaskId() {
-    return asyncTaskCall->runTaskId();
+RealTask ManualManager::runningTask() const {
+    return asyncTaskCall->runningTask();
 }
 
 std::vector<RealTask> ManualManager::runTaskList() {

@@ -66,6 +66,8 @@ protected:
 
     void handlePointSpecialDevice(const RealPoint &point);
 
+    void initTaskPoint(const RealTask &realTask);
+
     virtual void goodGame(event::GG gg);
 
     virtual void garbage(event::SB sb);
@@ -159,7 +161,7 @@ public:
     void executeLift(bool lift);
 
 
-    std::string runTaskId();
+    RealTask runningTask() const;
 
     std::vector<RealTask> runTaskList();
 

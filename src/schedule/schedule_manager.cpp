@@ -169,7 +169,7 @@ void ScheduleManager::handleTask(const ScheduledTask &scheduledTask) {
     } else {
         try {
             long taskId = scheduledTask.timer.getTaskId();
-            TaskCenter::instance().performTask(taskId);
+            TaskCenter::instance().performTask(taskId, TaskSource::Self);
         } catch (app::exception const &e) {
             LOG(ERROR) << "定时 ： " << e.what();
         } catch (const std::exception &e) {

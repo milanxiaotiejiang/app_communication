@@ -17,10 +17,12 @@
  */
 class PointGenerator {
 protected:
-    static void pose2RealPoint(const RealTask &realTask, std::vector<PoseVo> poseList,
+    static RealPoint buildPoint(int id, const RealTask& task);
+
+    static void pose2RealPoint(RealTask realTask, std::vector<PoseVo> poseList,
                                std::vector<RealPoint> &realPointList);
 
-    static void combinationPose2RealPoint(const RealTask &realTask, std::vector<CombinationPoseVo> poseList,
+    static void combinationPose2RealPoint(RealTask realTask, std::vector<CombinationPoseVo> poseList,
                                           std::vector<RealPoint> &realPointList);
 
 public:

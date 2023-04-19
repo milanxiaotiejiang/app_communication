@@ -15,6 +15,7 @@
 #include "task/subscribe/carpet_detect_subscribe.h"
 #include "task/subscribe/lift_detect_subscribe.h"
 #include "leave/cartographer_node.h"
+#include "db/task_model.h"
 
 const int LOW_RSOC = 10;
 
@@ -51,7 +52,7 @@ public:
 
     void executeTask(const Task &task);
 
-    std::string performTask(const long taskId);
+    std::string performTask(const long taskId, TaskSource on_source);
 
 };
 

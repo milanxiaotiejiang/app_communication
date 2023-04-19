@@ -54,6 +54,9 @@ int switch_ID(const std::string &str) {
     if (str == "get_task_list") {
         return GET_TASK_LIST_;
     }
+    if (str == "running_task") {
+        return RUNNING_TASK;
+    }
     if (str == "app_spot") {
         return APP_SPOT_;
     }

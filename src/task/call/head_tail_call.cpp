@@ -9,25 +9,25 @@
 #include "task/manager/MechanismManager.h"
 
 void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
-    if (point.getId() == FLOW_SEIZE_SEAT) {
+    if (point.id == FLOW_SEIZE_SEAT) {
 //        setFlow(event::flow::out_base_station);
         setFlow(event::flow::switch_node_work_mode);
-    } else if (point.getId() == FLOW_OUT_STATION) {
-        if (point.realError.arrive) {
+    } else if (point.id == FLOW_OUT_STATION) {
+        if (point.arrive) {
 //            setFlow(event::flow::switch_node_work_mode);
             setFlow(event::flow::preliminary_preparation_completed);
         } else {
             setFlow(event::flow::software_interrupt_task);
         }
-    } else if (point.getId() == FLOW_END_SLEEP) {
-        if (point.realError.arrive) {
+    } else if (point.id == FLOW_END_SLEEP) {
+        if (point.arrive) {
 //            setFlow(event::flow::preliminary_preparation_completed);
             setFlow(event::flow::out_base_station);
         } else {
             setFlow(event::flow::software_interrupt_task);
         }
-    } else if (point.getId() == FLOW_IN_BASE_POINT) {
-        if (point.realError.arrive) {
+    } else if (point.id == FLOW_IN_BASE_POINT) {
+        if (point.arrive) {
             if (rechargeRetryCount == 0) {
                 setFlow(event::flow::arrive_base_point_success);
             } else {
@@ -41,8 +41,8 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
                 setFlow(event::flow::software_interrupt_task);
             }
         }
-    } else if (point.getId() == FLOW_IN_STATION) {
-        if (point.realError.arrive) {
+    } else if (point.id == FLOW_IN_STATION) {
+        if (point.arrive) {
             setFlow(event::flow::arrive_base_station_success);
         } else {
             if (rechargeRetryCount < MAX_RECHARGE_RETRY_COUNT) {
@@ -52,14 +52,14 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
                 setFlow(event::flow::software_interrupt_task);
             }
         }
-    } else if (point.getId() == FLOW_CLOSE_MECHANISM) {
-        if (point.realError.arrive) {
+    } else if (point.id == FLOW_CLOSE_MECHANISM) {
+        if (point.arrive) {
             setFlow(event::flow::flowing_water_execution_completed);
         } else {
             setFlow(event::flow::hardware_interrupt_task);
         }
-    } else if (point.getId() == FLOW_OPEN_MECHANISM) {
-        if (point.realError.arrive) {
+    } else if (point.id == FLOW_OPEN_MECHANISM) {
+        if (point.arrive) {
             setFlow(event::flow::cleaning_mechanism_ready);
         } else {
             setFlow(event::flow::hardware_interrupt_task);
@@ -75,7 +75,7 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
         }
         case event::flow::switch_node_work_mode: {
             callSwitchWorkMode([this](bool work) {
-                flowEndSleepPoint.realError.arrive = work;
+                flowEndSleepPoint.arrive = work;
                 pushPoint(flowEndSleepPoint);
             });
             break;
@@ -86,7 +86,7 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
 //                flowOpenMechanismPoint.realError.arrive = true;
 //                pushPoint(flowOpenMechanismPoint);
 //            });
-            callOpenMechanism(point.getWorkStatus(), runTask.isKnife(), []() {});
+            callOpenMechanism(point.work_status, isKnife(), []() {});
             break;
         }
         case event::flow::cleaning_mechanism_ready: {
@@ -98,7 +98,7 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
             break;
         }
         case event::flow::ensure_move_to_start_point: {
-            if (point.realError.arrive) {
+            if (point.arrive) {
                 LOG(INFO) << "HeadTailPointCall : 到达第一个点位，开始流水线作业 ...";
                 setFlow(event::flow::flowing_water_production);
                 pushPoint(point);
@@ -161,7 +161,7 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
             break;
         }
         case event::flow::hardware_interrupt_task: {
-            LOG(INFO) << "HeadTailPointCall : 清洁机构出错，执行返回基站命令 错误代码" << point.getId();
+            LOG(INFO) << "HeadTailPointCall : 清洁机构出错，执行返回基站命令 错误 ： " << output_interpolation_point(point.id);
             callBackBasePoint();
             break;
         }
@@ -177,7 +177,7 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
 void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, bool knife, function<void()> f) {
 //    AsyncTaskFramework::callOpenMechanism(status, f);
 
-    flowOpenMechanismPoint.realError.arrive = true;
+    flowOpenMechanismPoint.arrive = true;
 
     MechanismManager::instance().controlWorkStatus(status, knife);
     if (!Environment::instance().isRealEnvironment) {
@@ -202,7 +202,7 @@ void HeadTailPointCall::callCloseMechanism(function<void()> f) {
 //    AsyncTaskFramework::callCloseMechanism(f);
     LOG(INFO) << "AsyncTaskFramework : 准备关闭相应的清洁机构 ...";
 
-    flowCloseMechanismPoint.realError.arrive = true;
+    flowCloseMechanismPoint.arrive = true;
 
     //这个函数里面关闭所有清洁机构
     MechanismManager::instance().resetWorkStatus();
@@ -229,9 +229,9 @@ void HeadTailPointCall::callGoFirstPoint(RealPoint point) {
 //    PublishInner
     PointPlanner::instance().gotoPlannerFirstPoint(point);
     async::TimerCall::instance().baseLoop()
-            ->scheduleLater(std::chrono::seconds(point.realError.timeout), [this, &point]() {
+            ->scheduleLater(std::chrono::seconds(point.timeout), [this, &point]() {
                 auto currentPoint = findFrontPoint();
-                if (currentPoint.getId() == point.id) {
+                if (currentPoint.id == point.id) {
                     executeOnNext(event::error::TIMEOUT);
                 }
             });

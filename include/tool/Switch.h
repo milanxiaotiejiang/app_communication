@@ -16,6 +16,8 @@ enum MESSAGE_ID {
     GET_EDIT_MAP_,          //获取地图编辑信息
     EXECUTE_TASK_,          //发布任务
     GET_TASK_LIST_,         //获取任务列表
+    RUNNING_TASK,
+
     APP_SPOT_,              //继续清扫（与暂停对应）
     APP_PAUSE_,             //暂停清扫
     APP_CHARGE_,            //返回基站

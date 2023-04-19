@@ -112,11 +112,15 @@ public:
            long launchTime, long updateTime, long createTime);
 
 
+    void setId(long id);
+
     void setWorkStatus(const WorkStatus &workStatus);
 
     void setZones(const std::vector<ZoneVo> &zones);
 
     void setSubregions(const std::vector<SubregionVo> &subregions);
+
+    void setSource(const std::string &source);
 
     long getId() const;
 
@@ -192,8 +196,6 @@ public:
         j.at("update_time").get_to(vo.update_time);
         j.at("create_time").get_to(vo.create_time);
     }
-
-    void setId(long id);
 
 };
 
@@ -434,6 +436,57 @@ struct ModifyTimerName {
     friend void from_json(const json &j, ModifyTimerName &vo) {
         j.at("id").get_to(vo.id);
         j.at("timer_name").get_to(vo.timer_name);
+    }
+};
+
+struct OnTask {
+    long task_id;
+    std::string on_source;
+
+    friend void to_json(json &j, const OnTask &vo) {
+        j = json{
+                {"task_id",   vo.task_id},
+                {"on_source", vo.on_source},
+        };
+    }
+
+    friend void from_json(const json &j, OnTask &vo) {
+        j.at("task_id").get_to(vo.task_id);
+        j.at("on_source").get_to(vo.on_source);
+    }
+};
+
+struct RunTask {
+    std::string taskId;//运行中的任务ID
+
+    bool renew{false};//新旧任务标志位
+    std::string oldTaskId;//旧任务，有值就是CombinationID，没值就是全覆盖
+    long newTaskId{0};//新任务，可从数据库查找到的
+
+    RunTask() = default;
+
+    RunTask(const std::string &taskId) : taskId(taskId) {}
+
+    RunTask(const std::string &taskId, bool renew, const std::string &oldTaskId, long newTaskId) : taskId(taskId),
+                                                                                                   renew(renew),
+                                                                                                   oldTaskId(oldTaskId),
+                                                                                                   newTaskId(
+                                                                                                           newTaskId) {}
+
+    friend void to_json(json &j, const RunTask &vo) {
+        j = json{
+                {"task_id",     vo.taskId},
+                {"renew",       vo.renew},
+                {"old_task_id", vo.oldTaskId},
+                {"new_task_id", vo.newTaskId}
+        };
+    }
+
+    friend void from_json(const json &j, RunTask &vo) {
+        j.at("task_id").get_to(vo.taskId);
+        j.at("renew").get_to(vo.renew);
+        j.at("old_task_id").get_to(vo.oldTaskId);
+        j.at("new_task_id").get_to(vo.newTaskId);
     }
 };
 
