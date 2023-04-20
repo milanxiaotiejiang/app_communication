@@ -9,11 +9,15 @@
 #include "cppfs/FilePath.h"
 #include "cppfs/FileHandle.h"
 #include "exploration/ExplorationCenter.h"
+#include "nav_msgs/LoadMap.h"
 
-bool MapControl::initialize() {
+bool MapControl::initialize(ros::NodeHandle handle) {
     if (!SegmentationDataBase::instance().loadMainMap()) {
         return false;
     }
+
+    change_map_service_client = handle.serviceClient<nav_msgs::LoadMap>("change_map");
+
     MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
 
     cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + mapPo.id + path::separator());
@@ -111,4 +115,10 @@ bool MapControl::backupMap(const string &map_id, bool retrieve) {
     }
 
     return true;
+}
+
+bool MapControl::changeMapServer() {
+    nav_msgs::LoadMap srv;
+    srv.request.map_url = path::map_yaml_path();
+    return change_map_service_client.call(srv);
 }

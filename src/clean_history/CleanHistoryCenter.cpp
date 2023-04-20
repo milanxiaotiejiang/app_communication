@@ -42,8 +42,12 @@ namespace clean_history_db {
         time(&timep);
         launch_time = timep * 1000;//毫秒
         //根据当前任务生成一个CleanHistory
+        std::string launch_people = task.getLaunchPeople();
+        if (task.isRenew()) {
+            launch_people = task.getOnSource();
+        }
         CleanHistory new_clean_history(task.getId(), task.getMode(),
-                                       task.getRate(), task.getLaunchPeople(),
+                                       task.getRate(), launch_people,
                                        task.getTimeMode(), launch_time);
         CleanHistoryDataBase::instance().addCleanHistory(new_clean_history);
 
@@ -254,6 +258,13 @@ namespace clean_history_db {
             history.total_step_ = real_task.getTotalStep();
             history.total_frequency_ = real_task.getTotalFrequency();
         }
+        std::vector<char> ch;
+        ch.push_back(1);
+        ch.push_back(2);
+        ch.push_back(3);
+        ch.push_back(100);
+        ch.push_back(1050);
+        history.oper_event_ = ch;
         //更新历史纪录
         CleanHistoryDataBase::instance().updateHistory(history);
     }
@@ -443,7 +454,7 @@ namespace clean_history_db {
 
     bool CleanHistoryCenter::setRechargeRetries(int retries) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
-        if (!current_history_.task_id_.empty()) {
+        if (current_history_.task_id_.empty()) {
             return false;
         }
         current_history_.recharge_retries_ = retries;
@@ -454,7 +465,7 @@ namespace clean_history_db {
     //设置清洁机构关闭是否成功
     bool CleanHistoryCenter::setCloseMechanism(int state) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
-        if (!current_history_.task_id_.empty()) {
+        if (current_history_.task_id_.empty()) {
             return false;
         }
         current_history_.close_mechanism_ = state;
@@ -465,7 +476,7 @@ namespace clean_history_db {
     //设置清洁机构打开是否成功
     bool CleanHistoryCenter::setOpenMechanism(int state) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
-        if (!current_history_.task_id_.empty()) {
+        if (current_history_.task_id_.empty()) {
             return false;
         }
         current_history_.open_mechanism_ = state;

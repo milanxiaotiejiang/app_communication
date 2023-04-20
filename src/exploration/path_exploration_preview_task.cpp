@@ -65,7 +65,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
     std::vector<cv::Point> point_path;
 
     RoomCoverage coverage;
-    bool preLoaded;
+    bool preLoaded = false;
 
 
     if (mode == TaskMode::Zoned) {

@@ -5,16 +5,19 @@
 #ifndef APP_COMMUNICATION_MAP_CONTROL_H
 #define APP_COMMUNICATION_MAP_CONTROL_H
 
+#include "ros/ros.h"
 #include "string"
 
 class MapControl {
+private:
+    ros::ServiceClient change_map_service_client;
 public:
     static auto &instance() {
         static MapControl obj;
         return obj;
     }
 
-    bool initialize();
+    bool initialize(ros::NodeHandle handle);
 
     bool loadInformation(const std::string &map_id);
 
@@ -23,6 +26,8 @@ public:
     bool backupProhibition(const std::string &map_id, bool retrieve);
 
     bool backupMap(const std::string &map_id, bool retrieve);
+
+    bool changeMapServer();
 
 };
 

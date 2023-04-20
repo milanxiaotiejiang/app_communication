@@ -56,6 +56,7 @@ void ReservedCall::handleSpecialOperation() {
         }
         case loop::special_epoll::special_dust_push_anomaly: {
             InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_FAILED);
+            CleanHistoryCenter::instance().equipmentErrorBack(false, false, true);
             break;
         }
         default:
@@ -231,8 +232,8 @@ std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint
             break;
         case FLOW_ERROR_LIFT:
             error_string = "触发电梯";
-            error_code = 3221;
-            error_code2 = "CCR_221";
+            error_code = 3332;
+            error_code2 = "CCR_332";
             break;
         case FLOW_ERROR_UNRECOVERABLE:
             error_string = "未知错误";
@@ -252,17 +253,19 @@ std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint
 }
 
 void ReservedCall::updateProperty() {
-    const CleanHistory &cleanHistory = CleanHistoryDataBase::instance().getCleanHistory(runTask.getId());
-    long cleanTime = (cleanHistory.end_time_ - cleanHistory.execute_time_) / 1000;
-    WorkStatus workStatus = baseWorkStatus();
-    PropertyDataBase::instance().updateConsumable(
-            workStatus.getSweepStatus() > 0 ? cleanTime : 0,
-            workStatus.getMopStatus() > 0 ? cleanTime : 0,
-            workStatus.getVacuumStatus() > 0 ? cleanTime : 0,
-            workStatus.getPushStatus() > 0 ? cleanTime : 0,
-            workStatus.getAromatherapyStatus() > 0 ? cleanTime : 0,
-            workStatus.getDisinfectStatus() > 0 ? cleanTime : 0
-    );
+    if (!runTaskId().empty()) {
+        const CleanHistory &cleanHistory = CleanHistoryDataBase::instance().getCleanHistory(runTaskId());
+        long cleanTime = (cleanHistory.end_time_ - cleanHistory.execute_time_) / 1000;
+        WorkStatus workStatus = baseWorkStatus();
+        PropertyDataBase::instance().updateConsumable(
+                workStatus.getSweepStatus() > 0 ? cleanTime : 0,
+                workStatus.getMopStatus() > 0 ? cleanTime : 0,
+                workStatus.getVacuumStatus() > 0 ? cleanTime : 0,
+                workStatus.getPushStatus() > 0 ? cleanTime : 0,
+                workStatus.getAromatherapyStatus() > 0 ? cleanTime : 0,
+                workStatus.getDisinfectStatus() > 0 ? cleanTime : 0
+        );
+    }
 }
 
 void ReservedCall::recordMotorError() {

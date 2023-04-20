@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     ParamManager::instance().loadDefaultParam();
 
     TaskDataBase::instance().initialize();
-    if (!MapControl::instance().initialize()) {
+    if (!MapControl::instance().initialize(handle)) {
         LOG(ERROR) << "data DB Map load fail !";
         return 0;
     }

@@ -9,6 +9,7 @@
 #include "segmentation/map_modification.h"
 #include "db/segmentation_data_base.h"
 #include "leave/map_control.h"
+#include "leave/cartographer_node.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
     // todo 此版本为单地图
@@ -21,7 +22,9 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
 
         ExplorationCenter::instance().repaintCoveragePath(true);
 
-        MapInfo param(1, params.getMapName());
+        SegmentationDataBase::instance().updateMapName(params.getMapName());
+        MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
+        MapInfo param(mapPo.id, mapPo.name);
         return param;
     } else {
         throw app::exception(make_error_code(error::create_map_fail));
@@ -29,10 +32,23 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
 }
 
 vector<MapInfo> GetMultiMapsStrategy::handler(string params) {
-    return std::vector<MapInfo>();
+    std::vector<MapInfo> mapInfos;
+    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
+    for (const auto &map: allMap) {
+        MapInfo mapInfo(map.id, map.name);
+        mapInfos.push_back(mapInfo);
+    }
+    return mapInfos;
 }
 
 int ChangeMapStrategy::handler(string params) {
+    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+    MapControl::instance().backupAndRetrieve(oldMap.id);
+
+    MapControl::instance().loadInformation(params);
+    MapControl::instance().changeMapServer();
+    // todo 关注睡眠模式
+    CartographerPublisher::instance().publishStartCartoLocalization();
     return 5;
 }
 
@@ -117,6 +133,8 @@ string MapObstaclesStrategy::handler(vector<vector<PointVo>> params) {
 
     MapModification mapModification;
     mapModification.addObstacles(points);
+    MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+    MapControl::instance().changeMapServer();
     return "";
 }
 
@@ -134,11 +152,15 @@ string MapFeasibleZoneStrategy::handler(vector<vector<PointVo>> params) {
 
     MapModification mapModification;
     mapModification.addFeasibleZone(points);
+    MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+    MapControl::instance().changeMapServer();
     return "";
 }
 
 string MapApplyIncreaseArea::handler(vector<int> params) {
     MapModification mapModification;
     mapModification.applyIncreaseArea(params);
+    MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+    MapControl::instance().changeMapServer();
     return "";
 }

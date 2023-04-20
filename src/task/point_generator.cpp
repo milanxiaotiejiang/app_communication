@@ -43,7 +43,7 @@ RealPoint PointGenerator::buildPoint(int id, const RealTask &task) {
     return point;
 }
 
-void PointGenerator::pose2RealPoint(RealTask realTask, std::vector<PoseVo> poseList,
+void PointGenerator::pose2RealPoint(RealTask &realTask, std::vector<PoseVo> poseList,
                                     std::vector<RealPoint> &realPointList) {
     auto originPose = MapAttribute::instance().getMapOriginPose();
 
@@ -205,7 +205,7 @@ void PointGenerator::combinationPose2RealPoint(RealTask realTask, std::vector<Co
     realTask.setTotalFrequency(rate);
 }
 
-std::vector<RealPoint> CoveragePointGenerator::taskGeneratePointList(RealTask task) {
+std::vector<RealPoint> CoveragePointGenerator::taskGeneratePointList(RealTask &task) {
     std::vector<RealPoint> taskPointList;
     auto taskId = task.getId();
     auto roomCoverage = ExplorationCenter::instance().findRoomCoverage(taskId, false);
@@ -215,7 +215,7 @@ std::vector<RealPoint> CoveragePointGenerator::taskGeneratePointList(RealTask ta
     return realPoints;
 }
 
-std::vector<RealPoint> RectanglePointGenerator::taskGeneratePointList(RealTask task) {
+std::vector<RealPoint> RectanglePointGenerator::taskGeneratePointList(RealTask &task) {
     std::vector<float> zoned = task.getZoned0();
     if (zoned.size() != 8)
         throw app::exception(make_error_code(error::room_mb_file_open_fail));
@@ -351,7 +351,7 @@ CombinationPointGenerator::generateRecPointListForViewPart(std::vector<Point> zo
     return true;
 }
 
-std::vector<RealPoint> CombinationPointGenerator::taskGeneratePointList(RealTask task) {
+std::vector<RealPoint> CombinationPointGenerator::taskGeneratePointList(RealTask &task) {
     auto combination = task.getCombination();
 
     ViewPartList viewPartListTemp;
@@ -413,7 +413,7 @@ std::vector<RealPoint> CombinationPointGenerator::taskGeneratePointList(RealTask
     return realPoints;
 }
 
-std::vector<RealPoint> FullPointGenerator::taskGeneratePointList(RealTask task) {
+std::vector<RealPoint> FullPointGenerator::taskGeneratePointList(RealTask &task) {
     std::vector<RealPoint> taskPointList;
     auto taskId = task.getId();
     auto roomCoverage = ExplorationCenter::instance().findRoomCoverage(taskId, true);
@@ -423,7 +423,7 @@ std::vector<RealPoint> FullPointGenerator::taskGeneratePointList(RealTask task) 
     return realPoints;
 }
 
-std::vector<RealPoint> ExplorationGenerator::taskGeneratePointList(RealTask task) {
+std::vector<RealPoint> ExplorationGenerator::taskGeneratePointList(RealTask &task) {
 
     auto coverage = TaskExploration::explorationPlanningPath(task);
 

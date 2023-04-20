@@ -14,13 +14,14 @@ using json = nlohmann::json;
 class MapInfo {
 private:
     int map_id;
+    std::string id;//real id
     std::string map_name;
 public:
     MapInfo();
 
-    virtual ~MapInfo();
+    MapInfo(const std::string &id, const std::string &mapName);
 
-    MapInfo(int mapId, const std::string &mapName);
+    virtual ~MapInfo();
 
     int getMapId() const;
 
@@ -32,12 +33,14 @@ public:
 
     friend void to_json(json &j, const MapInfo &b) {
         j = json{
+                {"id",       b.id},
                 {"map_id",   b.map_id},
                 {"map_name", b.map_name},
         };
     }
 
     friend void from_json(const json &j, MapInfo &b) {
+        j.at("id").get_to(b.id);
         j.at("map_id").get_to(b.map_id);
         j.at("map_name").get_to(b.map_name);
     }

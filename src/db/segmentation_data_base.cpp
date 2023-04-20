@@ -71,6 +71,15 @@ MapPo SegmentationDataBase::installDefaultMap() {
     return map;
 }
 
+std::vector<MapPo> SegmentationDataBase::loadAllMap() {
+    return segmentationStorage.get_all<MapPo>();
+}
+
+void SegmentationDataBase::updateMapName(const std::string& map_name) {
+    mapPo.name = map_name;
+    segmentationStorage.update(mapPo);
+}
+
 RoomPo SegmentationDataBase::selectRoomById(long roomId) {
     return segmentationStorage.get<RoomPo>(roomId);
 }

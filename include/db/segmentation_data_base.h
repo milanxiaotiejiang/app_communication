@@ -27,6 +27,10 @@ public:
 
     MapPo installDefaultMap();
 
+    std::vector<MapPo> loadAllMap();
+
+    void updateMapName(const std::string &map_name);
+
     RoomPo selectRoomById(long roomId);
 
     std::vector<RoomPo> selectRoomByMapId(const std::string &mapId);

@@ -71,6 +71,9 @@ void TaskDispatcher::dispatcherTask(RealTask &realTask) {
     //生成对应该任务的点列
     const auto pointGeneratorPtr = pointGeneratorFactory(realTask);
     const auto pointList = pointGeneratorPtr->taskGeneratePointList(realTask);
+    if (pointList.empty()) {
+        throw app::exception(make_error_code(error::exploration_path_planning_failed));
+    }
     //点列赋值给realTask
     realTask.setPlanPoints(pointList);
     //清洁记录更新

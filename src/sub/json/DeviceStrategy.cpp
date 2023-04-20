@@ -10,6 +10,7 @@
 #include "task/manager/manual.h"
 #include "task/subscribe/zoo_inner_status.h"
 #include "leave/ParamManager.h"
+#include "db/segmentation_data_base.h"
 
 /**
  * @brief Get the Device Status Strategy::date Progressing object获取机器当前状态
@@ -36,9 +37,8 @@ DeviceStatus GetDeviceStatusStrategy::handler(string method) {
                           0);
 
     //获取地图ID和地图名称
-    MapInfo map;
-    map.setMapId(1);
-    map.setMapName("11");
+    MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
+    MapInfo map(mapPo.id, mapPo.name);
 
     int machineCode = AsyncMachine::instance().getMachineCode();
     std::string machineMessage = AsyncMachine::instance().getMachineMessage(machineCode);

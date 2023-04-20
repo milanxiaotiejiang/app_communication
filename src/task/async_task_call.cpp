@@ -620,13 +620,13 @@ void AsyncTaskCall::executeUnrecoverableError() {
 
 void AsyncTaskCall::executeOneTask(const RealTask &task) {
     if (isUnrecoverableError()) {
-        return;
+        throw app::exception(make_error_code(error::operation_failure_please_restart_the_machine));
     }
     if (isManualMode()) {
-        return;
+        throw app::exception(make_error_code(error::machine_is_in_manual_mode_command_not_supported));
     }
     if (isUrgencyStop()) {
-        return;
+        throw app::exception(make_error_code(error::machine_is_in_emergency_stop_command_not_supported));
     }
     notify_one([this, &task]() {
         pushTask(task);
@@ -634,7 +634,22 @@ void AsyncTaskCall::executeOneTask(const RealTask &task) {
 }
 
 void AsyncTaskCall::executeOnNext(event::error error) {
+    if (isCharging()) {
+        return;
+    }
+    if (isWaitTask(event_flow)) {
+        return;
+    }
     if (isPreparation(event_flow)) {
+        return;
+    }
+    if (isUnrecoverableError()) {
+        return;
+    }
+    if (isUrgencyStop()) {
+        return;
+    }
+    if (isManualMode()) {
         return;
     }
 
