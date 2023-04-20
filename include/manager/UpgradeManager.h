@@ -22,7 +22,7 @@ public:
     std::map<std::string, long> taskMaps;
 
     void upgradeTask() {
-        return;
+
         MapPo map = SegmentationDataBase::instance().getDbMap();
 
         const cv::Mat room_map = SegmentationCenter::instance().generateMat();
@@ -52,6 +52,8 @@ public:
                 TaskVo taskVo(-1, map.id, item.getName(), item.getRate(),
                               SqliteDataBase::ModeToInt(TaskMode::Cover), item.isPrincipal(),
                               false, false, SqliteDataBase::SourceToString(TaskSource::App), "", 0, 0, 0);
+
+                taskVo.setWorkStatus(item.getWorkStatus());
                 long taskId = TaskDataBase::instance().addTask(map.id, taskVo);
                 taskMaps[item.getCombinationID()] = taskId;
 //                CombinationManager::get_instance()->DelateCombination(item.getCombinationID());
@@ -98,6 +100,7 @@ public:
                             zones.push_back(zoneVo);
                         }
                         taskVo.setZones(zones);
+                        taskVo.setWorkStatus(combination_detail_temp.getWorkStatus());
                         long taskId = TaskDataBase::instance().addTask(map.id, taskVo);
                         taskMaps[item.getCombinationID()] = taskId;
 //                        CombinationManager::get_instance()->DelateCombination(item.getCombinationID());
@@ -110,7 +113,7 @@ public:
     }
 
     void upgradeTimer() {
-        return;
+
         MapPo map = SegmentationDataBase::instance().getDbMap();
 
         //定时任务
@@ -165,7 +168,7 @@ public:
      * param_app.yaml
      */
     void deleteExcessive() {
-        return;
+
         cppfs::FileHandle fh = cppfs::fs::open(path::data_base_config_dir());
         if (fh.isDirectory()) {
             const vector<std::string> &files = fh.listFiles();
@@ -175,7 +178,7 @@ public:
                     item != "param_app.yaml" && item != "prohibition_areas.yaml") {
                     cppfs::FileHandle file = cppfs::fs::open(path::data_base_config_dir() + item);
                     if (file.isDirectory()) {
-                        file.removeDirectory();
+                        file.removeDirectoryRec();
                     } else if (file.isFile()) {
                         file.remove();
                     }

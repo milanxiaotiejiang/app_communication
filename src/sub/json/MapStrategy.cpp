@@ -13,13 +13,7 @@
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
     // todo 此版本为单地图
-//    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
-//    MapControl::instance().backupAndRetrieve(oldMap.id);
     if (MapAttribute::instance().saveMap()) {
-        // todo 此版本为单地图
-//        const MapPo &newMap = SegmentationDataBase::instance().installMap(params.getMapName());
-//        SegmentationDataBase::instance().loadMainMap();
-
         ExplorationCenter::instance().repaintCoveragePath(true);
 
         SegmentationDataBase::instance().updateMapName(params.getMapName());
@@ -29,6 +23,23 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
     } else {
         throw app::exception(make_error_code(error::create_map_fail));
     }
+
+//    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+//    MapControl::instance().backupAndRetrieve(oldMap.id);
+//    if (MapAttribute::instance().saveMap()) {
+//        const MapPo &newMap = SegmentationDataBase::instance().installMap(params.getMapName());
+//        SegmentationDataBase::instance().loadMainMap();
+//        MapControl::instance().backupProhibition(newMap.id, false);
+//        MapControl::instance().backupMap(newMap.id, false);
+//
+//        ExplorationCenter::instance().repaintCoveragePath(true);
+//
+//        MapInfo param(newMap.id, newMap.name);
+//        return param;
+//    } else {
+//        MapControl::instance().loadInformation(oldMap.id);
+//        throw app::exception(make_error_code(error::create_map_fail));
+//    }
 }
 
 vector<MapInfo> GetMultiMapsStrategy::handler(string params) {
@@ -43,6 +54,25 @@ vector<MapInfo> GetMultiMapsStrategy::handler(string params) {
 
 int ChangeMapStrategy::handler(string params) {
     MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+    if (oldMap.id == params) {
+        throw app::exception(make_error_code(error::create_map_fail));
+    }
+
+    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
+    bool isFind = false;
+    for (const auto &item: allMap) {
+        if (item.id == params) {
+            isFind = true;
+            break;
+        }
+    }
+    if (!isFind) {
+        throw app::exception(make_error_code(error::map_id_does_not_exist));
+    }
+    if (!MapControl::instance().checkMapInformation(params)) {
+        throw app::exception(make_error_code(error::map_id_does_not_exist));
+    }
+
     MapControl::instance().backupAndRetrieve(oldMap.id);
 
     MapControl::instance().loadInformation(params);

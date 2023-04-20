@@ -19,6 +19,8 @@ public:
         return obj;
     }
 
+    void sync_schema();
+
     bool loadMainMap();
 
     MapPo &getDbMap();

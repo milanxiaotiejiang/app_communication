@@ -40,7 +40,9 @@ public:
     }
 
     friend void from_json(const json &j, MapInfo &b) {
-        j.at("id").get_to(b.id);
+        if (j.contains("id")) {
+            j.at("id").get_to(b.id);
+        }
         j.at("map_id").get_to(b.map_id);
         j.at("map_name").get_to(b.map_name);
     }

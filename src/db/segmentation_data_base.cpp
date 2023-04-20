@@ -13,8 +13,11 @@
 #include "BaseThrowable.h"
 #include "db/task_data_base.h"
 
-bool SegmentationDataBase::loadMainMap() {
+void SegmentationDataBase::sync_schema() {
     segmentationStorage.sync_schema();
+}
+
+bool SegmentationDataBase::loadMainMap() {
     try {
         std::vector<MapPo> mainMaps = segmentationStorage.get_all<MapPo>(where(c(&MapPo::main) == true));
         if (mainMaps.empty()) {
@@ -75,7 +78,7 @@ std::vector<MapPo> SegmentationDataBase::loadAllMap() {
     return segmentationStorage.get_all<MapPo>();
 }
 
-void SegmentationDataBase::updateMapName(const std::string& map_name) {
+void SegmentationDataBase::updateMapName(const std::string &map_name) {
     mapPo.name = map_name;
     segmentationStorage.update(mapPo);
 }

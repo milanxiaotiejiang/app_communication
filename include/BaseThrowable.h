@@ -125,6 +125,8 @@ namespace error {
         no_task_for_return_base_station,
         add_zone_fail,
         add_subregion_fail,
+        cannot_switch_to_the_current_map,
+        map_id_does_not_exist
     };// enum value
 
     class category : public std::error_category {
@@ -353,6 +355,10 @@ namespace error {
                     return "矩形框添加失败";
                 case error::add_subregion_fail:
                     return "区域添加失败";
+                case error::cannot_switch_to_the_current_map:
+                    return "不能切换为当前地图";
+                case error::map_id_does_not_exist:
+                    return "不存在此地图";
                 default:
                     return "Unknown";
             }

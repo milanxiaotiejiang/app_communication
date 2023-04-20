@@ -21,6 +21,8 @@ public:
 
     bool loadInformation(const std::string &map_id);
 
+    bool checkMapInformation(const std::string &map_id);
+
     bool backupAndRetrieve(const std::string &map_id);
 
     bool backupProhibition(const std::string &map_id, bool retrieve);

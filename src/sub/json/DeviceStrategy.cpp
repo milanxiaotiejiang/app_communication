@@ -82,10 +82,9 @@ DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
     //获取水箱状态
     bool t_water_box_status = false;
 
-    //获取地图ID和地图名称，假数据
-    MapInfo map;
-    map.setMapId(1);
-    map.setMapName("11");
+    //获取地图ID和地图名称
+    MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
+    MapInfo map(mapPo.id, mapPo.name);
 
     //获取work_status_code
     //int t_work_status_code = DeviceStatusManager::get_instance()->getWorkStatusCode();

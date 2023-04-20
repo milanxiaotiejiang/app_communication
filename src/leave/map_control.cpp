@@ -10,8 +10,10 @@
 #include "cppfs/FileHandle.h"
 #include "exploration/ExplorationCenter.h"
 #include "nav_msgs/LoadMap.h"
+#include "prohibition.h"
 
 bool MapControl::initialize(ros::NodeHandle handle) {
+    SegmentationDataBase::instance().sync_schema();
     if (!SegmentationDataBase::instance().loadMainMap()) {
         return false;
     }
@@ -62,6 +64,22 @@ bool MapControl::loadInformation(const string &map_id) {
     return true;
 }
 
+bool MapControl::checkMapInformation(const string &map_id) {
+    std::string dir = path::robot_slam_map_dir() + map_id + path::separator();
+
+    cppfs::FileHandle omy = cppfs::fs::open(dir + path::mymap_yaml);
+    cppfs::FileHandle omp = cppfs::fs::open(dir + path::mymap_pgm);
+    cppfs::FileHandle ompb = cppfs::fs::open(dir + path::mymap_pbstream);
+    cppfs::FileHandle oms = cppfs::fs::open(dir + path::mymap_segmentation);
+    cppfs::FileHandle opa = cppfs::fs::open(dir + path::prohibition_areas_yaml);
+
+    if (!opa.exists()) {
+        //todo create prohibition_areas_yaml
+    }
+
+    return omy.exists() && omp.exists() && ompb.exists();
+}
+
 bool MapControl::backupAndRetrieve(const string &map_id) {
     backupMap(map_id, true);
     backupProhibition(map_id, true);
@@ -76,8 +94,10 @@ bool MapControl::backupProhibition(const string &map_id, bool retrieve) {
     cppfs::FileHandle npa = cppfs::fs::open(path::prohibition_areas_path());
     if (npa.exists()) {
         npa.copy(dir);
-        if (retrieve)
-            npa.remove();
+        if (retrieve) {
+//            npa.remove();
+            reset_prohibition();
+        }
     }
 
     return true;
