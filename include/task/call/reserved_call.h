@@ -43,6 +43,8 @@ public:
 
     void recordMotorError();
 
+    void recordMopError();
+
     void recordHlsError(int error_event);
 
     void recordLaserError(std::string error_event);

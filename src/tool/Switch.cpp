@@ -42,6 +42,12 @@ int switch_ID(const std::string &str) {
     if (str == "change_map") {
         return CHANGE_MAP_;
     }
+    if (str == "modify_map_name") {
+        return MODIFY_MAP_NAME;
+    }
+    if (str == "delete_map") {
+        return DELETE_MAP;
+    }
     if (str == "edit_map") {
         return EDIT_MAP_;
     }
@@ -222,6 +228,9 @@ int switch_ID(const std::string &str) {
     }
     if (str == "knob_control") {
         return KNOB_CONTROL;
+    }
+    if (str == "collect_dust") {
+        return COLLECT_DUST;
     }
 
     if (str == "room_map_data") {

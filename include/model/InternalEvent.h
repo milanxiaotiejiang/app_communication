@@ -21,6 +21,7 @@ namespace internal_event {
     static const int MOTOR_ERROR_RECOVERY_SCCEED = 12;
     static const int MOTOR_ERROR_RECOVERY_FAILED = 13;
     static const int LASER_ERROR_RECOVERY_FAILED = 16;
+    static const int MOP_ERROR_RECOVERY_SCCEED = 17;
 
     class StartEvent {//开始和结束事件
     private:

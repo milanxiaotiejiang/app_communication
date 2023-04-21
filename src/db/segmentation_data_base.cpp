@@ -78,9 +78,13 @@ std::vector<MapPo> SegmentationDataBase::loadAllMap() {
     return segmentationStorage.get_all<MapPo>();
 }
 
-void SegmentationDataBase::updateMapName(const std::string &map_name) {
-    mapPo.name = map_name;
-    segmentationStorage.update(mapPo);
+void SegmentationDataBase::updateMapName(const std::string &map_id, const std::string &map_name) {
+    MapPo map = segmentationStorage.get<MapPo>(map_id);
+    map.name = map_name;
+    segmentationStorage.update(map);
+    if (map.id == mapPo.id) {
+        mapPo.name = map_name;
+    }
 }
 
 RoomPo SegmentationDataBase::selectRoomById(long roomId) {

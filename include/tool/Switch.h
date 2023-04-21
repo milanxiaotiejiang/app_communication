@@ -12,8 +12,11 @@ enum MESSAGE_ID {
     SAVE_MAP_,              //保存地图
     GET_MULTI_MAPS_,        //获取地图列表
     CHANGE_MAP_,            //切换地图
-    EDIT_MAP_,              // 编辑地图
-    GET_EDIT_MAP_,          //获取地图编辑信息
+    MODIFY_MAP_NAME,        //修改地图名称
+    DELETE_MAP,             //删除地图
+    EDIT_MAP_,              // 编辑地图禁行区
+    GET_EDIT_MAP_,          //获取地图禁行区
+
     EXECUTE_TASK_,          //发布任务
     GET_TASK_LIST_,         //获取任务列表
     RUNNING_TASK,
@@ -84,6 +87,7 @@ enum MESSAGE_ID {
     GET_DEVICE_SECRET,
     TT_ERROR_CHECK,
     KNOB_CONTROL,
+    COLLECT_DUST,
 
     ROOM_MAP_DATA,
     ROOM_MERGE,

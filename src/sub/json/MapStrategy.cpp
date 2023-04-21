@@ -10,13 +10,15 @@
 #include "db/segmentation_data_base.h"
 #include "leave/map_control.h"
 #include "leave/cartographer_node.h"
+#include "future/node/node_control.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
     // todo 此版本为单地图
     if (MapAttribute::instance().saveMap()) {
         ExplorationCenter::instance().repaintCoveragePath(true);
 
-        SegmentationDataBase::instance().updateMapName(params.getMapName());
+        SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id,
+                                                       params.getMapName());
         MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
         MapInfo param(mapPo.id, mapPo.name);
         return param;
@@ -52,7 +54,7 @@ vector<MapInfo> GetMultiMapsStrategy::handler(string params) {
     return mapInfos;
 }
 
-int ChangeMapStrategy::handler(string params) {
+string ChangeMapStrategy::handler(string params) {
     MapPo oldMap = SegmentationDataBase::instance().getDbMap();
     if (oldMap.id == params) {
         throw app::exception(make_error_code(error::create_map_fail));
@@ -77,9 +79,30 @@ int ChangeMapStrategy::handler(string params) {
 
     MapControl::instance().loadInformation(params);
     MapControl::instance().changeMapServer();
-    // todo 关注睡眠模式
-    CartographerPublisher::instance().publishStartCartoLocalization();
-    return 5;
+    if (NodeControl::instance().isWork()) {
+        CartographerPublisher::instance().publishStartCartoLocalization();
+    }
+    return "";
+}
+
+string ModifyMapNameStrategy::handler(MapInfo params) {
+    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
+    bool isFind = false;
+    for (const auto &item: allMap) {
+        if (item.id == params.getId()) {
+            isFind = true;
+            break;
+        }
+    }
+    if (!isFind) {
+        throw app::exception(make_error_code(error::map_id_does_not_exist));
+    }
+    SegmentationDataBase::instance().updateMapName(params.getId(), params.getMapName());
+    return "";
+}
+
+string DeleteMapStrategy::handler(string params) {
+
 }
 
 string EditMapStrategy::handler(vector<std::vector<float>> params) {

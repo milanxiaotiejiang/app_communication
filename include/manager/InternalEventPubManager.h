@@ -72,6 +72,7 @@ namespace internal_event {
         //尘推电机堵转
         const AlarmEvent motor_error_recovery_scceed = AlarmEvent("alarm", 4013, "COR_413", "尘推转速异常并成功恢复", "");
         const AlarmEvent motor_error_recovery_failed = AlarmEvent("alarm", 3218, "CCR_218", "尘推堵转，任务提前结束", "");
+        const AlarmEvent mop_error_recovery_scceed = AlarmEvent("alarm", 4431, "COR_431", "湿拖堵转", "");
 
         //底盘电机失能
         const AlarmEvent hls_error_1 = AlarmEvent("alarm", 4016, "COR_416", "电机失能，编码器故障ABZ报警", "");
@@ -352,6 +353,9 @@ namespace internal_event {
                     break;
                 case internal_event::LASER_ERROR_RECOVERY_FAILED:
                     pubAlarmEvent(laser_restart_failed);
+                    break;
+                case internal_event::MOP_ERROR_RECOVERY_SCCEED:
+                    pubAlarmEvent(mop_error_recovery_scceed);
                     break;
                 default:
                     break;

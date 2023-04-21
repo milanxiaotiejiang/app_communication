@@ -258,13 +258,6 @@ namespace clean_history_db {
             history.total_step_ = real_task.getTotalStep();
             history.total_frequency_ = real_task.getTotalFrequency();
         }
-        std::vector<char> ch;
-        ch.push_back(1);
-        ch.push_back(2);
-        ch.push_back(3);
-        ch.push_back(100);
-        ch.push_back(1050);
-        history.oper_event_ = ch;
         //更新历史纪录
         CleanHistoryDataBase::instance().updateHistory(history);
     }

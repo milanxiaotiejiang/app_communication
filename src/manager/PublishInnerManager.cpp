@@ -5,19 +5,19 @@
 #include "manager/PublishInnerManager.h"
 
 void PublishInnerManager::initialize(ros::NodeHandle handle) {
-    pub_push_mode_ = handle.advertise<std_msgs::Int16>("/mrrobot/push_mode_control", 1);
-    pub_self_clean_ = handle.advertise<std_msgs::Int16>("/mrrobot/self_clean_control", 1); //基站自清洁
-    pub_vacuum_mode_ = handle.advertise<std_msgs::Int16>("/mrrobot/vacuum_mode_control", 1); //扫吸
-    pub_mop_mode_ = handle.advertise<std_msgs::Int16>("/mrrobot/mop_mode_control", 1); //湿拖
-    pub_sweep_mode_ = handle.advertise<std_msgs::Int16>("/mrrobot/sweep_mode_control", 1);
-    pub_darwer_cmd_ = handle.advertise<std_msgs::Int16>("/mrrobot/drawer_cmd", 1);
-    pub_arom_status_ = handle.advertise<std_msgs::Int16>("/mrrobot/arom_status_control", 1);
-    pub_light_mode_ = handle.advertise<std_msgs::Int16>("/mrrobot/light_mode", 1);
+    pub_push_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/push_mode_control", 1);
+    pub_self_clean_ = handle.advertise<std_msgs::Int32>("/mrrobot/self_clean_control", 1); //基站自清洁
+    pub_vacuum_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/vacuum_mode_control", 1); //扫吸
+    pub_mop_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/mop_mode_control", 1); //湿拖
+    pub_sweep_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/sweep_mode_control", 1);
+    pub_darwer_cmd_ = handle.advertise<std_msgs::Int32>("/mrrobot/drawer_cmd", 1);
+    pub_arom_status_ = handle.advertise<std_msgs::Int32>("/mrrobot/arom_status_control", 1);
+    pub_light_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/light_mode", 1);
     pub_velocity_ = handle.advertise<geometry_msgs::Twist>("/cmd_vel/app", 1);
     pub_passed_path_ = handle.advertise<nav_msgs::Path>("/clean_robot/passed_path", 10);
     pub_music = handle.advertise<std_msgs::Int32>("/play_music", 1);
     pub_otalow = handle.advertise<std_msgs::String>("/ota_low", 10);
-    pub_ds_version = handle.advertise<std_msgs::Int16>("/dasheng/version", 1);
+    pub_ds_version = handle.advertise<std_msgs::Int32>("/dasheng/version", 1);
     pub_knob_available = handle.advertise<std_msgs::Bool>("/knob/available", 1);
     pub_knob_task = handle.advertise<std_msgs::Int8>("/knob/task", 1);
     pub_reboot = handle.advertise<std_msgs::Int32>("/reboot_flag", 1);
@@ -25,6 +25,7 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_oil = handle.advertise<std_msgs::Int32>("/mrrobot/pop_sweep_oil", 1);
     pub_reset_prohibition = handle.advertise<std_msgs::Int32>("/reset_prohibition", 1);
     pub_knife = handle.advertise<std_msgs::Int32>("/mrrobot/control_wind_knife", 1);
+    pub_collect_dust = handle.advertise<std_msgs::Int32>("/collect_dust", 1);
 }
 
 void PublishInnerManager::publishPushMode(const std_msgs::Int16 &message) const {
@@ -107,4 +108,10 @@ void PublishInnerManager::publishOil(const std_msgs::Int32 &message) const {
 
 void PublishInnerManager::pubKnife(const std_msgs::Int32 &message) const {
     pub_knife.publish(message);
+}
+
+void PublishInnerManager::publishCollectDust() const {
+    std_msgs::Int32 data;
+    data.data = 1;
+    pub_collect_dust.publish(data);
 }

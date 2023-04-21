@@ -17,20 +17,22 @@ private:
 
     ros::Subscriber sub_robot_status_;
 
-    ros::Subscriber sub_motor_error_, sub_laser_error_, sub_hls_error_;
+    ros::Subscriber sub_motor_error_, sub_laser_error_, sub_hls_error_, sub_wet_mop_error;
 
     int last_machine_code_{10006};
 
     void subscribeCallback(const zoo_bringup::robot_status &robot_status);
 
     //电机堵转
-    void motorErrorCallback(const std_msgs::Int32ConstPtr &motor_error);
+    void motorErrorCallback(const std_msgs::Int32 &motor_error);
+
+    void wetMopErrorCallback(const std_msgs::Int32 &motor_error);
 
     //雷达故障
-    void laserErrorCallback(const std_msgs::StringConstPtr &laser_error);
+    void laserErrorCallback(const std_msgs::String &laser_error);
 
     //电机堵转
-    void hlsErrorCallback(const std_msgs::Int32ConstPtr &motor_error);
+    void hlsErrorCallback(const std_msgs::Int32 &motor_error);
 
 public:
     ZooRobotStatusSubscribe(ros::NodeHandle handle);

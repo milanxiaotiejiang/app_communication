@@ -38,7 +38,8 @@ private:
     pub_shutdown,//
     pub_reboot,//
     pub_oil,//
-    pub_knife;//
+    pub_knife,//
+    pub_collect_dust;
 public:
     static auto &instance() {
         static PublishInnerManager obj;
@@ -86,6 +87,8 @@ public:
     void publishOil(const std_msgs::Int32 &message) const;
 
     void pubKnife(const std_msgs::Int32 &message) const;
+
+    void publishCollectDust() const;
 
 };
 

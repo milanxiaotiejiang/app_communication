@@ -27,3 +27,11 @@ const std::string &MapInfo::getMapName() const {
 void MapInfo::setMapName(const std::string &mapName) {
     map_name = mapName;
 }
+
+const std::string &MapInfo::getId() const {
+    return id;
+}
+
+void MapInfo::setId(const std::string &id) {
+    MapInfo::id = id;
+}

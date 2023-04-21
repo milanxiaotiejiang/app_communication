@@ -27,6 +27,10 @@ public:
 
     void setMapId(int mapId);
 
+    const std::string &getId() const;
+
+    void setId(const std::string &id);
+
     const std::string &getMapName() const;
 
     void setMapName(const std::string &mapName);

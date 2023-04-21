@@ -10,3 +10,8 @@ string KnobControlStrategy::handler(bool method) {
     PublishInnerManager::instance().publishKnobAvailable(aBool);
     return "";
 }
+
+string CollectDustStrategy::handler(string method) {
+    PublishInnerManager::instance().publishCollectDust();
+    return "";
+}

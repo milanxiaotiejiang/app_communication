@@ -272,6 +272,10 @@ void ReservedCall::recordMotorError() {
     InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_SCCEED);
 }
 
+void ReservedCall::recordMopError() {
+    InternalEventPubManager::get_instance()->pubOper(MOP_ERROR_RECOVERY_SCCEED);
+}
+
 void ReservedCall::recordHlsError(int error_event) {
     switch (error_event) {
         case 1:

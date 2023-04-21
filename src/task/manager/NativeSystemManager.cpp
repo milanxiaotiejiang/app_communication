@@ -28,6 +28,12 @@ void NativeSystemManager::motorErrorEvent(int error_event) {
     }
 }
 
+void NativeSystemManager::wetMopErrorEvent(int error_event) {
+    if (error_event == 1) {
+        asyncTaskCall->recordMopError();
+    }
+}
+
 void NativeSystemManager::hlsErrorEvent(int error_event) {
     if (error_event > 0) {
         asyncTaskCall->recordHlsError(error_event);

@@ -31,7 +31,7 @@ public:
 
     std::vector<MapPo> loadAllMap();
 
-    void updateMapName(const std::string &map_name);
+    void updateMapName(const std::string &map_id, const std::string &map_name);
 
     RoomPo selectRoomById(long roomId);
 

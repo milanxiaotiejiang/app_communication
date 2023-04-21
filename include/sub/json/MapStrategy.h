@@ -31,9 +31,19 @@ public:
     vector<MapInfo> handler(string params) override;
 };
 
-class ChangeMapStrategy : public MessageStrategy<string, int> {
+class ChangeMapStrategy : public MessageStrategy<string, string> {
 public:
-    int handler(string params) override;
+    string handler(string params) override;
+};
+
+class ModifyMapNameStrategy : public MessageStrategy<MapInfo, string> {
+public:
+    string handler(MapInfo params) override;
+};
+
+class DeleteMapStrategy : public MessageStrategy<string, string> {
+public:
+    string handler(string params) override;
 };
 
 class EditMapStrategy : public MessageStrategy<std::vector<std::vector<float>>, string> {

@@ -42,7 +42,7 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
 
     json jDecode = json::parse(result.data);
 
-    auto requestModel = jDecode.get<RequestModel<Entrance>>();
+    auto requestModel = jDecode.get<RequestModel<Entrance >>();
     auto entrance = requestModel.getMsg();
 
     MessageBaseStrategy *messageStrategy = nullptr;
@@ -66,12 +66,20 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case CHANGE_MAP_:
             messageStrategy = new ChangeMapStrategy();
             break;
+        case MODIFY_MAP_NAME:
+            messageStrategy = new ModifyMapNameStrategy();
+            break;
+        case DELETE_MAP:
+            messageStrategy = new DeleteMapStrategy();
+            break;
+
         case EDIT_MAP_:
             messageStrategy = new EditMapStrategy();
             break;
         case GET_EDIT_MAP_:
             messageStrategy = new GetEditMapStrategy();
             break;
+
         case EXECUTE_TASK_:
             messageStrategy = new ExecuteTaskStrategy();
             break;
@@ -231,6 +239,10 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case KNOB_CONTROL:
             messageStrategy = new KnobControlStrategy();
             break;
+        case COLLECT_DUST:
+            messageStrategy = new CollectDustStrategy();
+            break;
+
         case ROOM_MAP_DATA:
             messageStrategy = new RoomMapDataStrategy();
             break;
