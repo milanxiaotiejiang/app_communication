@@ -118,15 +118,27 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
             break;
         }
         case event::flow::flowing_water_production: {
-            if (plannerQueue.size() == 1) {
-                //最后一个已经走完，移除最后一个再次执行一次，走收拖头
-                LOG(INFO) << "HeadTailPointCall : 清扫结束，准备回基站点 ...";
-                callPointComplete([this]() {
-                    callBackBasePoint();
-                });
+            if (Environment::instance().re_planner) {
+                if (plannerQueue.size() == 1) {
+                    callPointComplete([this]() {
+                        callBackBasePoint();
+                    });
+                } else {
+                    if (childPointQueue.empty()) {
+                        callGoPath();
+                    }
+                }
             } else {
-                auto nextPoint = findFrontNextPoint();
-                callGoNextPoint(nextPoint);
+                if (plannerQueue.size() == 1) {
+                    //最后一个已经走完，移除最后一个再次执行一次，走收拖头
+                    LOG(INFO) << "HeadTailPointCall : 清扫结束，准备回基站点 ...";
+                    callPointComplete([this]() {
+                        callBackBasePoint();
+                    });
+                } else {
+                    auto nextPoint = findFrontNextPoint();
+                    callGoNextPoint(nextPoint);
+                }
             }
             break;
         }

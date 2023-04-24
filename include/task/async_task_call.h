@@ -91,6 +91,8 @@ protected:
 
     void callPointComplete(const std::function<void()> &f);
 
+    void callGoPath();
+
     void callManualCleanStart();
 
     void callManualCleanEnd();
@@ -126,7 +128,11 @@ public:
 
     void executeOnNext(event::error error);
 
-    void executePointFeedback(geometry_msgs::Pose2D);
+    void executePointFeedback(geometry_msgs::Pose2D pose);
+
+    void executeOnPathDone(event::error error);
+
+    void executeOnPathFeedBack(int step, geometry_msgs::Pose pose);
 
     void executeOutStation(bool result);
 

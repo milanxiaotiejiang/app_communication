@@ -168,7 +168,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
 
     if (!Environment::instance().isRealEnvironment) {
         std::thread moveBaseThread([]() {
-            sleep(10);
+            sleep(3);
             NodeControl::instance().emulate();
             int last_machine_code = 10006;
             while (1) {

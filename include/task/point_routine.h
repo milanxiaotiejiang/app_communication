@@ -9,6 +9,7 @@
 #include "move_base_msgs/MoveBaseAction.h"
 #include "task/async_task_call.h"
 #include "task/RealTask.h"
+#include <replan_msgs/ReplanAction.h>
 
 /**
  * 点位流转
@@ -26,11 +27,18 @@ public:
         PointRoutine::asyncTaskCall = asyncTaskCall;
     }
 
-    void pointDone(const actionlib::SimpleClientGoalState &state);
-
     void pointActive();
 
     void pointFeedback(geometry_msgs::Pose2D pose);
+
+    void pointDone(const actionlib::SimpleClientGoalState &state);
+
+    void pathActive();
+
+    void pathFeedback(const replan_msgs::ReplanFeedbackConstPtr& pose);
+
+    void pathDone(const actionlib::SimpleClientGoalState &state);
+
 };
 
 

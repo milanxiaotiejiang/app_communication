@@ -81,6 +81,18 @@ protected:
         cv.notify_one();
     }
 
+    template<typename F, typename... Args>
+    void lock(F &&f, Args &&... args) {
+        {
+            std::unique_lock<std::mutex> lock(cv_mut);
+            std::forward<F>(f)(std::forward<Args>(args)...);
+        }
+    }
+
+    void notify_one() {
+        cv.notify_one();
+    }
+
     loop::execute_handle function_manual_epoll();
 
     loop::execute_handle function_special_epoll();

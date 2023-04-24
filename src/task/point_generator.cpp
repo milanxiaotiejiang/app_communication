@@ -19,6 +19,8 @@
 #include "segmentation/SegmentationCenter.h"
 #include "task/model/CombinationPoseVo.h"
 #include "exploration/path_exploration_preview_task.h"
+#include "db/segmentation_data_base.h"
+#include "geometry_msgs/Polygon.h"
 
 RealPoint PointGenerator::buildPoint(int id, const RealTask &task) {
     RealPoint point;
@@ -203,6 +205,66 @@ void PointGenerator::combinationPose2RealPoint(RealTask realTask, std::vector<Co
 
     realTask.setTotalStep(totalStep);
     realTask.setTotalFrequency(rate);
+}
+
+
+// add gang,该函数输入为zoned，即矩形的四个端点，输出为PoseVo的队列
+bool PointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
+                                                     std::vector<PoseVo> &pointList) {
+    // 这里根据矩形（View Part）生成回字形路径
+    // zoned:矩形
+    // pointList:点列
+    if (zoned.empty() || zoned.size() != 4) {
+        return false;
+    }
+
+    float max_x = max(max(zoned[0].getX(), zoned[1].getX()), max(zoned[2].getX(), zoned[3].getX()));
+    float min_x = min(min(zoned[0].getX(), zoned[1].getX()), min(zoned[2].getX(), zoned[3].getX()));
+    float max_y = max(max(zoned[0].getY(), zoned[1].getY()), max(zoned[2].getY(), zoned[3].getY()));
+    float min_y = min(min(zoned[0].getY(), zoned[1].getY()), min(zoned[2].getY(), zoned[3].getY()));
+    max_x = round(max_x / 0.05) * 0.05;
+    min_x = round(min_x / 0.05) * 0.05;
+    max_y = round(max_y / 0.05) * 0.05;
+    min_y = round(min_y / 0.05) * 0.05;
+    std::cout << max_x << max_y << min_x << min_y << std::endl;
+
+    float step = 0.2;
+    float x_length = max_x - min_x;
+    float y_length = max_y - min_y;
+    int x_size = ceil(x_length / step);
+    int y_size = ceil(y_length / step);
+    float x_step = x_length / x_size;
+    float y_step = y_length / y_size;
+    float origin_x = min_x;
+    float origin_y = min_y;
+    std::vector<std::vector<int>> dir{{1,  0},
+                                      {0,  1},
+                                      {-1, 0},
+                                      {0,  -1}};
+    int map_size_x = x_size + 1;
+    int map_size_y = y_size + 1;
+    std::vector<std::vector<int>> map(map_size_x,
+                                      std::vector<int>(map_size_y, 0));
+    int cnt = (x_size + 1) * (y_size + 1);
+    int dir_index = 0;
+    std::vector<int> current_index = {0, 0};
+    PoseVo current_point;
+    while (cnt > 0) {
+        current_point.setX(origin_x + current_index[0] * x_step);
+        current_point.setY(origin_y + current_index[1] * y_step);
+        pointList.push_back(current_point);
+        map[current_index[0]][current_index[1]] = 1;
+        int next_x = current_index[0] + dir[dir_index][0];
+        int next_y = current_index[1] + dir[dir_index][1];
+        if (next_x >= map_size_x || next_y >= map_size_y || next_x < 0 ||
+            next_y < 0 || map[next_x][next_y] == 1) {
+            dir_index = (dir_index + 1) % 4;
+        }
+        current_index[0] = current_index[0] + dir[dir_index][0];
+        current_index[1] = current_index[1] + dir[dir_index][1];
+        cnt--;
+    }
+    return true;
 }
 
 std::vector<RealPoint> CoveragePointGenerator::taskGeneratePointList(RealTask &task) {
@@ -417,7 +479,7 @@ std::vector<RealPoint> FullPointGenerator::taskGeneratePointList(RealTask &task)
     std::vector<RealPoint> taskPointList;
     auto taskId = task.getId();
     auto roomCoverage = ExplorationCenter::instance().findRoomCoverage(taskId, true);
-    auto poseList = roomCoverage.getPoseList();
+    const auto& poseList = roomCoverage.getPoseList();
     std::vector<RealPoint> realPoints;
     pose2RealPoint(task, poseList, realPoints);
     return realPoints;
@@ -425,11 +487,51 @@ std::vector<RealPoint> FullPointGenerator::taskGeneratePointList(RealTask &task)
 
 std::vector<RealPoint> ExplorationGenerator::taskGeneratePointList(RealTask &task) {
 
-    auto coverage = TaskExploration::explorationPlanningPath(task);
+    TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
 
-    const auto &poseList = coverage.getPoseList();
-    std::vector<RealPoint> realPoints;
-    pose2RealPoint(task, poseList, realPoints);
+    if (mode == TaskMode::Zoned) {
+        geometry_msgs::Pose map_origin_pose = MapAttribute::instance().getMapOriginPose();
+        ExplorationCenter &explorationCenter = ExplorationCenter::instance();
+        SegmentationCenter &segmentationCenter = SegmentationCenter::instance();
+        const cv::Mat &room_map = segmentationCenter.generateMat();
+        double rows = room_map.rows * map_resolution_from_subscription;
+        double cols = room_map.cols * map_resolution_from_subscription;
 
-    return realPoints;
+        std::vector<RealPoint> realPoints;
+        std::vector<PoseVo> poseList;
+
+        std::vector<ZoneVo> zones = task.getZoned();
+        for (const auto &zone: zones) {
+            std::vector<PointVo> points = zone.getPoints();
+            std::vector<Point> trs;
+            geometry_msgs::Polygon polygon;
+            for (const auto &point: points) {
+                Point p;
+                double x = point.getX() * map_resolution_from_subscription;
+                double y = point.getY() * map_resolution_from_subscription;
+                p.setY(cols - x + map_origin_pose.position.x);
+                p.setX(rows - y + map_origin_pose.position.y);
+                trs.push_back(p);
+
+                geometry_msgs::Point32 point32;
+                point32.x = p.getY();
+                point32.y = p.getX();
+                polygon.points.push_back(point32);
+            }
+
+            generateRecPointListForViewPart(trs, poseList);
+        }
+
+        pose2RealPoint(task, poseList, realPoints);
+        return realPoints;
+    } else {
+        auto coverage = TaskExploration::explorationPlanningPath(task);
+
+        const auto &poseList = coverage.getPoseList();
+        std::vector<RealPoint> realPoints;
+        pose2RealPoint(task, poseList, realPoints);
+
+        return realPoints;
+    }
+
 }

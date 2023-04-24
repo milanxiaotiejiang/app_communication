@@ -14,6 +14,8 @@
 #include "task/TaskCenter.h"
 #include "segmentation/map_modification.h"
 #include "leave/map_control.h"
+#include "task/point_planner.h"
+#include "task/manager/manual.h"
 
 SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
     sub_node_control_ = handle.subscribe("/segmentation_task", 1, &SegmentationSubscribe::segmentationSubscribeCallback,
@@ -26,8 +28,8 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
 //    RealTask realTask;
 //    TaskExploration::task2RealTask(task, realTask);
 //    auto coverage = TaskExploration::explorationPlanningPath(realTask);
-    MapPo map = SegmentationDataBase::instance().getDbMap();
-    auto generateMat = SegmentationCenter::instance().generateMat();
+//    MapPo map = SegmentationDataBase::instance().getDbMap();
+//    auto generateMat = SegmentationCenter::instance().generateMat();
 
 
 //    vector<vector<PointVo>> params;
@@ -54,42 +56,54 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
 //    MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
 //    MapControl::instance().changeMapServer();
 
-    const std::vector<MapPo> &allMap1 = SegmentationDataBase::instance().loadAllMap();
-
-    std::string params = allMap1[flag].id;
-
-    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
-    if (oldMap.id == params) {
-        return;
-    }
-
-    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
-    bool isFind = false;
-    for (const auto &item: allMap) {
-        if (item.id == params) {
-            isFind = true;
-            break;
-        }
-    }
-    if (isFind) {
-        MapControl::instance().backupAndRetrieve(oldMap.id);
-
-        MapControl::instance().loadInformation(params);
-        MapControl::instance().changeMapServer();
-        // todo 关注睡眠模式
-        CartographerPublisher::instance().publishStartCartoLocalization();
-    }
-
-
-
-//    try {
-//        TaskCenter::instance().performTask(flag, TaskSource::App);
-//    } catch (app::exception const &e) {
-//        LOG(ERROR) << e.what();
-//    } catch (const std::exception &e) {
-//        LOG(ERROR) << e.what();
-//    } catch (...) {
-//        LOG(ERROR) << "MessageStrategy other start exception";
+//    const std::vector<MapPo> &allMap1 = SegmentationDataBase::instance().loadAllMap();
+//
+//    std::string params = allMap1[flag].id;
+//
+//    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+//    if (oldMap.id == params) {
+//        return;
 //    }
+//
+//    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
+//    bool isFind = false;
+//    for (const auto &item: allMap) {
+//        if (item.id == params) {
+//            isFind = true;
+//            break;
+//        }
+//    }
+//    if (isFind) {
+//        MapControl::instance().backupAndRetrieve(oldMap.id);
+//
+//        MapControl::instance().loadInformation(params);
+//        MapControl::instance().changeMapServer();
+//        // todo 关注睡眠模式
+//        CartographerPublisher::instance().publishStartCartoLocalization();
+//    }
+
+
+//    if (flag == 0) {
+//        PointPlanner::instance().cancelPath();
+//        return;
+//    }
+//    if (flag == 1) {
+//        ManualManager::instance().pause();
+//        return;
+//    }
+//    if (flag == 2) {
+//        ManualManager::instance().resume();
+//        return;
+//    }
+
+    try {
+        TaskCenter::instance().performTask(flag, TaskSource::App);
+    } catch (app::exception const &e) {
+        LOG(ERROR) << e.what();
+    } catch (const std::exception &e) {
+        LOG(ERROR) << e.what();
+    } catch (...) {
+        LOG(ERROR) << "MessageStrategy other start exception";
+    }
 
 }

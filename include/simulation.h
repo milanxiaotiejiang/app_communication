@@ -22,6 +22,8 @@ public:
     std::string room_coverage_uuid = "";
     bool update_map;
 
+    bool re_planner = true;
+
     static bool will() {
         return (rand() % 10) > 5;
     }

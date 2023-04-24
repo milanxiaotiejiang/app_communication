@@ -119,4 +119,20 @@ public:
     }
 };
 
+struct Cp {
+    int id;
+    int pId;
+    RealPosition realPosition{0, 0, 0};
+    RealOrientation realOrientation{0, 0, 0, 0};
+    bool last;
+
+    Cp(int id, int pId, const RealPosition &realPosition, const RealOrientation &realOrientation, bool last) : id(id),
+                                                                                                               pId(pId),
+                                                                                                               realPosition(
+                                                                                                                       realPosition),
+                                                                                                               realOrientation(
+                                                                                                                       realOrientation),
+                                                                                                               last(last) {}
+};
+
 #endif //APP_COMMUNICATION_REALPOINT_H

@@ -17,6 +17,7 @@
 #include "task/manager/SwitchModePublish.h"
 #include "manager/PublishInnerManager.h"
 #include "leave/cartographer_node.h"
+#include "task/task_util.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -215,11 +216,16 @@ void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
 
     initTaskPoint(runTask);
 
+    int totalTimeout = 0;
     //清扫队列中的正常点全部加入
     plannerQueue.clear();
     for (const auto &point: planPoints()) {
         plannerQueue.push_back(point);
+
+        totalTimeout = totalTimeout + point.timeout;
     }
+
+    unitTimeout = totalTimeout / planPoints().size();
 
     firstRetryCount = 0;
     backBaseRetryCount = 0;
@@ -441,6 +447,29 @@ void AsyncTaskCall::callPointComplete(const std::function<void()> &f) {
     f();
 }
 
+void AsyncTaskCall::callGoPath() {
+    const vector<RealPoint> &points = std::vector<RealPoint>{plannerQueue.begin(), plannerQueue.end()};
+    std::vector<Cp> cps;
+    generateChildPointFlow(points, cps);
+
+//    for (const auto &item: cps) {
+//        LOG(ERROR) << "AsyncTaskCall : callGoPath : "
+//                   << "  cp.id " << item.id
+//                   << "  cp.pId " << item.pId
+//                   << "  last " << item.last;
+//    }
+
+    childPointQueue.clear();
+    for (const auto &cp: cps) {
+        childPointQueue.push_back(cp);
+    }
+
+    PointPlanner::instance().goToPath(cps);
+    async::TimerCall::instance().baseLoop()
+            ->scheduleLater(std::chrono::seconds(plannerQueue.size() * unitTimeout), [this]() {
+                executeOnPathDone(event::error::TIMEOUT);
+            });
+}
 
 void AsyncTaskCall::callManualCleanStart() {
     if (!isWaitTask(currentFlow())) {
@@ -578,8 +607,8 @@ void AsyncTaskCall::cancelTaskAndBack() {
             PointPlanner::instance().cancelGoal();
             async::TimerCall::instance().baseLoop()->cancelAny();
             waitTaskQueue.clear();
-
             plannerQueue.clear();
+            childPointQueue.clear();
             setFlow(event::flow::flowing_water_production);
             recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
         }
@@ -674,6 +703,90 @@ void AsyncTaskCall::executeOnNext(event::error error) {
 
 void AsyncTaskCall::executePointFeedback(geometry_msgs::Pose2D pose) {
     fbPtr->triggerFeedback(pose);
+}
+
+void AsyncTaskCall::executeOnPathDone(event::error error) {
+    if (isCharging()) {
+        return;
+    }
+    if (isWaitTask(event_flow)) {
+        return;
+    }
+    if (isPreparation(event_flow)) {
+        return;
+    }
+    if (isUnrecoverableError()) {
+        return;
+    }
+    if (isUrgencyStop()) {
+        return;
+    }
+    if (isManualMode()) {
+        return;
+    }
+
+    if (error != event::error::TIMEOUT) {
+        async::TimerCall::instance().baseLoop()->cancelAny();
+    }
+
+    if (!plannerQueue.empty() && !childPointQueue.empty()) {
+        notify_one([this, &error]() {
+            if (error == event::error::SUCCEEDED) {
+                childPointQueue.clear();
+
+                while (plannerQueue.size() > 1) {
+                    plannerQueue.pop_front();
+                }
+            } else {
+                Cp &cp = childPointQueue.front();
+
+                auto points = std::vector<RealPoint>{plannerQueue.begin(), plannerQueue.end()};
+                plannerQueue.clear();
+
+                for (auto &point: points) {
+                    if (point.id == cp.pId) {
+                        point.realPosition = cp.realPosition;
+                        point.realOrientation = cp.realOrientation;
+                        plannerQueue.push_back(point);
+                    } else if (point.id > cp.pId) {
+                        plannerQueue.push_back(point);
+                    }
+                }
+
+                childPointQueue.clear();
+            }
+            auto currentPoint = findFrontPoint();
+            currentPoint.arrive = error == event::error::SUCCEEDED;;
+            pushPoint(currentPoint);
+        });
+    }
+}
+
+void AsyncTaskCall::executeOnPathFeedBack(int step, geometry_msgs::Pose pose) {
+    lock([this, &step]() {
+        if (!plannerQueue.empty() && !childPointQueue.empty()) {
+            RealPoint &point = plannerQueue.front();
+            Cp &cp = childPointQueue.front();
+
+//            LOG(ERROR) << "AsyncTaskCall : executeOnPathFeedBack : "
+//                       << "  step " << step
+//                       << "  plannerQueue " << plannerQueue.size()
+//                       << "  childPointQueue " << childPointQueue.size()
+//                       << "  cp.id " << cp.id
+//                       << "  cp.pId " << cp.pId
+//                       << "  last " << cp.last;
+
+            if (cp.id <= step) {
+                childPointQueue.pop_front();
+            }
+            if (point.id < cp.pId && cp.last) {
+                point.arrive = true;
+                pushPoint(point);
+                plannerQueue.pop_front();
+                notify_one();
+            }
+        }
+    });
 }
 
 void AsyncTaskCall::executeOutStation(bool result) {

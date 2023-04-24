@@ -28,6 +28,8 @@ protected:
 
     std::deque<RealTask> waitTaskQueue;
     std::deque<RealPoint> plannerQueue;
+    std::deque<Cp> childPointQueue;
+    int unitTimeout;
 
     RealTask runTask;
 

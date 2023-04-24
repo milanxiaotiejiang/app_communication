@@ -6,6 +6,7 @@
 #include "glog/logging.h"
 #include "BaseThrowable.h"
 #include "task/point_routine.h"
+#include "simulation.h"
 
 void PointPlanner::point2Goal(const RealPoint &point, move_base_msgs::MoveBaseGoal &goal) {
     goal.target_pose.header.frame_id = "map";
@@ -19,9 +20,24 @@ void PointPlanner::point2Goal(const RealPoint &point, move_base_msgs::MoveBaseGo
     goal.target_pose.pose.orientation.w = point.realOrientation.w;
 }
 
-void PointPlanner::doneCd(const actionlib::SimpleClientGoalState &state,
-                          const move_base_msgs::MoveBaseResultConstPtr &result) {
-    PointRoutine::instance().pointDone(state);
+void PointPlanner::cpToPath(const vector<Cp> &pointList, replan_msgs::ReplanGoal &goal_path) {
+    nav_msgs::Path path;
+    path.header.frame_id = "map";
+    path.header.stamp = ros::Time::now();
+    for (const auto &item: pointList) {
+        geometry_msgs::PoseStamped pose;
+        pose.header.frame_id = "map";
+        pose.header.stamp = ros::Time::now();
+        pose.pose.position.x = item.realPosition.x;
+        pose.pose.position.y = item.realPosition.y;
+        pose.pose.position.z = item.realPosition.z;
+        pose.pose.orientation.x = item.realOrientation.x;
+        pose.pose.orientation.y = item.realOrientation.y;
+        pose.pose.orientation.z = item.realOrientation.z;
+        pose.pose.orientation.w = item.realOrientation.w;
+        path.poses.push_back(pose);
+    }
+    goal_path.source_path = path;
 }
 
 void PointPlanner::activeCd() {
@@ -39,12 +55,36 @@ void PointPlanner::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &fe
     PointRoutine::instance().pointFeedback(pose2D);
 }
 
+void PointPlanner::doneCd(const actionlib::SimpleClientGoalState &state,
+                          const move_base_msgs::MoveBaseResultConstPtr &result) {
+//    LOG(INFO) << "PointPlanner  pointCd " << state.getText();
+    PointRoutine::instance().pointDone(state);
+}
+
+void PointPlanner::activeCB() {
+    PointRoutine::instance().pathActive();
+}
+
+void PointPlanner::feedBackCB(const replan_msgs::ReplanFeedbackConstPtr &feed_back) {
+    PointRoutine::instance().pathFeedback(feed_back);
+}
+
+void
+PointPlanner::doneCB(const actionlib::SimpleClientGoalState &state, const replan_msgs::ReplanResultConstPtr &result) {
+//    LOG(INFO) << "PointPlanner  pathCd " << state.getText();
+    PointRoutine::instance().pathDone(state);
+}
+
 void PointPlanner::initialize(ros::NodeHandle handle) {
     PointPlanner::handle = handle;
     LOG(INFO) << "PointPlanner initialize ...";
     std::thread moveBaseThread([this]() {
         move_base = new actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>("move_base", true);
         move_base->waitForServer();
+        if (Environment::instance().re_planner) {
+            replan_client = new actionlib::SimpleActionClient<replan_msgs::ReplanAction>("replan", true);
+            replan_client->waitForServer();
+        }
         initialize_finish = true;
         LOG(INFO) << "PointPlanner open ...";
     });
@@ -66,8 +106,25 @@ void PointPlanner::gotoPlannerFirstPoint(const RealPoint &realPoint) {
     gotoPlannerPoint(realPoint);
 }
 
+void PointPlanner::goToPath(const std::vector<Cp> &pointList) {
+    if (!initialize_finish) {
+        throw app::exception(make_error_code(error::task_planner_failed_to_start));
+    }
+    replan_msgs::ReplanGoal path;
+    cpToPath(pointList, path);
+    replan_client->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
+}
+
 void PointPlanner::cancelGoal() {
+    if (Environment::instance().re_planner) {
+        replan_client->cancelGoal();
+    }
+    sleep(1);
     move_base->cancelGoal();
+}
+
+void PointPlanner::cancelPath() {
+    replan_client->cancelGoal();
 }
 
 void PointPlanner::backBasePoint() {

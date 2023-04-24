@@ -9,6 +9,8 @@
 #include <actionlib/client/simple_action_client.h>
 #include "move_base_msgs/MoveBaseAction.h"
 #include "leave/reconfigure.h"
+#include <replan_msgs/ReplanAction.h>
+#include <nav_msgs/Path.h>
 
 const float RETURN_POINT_X_ = -1.3;
 
@@ -21,15 +23,26 @@ private:
     DR yawGoalTolerance = DR("/move_base/DWAPlannerROS", "yaw_goal_tolerance");
 
     actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> *move_base;
+    actionlib::SimpleActionClient<replan_msgs::ReplanAction> *replan_client;
 
     static void point2Goal(const RealPoint &point, move_base_msgs::MoveBaseGoal &goal);
 
-    static void doneCd(const actionlib::SimpleClientGoalState &state,
-                       const move_base_msgs::MoveBaseResultConstPtr &result);
+    static void cpToPath(const std::vector<Cp> &pointList, replan_msgs::ReplanGoal &goal_path);
 
     static void activeCd();
 
     static void feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback);
+
+    static void doneCd(const actionlib::SimpleClientGoalState &state,
+                       const move_base_msgs::MoveBaseResultConstPtr &result);
+
+
+    static void activeCB();
+
+    static void feedBackCB(const replan_msgs::ReplanFeedbackConstPtr &feed_back);
+
+    static void doneCB(const actionlib::SimpleClientGoalState &state, const replan_msgs::ReplanResultConstPtr &result);
+
 
 public:
     static auto &instance() {
@@ -43,7 +56,11 @@ public:
 
     void gotoPlannerFirstPoint(const RealPoint &realPoint);
 
+    void goToPath(const std::vector<Cp>& pointList);
+
     void cancelGoal();
+
+    void cancelPath();
 
     void backBasePoint();
 };
