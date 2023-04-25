@@ -80,27 +80,27 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
 //        CartographerPublisher::instance().publishStartCartoLocalization();
 //    }
 
-    std::vector<std::vector<cv::Point>> points;
-    std::vector<cv::Point> ps;
-    ps.emplace_back(0, 0);
-    ps.emplace_back(0, 200);
-    ps.emplace_back(100, 200);
-    ps.emplace_back(100, 0);
-    points.push_back(ps);
+//    std::vector<std::vector<cv::Point>> points;
+//    std::vector<cv::Point> ps;
+//    ps.emplace_back(0, 0);
+//    ps.emplace_back(0, 200);
+//    ps.emplace_back(100, 200);
+//    ps.emplace_back(100, 0);
+//    points.push_back(ps);
+//
+//    MapModification mapModification;
+////    mapModification.addFeasibleZone(points);
+//    mapModification.addObstacles(points);
 
-    MapModification mapModification;
-//    mapModification.addFeasibleZone(points);
-    mapModification.addObstacles(points);
 
-
-//    try {
-//        TaskCenter::instance().performTask(flag, TaskSource::App);
-//    } catch (app::exception const &e) {
-//        LOG(ERROR) << e.what();
-//    } catch (const std::exception &e) {
-//        LOG(ERROR) << e.what();
-//    } catch (...) {
-//        LOG(ERROR) << "MessageStrategy other start exception";
-//    }
+    try {
+        TaskCenter::instance().performTask(flag, TaskSource::App);
+    } catch (app::exception const &e) {
+        LOG(ERROR) << e.what();
+    } catch (const std::exception &e) {
+        LOG(ERROR) << e.what();
+    } catch (...) {
+        LOG(ERROR) << "MessageStrategy other start exception";
+    }
 
 }

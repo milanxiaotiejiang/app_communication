@@ -78,7 +78,7 @@ protected:
 
     bool isRegularTask(event::flow flow);
 
-    bool isManualTask(const std::string &launchPeople);
+    bool isManualTask(const RealTask &realTask);
 
     bool isRechargeFLow(event::flow flow);
 

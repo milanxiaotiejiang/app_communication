@@ -167,8 +167,7 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
 
         handleExecuteTask(realTask);
     } else {
-        const std::string &launchPeople = realTask.getLaunchPeople();
-        if (isManualTask(launchPeople) && isFlowingWater(event_flow)) {
+        if (isManualTask(realTask) && isFlowingWater(event_flow)) {
             notify_one([this, &realTask]() {
                 waitTaskQueue.push_back(realTask);
                 pushManual(loop::manual_epoll::manual_task_over);
