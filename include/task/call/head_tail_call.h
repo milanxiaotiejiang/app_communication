@@ -25,7 +25,7 @@ protected:
     void callCloseMechanism(function<void()> f) override;
 
 public:
-    bool canIssuedTask(const std::string &launchPeople);
+    bool canIssuedTask(const RealTask &task);
 
     bool taskRunning();
 };

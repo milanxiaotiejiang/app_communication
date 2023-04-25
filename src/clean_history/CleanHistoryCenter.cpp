@@ -4,6 +4,7 @@
 
 #include "clean_history/CleanHistoryCenter.h"
 #include "model/InternalEvent.h"
+#include "db/SqliteDataBase.h"
 
 namespace clean_history_db {
     bool CleanHistoryCenter::initialize() {
@@ -43,10 +44,20 @@ namespace clean_history_db {
         launch_time = timep * 1000;//毫秒
         //根据当前任务生成一个CleanHistory
         std::string launch_people = task.getLaunchPeople();
+        int mode = 0;
         if (task.isRenew()) {
             launch_people = task.getOnSource();
+            if (task.getMode() == 0) {
+                mode = 7;
+            } else if (task.getMode() == 1) {
+                mode = 6;
+            } else if (task.getMode() == 2) {
+                mode = 2;
+            } else if (task.getMode() == 3) {
+                mode = 3;
+            }
         }
-        CleanHistory new_clean_history(task.getId(), task.getMode(),
+        CleanHistory new_clean_history(task.getId(), mode,
                                        task.getRate(), launch_people,
                                        task.getTimeMode(), launch_time);
         CleanHistoryDataBase::instance().addCleanHistory(new_clean_history);

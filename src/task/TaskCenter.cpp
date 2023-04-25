@@ -37,10 +37,20 @@
 
 std::string TaskCenter::preTask(const RealTask &task) {
     //拦截手动下发的任务且前期出站后期进站
-    const std::string &launchPeople = task.getLaunchPeople();
-    if (launchPeople == "App" || launchPeople == "Pad") {
-        if (!asyncTaskCall->canIssuedTask(launchPeople)) {
-            throw app::exception(make_error_code(error::the_current_task_is_not_completed));
+    if (task.isRenew()) {
+        const std::string &source = task.getSource();
+        TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
+        if (taskSource == TaskSource::App || taskSource == TaskSource::Pad) {
+            if (!asyncTaskCall->canIssuedTask(task)) {
+                throw app::exception(make_error_code(error::the_current_task_is_not_completed));
+            }
+        }
+    } else {
+        const std::string &launchPeople = task.getLaunchPeople();
+        if (launchPeople == "App" || launchPeople == "Pad") {
+            if (!asyncTaskCall->canIssuedTask(task)) {
+                throw app::exception(make_error_code(error::the_current_task_is_not_completed));
+            }
         }
     }
 
@@ -91,8 +101,7 @@ std::string TaskCenter::proTask(const RealTask &task) {
     //todo /imu /scan /odom without any data reject
     //todo /knob
 
-    const std::string &launchPeople = task.getLaunchPeople();
-    if (!asyncTaskCall->canIssuedTask(launchPeople)) {
+    if (!asyncTaskCall->canIssuedTask(task)) {
         throw app::exception(make_error_code(error::the_current_task_is_not_completed));
     }
 

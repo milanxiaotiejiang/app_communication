@@ -3,6 +3,7 @@
 //
 
 #include "task/framework/AsyncTaskRecord.h"
+#include "db/segmentation_data_base.h"
 
 bool AsyncTaskRecord::isWaitTask(event::flow flow) {
     return flow == event::flow::waiting_for_task;
@@ -64,10 +65,17 @@ bool AsyncTaskRecord::isRegularTask(event::flow flow) {
     return true;
 }
 
-bool AsyncTaskRecord::isManualTask(const std::string &launchPeople) {
-    LOG(INFO) << "AsyncTaskRecord : launchPeople : " << launchPeople;
-    if (launchPeople == "App" || launchPeople == "Pad") {
-        return true;
+bool AsyncTaskRecord::isManualTask(const RealTask &realTask) {
+    if (realTask.isRenew()) {
+        const std::string &source = realTask.getSource();
+        TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
+        if (taskSource == TaskSource::App || taskSource == TaskSource::Pad) {
+            return true;
+        }
+    } else {
+        if (realTask.getLaunchPeople() == "App" || realTask.getLaunchPeople() == "Pad") {
+            return true;
+        }
     }
     return false;
 }

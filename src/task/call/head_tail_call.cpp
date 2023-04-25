@@ -254,11 +254,11 @@ void HeadTailPointCall::exchangeFrontPoint(const RealPoint &point) {
     plannerQueue.push_front(point);
 }
 
-bool HeadTailPointCall::canIssuedTask(const std::string &launchPeople) {
+bool HeadTailPointCall::canIssuedTask(const RealTask &task) {
     if (isWaitTask(currentFlow())) {
         return true;
     }
-    if (isManualTask(launchPeople)) {
+    if (isManualTask(task)) {
         if (isFlowingWater(currentFlow())) {
             return true;
         }
