@@ -948,7 +948,7 @@ void AsyncTaskCall::executeLift(bool lift) {
     if (isUnrecoverableError()) {
         return;
     }
-    if(isPreparation(event_flow)){
+    if (isPreparation(event_flow)) {
         return;
     }
     if (lift) {

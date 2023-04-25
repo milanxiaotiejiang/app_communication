@@ -12,12 +12,15 @@ void MapModification::forceModifyMap(const std::vector<std::vector<cv::Point>> &
     auto dbMap = SegmentationDataBase::instance().getDbMap();
 
     cv::Mat unchanged = cv::imread(path::map_pgm_path().c_str(), cv::ImreadModes::IMREAD_UNCHANGED);
+    cv::rotate(unchanged, unchanged, cv::RotateFlags::ROTATE_90_COUNTERCLOCKWISE);
 
     for (const auto &v: points) {
         std::vector<std::vector<cv::Point>> polygon_array;
         polygon_array.push_back(v);
         cv::fillPoly(unchanged, polygon_array, cv::Scalar(fill));
     }
+
+    cv::rotate(unchanged, unchanged, cv::RotateFlags::ROTATE_90_CLOCKWISE);
 
     cv::imwrite(path::map_pgm_path(), unchanged);
 }

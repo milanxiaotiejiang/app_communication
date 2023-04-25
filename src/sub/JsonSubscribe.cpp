@@ -30,6 +30,7 @@
 #include "glog/logging.h"
 #include "simulation.h"
 #include "sub/json/DBTaskStrategy.h"
+#include "sys/syscall.h"
 
 JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
     sub_json_ = handle.subscribe(APP_JSON, 3, &JsonSubscribe::subscribeCallback, this);

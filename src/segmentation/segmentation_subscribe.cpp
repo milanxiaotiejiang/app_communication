@@ -54,32 +54,43 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
 //    MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
 //    MapControl::instance().changeMapServer();
 
-    const std::vector<MapPo> &allMap1 = SegmentationDataBase::instance().loadAllMap();
+//    const std::vector<MapPo> &allMap1 = SegmentationDataBase::instance().loadAllMap();
+//
+//    std::string params = allMap1[flag].id;
+//
+//    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+//    if (oldMap.id == params) {
+//        return;
+//    }
+//
+//    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
+//    bool isFind = false;
+//    for (const auto &item: allMap) {
+//        if (item.id == params) {
+//            isFind = true;
+//            break;
+//        }
+//    }
+//    if (isFind) {
+//        MapControl::instance().backupAndRetrieve(oldMap.id);
+//
+//        MapControl::instance().loadInformation(params);
+//        MapControl::instance().changeMapServer();
+//        // todo 关注睡眠模式
+//        CartographerPublisher::instance().publishStartCartoLocalization();
+//    }
 
-    std::string params = allMap1[flag].id;
+    std::vector<std::vector<cv::Point>> points;
+    std::vector<cv::Point> ps;
+    ps.emplace_back(0, 0);
+    ps.emplace_back(0, 200);
+    ps.emplace_back(100, 200);
+    ps.emplace_back(100, 0);
+    points.push_back(ps);
 
-    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
-    if (oldMap.id == params) {
-        return;
-    }
-
-    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
-    bool isFind = false;
-    for (const auto &item: allMap) {
-        if (item.id == params) {
-            isFind = true;
-            break;
-        }
-    }
-    if (isFind) {
-        MapControl::instance().backupAndRetrieve(oldMap.id);
-
-        MapControl::instance().loadInformation(params);
-        MapControl::instance().changeMapServer();
-        // todo 关注睡眠模式
-        CartographerPublisher::instance().publishStartCartoLocalization();
-    }
-
+    MapModification mapModification;
+//    mapModification.addFeasibleZone(points);
+    mapModification.addObstacles(points);
 
 
 //    try {
