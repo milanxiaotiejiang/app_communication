@@ -66,7 +66,7 @@ void MechanismManager::resetBelowWorkStatus() {
 }
 
 void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knife) {
-    LOG(INFO) << "MechanismManager : 打开清洁机构 " << workStatus << " . ";
+    LOG(INFO) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
     //扫
     std_msgs::Int16 sweep_status;
     if (workStatus.getSweepStatus() >= 0 && workStatus.getSweepStatus() <= 2) {
@@ -122,7 +122,7 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knif
 }
 
 void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus, bool knife) {
-    LOG(INFO) << "MechanismManager : 强制打开清洁机构 " << workStatus << " . ";
+    LOG(INFO) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
     //扫
     std_msgs::Int16 sweep_status;
     sweep_status.data = ((int16_t) workStatus.getSweepStatus());

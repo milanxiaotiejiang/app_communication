@@ -126,7 +126,8 @@ namespace error {
         add_zone_fail,
         add_subregion_fail,
         cannot_switch_to_the_current_map,
-        map_id_does_not_exist
+        map_id_does_not_exist,
+        no_run_task
     };// enum value
 
     class category : public std::error_category {
@@ -359,6 +360,8 @@ namespace error {
                     return "不能切换为当前地图";
                 case error::map_id_does_not_exist:
                     return "不存在此地图";
+                case error::no_run_task:
+                    return "no run task";
                 default:
                     return "Unknown";
             }

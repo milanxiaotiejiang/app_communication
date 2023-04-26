@@ -255,7 +255,7 @@ void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr m
                 LOG(ERROR) << "json parse exception";
             }
         } else {
-            LOG(WARNING) << "on_message remote : " << remoteEndPoint << " no find .. ";
+//            LOG(WARNING) << "on_message remote : " << remoteEndPoint << " no find .. ";
         }
     }
 
