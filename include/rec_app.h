@@ -16,7 +16,6 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <ros/ros.h>
 #include <signal.h>
-#include <std_msgs/Int16.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/String.h>
 #include <sensor_msgs/LaserScan.h>

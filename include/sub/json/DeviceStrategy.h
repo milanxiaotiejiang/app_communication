@@ -42,26 +42,6 @@ public:
     string handler(bool params) override;
 };
 
-class SelfCleanStrategy : public MessageStrategy<string, string> {
-public:
-    string handler(string params) override;
-};
-
-class OpenMachineDrawerStrategy : public MessageStrategy<string, string> {
-public:
-    string handler(string params) override;
-};
-
-class LightBeltModeStrategy : public MessageStrategy<int, string> {
-public:
-    string handler(int params) override;
-};
-
-class PlayerRecruitVoiceStrategy : public MessageStrategy<int, string> {
-public:
-    string handler(int params) override;
-};
-
 class GetHotWindModeStrategy : public MessageStrategy<string, int> {
 public:
     int handler(string params) override;

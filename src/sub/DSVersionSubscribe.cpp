@@ -3,7 +3,6 @@
 //
 
 #include <ros/package.h>
-#include <std_msgs/Int16.h>
 #include "sub/DSVersionSubscribe.h"
 #include "tool/write_file.hpp"
 #include "manager/PublishInnerManager.h"
@@ -13,7 +12,7 @@ DSVersionSubscribe::DSVersionSubscribe(ros::NodeHandle handle) : handle(handle) 
     sub_ds_hw = handle.subscribe("/dasheng/hw", 1, &DSVersionSubscribe::subscribeHWCallback, this);
     sub_ds_sw = handle.subscribe("/dasheng/sw", 1, &DSVersionSubscribe::subscribeSWCallback, this);
 
-    std_msgs::Int16 version;
+    std_msgs::Int32 version;
     version.data = 0;
     PublishInnerManager::instance().publishDSVersion(version);
     sleep(0.5);

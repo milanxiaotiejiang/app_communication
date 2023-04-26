@@ -158,7 +158,7 @@ vector<std::vector<float>> GetEditMapStrategy::handler(string params) {
 
 int ManualPushStartStrategy::handler(string params) {
     LOG(INFO) << "MapStrategy manual_push_start ...";
-    std_msgs::Int8 map_start;
+    std_msgs::Int32 map_start;
     map_start.data = 2;
     PublishInnerManager::instance().publishKnobTask(map_start);
     return 5;
@@ -166,7 +166,7 @@ int ManualPushStartStrategy::handler(string params) {
 
 int ManualPushResetStrategy::handler(string params) {
     LOG(INFO) << "MapStrategy manual_push_reset ...";
-    std_msgs::Int8 map_start;
+    std_msgs::Int32 map_start;
     map_start.data = 0;
     PublishInnerManager::instance().publishKnobTask(map_start);
     return 5;
