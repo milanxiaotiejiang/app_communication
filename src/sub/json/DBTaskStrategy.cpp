@@ -80,6 +80,7 @@ string ModifyTimerTaskStrategy::handler(TimerVo params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     TaskDataBase::instance().modifyTimer(map.id, params);
     ScheduleManagerSingleton::instance().trigger_task_update();
+    return "";
 }
 
 TaskVo BuildPrincipalTaskStrategy::handler(long params) {
