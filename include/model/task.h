@@ -442,21 +442,24 @@ struct ModifyTimerName {
 struct OnTask {
     long task_id;
     std::string on_source;
+    int on_rate;
 
     friend void to_json(json &j, const OnTask &vo) {
         j = json{
                 {"task_id",   vo.task_id},
                 {"on_source", vo.on_source},
+                {"on_rate",   vo.on_rate},
         };
     }
 
     friend void from_json(const json &j, OnTask &vo) {
         j.at("task_id").get_to(vo.task_id);
         j.at("on_source").get_to(vo.on_source);
+        j.at("on_rate").get_to(vo.on_rate);
     }
 
     friend std::ostream &operator<<(std::ostream &os, const OnTask &task) {
-        os << "task_id: " << task.task_id << " on_source: " << task.on_source;
+        os << "task_id: " << task.task_id << " on_source: " << task.on_source << " on_rate: " << task.on_rate;
         return os;
     }
 };

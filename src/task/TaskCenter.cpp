@@ -36,6 +36,7 @@
 #include "exploration/path_exploration_preview_task.h"
 
 std::string TaskCenter::preTask(const RealTask &task) {
+    LOG(INFO) << "preTask ------------------" << task.getRate();
     //拦截手动下发的任务且前期出站后期进站
     if (task.isRenew()) {
         const std::string &source = task.getSource();
@@ -229,9 +230,10 @@ void TaskCenter::executeTask(const Task &task) {
     preTask(realTask);
 }
 
-std::string TaskCenter::performTask(const long taskId, TaskSource on_source) {
+std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int on_rate) {
     auto task = TaskDataBase::instance().loadTaskFoId(taskId);
     RealTask realTask;
+    realTask.setRate(task.getRate() * on_rate);
     realTask.setOnSource(SqliteDataBase::SourceToString(on_source));
     TaskExploration::task2RealTask(task, realTask);
     return preTask(realTask);

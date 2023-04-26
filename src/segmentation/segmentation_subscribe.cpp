@@ -94,7 +94,7 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
 
 
     try {
-        TaskCenter::instance().performTask(flag, TaskSource::App);
+        TaskCenter::instance().performTask(flag, TaskSource::App, 2);
     } catch (app::exception const &e) {
         LOG(ERROR) << e.what();
     } catch (const std::exception &e) {

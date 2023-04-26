@@ -13,6 +13,7 @@
 #include "db/segmentation_data_base.h"
 #include "simulation.h"
 #include "db/SqliteDataBase.h"
+#include "tool/param_check.h"
 
 string ExecuteTaskStrategy::handler(Task task) {
     TaskCenter::instance().executeTask(task);
@@ -21,7 +22,11 @@ string ExecuteTaskStrategy::handler(Task task) {
 
 string PerformTaskStrategy::handler(OnTask params) {
     LOG(ERROR) << params;
-    return TaskCenter::instance().performTask(params.task_id, SqliteDataBase::TaskSourceFromString(params.on_source));
+    checkRate(params.on_rate);
+    return TaskCenter::instance().performTask(params.task_id,
+                                              SqliteDataBase::TaskSourceFromString(params.on_source),
+                                              params.on_rate
+    );
 }
 
 vector<Task> GetTaskListStrategy::handler(string params) {

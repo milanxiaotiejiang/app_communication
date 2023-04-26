@@ -36,7 +36,7 @@ void checkName(const std::string &name) {
 }
 
 void checkRate(int rate) {
-    if (rate < 1 || rate > 4) {
+    if (rate < 1 || rate > 9) {
         throw app::exception(make_error_code(error::invalid_rate));
     }
 }
