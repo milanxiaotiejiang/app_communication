@@ -56,6 +56,8 @@ namespace clean_history_db {
             } else if (task.getMode() == 3) {
                 mode = 3;
             }
+        } else {
+            mode = task.getMode();
         }
         CleanHistory new_clean_history(task.getId(), mode,
                                        task.getRate(), launch_people,
