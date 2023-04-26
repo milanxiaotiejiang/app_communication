@@ -86,7 +86,7 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
 //                flowOpenMechanismPoint.realError.arrive = true;
 //                pushPoint(flowOpenMechanismPoint);
 //            });
-            callOpenMechanism(point.work_status, isKnife(), []() {});
+            callOpenMechanism(baseWorkStatus(), isKnife(), []() {});
             break;
         }
         case event::flow::cleaning_mechanism_ready: {
