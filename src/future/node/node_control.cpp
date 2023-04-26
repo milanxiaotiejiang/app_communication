@@ -46,6 +46,8 @@ void NodeControl::initialize(ros::NodeHandle handle) {
         DR OR_percent_2 = DR("/2/inudev_ros_nodelet2", "OR_percent");
         OR_percent_2.i(p_OR_percent_2);
     });
+
+    setWorkMode(node::State::sleep);
 }
 
 void NodeControl::release() {
