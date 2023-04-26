@@ -188,6 +188,7 @@ string MapObstaclesStrategy::handler(vector<vector<PointVo>> params) {
     mapModification.addObstacles(points);
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
+    ExplorationCenter::instance().repaintCoveragePath(false);
     return "";
 }
 
@@ -207,6 +208,7 @@ string MapFeasibleZoneStrategy::handler(vector<vector<PointVo>> params) {
     mapModification.addFeasibleZone(points);
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
+    ExplorationCenter::instance().repaintCoveragePath(false);
     return "";
 }
 
@@ -215,5 +217,6 @@ string MapApplyIncreaseArea::handler(vector<int> params) {
     mapModification.applyIncreaseArea(params);
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
+    ExplorationCenter::instance().repaintCoveragePath(false);
     return "";
 }

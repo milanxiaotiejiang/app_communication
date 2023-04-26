@@ -454,6 +454,11 @@ struct OnTask {
         j.at("task_id").get_to(vo.task_id);
         j.at("on_source").get_to(vo.on_source);
     }
+
+    friend std::ostream &operator<<(std::ostream &os, const OnTask &task) {
+        os << "task_id: " << task.task_id << " on_source: " << task.on_source;
+        return os;
+    }
 };
 
 struct RunTask {

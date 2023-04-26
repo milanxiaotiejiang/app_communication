@@ -20,6 +20,7 @@ string ExecuteTaskStrategy::handler(Task task) {
 }
 
 string PerformTaskStrategy::handler(OnTask params) {
+    LOG(ERROR) << params;
     return TaskCenter::instance().performTask(params.task_id, SqliteDataBase::TaskSourceFromString(params.on_source));
 }
 
@@ -50,6 +51,8 @@ RunTask RunningTaskStrategy::handler(string params) {
                 runTask.oldTaskId = runningTask.getCombination().getCombinationID();
             }
         }
+    } else {
+        throw app::exception(make_error_code(error::no_run_task));
     }
     return runTask;
 }
