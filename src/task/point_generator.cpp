@@ -479,7 +479,7 @@ std::vector<RealPoint> FullPointGenerator::taskGeneratePointList(RealTask &task)
     std::vector<RealPoint> taskPointList;
     auto taskId = task.getId();
     auto roomCoverage = ExplorationCenter::instance().findRoomCoverage(taskId, true);
-    const auto& poseList = roomCoverage.getPoseList();
+    auto poseList = roomCoverage.getPoseList();
     std::vector<RealPoint> realPoints;
     pose2RealPoint(task, poseList, realPoints);
     return realPoints;

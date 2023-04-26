@@ -39,7 +39,7 @@ JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
 JsonSubscribe::~JsonSubscribe() {}
 
 void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
-//    LOG(INFO) << "subscribeCallback : " << syscall(SYS_gettid) << " " << result.data;
+    LOG(INFO) << "subscribeCallback : " << syscall(SYS_gettid) << " " << result.data;
 
     json jDecode = json::parse(result.data);
 
@@ -54,9 +54,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
     switch (switch_ID(entrance.getMethod())) {
         case GET_DEVICE_STATUS_:
             messageStrategy = new GetDeviceStatusStrategy();
-            break;
-        case APP_ALONG_CLEAN_:
-            messageStrategy = new AppAlongCleanStrategy();
             break;
         case SAVE_MAP_:
             messageStrategy = new SaveMapStrategy();
@@ -107,9 +104,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case CHANGE_AROM_STATUS_:
             messageStrategy = new ChangeAromStatusStrategy();
-            break;
-        case OPEN_SELF_CLEANING_:
-            messageStrategy = new SelfCleanStrategy();
             break;
 
         case TEACH_MODE_START_:
@@ -185,18 +179,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case GET_ROS_VERSION_:
             messageStrategy = new GetRosVersionStrategy();
-            break;
-        case PLAY_VOICE_:
-            messageStrategy = new PlayerRecruitVoiceStrategy();
-            break;
-        case LIGHT_BELT_MODE_:
-            messageStrategy = new LightBeltModeStrategy();
-            break;
-        case OPEN_MACHINE_DRAWER_:
-            messageStrategy = new OpenMachineDrawerStrategy();
-            break;
-        case SET_POWER_REDUCTION:
-            messageStrategy = new PowerReductionStrategy();
             break;
         case UPD_TIMER_:
             messageStrategy = new UpdateTimerStrategy();

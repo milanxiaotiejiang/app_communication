@@ -14,14 +14,10 @@ BeforeJsonSubscribe::~BeforeJsonSubscribe() {
 
 void BeforeJsonSubscribe::subscribeCallback(const std_msgs::String &str) {
 
-    std_msgs::Int16 mode;          //用于发布任务调度指令
     std_msgs::String command;      //用于收到消息后的回应
     geometry_msgs::Twist move_cmd; //用于发布速度指令
     geometry_msgs::Twist clean_msg;//用于发布区域清扫信息
-    std_msgs::Int16 clean_mode;    //用于清扫模式开关指令
     command.data.clear();
-    mode.data = (int16_t) 0;
-    clean_mode.data = (int16_t) 0;
 
     string header(str.data, 0, 4);
     string len(str.data, 4, 2);
@@ -69,29 +65,7 @@ void BeforeJsonSubscribe::subscribeCallback(const std_msgs::String &str) {
                     move_cmd.angular.z = 0;
                 }
                 PublishInnerManager::instance().publishVelocity(move_cmd);//发布速度
-                //                ROS_INFO("start move!");
                 break;
-
-                //            case SET_CREAT_MAP_MODE://creat map mode
-                ////                ROS_INFO("creating map!");
-                //                mode.data = ((int16_t) 1);
-                //                pubInner.publishMode(mode);
-                ////                ROS_INFO("creating map!");
-                //
-                //                break;
-                //
-                //            case SET_WORK_MODE://
-                //                mode.data = ((int16_t) 2);
-                ////                ROS_INFO("Start working");
-                //                pubInner.publishMode(mode);
-                //                break;
-                //
-                //            case SET_ORIGINAL_MODE://
-                //                mode.data = ((int16_t) 0);
-                //                pubInner.publishMode(mode);
-                ////                ROS_INFO("Stop working");
-                //                break;
-
             default:
                 break;
         }

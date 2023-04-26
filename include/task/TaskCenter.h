@@ -52,7 +52,7 @@ public:
 
     void executeTask(const Task &task);
 
-    std::string performTask(const long taskId, TaskSource on_source);
+    std::string performTask(const long taskId, TaskSource on_source, int on_rate);
 
 };
 

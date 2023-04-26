@@ -36,7 +36,7 @@ void TaskExploration::task2RealTask(const TaskVo &task, RealTask &realTask) {
     realTask.setMapId(task.getOMapId());
     realTask.setTaskId(task.getId());
     realTask.setName(task.getName());
-    realTask.setRate(task.getRate());
+//    realTask.setRate(task.getRate());
     realTask.setMode(task.getMode());
 
     realTask.setWorkStatus(task.getWorkStatus());

@@ -2,7 +2,7 @@
 echo "Upgrade Aircore"
 version=$(rosparam get /ros_version)
 major=${version:0:5}
-old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9")
+old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9" "0.9.10")
 version_index=0
 for i in 1 2 3 4 5
 do
@@ -65,4 +65,8 @@ then
     echo "Upgrading libcartographer.so"
     echo "123456" | sudo -S cp /home/admin1/AirCore/libcartographer.so /usr/local/lib/
 fi
+if [ $version_index -lt 5 ]
+then
+    echo "Updating 0.9.9"
 
+fi

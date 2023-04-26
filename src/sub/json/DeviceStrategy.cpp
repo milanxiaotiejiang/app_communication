@@ -22,10 +22,10 @@
 
 DeviceStatus GetDeviceStatusStrategy::handler(string method) {
     //追加几行，每当有连接时候获取下版本号
-    std_msgs::Int16 version;
+    std_msgs::Int32 version;
     version.data = 0;
     PublishInnerManager::instance().publishDSVersion(version);
-    std_msgs::Int16 version1;
+    std_msgs::Int32 version1;
     version1.data = 1;
     PublishInnerManager::instance().publishDSVersion(version1);
 
@@ -121,42 +121,9 @@ string ChangeWorkModeStrategy::handler(WorkStatus params) {
 }
 
 string ChangeAromStatusStrategy::handler(bool params) {
-    std_msgs::Int16 arom_status;
-    arom_status.data = (int16_t) params;
+    std_msgs::Int32 arom_status;
+    arom_status.data = params;
     PublishInnerManager::instance().publishAromStatus(arom_status);
-    return "";
-}
-
-string SelfCleanStrategy::handler(string params) {
-    //操作,发布指令，打开自清洁
-    std_msgs::Int16 clean_mode;
-    clean_mode.data = ((int16_t) 4);
-    PublishInnerManager::instance().publishPushMode(clean_mode);
-    return "";
-}
-
-string OpenMachineDrawerStrategy::handler(string params) {
-    //操作,发布指令，打开自清洁
-    std_msgs::Int16 drawer_cmd;
-    drawer_cmd.data = ((int16_t) 1);
-    PublishInnerManager::instance().publishDrawerCmd(drawer_cmd);
-    return "";
-}
-
-string LightBeltModeStrategy::handler(int params) {
-    int16_t light_mode = (int16_t) params;
-    //操作,发布指令，打开自清洁
-    std_msgs::Int16 light_cmd;
-    light_cmd.data = ((int16_t) light_mode);
-    PublishInnerManager::instance().publishLightCmd(light_cmd);
-    return "";
-}
-
-string PlayerRecruitVoiceStrategy::handler(int params) {
-    //操作,发布指令，播放音乐
-    std_msgs::Int32 player_cmd;
-    player_cmd.data = ((int32_t) 1);
-    PublishInnerManager::instance().publishMusic(player_cmd);
     return "";
 }
 

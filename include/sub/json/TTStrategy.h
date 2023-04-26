@@ -16,16 +16,6 @@
 using json = nlohmann::json;
 using namespace std;
 
-class AppAlongCleanStrategy : public MessageStrategy<std::vector<float>, string> {
-public:
-    string handler(vector<float> params) override;
-};
-
-class PowerReductionStrategy : public MessageStrategy<string, string> {
-public:
-    string handler(string params) override;
-};
-
 class TTErrorCheck : public MessageStrategy<string, string> {
 public:
     string handler(string params) override;

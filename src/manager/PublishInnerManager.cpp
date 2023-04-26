@@ -19,7 +19,7 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_otalow = handle.advertise<std_msgs::String>("/ota_low", 10);
     pub_ds_version = handle.advertise<std_msgs::Int32>("/dasheng/version", 1);
     pub_knob_available = handle.advertise<std_msgs::Bool>("/knob/available", 1);
-    pub_knob_task = handle.advertise<std_msgs::Int8>("/knob/task", 1);
+    pub_knob_task = handle.advertise<std_msgs::Int32>("/knob/task", 1);
     pub_reboot = handle.advertise<std_msgs::Int32>("/reboot_flag", 1);
     pub_shutdown = handle.advertise<std_msgs::Int32>("/shutdown_flag", 1);
     pub_oil = handle.advertise<std_msgs::Int32>("/mrrobot/pop_sweep_oil", 1);
@@ -28,35 +28,35 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_collect_dust = handle.advertise<std_msgs::Int32>("/collect_dust", 1);
 }
 
-void PublishInnerManager::publishPushMode(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishPushMode(const std_msgs::Int32 &message) const {
     pub_push_mode_.publish(message);
 }
 
-void PublishInnerManager::publishSelfClean(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishSelfClean(const std_msgs::Int32 &message) const {
     pub_self_clean_.publish(message);
 }
 
-void PublishInnerManager::publishVacuumMode(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishVacuumMode(const std_msgs::Int32 &message) const {
     pub_vacuum_mode_.publish(message);
 }
 
-void PublishInnerManager::publishMopMode(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishMopMode(const std_msgs::Int32 &message) const {
     pub_mop_mode_.publish(message);
 }
 
-void PublishInnerManager::publishSweepMode(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishSweepMode(const std_msgs::Int32 &message) const {
     pub_sweep_mode_.publish(message);
 }
 
-void PublishInnerManager::publishAromStatus(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishAromStatus(const std_msgs::Int32 &message) const {
     pub_arom_status_.publish(message);
 }
 
-void PublishInnerManager::publishDrawerCmd(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishDrawerCmd(const std_msgs::Int32 &message) const {
     pub_darwer_cmd_.publish(message);
 }
 
-void PublishInnerManager::publishLightCmd(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishLightCmd(const std_msgs::Int32 &message) const {
     pub_light_mode_.publish(message);
 }
 
@@ -76,7 +76,7 @@ void PublishInnerManager::publishOtaLow(const std_msgs::String &message) const {
     pub_otalow.publish(message);
 }
 
-void PublishInnerManager::publishDSVersion(const std_msgs::Int16 &message) const {
+void PublishInnerManager::publishDSVersion(const std_msgs::Int32 &message) const {
     pub_ds_version.publish(message);
 }
 
@@ -90,7 +90,7 @@ void PublishInnerManager::publishKnobAvailable(const std_msgs::Bool &message) co
     pub_knob_available.publish(message);
 }
 
-void PublishInnerManager::publishKnobTask(const std_msgs::Int8 &message) const {
+void PublishInnerManager::publishKnobTask(const std_msgs::Int32 &message) const {
     pub_knob_task.publish(message);
 }
 

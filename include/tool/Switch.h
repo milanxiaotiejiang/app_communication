@@ -8,7 +8,6 @@
 
 enum MESSAGE_ID {
     GET_DEVICE_STATUS_ = 0, //获取机器状态
-    APP_ALONG_CLEAN_ = 1,   //延边清扫
     SAVE_MAP_,              //保存地图
     GET_MULTI_MAPS_,        //获取地图列表
     CHANGE_MAP_,            //切换地图
@@ -32,7 +31,6 @@ enum MESSAGE_ID {
     POLYGON_TASK_LIST_,        //设置多边形区域
     GET_POLYGON_TASK_LIST_,    //获取多边形区域
 
-    OPEN_SELF_CLEANING_,     //开启自清洁
     TEACH_MODE_START_,       //开启示教
     TEACH_MODE_STOP_,        //关闭示教
     TEACH_HEART_BEAT_,       //示教心跳包
@@ -69,10 +67,6 @@ enum MESSAGE_ID {
     DEL_TIMER_,      //删除单个定时器
     UPD_TIMER_,      //修改清扫计时器
     GET_ROS_VERSION_,
-    PLAY_VOICE_,
-    LIGHT_BELT_MODE_,
-    OPEN_MACHINE_DRAWER_,
-    SET_POWER_REDUCTION, // set power reduction
     SAVE_LOCATION,
     SAVE_PROJECT,
     GET_LOCATION,

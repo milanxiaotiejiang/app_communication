@@ -177,7 +177,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
 
     if (!Environment::instance().isRealEnvironment) {
         std::thread moveBaseThread([]() {
-            sleep(3);
+            sleep(10);
             NodeControl::instance().emulate();
             int last_machine_code = 10006;
             while (1) {
@@ -229,9 +229,10 @@ void TaskCenter::executeTask(const Task &task) {
     preTask(realTask);
 }
 
-std::string TaskCenter::performTask(const long taskId, TaskSource on_source) {
+std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int on_rate) {
     auto task = TaskDataBase::instance().loadTaskFoId(taskId);
     RealTask realTask;
+    realTask.setRate(task.getRate() * on_rate);
     realTask.setOnSource(SqliteDataBase::SourceToString(on_source));
     TaskExploration::task2RealTask(task, realTask);
     return preTask(realTask);
