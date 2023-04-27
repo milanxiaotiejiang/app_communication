@@ -69,7 +69,7 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knif
     LOG(INFO) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
     //扫
     std_msgs::Int32 sweep_status;
-    if (workStatus.getSweepStatus() >= 0 && workStatus.getSweepStatus() <= 3) {
+    if (workStatus.getSweepStatus() >= 0 && workStatus.getSweepStatus() <= 2) {
         if (workStatus.getSweepStatus() != ZooInnerStatus::instance().getSweepStatus()) {
             sweep_status.data = workStatus.getSweepStatus();
             PublishInnerManager::instance().publishSweepMode(sweep_status);
@@ -78,7 +78,7 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knif
 
     //拖
     std_msgs::Int32 mop_status;
-    if (workStatus.getMopStatus() >= 0 && workStatus.getMopStatus() <= 3) {
+    if (workStatus.getMopStatus() >= 0 && workStatus.getMopStatus() <= 2) {
         if (workStatus.getMopStatus() != ZooInnerStatus::instance().getMopStatus()) {
             mop_status.data = workStatus.getMopStatus();
             PublishInnerManager::instance().publishMopMode(mop_status);
@@ -87,7 +87,7 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knif
 
     //吸
     std_msgs::Int32 vacuum_status;
-    if (workStatus.getVacuumStatus() >= 0 && workStatus.getVacuumStatus() <= 3) {
+    if (workStatus.getVacuumStatus() >= 0 && workStatus.getVacuumStatus() <= 2) {
         if (workStatus.getVacuumStatus() != ZooInnerStatus::instance().getVacuumStatus()) {
             vacuum_status.data = workStatus.getVacuumStatus();
             PublishInnerManager::instance().publishVacuumMode(vacuum_status);
@@ -96,7 +96,7 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knif
 
     //尘推
     std_msgs::Int32 push_status;
-    if (workStatus.getPushStatus() >= 0 && workStatus.getPushStatus() <= 3) {
+    if (workStatus.getPushStatus() >= 0 && workStatus.getPushStatus() <= 2) {
         if (workStatus.getPushStatus() != ZooInnerStatus::instance().getPushStatus()) {
             push_status.data = workStatus.getPushStatus();
             if (push_status.data == 1) {
