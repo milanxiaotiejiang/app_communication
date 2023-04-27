@@ -55,6 +55,7 @@ void PointPlanner::gotoPlannerPoint(const RealPoint &realPoint) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::task_planner_failed_to_start));
     }
+    LOG(INFO) << "AsyncTaskFramework : gotoPlannerPoint " << realPoint.realPosition << "...";
     move_base_msgs::MoveBaseGoal goal;
     point2Goal(realPoint, goal);
     move_base->sendGoal(goal, &doneCd, &activeCd, &feedbackCb);

@@ -677,7 +677,7 @@ cv::Mat ExplorationCenter::findClosestPointRoom(cv::Mat &room_map, const cv::Poi
     double distance = -100000;
     for (int i = 0; i < contours.size(); ++i) {
         std::vector<cv::Point> contour = contours[i];
-        if (contour.size() < min_cell_area) {
+        if (contour.size() < min_cell_area / 3) {
             continue;
         }
         double d = cv::pointPolygonTest(contour, point, true);
