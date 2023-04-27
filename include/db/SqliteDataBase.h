@@ -129,7 +129,8 @@ public:
                                        make_column("number_extension_", &PlanPo::number_extension),
                                        make_column("multiple_contour", &PlanPo::multiple_contour_spacing),
                                        make_column("random_ratio", &PlanPo::random_number_generation_ratio),
-                                       make_column("boundary_min_area", &PlanPo::boundary_min_area)
+                                       make_column("boundary_min_area", &PlanPo::boundary_min_area),
+                                       make_column("version", &PlanPo::version, default_value(1))
                             )
         );
 

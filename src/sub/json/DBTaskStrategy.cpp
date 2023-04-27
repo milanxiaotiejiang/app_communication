@@ -54,9 +54,7 @@ long AddTimerTaskStrategy::handler(TimerVo params) {
         throw std::invalid_argument("Invalid timer_rule");
     }
     int rate = params.getRate();
-    if (rate < 1 || rate > 4) {
-        throw std::invalid_argument("Invalid rate");
-    }
+    checkRate(rate);
 
     MapPo map = SegmentationDataBase::instance().getDbMap();
     long timer = TaskDataBase::instance().addTimer(map.id, params);

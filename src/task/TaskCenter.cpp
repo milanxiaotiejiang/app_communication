@@ -36,6 +36,7 @@
 #include "exploration/path_exploration_preview_task.h"
 
 std::string TaskCenter::preTask(const RealTask &task) {
+    LOG(INFO) << "preTask ------------------" << task.getRate();
     //拦截手动下发的任务且前期出站后期进站
     if (task.isRenew()) {
         const std::string &source = task.getSource();

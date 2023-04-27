@@ -215,14 +215,20 @@ void SegmentationDataBase::setPlanParam(const std::string &mapId, double robotRa
                                         int neighborhoodIndex, int maxIterations, double minCriticalPointDistanceFactor,
                                         double maxAreaForMerging, int distanceFromObstacles, int numberExtension,
                                         int multipleContourSpacing, int random_number_generation_ratio,
-                                        int boundary_min_area) {
+                                        int boundary_min_area, int version) {
     PlanPo planPo(mapId, robotRadius, mapCorrectionClosingNeighborhoodSize,
                   gridObstacleOffset, pathEps, minCellArea, maxDeviationFromTrack,
                   rangeNearBaseStation, roomAreaFactorLowerLimit, roomAreaFactorUpperLimit,
                   neighborhoodIndex, maxIterations, minCriticalPointDistanceFactor, maxAreaForMerging,
                   distanceFromObstacles, numberExtension, multipleContourSpacing,
-                  random_number_generation_ratio, boundary_min_area);
+                  random_number_generation_ratio, boundary_min_area, version);
     segmentationStorage.replace(planPo);
+}
+
+void SegmentationDataBase::removePlanParam(const string &mapId) {
+    segmentationStorage.remove_all<PlanPo>(
+            where(c(&PlanPo::map_id) == std::move(mapId))
+    );
 }
 
 PlanPo SegmentationDataBase::getDbPlan(std::string map_id) {
