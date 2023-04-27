@@ -428,19 +428,19 @@ std::vector<TimerVo> TaskDataBase::loadTimerFoMap(const std::string &mapId) {
     std::vector<TimerVo> vos;
     for (const auto &row: results) {
         TimerPo timerPo(
-                std::get<0>(row),
-                std::get<1>(row),
-                std::get<2>(row),
-                std::get<3>(row),
-                std::get<4>(row),
-                std::get<5>(row),
-                std::get<6>(row),
-                std::get<7>(row),
-                std::get<8>(row),
-                std::get<9>(row),
-                std::get<10>(row),
-                std::get<11>(row),
-                std::get<12>(row)
+                std::get<0>(row),//long id
+                std::get<1>(row),//string &oMapId
+                std::get<2>(row),//long oTaskId
+                std::get<3>(row),//string &oTaskName
+                std::get<4>(row),//string &rule
+                std::get<5>(row),//string &name
+                std::get<6>(row),//bool isExecute
+                std::get<7>(row),//int rate
+                std::get<8>(row),//bool isNever
+                std::get<9>(row),//bool isSkip
+                std::get<10>(row),//int endYear
+                std::get<11>(row),//int endMonth
+                std::get<12>(row)//int endDay
         );
         const TimerVo &vo = timerPo2Vo(timerPo);
         vos.push_back(vo);

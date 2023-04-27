@@ -195,6 +195,14 @@ void NodeControl::trySleep() {
 //        }
 //    }
     asyncOn([this]() {
+        node::WorkState back_work_state_ = work_state_;
+        node::MapState back_map_state_ = map_state_;
+        node::State back_state_ = state_;
+
+        work_state_ = node::WorkState::normal;
+        map_state_ = node::MapState::normal;
+        state_ = node::State::sleep;
+
         CartographerPublisher::instance().publishShutdownCarto();
         CartographerPublisher::instance().publishClearCurrentPose();
         bool isSuccessful = ModeValidate::validate(node::State::sleep);
@@ -205,6 +213,9 @@ void NodeControl::trySleep() {
             state_ = node::State::sleep;
         } else {
             LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
+            work_state_ = back_work_state_;
+            map_state_ = back_map_state_;
+            state_ = back_state_;
         }
     });
 }

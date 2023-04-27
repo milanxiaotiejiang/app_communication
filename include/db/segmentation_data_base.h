@@ -63,8 +63,11 @@ public:
                       int numberExtension,
                       int multipleContourSpacing,
                       int random_number_generation_ratio,
-                      int boundary_min_area
+                      int boundary_min_area,
+                      int version = 2
     );
+
+    void removePlanParam(const std::string &mapId);
 
     PlanPo getDbPlan(std::string map_id);
 };

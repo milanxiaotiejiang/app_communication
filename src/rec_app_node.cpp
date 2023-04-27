@@ -322,6 +322,8 @@ void initNodeParams(const ros::NodeHandle &nh) {
     bool update_map;
     nh.param<bool>("update_map", update_map, false); //update_map
     Environment::instance().update_map = update_map;
+
+    LOG(INFO) << "core version : " << ros_version;
 }
 
 void release() {

@@ -102,6 +102,11 @@ void MapAttribute::loadPlanParam() {
     if (planPo.map_id.empty()) {
         loadDefaultPlanParam();
     }
+    auto planPo2 = SegmentationDataBase::instance().getDbPlan(map_id);
+    if (planPo2.version == 1) {
+        SegmentationDataBase::instance().removePlanParam(map_id);
+        loadDefaultPlanParam();
+    }
 }
 
 void MapAttribute::loadDefaultPlanParam() {

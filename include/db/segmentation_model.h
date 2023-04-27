@@ -132,6 +132,8 @@ public:
     int random_number_generation_ratio;//可达点的计算比例 50-200（100）路径生成后的点位可达计算率
     int boundary_min_area;//沿边路径范围的最小面积 0-10（1）地图障碍物小于此值不规划沿边路径
 
+    int version;
+
     PlanPo();
 
     PlanPo(const std::string &mapId, double robotRadius, int mapCorrectionClosingNeighborhoodSize,
@@ -139,7 +141,7 @@ public:
            int rangeNearBaseStation, double roomAreaFactorLowerLimit, double roomAreaFactorUpperLimit,
            int neighborhoodIndex, int maxIterations, double minCriticalPointDistanceFactor, double maxAreaForMerging,
            int distanceFromObstacles, int numberExtension, int multipleContourSpacing, int randomNumberGenerationRatio,
-           int boundaryMinArea);
+           int boundaryMinArea, int version);
 };
 
 

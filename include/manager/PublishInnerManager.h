@@ -7,7 +7,6 @@
 
 #include <ros/ros.h>
 #include <std_msgs/Int32.h>
-#include <std_msgs/Int16.h>
 #include <std_msgs/Int32MultiArray.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/String.h>
@@ -48,21 +47,21 @@ public:
 
     void initialize(ros::NodeHandle handle);
 
-    void publishPushMode(const std_msgs::Int16 &message) const;
+    void publishPushMode(const std_msgs::Int32 &message) const;
 
-    void publishSelfClean(const std_msgs::Int16 &message) const;
+    void publishSelfClean(const std_msgs::Int32 &message) const;
 
-    void publishVacuumMode(const std_msgs::Int16 &message) const;
+    void publishVacuumMode(const std_msgs::Int32 &message) const;
 
-    void publishMopMode(const std_msgs::Int16 &message) const;
+    void publishMopMode(const std_msgs::Int32 &message) const;
 
-    void publishSweepMode(const std_msgs::Int16 &message) const;
+    void publishSweepMode(const std_msgs::Int32 &message) const;
 
-    void publishDrawerCmd(const std_msgs::Int16 &message) const;
+    void publishDrawerCmd(const std_msgs::Int32 &message) const;
 
-    void publishLightCmd(const std_msgs::Int16 &message) const;
+    void publishLightCmd(const std_msgs::Int32 &message) const;
 
-    void publishAromStatus(const std_msgs::Int16 &message) const;
+    void publishAromStatus(const std_msgs::Int32 &message) const;
 
     void publishVelocity(const geometry_msgs::Twist &message) const;
 
@@ -72,13 +71,13 @@ public:
 
     void publishOtaLow(const std_msgs::String &message) const;
 
-    void publishDSVersion(const std_msgs::Int16 &message) const;
+    void publishDSVersion(const std_msgs::Int32 &message) const;
 
     void publishResetProhibition();
 
     void publishKnobAvailable(const std_msgs::Bool &message) const;
 
-    void publishKnobTask(const std_msgs::Int8 &message) const;
+    void publishKnobTask(const std_msgs::Int32 &message) const;
 
     void publishShutDown(const std_msgs::Int32 &message) const;
 

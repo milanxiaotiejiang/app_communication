@@ -90,9 +90,6 @@ int switch_ID(const std::string &str) {
     if (str == "get_polygon_task_list") {
         return GET_POLYGON_TASK_LIST_;
     }
-    if (str == "open_self_cleaning") {
-        return OPEN_SELF_CLEANING_;
-    }
     if (str == "teach_mode_start") {
         return TEACH_MODE_START_;
     }
@@ -167,18 +164,6 @@ int switch_ID(const std::string &str) {
     }
     if (str == "get_ros_version") {
         return GET_ROS_VERSION_;
-    }
-    if (str == "player_recruit_voice") {
-        return PLAY_VOICE_;
-    }
-    if (str == "light_belt_mode") {
-        return LIGHT_BELT_MODE_;
-    }
-    if (str == "open_machine_drawer") {
-        return OPEN_MACHINE_DRAWER_;
-    }
-    if (str == "power_reduction_1") {
-        return SET_POWER_REDUCTION;
     }
     if (str == "update_timer") {
         return UPD_TIMER_;

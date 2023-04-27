@@ -226,7 +226,6 @@ void HeadTailPointCall::callCloseMechanism(function<void()> f) {
 }
 
 void HeadTailPointCall::callGoFirstPoint(RealPoint point) {
-//    PublishInner
     PointPlanner::instance().gotoPlannerFirstPoint(point);
     async::TimerCall::instance().baseLoop()
             ->scheduleLater(std::chrono::seconds(point.timeout), [this, &point]() {
