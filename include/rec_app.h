@@ -55,6 +55,7 @@
 #include "glog/logging.h"
 #include "sys/stat.h"
 #include "sys/types.h"
+#include "schedule/ScheduleThread.h"
 #include "sub/DSVersionSubscribe.h"
 #include "net/poly/Msg.hpp"
 #include "net/poly/Queue.hpp"

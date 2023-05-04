@@ -89,7 +89,9 @@ void ScheduleManager::update_task_schedule() {
 
     for (const auto &timer: availableTimer) {
         try {
-            cron::cronexpr cron_expression = cron::make_cron("0 " + timer.getTimerRule());
+            auto timerRule = "0 " + timer.getTimerRule();
+            const string &cronExpression = fix_cron_expression(timerRule);
+            cron::cronexpr cron_expression = cron::make_cron(cronExpression);
             auto next_run_time = cron::cron_next(cron_expression, std::chrono::system_clock::now());
             ScheduledTask scheduledTask = buildTask(
                     timer, cron_expression, next_run_time, [this](ScheduledTask &task) {
@@ -222,4 +224,52 @@ std::chrono::system_clock::time_point ScheduleManager::get_end_time(const TimerV
     time_c += 24 * 60 * 60;
 
     return std::chrono::system_clock::from_time_t(time_c);
+}
+
+std::vector<std::string> ScheduleManager::split(const std::string &str, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(str);
+    while (std::getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+std::string ScheduleManager::fix_cron_expression(const std::string &cron_expression) {
+    std::vector<std::string> tokens = split(cron_expression, ' ');
+
+    // 从原始cron表达式中提取星期几的部分
+    std::string weekdays = tokens[5];
+
+    // 如果星期几字段为 '*'，说明没有需要修改的星期几逻辑
+    if (weekdays == "*") {
+        return cron_expression;
+    }
+
+    // 分割星期几的字段，并转换为整数
+    std::vector<int> weekday_numbers;
+    for (const std::string &weekday: split(weekdays, ',')) {
+        int number = std::stoi(weekday);
+        if (number == 0) {
+            number = 1;
+        } else {
+            number++;
+        }
+        weekday_numbers.push_back(number);
+    }
+
+    // 重新组合cron表达式
+    std::ostringstream fixed_expression;
+    fixed_expression << tokens[0] << " " << tokens[1] << " " << tokens[2] << " " << tokens[3] << " " << tokens[4]
+                     << " ";
+
+    for (size_t i = 0; i < weekday_numbers.size(); i++) {
+        fixed_expression << weekday_numbers[i];
+        if (i < weekday_numbers.size() - 1) {
+            fixed_expression << ",";
+        }
+    }
+
+    return fixed_expression.str();
 }

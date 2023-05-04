@@ -25,6 +25,7 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_oil = handle.advertise<std_msgs::Int32>("/mrrobot/pop_sweep_oil", 1);
     pub_reset_prohibition = handle.advertise<std_msgs::Int32>("/reset_prohibition", 1);
     pub_knife = handle.advertise<std_msgs::Int32>("/mrrobot/control_wind_knife", 1);
+    acceptAppSchedule = handle.advertise<std_msgs::String>("/app_schedule", 1);
     pub_collect_dust = handle.advertise<std_msgs::Int32>("/collect_dust", 1);
 }
 
@@ -108,6 +109,10 @@ void PublishInnerManager::publishOil(const std_msgs::Int32 &message) const {
 
 void PublishInnerManager::pubKnife(const std_msgs::Int32 &message) const {
     pub_knife.publish(message);
+}
+
+void PublishInnerManager::publishAppSchedule(const std_msgs::String &message) const {
+    acceptAppSchedule.publish(message);
 }
 
 void PublishInnerManager::publishCollectDust() const {

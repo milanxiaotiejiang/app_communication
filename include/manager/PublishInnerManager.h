@@ -38,6 +38,7 @@ private:
     pub_reboot,//
     pub_oil,//
     pub_knife,//
+    acceptAppSchedule,//
     pub_collect_dust;
 public:
     static auto &instance() {
@@ -86,6 +87,8 @@ public:
     void publishOil(const std_msgs::Int32 &message) const;
 
     void pubKnife(const std_msgs::Int32 &message) const;
+
+    void publishAppSchedule(const std_msgs::String &message) const;
 
     void publishCollectDust() const;
 

@@ -184,7 +184,8 @@ public:
                 if (item != "cleanHistory.sqlite" && item != "Property.sqlite" && item != "Task.sqlite" &&
                     item != "move.mp3" && item != "out.mp3" && item != "pad_version_info.txt" &&
                     item != "param_app.yaml" && item != "prohibition_areas.yaml" &&
-                    item != "timer_info_json.txt" && item != "combination_list_principal_json_work.txt") {
+                    item != "timer_info_json.txt" && item != "combination_list_principal_json_work.txt" &&
+                    item != "view_part_principal_json.txt") {
                     cppfs::FileHandle file = cppfs::fs::open(path::data_base_config_dir() + item);
                     if (file.isDirectory()) {
                         file.removeDirectoryRec();

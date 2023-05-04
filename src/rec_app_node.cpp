@@ -29,6 +29,8 @@ FullCleanManager *FullCleanManager::m_instance_ptr = nullptr;
 
 internal_event::InternalEventPubManager *internal_event::InternalEventPubManager::instance_ = nullptr;
 
+ScheduleThread *sThd = nullptr;
+
 int main(int argc, char **argv) {
 
     current_program_string = argv[0];
@@ -90,6 +92,10 @@ int main(int argc, char **argv) {
     UpgradeManager::instance().deleteExcessive();
 
     ScheduleManagerSingleton::instance().start(handle);
+
+    sThd = new ScheduleThread(handle);
+    sThd->start();
+    sThd->detach();
 
     ros::MultiThreadedSpinner spinner;
     spinner.spin();

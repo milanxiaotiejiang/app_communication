@@ -225,7 +225,7 @@ void TaskDataBase::deleteTimerForMap(std::string mapId) {
 
 TaskVo TaskDataBase::modifyPrincipalTask(std::string mapId, long taskId, bool principal) {
     if (principal) {
-        taskStorage.update_all(sqlite_orm::set(c(&TaskPo::partition) = false),
+        taskStorage.update_all(sqlite_orm::set(c(&TaskPo::principal) = false),
                                where(c(&TaskPo::o_map_id) == std::move(mapId))
         );
     }
