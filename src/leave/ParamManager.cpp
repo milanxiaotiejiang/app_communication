@@ -39,6 +39,7 @@ void ParamManager::loadDefaultParam() {
         node["silver"] = true;
         node["dry"] = 0;
         node["energy"] = false;
+        node["txt_upgrade"] = false;
         std::ofstream ofstream(app_param_path);
         ofstream << node;
         ofstream.close();
@@ -136,6 +137,30 @@ void ParamManager::setEnergy(bool energy) {
     }
     YAML::Node node = YAML::LoadFile(app_param_path);
     node["energy"] = energy;
+    std::ofstream ofstream(app_param_path);
+    ofstream << node;
+    ofstream.close();
+}
+
+bool ParamManager::getTxtUpgrade() {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    auto childNode = node["txt_upgrade"];
+    if (childNode.IsDefined() && childNode.IsScalar()) {
+        return childNode.as<bool>();
+    }
+    setEnergy(false);
+    return getEnergy();
+}
+
+void ParamManager::setTxtUpgrade(bool txt_upgrade) {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    node["txt_upgrade"] = txt_upgrade;
     std::ofstream ofstream(app_param_path);
     ofstream << node;
     ofstream.close();

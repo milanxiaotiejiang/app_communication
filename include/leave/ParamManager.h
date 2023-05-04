@@ -29,6 +29,10 @@ public:
     bool getEnergy();
 
     void setEnergy(bool energy);
+
+    bool getTxtUpgrade();
+
+    void setTxtUpgrade(bool txt_upgrade);
 };
 
 

@@ -9,7 +9,7 @@ TimerInfo::TimerInfo() {}
 //TimerInfo::TimerInfo(const std::string &timerId, const std::string &timerRule,  const std::string &timername, const std::string &taskId, bool isExecute,int  Rate,bool isnever,bool isskip,int endyear,int endmonth,int endday)
 TimerInfo::TimerInfo(const std::string &timerId, const std::string &timerRule, const std::string &timername,
                      const std::string &taskId, bool isExecute, int Rate, const std::string &taskname, bool isnever,
-                     bool isskip, int endyear, int endmonth, int endday)
+                     bool isskip, int endyear, int endmonth, int endday, bool old)
         : timer_id(timerId),
           timer_rule(timerRule),
           task_id(taskId),
@@ -21,7 +21,8 @@ TimerInfo::TimerInfo(const std::string &timerId, const std::string &timerRule, c
           is_skip(isskip),
           end_year(endyear),
           end_month(endmonth),
-          end_day(endday) {
+          end_day(endday),
+          old(old) {
 
 }
 
@@ -125,6 +126,13 @@ void TimerInfo::setRate(int irate) {
     rate = irate;
 }
 
+bool TimerInfo::isOld() const {
+    return old;
+}
+
+void TimerInfo::setOld(bool old) {
+    TimerInfo::old = old;
+}
 
 ///////////////////////////
 
