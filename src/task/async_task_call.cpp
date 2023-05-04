@@ -375,6 +375,7 @@ void AsyncTaskCall::reset() {
     runTask.setId("");
 
     plannerQueue.clear();
+    childPointQueue.clear();
     firstRetryCount = 0;
     backBaseRetryCount = 0;
     rechargeRetryCount = 0;
