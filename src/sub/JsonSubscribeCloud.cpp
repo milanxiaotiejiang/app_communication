@@ -59,33 +59,15 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case GET_DEVICE_STATUS_:
             messageStrategy = new GetDeviceStatusStrategyV2();
             break;
-//        case APP_ALONG_CLEAN_:
-//            messageStrategy = new AppAlongCleanStrategy();
-//            break;
-//        case SAVE_MAP_:
-//            messageStrategy = new SaveMapStrategy();
-//            break;
         case GET_MULTI_MAPS_:
             messageStrategy = new GetMultiMapsStrategy();
             break;
-//        case CHANGE_MAP_:
-//            messageStrategy = new ChangeMapStrategy();
-//            break;
-//        case EDIT_MAP_:
-//            messageStrategy = new EditMapStrategy();
-//            break;
         case GET_EDIT_MAP_:
             messageStrategy = new GetEditMapStrategy();
             break;
-//        case EXECUTE_TASK_:
-//            messageStrategy = new ExecuteTaskStrategy();
-//            break;
         case GET_TASK_LIST_:
             messageStrategy = new GetTaskListStrategyV2();
             break;
-//        case GET_FINISHED_POINT_:
-//            messageStrategy = new GetFinishedPointStrategy();
-//            break;
         case APP_SPOT_:
             messageStrategy = new StatusResumeStrategy();
             break;
@@ -95,72 +77,12 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case APP_CHARGE_:
             messageStrategy = new StatusChargeStrategy();
             break;
-//        case CHANGE_WORK_STATUS_:
-//            messageStrategy = new ChangeWorkModeStrategy();
-//            break;
         case CHANGE_AROM_STATUS_:
             messageStrategy = new ChangeAromStatusStrategy();
             break;
-//        case CONTINUITY_TASK_LIST_:
-//            messageStrategy = new SetContinuityTaskStrategy();
-//            break;
-//        case POLYGON_TASK_LIST_:
-//            messageStrategy = new SetPolygonTaskStrategy();
-//            break;
-
-//        case OPEN_SELF_CLEANING_:
-//            messageStrategy = new SelfCleanStrategy();
-//            break;
-//        case ROBOT_RELOCATION_:
-//            messageStrategy = new RobotRelocateStrategy();
-//            break;
-
-//        case TEACH_MODE_START_:
-//            messageStrategy = new StartTeachModeStrategy();
-//            break;
-//        case TEACH_MODE_STOP_:
-//            messageStrategy = new StopTeachModeStrategy();
-//            break;
-//        case TEACH_HEART_BEAT_:
-//            messageStrategy = new HeartBeatofTeachModeStrategy();
-//            break;
-        case GET_TEACH_PATH_LIST_:
-            messageStrategy = new GetTeachModeListStrategy();
-            break;
-        case GET_TEACH_PATH_DETAIL_:
-            messageStrategy = new GetTeachModeDetialStrategy();
-            break;
-        case DELETE_TEACH_PATH_LIST_:
-            messageStrategy = new DeleteTeachModeStrategy();
-            break;
-//        case GET_FULL_PLAN_:
-//            messageStrategy = new GetFullPlanStrategy();
-//            break;
-//        case ROBOT_MOVE_:
-//            messageStrategy = new RobotMoveStrategy();
-//            break;
-
-//        case TRY_TO_ENTER_:
-//            messageStrategy = new RobotTryEnterModeStrategy();
-//            break;
-//        case FORCED_TO_ENTER_:
-//            messageStrategy = new RobotForceEnterModeStrategy();
-//            break;
-//        case WORK_TO_ENTER_:
-//            messageStrategy = new RobotPreparetoWorkStrategy();
-//            break;
-//        case WORK_TO_MAP_APP_:
-//            messageStrategy = new MapPreparetoWorkStrategy();
-//            break;
         case CLEAN_HISTORY_REQUEST_:
             messageStrategy = new GetCloudCleanHistoryStrategy();
             break;
-//        case COMBINATION_PART_ADD_:
-//            messageStrategy = new CombinationPartAddStrategy();
-//            break;
-//        case COMBINATION_COMBINATION_ADD_:
-//            messageStrategy = new CombinationCombinationAddStartegy();
-//            break;
         case COMBINATION_PART_LIST_:
             messageStrategy = new CombinationPartListStrategyV2();
             break;
@@ -179,31 +101,12 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case COMBINATION_COMBINATION_DELETE_:
             messageStrategy = new CombinationCombinationDeleteStrategy();
             break;
-//        case COMBINATION_PART_UPDATE_:
-//            messageStrategy = new CombinationPartUpdateStrategy();
-//            break;
-//        case COMBINATION_COMBINATION_UPDATE_:
-//            messageStrategy = new CombinationCombinationUpdateStrategy();
-//            break;
         case IS_IN_BASEMENT_:
             messageStrategy = new IsInBasementStrategy();
             break;
         case GET_ROS_VERSION_:
             messageStrategy = new GetRosVersionStrategy();
             break;
-//        case PLAY_VOICE_:
-//            messageStrategy = new PlayerRecruitVoiceStrategy();
-//            break;
-//        case LIGHT_BELT_MODE_:
-//            messageStrategy = new LightBeltModeStrategy();
-//            break;
-//        case OPEN_MACHINE_DRAWER_:
-//            messageStrategy = new OpenMachineDrawerStrategy();
-//            break;
-//        case SET_POWER_REDUCTION:
-//            messageStrategy = new PowerReductionStrategy();
-//            break;
-
 
         case UPD_TIMER_:
             messageStrategy = new UpdateTimerStrategy();

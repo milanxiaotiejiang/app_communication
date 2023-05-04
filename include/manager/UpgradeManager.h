@@ -23,6 +23,10 @@ public:
 
     void upgradeTask() {
 
+        if (ParamManager::instance().getTxtUpgrade()) {
+            return;
+        }
+
         MapPo map = SegmentationDataBase::instance().getDbMap();
 
         const cv::Mat room_map = SegmentationCenter::instance().generateMat();
@@ -114,6 +118,10 @@ public:
 
     void upgradeTimer() {
 
+        if (ParamManager::instance().getTxtUpgrade()) {
+            return;
+        }
+
         MapPo map = SegmentationDataBase::instance().getDbMap();
 
         //定时任务
@@ -175,7 +183,8 @@ public:
             for (const auto &item: files) {
                 if (item != "cleanHistory.sqlite" && item != "Property.sqlite" && item != "Task.sqlite" &&
                     item != "move.mp3" && item != "out.mp3" && item != "pad_version_info.txt" &&
-                    item != "param_app.yaml" && item != "prohibition_areas.yaml") {
+                    item != "param_app.yaml" && item != "prohibition_areas.yaml" &&
+                    item != "timer_info_json.txt" && item != "combination_list_principal_json_work.txt") {
                     cppfs::FileHandle file = cppfs::fs::open(path::data_base_config_dir() + item);
                     if (file.isDirectory()) {
                         file.removeDirectoryRec();
@@ -185,6 +194,8 @@ public:
                 }
             }
         }
+
+        ParamManager::instance().setTxtUpgrade(true);
     }
 
 };

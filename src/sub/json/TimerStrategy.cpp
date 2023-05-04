@@ -59,7 +59,8 @@ string SetTimerStrategy::handler(TimerInfo params) {
                        params.getIsSkip(),
                        params.getEndYear(),
                        params.getEndMonth(),
-                       params.getEndDay());
+                       params.getEndDay(),
+                       true);
 
         timerInfoTask.push_back(tinf);
 
