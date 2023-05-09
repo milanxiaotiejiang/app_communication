@@ -3,6 +3,11 @@
 #include "manager/UpgradeManager.h"
 
 /**
+ * 手动模式、手推建图、维护模式（任务执行不亮灯）
+ *
+ * 一键维护开关
+ */
+/**
  * https://github.com/fnc12/sqlite_orm
  * https://github.com/cginternals/cppfs
  */
