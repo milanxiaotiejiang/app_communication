@@ -403,6 +403,19 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case RESET_CONSUMABLE:
             messageStrategy = new ResetConsumableStrategy();
             break;
+
+        case MAINTENANCE_MODE:
+            messageStrategy = new MaintenanceModeStrategy();
+            break;
+        case MAINTENANCE_MODE_STATUS:
+            messageStrategy = new MaintenanceModeStatusStrategy();
+            break;
+        case SET_BASE_STATION:
+            messageStrategy = new SetBaseStationStrategy();
+            break;
+        case GET_BASE_STATION:
+            messageStrategy = new GetBaseStationStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);

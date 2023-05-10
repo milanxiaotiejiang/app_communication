@@ -127,7 +127,8 @@ namespace error {
         add_subregion_fail,
         cannot_switch_to_the_current_map,
         map_id_does_not_exist,
-        no_run_task
+        no_run_task,
+        dispatcher_maintenance_mode
     };// enum value
 
     class category : public std::error_category {
@@ -362,6 +363,8 @@ namespace error {
                     return "不存在此地图";
                 case error::no_run_task:
                     return "no run task";
+                case error::dispatcher_maintenance_mode:
+                    return "维护模式不能启动任务";
                 default:
                     return "Unknown";
             }

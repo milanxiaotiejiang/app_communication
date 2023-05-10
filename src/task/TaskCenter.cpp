@@ -34,6 +34,7 @@
 
 #include "db/task_data_base.h"
 #include "exploration/path_exploration_preview_task.h"
+#include "task/manager/MechanismManager.h"
 
 std::string TaskCenter::preTask(const RealTask &task) {
     LOG(INFO) << "preTask ------------------" << task.getRate();
@@ -90,6 +91,10 @@ std::string TaskCenter::proTask(const RealTask &task) {
         if (NodeControl::instance().isMap()) {
             throw app::exception(make_error_code(error::dispatcher_task_work_mode_mapping));
         }
+    }
+
+    if (MechanismManager::instance().isMaintenanceMode()) {
+        throw app::exception(make_error_code(error::dispatcher_maintenance_mode));
     }
 
     //如果当前电量少于10%，那么报错且不执行任务

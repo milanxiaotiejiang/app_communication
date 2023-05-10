@@ -224,7 +224,7 @@ void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
     backBaseRetryCount = 0;
     rechargeRetryCount = 0;
 
-    callSelfCleanClose();
+    MechanismManager::instance().closeHotWind(false);
 
     //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
     notify_one([this]() {
@@ -478,14 +478,14 @@ void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
         }
         MechanismManager::instance().openHotWind();
         async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::minutes(20), [this]() {
-                    callSelfCleanClose();
+                ->scheduleLater(std::chrono::milliseconds(20 * 1000), [this]() {
+                    callSelfCleanClose(true);
                 });
     }
 }
 
-void AsyncTaskCall::callSelfCleanClose() {
-    MechanismManager::instance().closeHotWind();
+void AsyncTaskCall::callSelfCleanClose(bool force) {
+    MechanismManager::instance().closeHotWind(force);
 }
 
 void AsyncTaskCall::callSubsequentMode(int mode) {
@@ -802,6 +802,7 @@ void AsyncTaskCall::enterManual() {//进入手动模式接口
     if (isManualMode()) {//已经在手动模式下
         throw app::exception(make_error_code(error::already_in_manual_clean_mode));
     }
+    MechanismManager::instance().closeHotWind(false);
     notify_one([this]() {
         pushError(loop::error_epoll::error_manual_clean_start);
     });

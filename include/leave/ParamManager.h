@@ -33,6 +33,10 @@ public:
     bool getTxtUpgrade();
 
     void setTxtUpgrade(bool txt_upgrade);
+
+    bool isBaseStation();
+
+    void setBaseStation(bool has);
 };
 
 

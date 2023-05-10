@@ -20,5 +20,14 @@ public:
     ConsumableVo handler(ResetConsumableVo params) override;
 };
 
+class MaintenanceModeStrategy : public MessageStrategy<int, string> {
+public:
+    string handler(int params) override;
+};
+
+class MaintenanceModeStatusStrategy : public MessageStrategy<string, bool> {
+public:
+    bool handler(string params) override;
+};
 
 #endif //APP_COMMUNICATION_MATERIALSTRATEGY_H
