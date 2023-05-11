@@ -65,7 +65,6 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             messageStrategy = new GetMultiMapsStrategy();
             break;
 
-
         case EDIT_MAP_:
             messageStrategy = new EditMapStrategy();
             break;
