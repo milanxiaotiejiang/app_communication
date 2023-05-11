@@ -76,8 +76,8 @@ void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &ex
         } else {
             LOG(INFO) << "CoveragePathGenerator : 全覆盖规划有异常情况，停止当前规划 ...";
             coverage_need_again = false;
-
             coverage_obtain_path = false;
+            coverage_planner_done = true;
         }
     }
 }
@@ -211,8 +211,8 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
         } else {
             LOG(INFO) << "SubregionPathGenerator : 分区全覆盖规划有异常情况，停止当前规划 ...";
             coverage_need_again = false;
-
             coverage_obtain_path = false;
+            coverage_planner_done = true;
         }
     }
 }
