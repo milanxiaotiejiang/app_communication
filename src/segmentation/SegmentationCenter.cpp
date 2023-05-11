@@ -486,7 +486,7 @@ cv::Mat SegmentationCenter::generateMat() const {
     //map中只包含 0 / 255
     for (int y = 0; y < map.rows; y++) {
         for (int x = 0; x < map.cols; x++) {
-            if (map.at<unsigned char>(y, x) != 255) {
+            if (map.at<unsigned char>(y, x) < 254) {
                 map.at<unsigned char>(y, x) = 0;
             }
         }

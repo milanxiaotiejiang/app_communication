@@ -11,8 +11,8 @@
 #include "exploration/tsp/tsp_solver_defines.h"
 #include "exploration/cv_extend.h"
 
-static bool DISPLAY_TRAJECTORY = true;
-static bool DISPLAY_TRAJECTORY_RESULT = true;
+static bool DISPLAY_TRAJECTORY = false;
+static bool DISPLAY_TRAJECTORY_RESULT = false;
 
 /**
  *
