@@ -498,6 +498,10 @@ cv::Mat SegmentationCenter::generateMat() const {
     auto cols = map.cols;//width
     auto rows = map.rows;//height
 
+    const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    drawBaseStation(map, stationPoint, plan.range_near_base_station, cv::Scalar(255));
+
     return map;
 }
 

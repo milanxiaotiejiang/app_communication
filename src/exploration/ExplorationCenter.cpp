@@ -207,7 +207,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
         cv::bitwise_xor(map, temp, map);
     }
 
-    drawBaseStation(map, stationPoint, grid_spacing_in_pixel + plan.range_near_base_station);
+    drawBaseStation(map, stationPoint, grid_spacing_in_pixel + plan.range_near_base_station, cv::Scalar(0));
     findBaseNearReachable(map, robotPosition, (int) (grid_spacing_in_pixel * 2 + plan.range_near_base_station));
 
     cv::Mat latelyMap;
@@ -385,7 +385,7 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
 
     morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
 
-    drawBaseStation(map, stationPoint, grid_spacing_in_pixel + plan.range_near_base_station);
+    drawBaseStation(map, stationPoint, grid_spacing_in_pixel + plan.range_near_base_station, cv::Scalar(0));
 
     cv::Mat latelyMap = findClosestPointRoom(map, stationPoint, min_cell_area_);
 
@@ -764,12 +764,6 @@ void ExplorationCenter::morphologicalEdging(cv::Mat &room_map, int map_correctio
     cv::Mat temp;
     cv::erode(room_map, temp, cv::Mat(), cv::Point(-1, -1), map_correction_closing_neighborhood_size);
     cv::dilate(temp, room_map, cv::Mat(), cv::Point(-1, -1), map_correction_closing_neighborhood_size);
-}
-
-void ExplorationCenter::drawBaseStation(cv::Mat &room_map, const cv::Point &stationPoint, int radius) const {
-    cv::rectangle(room_map, cv::Point(stationPoint.x - radius, stationPoint.y - radius),
-                  cv::Point(stationPoint.x + radius, stationPoint.y + radius),
-                  cv::Scalar(0), CV_FILLED);
 }
 
 void ExplorationCenter::pose2CVPoint(const cv::Mat &room_map, std::vector<cv::Point> &pointList,

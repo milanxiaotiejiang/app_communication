@@ -9,4 +9,6 @@
 
 void explorationErode(const cv::Mat &src, cv::Mat &dst, int pixel);
 
+void drawBaseStation(cv::Mat &img, const cv::Point &stationPoint, int radius, const cv::Scalar &color);
+
 #endif //APP_COMMUNICATION_CV_EXTEND_H
