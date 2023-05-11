@@ -39,6 +39,7 @@ private:
     ros::Publisher restart_carto;
     ros::Publisher initial_pose;
     ros::Publisher clear_current_pose;
+    ros::Publisher control_move_base;
 public:
     static auto &instance() {
         static CartographerPublisher obj;
@@ -59,9 +60,11 @@ public:
 
     void publishRestartCarto() const;
 
-    void publishInitialPose(const geometry_msgs::PoseWithCovarianceStamped& pose) const;
+    void publishInitialPose(const geometry_msgs::PoseWithCovarianceStamped &pose) const;
 
     void publishClearCurrentPose() const;
+
+    void publishControlMoveBase(bool open) const;
 };
 
 class CartographerSubscribe {
