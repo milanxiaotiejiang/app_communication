@@ -182,16 +182,6 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     LOG(INFO) << "planning mode: planning coverage path with robot's footprint";
 
     if (model == ExplorationModel::FULL) {
-        auto map1 = room_map.clone();
-        auto map2 = map.clone();
-
-        cv::circle(map1, stationPoint, 5, cv::Scalar(150), CV_FILLED);
-        cv::circle(map2, stationPoint, 5, cv::Scalar(150), CV_FILLED);
-
-        cv::imshow("map1", map1);
-        cv::waitKey();
-        cv::imshow("map2", map2);
-        cv::waitKey();
         if (!baseStationAvailable(map, stationPoint)) {
             LOG(ERROR)
                     << "RoomExplorationServer::exploreRoom: Warning: Obstacles around the base station.";

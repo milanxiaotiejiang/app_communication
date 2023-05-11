@@ -488,6 +488,8 @@ cv::Mat SegmentationCenter::generateMat() const {
         for (int x = 0; x < map.cols; x++) {
             if (map.at<unsigned char>(y, x) < 254) {
                 map.at<unsigned char>(y, x) = 0;
+            } else {
+                map.at<unsigned char>(y, x) = 255;
             }
         }
     }

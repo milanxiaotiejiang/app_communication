@@ -39,13 +39,17 @@ void testErode() {
     cv::waitKey();
 }
 
-void explorationErode(const cv::Mat& src, cv::Mat dst, int pixel) {
-    auto kernel = cv::getStructuringElement(cv::MORPH_CROSS,
-                                            cv::Size(pixel, pixel),
-                                            cv::Point(-1, -1));
-    cv::erode(src, dst, kernel, cv::Point(-1, -1), 1);
+void explorationErode(const cv::Mat &src, cv::Mat &dst, int pixel) {
+    if (pixel <= 0) {
+        cv::erode(src, dst, cv::Mat(), cv::Point(-1, -1), pixel);
+    } else {
+        auto kernel = cv::getStructuringElement(cv::MORPH_CROSS,
+                                                cv::Size(pixel, pixel),
+                                                cv::Point(-1, -1));
+        cv::erode(src, dst, kernel, cv::Point(-1, -1), 1);
 
-    int half_pixel = (int) std::floor(0.5 * pixel);
-    cv::erode(dst, dst, cv::Mat(), cv::Point(-1, -1), half_pixel);
-    cv::dilate(dst, dst, cv::Mat(), cv::Point(-1, -1), half_pixel);
+        int half_pixel = (int) std::floor(0.5 * pixel);
+        cv::erode(dst, dst, cv::Mat(), cv::Point(-1, -1), half_pixel);
+        cv::dilate(dst, dst, cv::Mat(), cv::Point(-1, -1), half_pixel);
+    }
 }

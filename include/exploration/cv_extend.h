@@ -7,6 +7,6 @@
 
 #include <opencv2/opencv.hpp>
 
-void explorationErode(const cv::Mat& src, cv::Mat dst, int pixel);
+void explorationErode(const cv::Mat &src, cv::Mat &dst, int pixel);
 
 #endif //APP_COMMUNICATION_CV_EXTEND_H
