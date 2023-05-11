@@ -27,7 +27,7 @@ bool ModeValidate::validateCartographer(node::State state) {
     std::condition_variable cond;
 
     std::unique_lock<std::mutex> lck(wait_mutex);
-    cond.wait_for(lck, std::chrono::seconds(2));
+    cond.wait_for(lck, std::chrono::seconds(5));
 
     LOG(INFO) << "Cartographer 最终启动结果 "
               << "  state： " << static_cast<int>(state)
