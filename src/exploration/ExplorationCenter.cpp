@@ -72,8 +72,8 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        generatePlanningPathFull(map, 1, exploration_path, point_path);
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        generatePlanningPathFull(map, 1, exploration_path, point_path);
     }
 
     //4
@@ -437,9 +437,6 @@ void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int ex
     if (MapAttribute::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
-
-    cv::imshow("rect", room_map);
-    cv::waitKey();
 
     generatePlanningPath(room_map,
                          ExplorationModel::RECT,
