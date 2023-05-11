@@ -3,6 +3,7 @@
 //
 
 #include "exploration/A_star_pathplanner.h"
+#include "exploration/cv_extend.h"
 
 
 const int dir = 8;
@@ -68,7 +69,7 @@ void AStarPlanner::downsampleMap(const cv::Mat &map, cv::Mat &downsampled_map, c
                                  const double robot_radius, const double map_resolution) {
     cv::Mat eroded_map;
     int number_of_erosions = (robot_radius / map_resolution);
-    cv::erode(map, eroded_map, cv::Mat(), cv::Point(-1, -1), number_of_erosions);
+    explorationErode(map, eroded_map, number_of_erosions);
     if (downsampling_factor != 1.)
         cv::resize(eroded_map, downsampled_map, cv::Size(0, 0),
                    downsampling_factor, downsampling_factor, cv::INTER_NEAREST);//_LINEAR);

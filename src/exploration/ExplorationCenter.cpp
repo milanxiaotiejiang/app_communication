@@ -23,9 +23,10 @@
 #include "simulation.h"
 #include "leave/ParamManager.h"
 #include "leave/map_control.h"
+#include "exploration/cv_extend.h"
 
 static bool DISPLAY_TRAJECTORY = false;
-static bool DISPLAY_TRAJECTORY_EFFECT = false;
+static bool DISPLAY_TRAJECTORY_EFFECT = true;
 
 void ExplorationCenter::initialize(ros::NodeHandle handle) {
     ros::Time::init();
@@ -71,8 +72,8 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        generatePlanningPathFull(map, 1, exploration_path, point_path);
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        generatePlanningPathFull(map, 1, exploration_path, point_path);
     }
 
     //4
@@ -180,19 +181,17 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     LOG(INFO) << "min_cell_area_ : " << min_cell_area_ << " , path_eps_ : " << path_eps_;
     LOG(INFO) << "planning mode: planning coverage path with robot's footprint";
 
-    cv::Mat generate_map = loadGenerateMap((int) std::floor(grid_spacing_in_pixel));
-
-
     if (model == ExplorationModel::FULL) {
         if (!baseStationAvailable(map, stationPoint)) {
             LOG(ERROR)
                     << "RoomExplorationServer::exploreRoom: Warning: Obstacles around the base station.";
             throw app::exception(make_error_code(error::exploration_obstacles_around_the_base_station));
         }
-        cv::erode(map, map, cv::Mat(), cv::Point(-1, -1), map_prohibition_expand_size_);
+        explorationErode(map, map, map_prohibition_expand_size_);
 
         morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
     } else if (model == ExplorationModel::SUB) {
+        cv::Mat generate_map = loadGenerateMap((int) std::floor(grid_spacing_in_pixel));
         cv::Mat temp;
         cv::bitwise_xor(map, generate_map, temp);
         cv::bitwise_and(map, temp, temp);
@@ -200,8 +199,8 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
         morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
     } else if (model == ExplorationModel::RECT) {
+        cv::Mat generate_map = loadGenerateMap((int) std::floor(grid_spacing_in_pixel));
         min_cell_area_ = 0;
-        cv::dilate(map, map, cv::Mat(), cv::Point(-1, -1), half_grid_spacing_as_int_ + grid_obstacle_offset_);
         cv::Mat temp;
         cv::bitwise_xor(map, generate_map, temp);
         cv::bitwise_and(map, temp, temp);
@@ -438,6 +437,9 @@ void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int ex
     if (MapAttribute::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
+
+    cv::imshow("rect", room_map);
+    cv::waitKey();
 
     generatePlanningPath(room_map,
                          ExplorationModel::RECT,
@@ -758,8 +760,6 @@ cv::Mat ExplorationCenter::prohibitionMat(const cv::Mat &room_map) const {
             cv::line(prohibition_image, pointStart, pointEnd, cv::Scalar(255));
         }
     }
-//    cv::dilate(prohibition_image, prohibition_image, cv::Mat(), cv::Point(-1, -1),
-//               map_prohibition_expand_size_);
     return prohibition_image;
 }
 
@@ -834,13 +834,14 @@ cv::Mat ExplorationCenter::loadGenerateMap(int grid_spacing_in_pixel) {
     cv::Mat andMat;
     cv::bitwise_and(generate_map, prohibition_image, andMat);
     cv::bitwise_xor(generate_map, andMat, generate_map);
-    cv::erode(generate_map, generate_map, cv::Mat(), cv::Point(-1, -1), grid_spacing_in_pixel);
+    explorationErode(generate_map, generate_map, grid_spacing_in_pixel);
+
     return generate_map;
 }
 
 bool ExplorationCenter::detectionTooSmallRoom(const cv::Mat &map, int iterations) const {
     cv::Mat compute_map = map.clone();
-    cv::erode(compute_map, compute_map, cv::Mat(), cv::Point(-1, -1), iterations);
+    explorationErode(compute_map, compute_map, iterations);
 
     int count = 0;
     for (int v = 0; v < compute_map.rows; ++v) {

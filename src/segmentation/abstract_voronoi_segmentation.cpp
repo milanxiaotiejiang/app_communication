@@ -120,8 +120,7 @@ void AbstractVoronoiSegmentation::createVoronoiGraph(cv::Mat &map_for_voronoi_ge
 
     //********************2. Get facets and draw voronoi-Graph******************************
     cv::Mat eroded_map;
-    cv::Point anchor(-1, -1);
-    cv::erode(temporary_map_to_calculate_voronoi, eroded_map, cv::Mat(), anchor, 2);
+    cv::erode(temporary_map_to_calculate_voronoi, eroded_map, cv::Mat(), cv::Point(-1, -1), 2);
 
     const cv::Scalar voronoi_color(127);
     std::vector<std::vector<cv::Point2f> > voronoi_facets;

@@ -9,9 +9,10 @@
 #include "exploration/tsp/nearest_neighbor_TSP.h"
 #include "exploration/tsp/genetic_TSP.h"
 #include "exploration/tsp/tsp_solver_defines.h"
+#include "exploration/cv_extend.h"
 
-static bool DISPLAY_TRAJECTORY = false;
-static bool DISPLAY_TRAJECTORY_RESULT = false;
+static bool DISPLAY_TRAJECTORY = true;
+static bool DISPLAY_TRAJECTORY_RESULT = true;
 
 /**
  *
@@ -432,8 +433,7 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
 
     cv::Mat inflated_room_map;//原始地图腐蚀之后的地图
     cv::Mat rotated_inflated_room_map;//仿射变换后的原始腐蚀图
-    cv::erode(room_map, inflated_room_map, cv::Mat(), cv::Point(-1, -1),
-              half_grid_spacing_as_int + grid_obstacle_offset);
+    explorationErode(room_map, inflated_room_map, half_grid_spacing_as_int + grid_obstacle_offset);
 
     cell_rotation.rotateRoom(inflated_room_map, rotated_inflated_room_map, R_cell, cell_bbox);
 
