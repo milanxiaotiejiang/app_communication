@@ -328,6 +328,9 @@ void initNodeParams(const ros::NodeHandle &nh) {
     bool update_map;
     nh.param<bool>("update_map", update_map, false); //update_map
     Environment::instance().update_map = update_map;
+    bool direct_start_move_base;
+    nh.param<bool>("direct_start_move_base", direct_start_move_base, false); //direct_start_move_base
+    Environment::instance().direct_start_move_base = direct_start_move_base;
 
     LOG(INFO) << "core version : " << ros_version;
 }

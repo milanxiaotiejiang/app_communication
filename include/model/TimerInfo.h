@@ -72,7 +72,7 @@ private:
     int end_month;//截止日期月
     int end_day;//截止日期日
 
-    bool old{false};
+    bool old{true};
 
 public:
     TimerInfo();

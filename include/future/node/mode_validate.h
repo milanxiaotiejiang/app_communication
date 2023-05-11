@@ -9,8 +9,15 @@
 #include "machine.h"
 
 class ModeValidate {
+private:
+    static int getMoveBaseMode();
+
 public:
-    static bool validate(node::State state);
+    static bool validateCartographer(node::State state);
+
+    static bool validateMoveBase(int open);
+
+    static bool validateMoveBaseAvailable();
 };
 
 

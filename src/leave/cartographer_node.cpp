@@ -17,6 +17,8 @@ void CartographerPublisher::initialize(ros::NodeHandle handle) {
     restart_carto = handle.advertise<std_msgs::Int32>("/restart_carto", 1);
     initial_pose = handle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initial_pose", 1);
     clear_current_pose = handle.advertise<std_msgs::Int32>("/clear_current_pose", 1);
+
+    control_move_base = handle.advertise<std_msgs::Int32>("/control_move_base", 1);
 }
 
 void CartographerPublisher::publishSaveMap() const {
@@ -68,6 +70,18 @@ void CartographerPublisher::publishClearCurrentPose() const {
     std_msgs::Int32 message;
     message.data = 1;
     clear_current_pose.publish(message);
+}
+
+void CartographerPublisher::publishControlMoveBase(bool open) const {
+    if (open) {
+        std_msgs::Int32 message;
+        message.data = 1;
+        control_move_base.publish(message);
+    } else {
+        std_msgs::Int32 message;
+        message.data = 0;
+        control_move_base.publish(message);
+    }
 }
 
 void CartographerSubscribe::initialize(ros::NodeHandle handle) {

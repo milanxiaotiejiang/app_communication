@@ -21,6 +21,7 @@ public:
     bool isRealEnvironment = true;
     std::string room_coverage_uuid = "";
     bool update_map;
+    bool direct_start_move_base;
 
     static bool will() {
         return (rand() % 10) > 5;

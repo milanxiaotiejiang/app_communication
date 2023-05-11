@@ -42,13 +42,18 @@ void PointPlanner::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &fe
 void PointPlanner::initialize(ros::NodeHandle handle) {
     PointPlanner::handle = handle;
     LOG(INFO) << "PointPlanner initialize ...";
-    std::thread moveBaseThread([this]() {
-        move_base = new actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>("move_base", true);
-        move_base->waitForServer();
-        initialize_finish = true;
-        LOG(INFO) << "PointPlanner open ...";
-    });
-    moveBaseThread.detach();
+    initialize_finish = true;
+}
+
+bool PointPlanner::waitForMoveBaseServer() {
+    share_move_base.reset();
+    share_move_base = std::make_shared<MoveBaseAction>("move_base", true);
+//    share_move_base->waitForServer();
+    return share_move_base->waitForServer(ros::Duration(5));
+}
+
+void PointPlanner::resetForMoveBaseServer() {
+    share_move_base.reset();
 }
 
 void PointPlanner::gotoPlannerPoint(const RealPoint &realPoint) {
@@ -58,7 +63,7 @@ void PointPlanner::gotoPlannerPoint(const RealPoint &realPoint) {
     LOG(INFO) << "AsyncTaskFramework : gotoPlannerPoint " << realPoint.realPosition << " ...";
     move_base_msgs::MoveBaseGoal goal;
     point2Goal(realPoint, goal);
-    move_base->sendGoal(goal, &doneCd, &activeCd, &feedbackCb);
+    share_move_base->sendGoal(goal, &doneCd, &activeCd, &feedbackCb);
 }
 
 void PointPlanner::gotoPlannerFirstPoint(const RealPoint &realPoint) {
@@ -68,7 +73,7 @@ void PointPlanner::gotoPlannerFirstPoint(const RealPoint &realPoint) {
 }
 
 void PointPlanner::cancelGoal() {
-    move_base->cancelGoal();
+    share_move_base->cancelGoal();
 }
 
 void PointPlanner::backBasePoint() {
@@ -84,5 +89,5 @@ void PointPlanner::backBasePoint() {
     goal.target_pose.pose.orientation.y = 0;
     goal.target_pose.pose.orientation.z = 0;
     goal.target_pose.pose.orientation.w = 1;
-    move_base->sendGoal(goal, &doneCd, &activeCd, &feedbackCb);
+    share_move_base->sendGoal(goal, &doneCd, &activeCd, &feedbackCb);
 }

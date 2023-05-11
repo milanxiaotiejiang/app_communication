@@ -88,11 +88,42 @@ void NodeControl::onWork() {
 //    });
     asyncOn([this]() {
         CartographerPublisher::instance().publishStartCartoLocalization();
-        bool isSuccessful = ModeValidate::validate(node::State::work);
-        if (isSuccessful) {
-            setWorkMode(node::State::work);
-            state_ = node::State::work;
-            work_state_ = node::WorkState::complete;
+        bool validateCartographer = ModeValidate::validateCartographer(node::State::work);
+        if (validateCartographer) {
+
+            if (Environment::instance().direct_start_move_base) {
+
+                {
+                    bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
+                    if (baseAvailable) {
+                        setWorkMode(node::State::work);
+                        state_ = node::State::work;
+                        work_state_ = node::WorkState::complete;
+                    } else {
+                        trySleep();
+                    }
+                }
+
+            } else {
+
+                CartographerPublisher::instance().publishControlMoveBase(true);
+                bool validateMoveBase = ModeValidate::validateMoveBase(1);
+                if (validateMoveBase) {
+
+                    bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
+                    if (baseAvailable) {
+                        setWorkMode(node::State::work);
+                        state_ = node::State::work;
+                        work_state_ = node::WorkState::complete;
+                    } else {
+                        trySleep();
+                    }
+                } else {
+                    trySleep();
+                }
+
+            }
+
         } else {
             trySleep();
         }
@@ -125,8 +156,8 @@ void NodeControl::onMap() {
 //    });
     asyncOn([this]() {
         CartographerPublisher::instance().publishStartCartoMapping();
-        bool isSuccessful = ModeValidate::validate(node::State::map);
-        if (isSuccessful) {
+        bool validateCartographer = ModeValidate::validateCartographer(node::State::map);
+        if (validateCartographer) {
             setWorkMode(node::State::map);
             state_ = node::State::map;
             map_state_ = node::MapState::complete;
@@ -203,20 +234,57 @@ void NodeControl::trySleep() {
         map_state_ = node::MapState::normal;
         state_ = node::State::sleep;
 
-        CartographerPublisher::instance().publishShutdownCarto();
-        CartographerPublisher::instance().publishClearCurrentPose();
-        bool isSuccessful = ModeValidate::validate(node::State::sleep);
-        if (isSuccessful) {
-            setWorkMode(node::State::sleep);
-            work_state_ = node::WorkState::normal;
-            map_state_ = node::MapState::normal;
-            state_ = node::State::sleep;
+        if (Environment::instance().direct_start_move_base) {
+
+            {
+                CartographerPublisher::instance().publishShutdownCarto();
+                CartographerPublisher::instance().publishClearCurrentPose();
+
+                bool validateCartographer = ModeValidate::validateCartographer(node::State::sleep);
+                if (validateCartographer) {
+                    setWorkMode(node::State::sleep);
+                    work_state_ = node::WorkState::normal;
+                    map_state_ = node::MapState::normal;
+                    state_ = node::State::sleep;
+                } else {
+                    LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
+                    work_state_ = back_work_state_;
+                    map_state_ = back_map_state_;
+                    state_ = back_state_;
+                }
+            }
+
         } else {
-            LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
-            work_state_ = back_work_state_;
-            map_state_ = back_map_state_;
-            state_ = back_state_;
+
+            CartographerPublisher::instance().publishControlMoveBase(false);
+            bool validateMoveBase = ModeValidate::validateMoveBase(0);
+            if (validateMoveBase) {
+
+                CartographerPublisher::instance().publishShutdownCarto();
+                CartographerPublisher::instance().publishClearCurrentPose();
+
+                bool validateCartographer = ModeValidate::validateCartographer(node::State::sleep);
+                if (validateCartographer) {
+                    setWorkMode(node::State::sleep);
+                    work_state_ = node::WorkState::normal;
+                    map_state_ = node::MapState::normal;
+                    state_ = node::State::sleep;
+                } else {
+                    LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
+                    work_state_ = back_work_state_;
+                    map_state_ = back_map_state_;
+                    state_ = back_state_;
+                }
+
+            } else {
+                LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
+                work_state_ = back_work_state_;
+                map_state_ = back_map_state_;
+                state_ = back_state_;
+            }
+
         }
+
     });
 }
 

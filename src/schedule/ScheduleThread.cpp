@@ -190,10 +190,6 @@ void ScheduleThread::startScheduleCheck() {
 
                     std::shared_ptr<TimerInfo> ti = make_shared<TimerInfo>();
 
-                    if (ti->isOld()) {
-                        continue;
-                    }
-
                     ti->setTimerRule(timer_infos[i].getTimerRule());
                     ti->setTaskId(timer_infos[i].getTaskId());
                     ti->setRate(timer_infos[i].getRate());
@@ -203,6 +199,15 @@ void ScheduleThread::startScheduleCheck() {
                     ti->setEndYear(timer_infos[i].getEndYear());
                     ti->setEndMonth(timer_infos[i].getEndMonth());
                     ti->setEndDay(timer_infos[i].getEndDay());
+                    ti->setOld(timer_infos[i].isOld());
+                    ti->setTimerName(timer_infos[i].getTimerName());
+
+                    if (ti->isOld()) {
+                        continue;
+                    }
+
+//                    std::cout << ti->getTimerName() << std::endl;
+
                     std::string sRule1 = ti->getTimerRule(); //
                     std::string sRule = fixWeek(sRule1);
 

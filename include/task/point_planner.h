@@ -12,6 +12,8 @@
 
 const float RETURN_POINT_X_ = -1.3;
 
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseAction;
+
 class PointPlanner {
 private:
     bool initialize_finish = false;
@@ -20,7 +22,7 @@ private:
     DR xyGoalTolerance = DR("/move_base/DWAPlannerROS", "xy_goal_tolerance");
     DR yawGoalTolerance = DR("/move_base/DWAPlannerROS", "yaw_goal_tolerance");
 
-    actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> *move_base;
+    std::shared_ptr<MoveBaseAction> share_move_base;
 
     static void point2Goal(const RealPoint &point, move_base_msgs::MoveBaseGoal &goal);
 
@@ -38,6 +40,10 @@ public:
     }
 
     void initialize(ros::NodeHandle handle);
+
+    bool waitForMoveBaseServer();
+
+    void resetForMoveBaseServer();
 
     void gotoPlannerPoint(const RealPoint &realPoint);
 
