@@ -8,6 +8,7 @@
 #include "glog/logging.h"
 #include "exploration/line.h"
 #include "exploration/A_star_pathplanner.h"
+#include "exploration/cv_extend.h"
 
 #define random(a, b) (rand() % (b - a) + a)
 
@@ -79,7 +80,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
         LOG(INFO) << "(infinitely near boundary) 边界距离 scale_in_pixel: " << scale_in_pixel << " px";
 
         auto borderMat = room_map.clone();
-        cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(1, 1), scale_in_pixel);
+        explorationErode(borderMat, borderMat, scale_in_pixel);
 
         if (DISPLAY_TRAJECTORY) {
             cv::imshow("m " + std::to_string(r) + " " + std::to_string(scale_in_pixel), borderMat);
@@ -95,7 +96,8 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
                 continue;
 
             cv::Mat room_mat = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
-            cv::drawContours(room_mat, std::vector<std::vector<cv::Point> >(1, borderContour), -1, cv::Scalar(255), CV_FILLED);
+            cv::drawContours(room_mat, std::vector<std::vector<cv::Point> >(1, borderContour), -1, cv::Scalar(255),
+                             CV_FILLED);
 
             if (DISPLAY_TRAJECTORY) {
                 cv::imshow("m " + std::to_string(r) + " " + std::to_string(scale_in_pixel), room_mat);

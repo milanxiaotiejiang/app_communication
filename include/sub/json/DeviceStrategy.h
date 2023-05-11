@@ -52,9 +52,19 @@ public:
     int handler(int params) override;
 };
 
-class AutomaticOilingStrategy: public MessageStringStrategy  {
+class AutomaticOilingStrategy : public MessageStringStrategy {
 public:
     void handler() override;
+};
+
+class SetBaseStationStrategy : public MessageStrategy<bool, string> {
+public:
+    string handler(bool params) override;
+};
+
+class GetBaseStationStrategy : public MessageStrategy<string, bool> {
+public:
+    bool handler(string params) override;
 };
 
 #endif//APP_COMMUNICATION_DEVICESTRATEGY_H

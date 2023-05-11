@@ -11,10 +11,13 @@
 #include <fstream>
 #include "BaseThrowable.h"
 #include "db/path.h"
+#include "tool/Variable.h"
 
 const std::string app_param_path = path::data_base_config_dir() + "param_app.yaml";
 
 const std::string zoo_param_imu_path = path::zoo_bringup_params_dir() + "base_params_with_imu.yaml";
+
+const std::string app_communication_param_path = path::app_communication_params_dir() + "robot_basic_params.yaml";
 
 //#include <catch2/catch.hpp>
 //
@@ -32,13 +35,21 @@ const std::string zoo_param_imu_path = path::zoo_bringup_params_dir() + "base_pa
 //    ParamManager::instance().setDry(3);
 //    REQUIRE(ParamManager::instance().getDry() == 3);
 //}
+//
+//TEST_CASE() {
+//    ParamManager::instance().setBaseStation(true);
+//}
 
 void ParamManager::loadDefaultParam() {
     if (access(app_param_path.c_str(), F_OK)) {
         YAML::Node node;
+        //银牛
         node["silver"] = true;
+        //热风烘干
         node["dry"] = 0;
+        //路径规划
         node["energy"] = false;
+        //txt to sql
         node["txt_upgrade"] = false;
         std::ofstream ofstream(app_param_path);
         ofstream << node;
@@ -162,6 +173,21 @@ void ParamManager::setTxtUpgrade(bool txt_upgrade) {
     YAML::Node node = YAML::LoadFile(app_param_path);
     node["txt_upgrade"] = txt_upgrade;
     std::ofstream ofstream(app_param_path);
+    ofstream << node;
+    ofstream.close();
+}
+
+bool ParamManager::isBaseStation() {
+    return Variable::get_instance()->getBaseExist();
+}
+
+void ParamManager::setBaseStation(bool has) {
+    if (access(app_communication_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_communication_param_path);
+    node["base_exist"] = has;
+    std::ofstream ofstream(app_communication_param_path);
     ofstream << node;
     ofstream.close();
 }

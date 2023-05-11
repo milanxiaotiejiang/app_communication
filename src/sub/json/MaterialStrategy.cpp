@@ -4,6 +4,7 @@
 
 #include "sub/json/MaterialStrategy.h"
 #include "net/base/VersionSubscribe.h"
+#include "task/manager/MechanismManager.h"
 
 ConsumableVo GetConsumableStrategy::handler(string params) {
     const Consumable &consumable = PropertyDataBase::instance().loadConsumable();
@@ -47,4 +48,13 @@ ConsumableVo ResetConsumableStrategy::handler(ResetConsumableVo params) {
                               consumable.aromatherapy_use,
                               consumable.disinfect_use);
     return consumableVo;
+}
+
+string MaintenanceModeStrategy::handler(int params) {
+    MechanismManager::instance().operateMaintenanceMode(params > 0);
+    return "";
+}
+
+bool MaintenanceModeStatusStrategy::handler(string params) {
+    return MechanismManager::instance().isMaintenanceMode();
 }

@@ -150,7 +150,7 @@ public:
         }
 
         if (!timer_info.empty()) {
-            for (const auto &timer: timer_info) {
+            for (auto &timer: timer_info) {
                 if (!timer.getTaskId().empty()) {
                     long taskId = taskMaps[timer.getTaskId()];
                     if (taskId != 0) {
@@ -160,10 +160,18 @@ public:
                                         timer.getEndYear(), timer.getEndMonth(), timer.getEndDay());
                         TaskDataBase::instance().addTimer(map.id, timerVo);
                     }
-                }
 
+                    timer.setOld(true);
+                }
             }
+
+            json params_l = timer_info;
+            string base64;
+            base64.append(params_l.dump());//json转base64 string
+            sh::File::saveTextTo(fileName, base64);
         }
+
+
     }
 
     /**

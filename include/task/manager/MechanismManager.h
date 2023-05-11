@@ -8,6 +8,12 @@
 #include "model/WorkStatus.h"
 
 class MechanismManager {
+private:
+    long time_hot_wind_milliseconds;
+    bool maintenanceMode;
+
+    MechanismManager();
+
 public:
     static auto &instance() {
         static MechanismManager obj;
@@ -34,6 +40,10 @@ public:
     void openKnife();
 
     void closeKnife();
+
+    void operateMaintenanceMode(bool open);
+
+    bool isMaintenanceMode();
 };
 
 

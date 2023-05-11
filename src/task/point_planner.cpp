@@ -6,7 +6,6 @@
 #include "glog/logging.h"
 #include "BaseThrowable.h"
 #include "task/point_routine.h"
-#include "future/node/node_control.h"
 
 void PointPlanner::point2Goal(const RealPoint &point, move_base_msgs::MoveBaseGoal &goal) {
     goal.target_pose.header.frame_id = "map";

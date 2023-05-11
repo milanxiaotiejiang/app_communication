@@ -27,6 +27,7 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_knife = handle.advertise<std_msgs::Int32>("/mrrobot/control_wind_knife", 1);
     acceptAppSchedule = handle.advertise<std_msgs::String>("/app_schedule", 1);
     pub_collect_dust = handle.advertise<std_msgs::Int32>("/collect_dust", 1);
+    pub_maintenance_mode = handle.advertise<std_msgs::Int32>("/maintenance_mode", 1);
 }
 
 void PublishInnerManager::publishPushMode(const std_msgs::Int32 &message) const {
@@ -119,4 +120,8 @@ void PublishInnerManager::publishCollectDust() const {
     std_msgs::Int32 data;
     data.data = 1;
     pub_collect_dust.publish(data);
+}
+
+void PublishInnerManager::publishMaintenanceMode(const std_msgs::Int32 &message) const {
+    pub_maintenance_mode.publish(message);
 }

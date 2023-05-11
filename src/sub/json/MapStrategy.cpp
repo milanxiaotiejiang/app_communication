@@ -11,6 +11,7 @@
 #include "leave/map_control.h"
 #include "leave/cartographer_node.h"
 #include "future/node/node_control.h"
+#include "task/manager/MechanismManager.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
     // todo 此版本为单地图

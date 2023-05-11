@@ -6,6 +6,13 @@
 #include "manager/PublishInnerManager.h"
 #include "task/subscribe/zoo_inner_status.h"
 #include "glog/logging.h"
+#include <chrono>
+#include "limits"
+
+MechanismManager::MechanismManager() {
+    time_hot_wind_milliseconds = std::numeric_limits<long>::max();
+    maintenanceMode = false;
+}
 
 void MechanismManager::resetWorkStatus() {
     LOG(INFO) << "MechanismManager : 收起清洁机构 . ";
@@ -169,6 +176,11 @@ void MechanismManager::quitManualControl() {
 }
 
 void MechanismManager::openHotWind() {
+    //当前时间戳（毫秒级别），记录开启热风烘干的时间
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    time_hot_wind_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+
     LOG(INFO) << "MechanismManager : 开启热风烘干.";
     std_msgs::Int32 msg;
     msg.data = 1;
@@ -194,4 +206,28 @@ void MechanismManager::closeKnife() {
     std_msgs::Int32 msg;
     msg.data = 0;
     PublishInnerManager::instance().pubKnife(msg);
+}
+
+void MechanismManager::operateMaintenanceMode(bool open) {
+    if (open) {
+
+        MechanismManager::instance().closeHotWind();
+
+        maintenanceMode = true;
+
+        std_msgs::Int32 data;
+        data.data = 1;
+        PublishInnerManager::instance().publishMaintenanceMode(data);
+    } else {
+
+        maintenanceMode = false;
+
+        std_msgs::Int32 data;
+        data.data = 0;
+        PublishInnerManager::instance().publishMaintenanceMode(data);
+    }
+}
+
+bool MechanismManager::isMaintenanceMode() {
+    return maintenanceMode;
 }

@@ -34,6 +34,7 @@
 
 #include "db/task_data_base.h"
 #include "exploration/path_exploration_preview_task.h"
+#include "task/manager/MechanismManager.h"
 
 std::string TaskCenter::preTask(const RealTask &task) {
     LOG(INFO) << "preTask ------------------" << task.getRate();

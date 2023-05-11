@@ -54,8 +54,6 @@ private:
 
     void morphologicalEdging(cv::Mat &room_map, int map_correction_closing_neighborhood_size) const;
 
-    void drawBaseStation(cv::Mat &room_map, const cv::Point &stationPoint, int radius) const;
-
     void pose2CVPoint(const cv::Mat &room_map, std::vector<cv::Point> &pointList,
                       const std::vector<geometry_msgs::Pose2D> &postList,
                       const cv::Point2d &map_origin);

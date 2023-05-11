@@ -6,6 +6,7 @@
 #include "exploration/room_rotator.h"
 #include "glog/logging.h"
 #include "exploration/grid.h"
+#include "exploration/cv_extend.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 
@@ -82,7 +83,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
     }
 
     cv::Mat inflated_rotated_room_map;
-    cv::erode(rotated_room_map, inflated_rotated_room_map, cv::Mat(), cv::Point(-1, -1), half_grid_spacing_as_int);
+    explorationErode(rotated_room_map, inflated_rotated_room_map, half_grid_spacing_as_int);
     if (DISPLAY_TRAJECTORY) {
         cv::imshow("inflated_rotated_room_map", inflated_rotated_room_map);
         cv::waitKey();

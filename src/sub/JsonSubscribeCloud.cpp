@@ -30,6 +30,8 @@
 #include "sub/json/CloudDeviceStrategy.h"
 #include "sub/json/KnobControlStrategy.h"
 #include "manager/cloud_robot_control.h"
+#include "sub/json/DBTaskStrategy.h"
+#include "exploration/ExplorationStrategy.h"
 
 
 JsonSubscribeCloud::JsonSubscribeCloud(ros::NodeHandle handle) : handle(handle) {
@@ -62,9 +64,14 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case GET_MULTI_MAPS_:
             messageStrategy = new GetMultiMapsStrategy();
             break;
+
+        case EDIT_MAP_:
+            messageStrategy = new EditMapStrategy();
+            break;
         case GET_EDIT_MAP_:
             messageStrategy = new GetEditMapStrategy();
             break;
+
         case GET_TASK_LIST_:
             messageStrategy = new GetTaskListStrategyV2();
             break;

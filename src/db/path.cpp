@@ -25,6 +25,10 @@ namespace path {
         return ros::package::getPath("zoo_bringup") + separator();
     }
 
+    std::string app_communication_dir() {
+        return ros::package::getPath("app_communication") + separator();
+    }
+
     std::string data_base_config_dir() {
         return data_base_dir() + "config" + separator();
     }
@@ -35,6 +39,10 @@ namespace path {
 
     std::string zoo_bringup_params_dir() {
         return zoo_bringup_dir() + "params" + separator();
+    }
+
+    std::string app_communication_params_dir() {
+        return app_communication_dir() + "params" + separator();
     }
 
     std::string map_yaml_path() {
