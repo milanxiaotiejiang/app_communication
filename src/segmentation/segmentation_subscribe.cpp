@@ -14,7 +14,6 @@
 #include "task/TaskCenter.h"
 #include "segmentation/map_modification.h"
 #include "leave/map_control.h"
-#include "leave/HotWindNote.h"
 
 SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
     sub_node_control_ = handle.subscribe("/segmentation_task", 1, &SegmentationSubscribe::segmentationSubscribeCallback,
@@ -104,11 +103,5 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
     } catch (...) {
         LOG(ERROR) << "MessageStrategy other start exception";
     }
-
-//    if (flag == 0) {
-//        HotWindNoteSingleton::instance().openHotWind();
-//    } else {
-//        HotWindNoteSingleton::instance().closeHotWind();
-//    }
 
 }

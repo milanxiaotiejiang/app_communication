@@ -9,9 +9,13 @@
 #include "ros/xmlrpc_manager.h"
 #include "future/node/mode_validate.h"
 #include "leave/cartographer_node.h"
+#include "future/node/motor_server.h"
 
 void NodeControl::initialize(ros::NodeHandle handle) {
     nodeHandle = handle;
+
+    MotorServerSingleton::instance().init(handle);
+
     pool_.setNumOfThreads(THREAD_POOL_MAX_NUM);
 
     subscribe = new NodeControlSubscribe(handle);
@@ -87,46 +91,51 @@ void NodeControl::onWork() {
 //        delete pFilterManager;
 //    });
     asyncOn([this]() {
-        CartographerPublisher::instance().publishStartCartoLocalization();
-        bool validateCartographer = ModeValidate::validateCartographer(node::State::work);
-        if (validateCartographer) {
+        if (MotorServerSingleton::instance().start()) {
+            CartographerPublisher::instance().publishStartCartoLocalization();
+            bool validateCartographer = ModeValidate::validateCartographer(node::State::work);
+            if (validateCartographer) {
 
-            if (Environment::instance().direct_start_move_base) {
+                if (Environment::instance().direct_start_move_base) {
 
-                {
-                    bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
-                    if (baseAvailable) {
-                        setWorkMode(node::State::work);
-                        state_ = node::State::work;
-                        work_state_ = node::WorkState::complete;
+                    {
+                        bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
+                        if (baseAvailable) {
+                            setWorkMode(node::State::work);
+                            state_ = node::State::work;
+                            work_state_ = node::WorkState::complete;
+                        } else {
+                            trySleep();
+                        }
+                    }
+
+                } else {
+
+                    CartographerPublisher::instance().publishControlMoveBase(true);
+                    bool validateMoveBase = ModeValidate::validateMoveBase(1);
+                    if (validateMoveBase) {
+
+                        bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
+                        if (baseAvailable) {
+                            setWorkMode(node::State::work);
+                            state_ = node::State::work;
+                            work_state_ = node::WorkState::complete;
+                        } else {
+                            trySleep();
+                        }
                     } else {
                         trySleep();
                     }
+
                 }
 
             } else {
-
-                CartographerPublisher::instance().publishControlMoveBase(true);
-                bool validateMoveBase = ModeValidate::validateMoveBase(1);
-                if (validateMoveBase) {
-
-                    bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
-                    if (baseAvailable) {
-                        setWorkMode(node::State::work);
-                        state_ = node::State::work;
-                        work_state_ = node::WorkState::complete;
-                    } else {
-                        trySleep();
-                    }
-                } else {
-                    trySleep();
-                }
-
+                trySleep();
             }
-
         } else {
-            trySleep();
+            LOG(ERROR) << "雷达启动失败！！！";
         }
+
     });
 }
 
