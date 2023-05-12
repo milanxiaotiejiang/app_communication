@@ -97,7 +97,7 @@ protected:
 
     void callSubsequentSelfClean(const WorkStatus &status);
 
-    void callSelfCleanClose(bool force);
+    void callSelfCleanClose();
 
     void callSubsequentMode(int mode);
 

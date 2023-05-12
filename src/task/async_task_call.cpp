@@ -482,6 +482,10 @@ void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
     }
 }
 
+void AsyncTaskCall::callSelfCleanClose() {
+
+}
+
 void AsyncTaskCall::callSubsequentMode(int mode) {
     LOG(INFO) << "AsyncTaskCall : 处理 mode " << mode << " ...";
 
