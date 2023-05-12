@@ -16,7 +16,18 @@ int ModeValidate::getMoveBaseMode() {
 }
 
 bool ModeValidate::validateCartographer(node::State state) {
-    LOG(INFO) << "Cartographer 校验启动 ------------------------------ ";
+    switch (state) {
+        case node::State::sleep:
+            LOG(INFO) << "ModeValidate  Cartographer 睡眠模式校验 ------------------------------ ";
+            break;
+        case node::State::work:
+            LOG(INFO) << "ModeValidate  Cartographer 定位模式校验 ------------------------------ ";
+            break;
+        case node::State::map:
+            LOG(INFO) << "ModeValidate  Cartographer 建图模式校验 ------------------------------ ";
+            break;
+    }
+
     if (!Environment::instance().isRealEnvironment) {
         return true;
     }
@@ -29,7 +40,7 @@ bool ModeValidate::validateCartographer(node::State state) {
     std::unique_lock<std::mutex> lck(wait_mutex);
     cond.wait_for(lck, std::chrono::seconds(5));
 
-    LOG(INFO) << "Cartographer 最终启动结果 "
+    LOG(INFO) << "ModeValidate  Cartographer 最终启动结果 "
               << "  state： " << static_cast<int>(state)
               << "  carto_mode： " << NodeControl::instance().cartoMode()
               << "  heart_beat： " << NodeControl::instance().heart_beat;
@@ -46,7 +57,16 @@ bool ModeValidate::validateCartographer(node::State state) {
 }
 
 bool ModeValidate::validateMoveBase(int open) {
-    LOG(INFO) << "MoveBase 校验启动 ------------------------------ " << open;
+    if (open) {
+        LOG(INFO) << "ModeValidate  MoveBase 服务启动校验 ------------------------------ ";
+    } else {
+        LOG(INFO) << "ModeValidate  MoveBase 服务关闭校验 ------------------------------ ";
+    }
+
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
+    }
+
     if (getMoveBaseMode() == open) {
         return true;
     }
@@ -61,32 +81,32 @@ bool ModeValidate::validateMoveBase(int open) {
             sleep(1);
 
             int moveBaseMode = getMoveBaseMode();
-            LOG(INFO) << "MoveBase 第 " << count << " 此 获取 move_base_mode ： " << moveBaseMode;
+            LOG(INFO) << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
             if (open == moveBaseMode) {
                 wait_cv.notify_one();
                 end_loop = true;
             }
 
             count++;
-            if (count > 10) {
+            if (count > 5) {
                 end_loop = true;
             }
         }
-        LOG(INFO) << "MoveBase 时时获取的线程结束 ...";
+        LOG(INFO) << "ModeValidate  MoveBase 时时获取的线程结束 ...";
     });
 
     std::unique_lock<std::mutex> lck(wait_mutex);
     if (wait_cv.wait_for(lck, std::chrono::seconds(5)) == std::cv_status::timeout) {
         int moveBaseMode = getMoveBaseMode();
-        LOG(INFO) << "MoveBase 获取结果超时再次获取 move_base_mode ：" << moveBaseMode;
+        LOG(INFO) << "ModeValidate  MoveBase 获取结果超时再次获取 move_base_mode ：" << moveBaseMode;
         return open == moveBaseMode;
     }
-    LOG(INFO) << "MoveBase 最终启动成功 ... ";
+    LOG(INFO) << "ModeValidate  MoveBase Server 启动成功 ... ";
     return true;
 }
 
 bool ModeValidate::validateMoveBaseAvailable() {
-    LOG(INFO) << "MoveBase 可用校验 ------------------------------ ";
+    LOG(INFO) << "ModeValidate  MoveBase 服务可用校验 ------------------------------ ";
     return PointPlanner::instance().waitForMoveBaseServer();
 
     // 测试线程终端的代码
