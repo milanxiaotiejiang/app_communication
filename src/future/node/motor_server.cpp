@@ -20,7 +20,7 @@ bool MotorServerSingleton::start() {
         return true;
     }
     LOG(INFO) << "ModeValidate  start_motor 开始启动雷达 ------------------------------ ";
-    if (initialize_start) {
+    if (!initialize_start) {
         return false;
     }
     std_srvs::Empty start_cmd;
