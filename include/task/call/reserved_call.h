@@ -8,6 +8,9 @@
 #include "task/call/head_tail_call.h"
 
 class ReservedCall : public HeadTailPointCall {
+private:
+    bool first_urgency_stop = true;
+
 protected:
 
     void handleManualOperation() override;

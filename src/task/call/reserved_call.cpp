@@ -90,19 +90,23 @@ void ReservedCall::handleErrorOperation() {
 }
 
 void ReservedCall::handleStop() {
-    switch (urgency_stop) {
-        case loop::urgency_stop::trigger_urgency_stop:
-            CleanHistoryCenter::instance().addUrgencyStop();//历史记录增加，急停一次
-            InternalEventPubManager::get_instance()->pubOper(URGENCY_STOP);
-            break;
-        case loop::urgency_stop::recovery_urgency_stop:
-            break;
-        case loop::urgency_stop::release_urgency_stop:
-            CleanHistoryCenter::instance().cancelUrgencyStop();
-            InternalEventPubManager::get_instance()->pubOper(CANCEL_URGENCY_STOP);
-            break;
-        default:
-            break;
+    if (first_urgency_stop) {
+        first_urgency_stop = false;
+    } else {
+        switch (urgency_stop) {
+            case loop::urgency_stop::trigger_urgency_stop:
+                CleanHistoryCenter::instance().addUrgencyStop();//历史记录增加，急停一次
+                InternalEventPubManager::get_instance()->pubOper(URGENCY_STOP);
+                break;
+            case loop::urgency_stop::recovery_urgency_stop:
+                break;
+            case loop::urgency_stop::release_urgency_stop:
+                CleanHistoryCenter::instance().cancelUrgencyStop();
+                InternalEventPubManager::get_instance()->pubOper(CANCEL_URGENCY_STOP);
+                break;
+            default:
+                break;
+        }
     }
     AsyncTaskCall::handleStop();
 }

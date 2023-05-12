@@ -17,6 +17,7 @@
 #include "task/manager/SwitchModePublish.h"
 #include "manager/PublishInnerManager.h"
 #include "leave/cartographer_node.h"
+#include "leave/HotWindNote.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -224,7 +225,7 @@ void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
     backBaseRetryCount = 0;
     rechargeRetryCount = 0;
 
-    MechanismManager::instance().closeHotWind(false);
+    HotWindNoteSingleton::instance().closeHotWind();
 
     //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
     notify_one([this]() {
@@ -442,6 +443,7 @@ void AsyncTaskCall::callPointComplete(const std::function<void()> &f) {
 
 
 void AsyncTaskCall::callManualCleanStart() {
+    HotWindNoteSingleton::instance().closeHotWind();
     if (!isWaitTask(currentFlow())) {
         cancelTask();
         goodGame(event::GG::gg_manual_mode);
@@ -476,16 +478,8 @@ void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
         if (ParamManager::instance().getDry() == 0 && ltm->tm_hour >= 7) {
             return;
         }
-        MechanismManager::instance().openHotWind();
-        async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::milliseconds(20 * 1000), [this]() {
-                    callSelfCleanClose(true);
-                });
+        HotWindNoteSingleton::instance().openHotWind();
     }
-}
-
-void AsyncTaskCall::callSelfCleanClose(bool force) {
-    MechanismManager::instance().closeHotWind(force);
 }
 
 void AsyncTaskCall::callSubsequentMode(int mode) {
@@ -802,7 +796,6 @@ void AsyncTaskCall::enterManual() {//进入手动模式接口
     if (isManualMode()) {//已经在手动模式下
         throw app::exception(make_error_code(error::already_in_manual_clean_mode));
     }
-    MechanismManager::instance().closeHotWind(false);
     notify_one([this]() {
         pushError(loop::error_epoll::error_manual_clean_start);
     });

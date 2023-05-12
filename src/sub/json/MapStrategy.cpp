@@ -12,6 +12,7 @@
 #include "leave/cartographer_node.h"
 #include "future/node/node_control.h"
 #include "task/manager/MechanismManager.h"
+#include "leave/HotWindNote.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
     // todo 此版本为单地图
@@ -160,7 +161,7 @@ vector<std::vector<float>> GetEditMapStrategy::handler(string params) {
 int ManualPushStartStrategy::handler(string params) {
     LOG(INFO) << "MapStrategy manual_push_start ...";
 
-    MechanismManager::instance().closeHotWind(false);
+    HotWindNoteSingleton::instance().closeHotWind();
 
     std_msgs::Int32 map_start;
     map_start.data = 2;

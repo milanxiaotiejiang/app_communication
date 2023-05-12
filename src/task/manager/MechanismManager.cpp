@@ -6,13 +6,6 @@
 #include "manager/PublishInnerManager.h"
 #include "task/subscribe/zoo_inner_status.h"
 #include "glog/logging.h"
-#include <chrono>
-#include "limits"
-
-MechanismManager::MechanismManager() {
-    time_hot_wind_milliseconds = std::numeric_limits<long>::max();
-    maintenanceMode = false;
-}
 
 void MechanismManager::resetWorkStatus() {
     LOG(INFO) << "MechanismManager : 收起清洁机构 . ";
@@ -175,39 +168,6 @@ void MechanismManager::quitManualControl() {
     PublishInnerManager::instance().publishKnobTask(map_start);
 }
 
-void MechanismManager::openHotWind() {
-    //当前时间戳（毫秒级别），记录开启热风烘干的时间
-    auto now = std::chrono::system_clock::now();
-    auto duration = now.time_since_epoch();
-    time_hot_wind_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-
-    LOG(INFO) << "MechanismManager : 开启热风烘干.";
-    std_msgs::Int32 msg;
-    msg.data = 1;
-    PublishInnerManager::instance().publishSelfClean(msg);
-}
-
-void MechanismManager::closeHotWind(bool force) {
-    //force 强制关闭，无需考虑热风烘干是否开启
-    if (isHotWind() || force) {
-        LOG(INFO) << "MechanismManager : 关闭热风烘干.";
-        std_msgs::Int32 msg;
-        msg.data = 0;
-        PublishInnerManager::instance().publishSelfClean(msg);
-        time_hot_wind_milliseconds = std::numeric_limits<long>::max();
-    } else {
-        LOG(INFO) << "MechanismManager : 热风烘干已关闭.";
-    }
-}
-
-bool MechanismManager::isHotWind() {
-    auto now = std::chrono::system_clock::now();
-    auto duration = now.time_since_epoch();
-    long milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-    //在开启热风烘干后，持续20分钟才关闭，因此根据 time_hot_wind_milliseconds 可判断是否在烘干中
-    return time_hot_wind_milliseconds < milliseconds - 20 * 1000;
-}
-
 void MechanismManager::openKnife() {
     LOG(INFO) << "MechanismManager : 开启风刀.";
     std_msgs::Int32 msg;
@@ -220,28 +180,4 @@ void MechanismManager::closeKnife() {
     std_msgs::Int32 msg;
     msg.data = 0;
     PublishInnerManager::instance().pubKnife(msg);
-}
-
-void MechanismManager::operateMaintenanceMode(bool open) {
-    if (open) {
-
-        MechanismManager::instance().closeHotWind(false);
-
-        maintenanceMode = true;
-
-        std_msgs::Int32 data;
-        data.data = 1;
-        PublishInnerManager::instance().publishMaintenanceMode(data);
-    } else {
-
-        maintenanceMode = false;
-
-        std_msgs::Int32 data;
-        data.data = 0;
-        PublishInnerManager::instance().publishMaintenanceMode(data);
-    }
-}
-
-bool MechanismManager::isMaintenanceMode() {
-    return maintenanceMode;
 }

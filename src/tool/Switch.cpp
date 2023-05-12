@@ -403,6 +403,12 @@ int switch_ID(const std::string &str) {
         return RESET_CONSUMABLE;
     }
 
+    if (str == "hot_wind_mode") {
+        return HOT_WIND_MODE;
+    }
+    if (str == "hot_wind_mode_status") {
+        return HOT_WIND_MODE_STATUS;
+    }
     if (str == "maintenance_mode") {
         return MAINTENANCE_MODE;
     }

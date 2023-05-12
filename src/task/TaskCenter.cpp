@@ -35,6 +35,7 @@
 #include "db/task_data_base.h"
 #include "exploration/path_exploration_preview_task.h"
 #include "task/manager/MechanismManager.h"
+#include "leave/MaintenanceMode.h"
 
 std::string TaskCenter::preTask(const RealTask &task) {
     LOG(INFO) << "preTask ------------------" << task.getRate();
@@ -93,7 +94,7 @@ std::string TaskCenter::proTask(const RealTask &task) {
         }
     }
 
-    if (MechanismManager::instance().isMaintenanceMode()) {
+    if (MaintenanceModeSingleton::instance().isMaintenanceMode()) {
         throw app::exception(make_error_code(error::dispatcher_maintenance_mode));
     }
 

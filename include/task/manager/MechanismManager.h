@@ -6,14 +6,9 @@
 #define APP_COMMUNICATION_MECHANISMMANAGER_H
 
 #include "model/WorkStatus.h"
+#include "leave/HotWindNote.h"
 
 class MechanismManager {
-private:
-    long time_hot_wind_milliseconds;
-    bool maintenanceMode;
-
-    MechanismManager();
-
 public:
     static auto &instance() {
         static MechanismManager obj;
@@ -21,6 +16,7 @@ public:
     }
 
 public:
+
     void resetWorkStatus();
 
     void resetBelowWorkStatus();
@@ -33,19 +29,9 @@ public:
 
     void quitManualControl();
 
-    void openHotWind();
-
-    void closeHotWind(bool force);
-
-    bool isHotWind();
-
     void openKnife();
 
     void closeKnife();
-
-    void operateMaintenanceMode(bool open);
-
-    bool isMaintenanceMode();
 };
 
 

@@ -404,6 +404,12 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new ResetConsumableStrategy();
             break;
 
+        case HOT_WIND_MODE:
+            messageStrategy = new HotWindModeStrategy();
+            break;
+        case HOT_WIND_MODE_STATUS:
+            messageStrategy = new HotWindModeStatusStrategy();
+            break;
         case MAINTENANCE_MODE:
             messageStrategy = new MaintenanceModeStrategy();
             break;
