@@ -183,12 +183,10 @@ void ReservedCall::goodGame(event::GG gg) {
     runTask;
     InternalEventPubManager::get_instance()->taskStop(runTaskId());
     CleanHistoryCenter::instance().complete();
-    updateProperty();
     AsyncTaskCall::goodGame(gg);
 }
 
 void ReservedCall::garbage(event::SB sb) {
-    updateProperty();
     InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::SOFTWARE_INTERRUPT);
     InternalEventPubManager::get_instance()->taskStop(runTaskId());
     AsyncTaskCall::garbage(sb);
@@ -254,26 +252,6 @@ std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint
             break;
     }
     return make_tuple(error_code, error_string, error_code2);
-}
-
-void ReservedCall::updateProperty() {
-    try {
-        if (!runTaskId().empty()) {
-            const CleanHistory &cleanHistory = CleanHistoryDataBase::instance().getCleanHistory(runTaskId());
-            long cleanTime = (cleanHistory.end_time_ - cleanHistory.execute_time_) / 1000;
-            WorkStatus workStatus = baseWorkStatus();
-            PropertyDataBase::instance().updateConsumable(
-                    workStatus.getSweepStatus() > 0 ? cleanTime : 0,
-                    workStatus.getMopStatus() > 0 ? cleanTime : 0,
-                    workStatus.getVacuumStatus() > 0 ? cleanTime : 0,
-                    workStatus.getPushStatus() > 0 ? cleanTime : 0,
-                    workStatus.getAromatherapyStatus() > 0 ? cleanTime : 0,
-                    workStatus.getDisinfectStatus() > 0 ? cleanTime : 0
-            );
-        }
-    } catch (...) {
-
-    }
 }
 
 void ReservedCall::recordMotorError() {

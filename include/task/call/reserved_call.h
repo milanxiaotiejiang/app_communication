@@ -37,8 +37,6 @@ protected:
 
     void handlePlannerPoint(const RealPoint &point) override;
 
-    void updateProperty();
-
 public:
 
 

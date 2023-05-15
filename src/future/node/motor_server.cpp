@@ -7,6 +7,9 @@
 #include "glog/logging.h"
 
 void MotorServerSingleton::init(ros::NodeHandle handle) {
+    if (!Environment::instance().isRealEnvironment) {
+        return;
+    }
     LOG(INFO) << "MotorServerSingleton  init ... ";
     start_motor = handle.serviceClient<std_srvs::Empty>("start_motor");
     start_motor.waitForExistence();

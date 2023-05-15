@@ -5,6 +5,7 @@
 #include "clean_history/CleanHistoryCenter.h"
 #include "model/InternalEvent.h"
 #include "db/SqliteDataBase.h"
+#include "db/property_data_base.h"
 
 namespace clean_history_db {
     bool CleanHistoryCenter::initialize() {
@@ -522,9 +523,31 @@ namespace clean_history_db {
         }
         CleanHistoryDataBase::instance().updateHistory(current_history_);
 
+        long cleanTime = (current_history_.end_time_ - current_history_.execute_time_) / 1000;
+        WorkStatus workStatus(
+                current_history_.sweep_status_,
+                current_history_.mop_status_,
+                current_history_.vacuum_status_,
+                current_history_.push_status_,
+                current_history_.aromatherapy_status_,
+                current_history_.disinfect_status_
+        );
+        updateProperty(workStatus, cleanTime);
+
         CleanHistory default_history;
         current_history_ = default_history;
         return true;
+    }
+
+    void CleanHistoryCenter::updateProperty(const WorkStatus &workStatus, long cleanTime) {
+        PropertyDataBase::instance().updateConsumable(
+                workStatus.getSweepStatus() > 0 ? cleanTime : 0,
+                workStatus.getMopStatus() > 0 ? cleanTime : 0,
+                workStatus.getVacuumStatus() > 0 ? cleanTime : 0,
+                workStatus.getPushStatus() > 0 ? cleanTime : 0,
+                workStatus.getAromatherapyStatus() > 0 ? cleanTime : 0,
+                workStatus.getDisinfectStatus() > 0 ? cleanTime : 0
+        );
     }
 
     //错误结束当前任务
@@ -567,6 +590,17 @@ namespace clean_history_db {
 
         CleanHistoryDataBase::instance().updateHistory(current_history_);
 
+        long cleanTime = (current_history_.end_time_ - current_history_.execute_time_) / 1000;
+        WorkStatus workStatus(
+                current_history_.sweep_status_,
+                current_history_.mop_status_,
+                current_history_.vacuum_status_,
+                current_history_.push_status_,
+                current_history_.aromatherapy_status_,
+                current_history_.disinfect_status_
+        );
+        updateProperty(workStatus, cleanTime);
+
         CleanHistory default_history;
         current_history_ = default_history;
         return true;
@@ -589,6 +623,17 @@ namespace clean_history_db {
         current_history_.error_code2_ = "CCR_219";
 
         CleanHistoryDataBase::instance().updateHistory(current_history_);
+
+        long cleanTime = (current_history_.end_time_ - current_history_.execute_time_) / 1000;
+        WorkStatus workStatus(
+                current_history_.sweep_status_,
+                current_history_.mop_status_,
+                current_history_.vacuum_status_,
+                current_history_.push_status_,
+                current_history_.aromatherapy_status_,
+                current_history_.disinfect_status_
+        );
+        updateProperty(workStatus, cleanTime);
 
         CleanHistory default_history;
         current_history_ = default_history;
@@ -613,6 +658,17 @@ namespace clean_history_db {
 
         CleanHistoryDataBase::instance().updateHistory(current_history_);
 
+        long cleanTime = (current_history_.end_time_ - current_history_.execute_time_) / 1000;
+        WorkStatus workStatus(
+                current_history_.sweep_status_,
+                current_history_.mop_status_,
+                current_history_.vacuum_status_,
+                current_history_.push_status_,
+                current_history_.aromatherapy_status_,
+                current_history_.disinfect_status_
+        );
+        updateProperty(workStatus, cleanTime);
+
         CleanHistory default_history;
         current_history_ = default_history;
         return true;
@@ -634,6 +690,17 @@ namespace clean_history_db {
         current_history_.history_state_ = history_state::done;
 
         CleanHistoryDataBase::instance().updateHistory(current_history_);
+
+        long cleanTime = (current_history_.end_time_ - current_history_.execute_time_) / 1000;
+        WorkStatus workStatus(
+                current_history_.sweep_status_,
+                current_history_.mop_status_,
+                current_history_.vacuum_status_,
+                current_history_.push_status_,
+                current_history_.aromatherapy_status_,
+                current_history_.disinfect_status_
+        );
+        updateProperty(workStatus, cleanTime);
 
         CleanHistory default_history;
         current_history_ = default_history;

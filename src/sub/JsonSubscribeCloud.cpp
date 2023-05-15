@@ -35,9 +35,7 @@
 
 
 JsonSubscribeCloud::JsonSubscribeCloud(ros::NodeHandle handle) : handle(handle) {
-    // sub_json_ = handle.subscribe(APP_JSON_V2, 1, &JsonSubscribeCloud::subscribeCallback, this);
-    service = handle.advertiseService("robot_control_srv", &JsonSubscribeCloud::function,
-                                      this);//写明服务的处理函数 handle_function cloud_srvs是service的名称
+    service = handle.advertiseService("robot_control_srv", &JsonSubscribeCloud::function, this);
 }
 
 JsonSubscribeCloud::~JsonSubscribeCloud() {
@@ -139,7 +137,7 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             messageStrategy = new otaStrategy();
             break;
 
-        //20230509
+            //20230509
         case ADD_TASK:
             messageStrategy = new AddTaskStrategy();
             break;
