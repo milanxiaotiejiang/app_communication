@@ -1,4 +1,4 @@
-ros_version: 0.9.9.14_630
+ros_version: 0.9.9.16_630
 machine_version: 630
 base_exist: true
 face_recognition: false
@@ -8,4 +8,4 @@ self_check_version: 1
 update_map: false
 OR_percent_1: 15
 OR_percent_2: 4
-direct_start_move_base: false
+direct_start_move_base: true
