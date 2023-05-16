@@ -39,7 +39,8 @@ private:
     pub_oil,//
     pub_knife,//
     acceptAppSchedule,//
-    pub_collect_dust;
+    pub_collect_dust,//
+    pub_maintenance_mode;
 public:
     static auto &instance() {
         static PublishInnerManager obj;
@@ -92,6 +93,7 @@ public:
 
     void publishCollectDust() const;
 
+    void publishMaintenanceMode(const std_msgs::Int32 &message) const;
 };
 
 #endif //APP_COMMUNICATION_PUBLISHINNERMANAGER_H

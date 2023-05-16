@@ -141,3 +141,12 @@ void AutomaticOilingStrategy::handler() {
     message.data = 1;
     PublishInnerManager::instance().publishOil(message);
 }
+
+string SetBaseStationStrategy::handler(bool params) {
+    ParamManager::instance().setBaseStation(params);
+    return "";
+}
+
+bool GetBaseStationStrategy::handler(string params) {
+    return ParamManager::instance().isBaseStation();
+}

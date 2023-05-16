@@ -105,9 +105,7 @@ public:
             PublishOutManager::instance().publishJson(jsonResult.dump());
         } else if (source == MessageSource::Cloud) {
             json bJson = baseResult;
-            if (bJson["params"].dump().length() > 2) {
-                CloudRobotControl::instance().saveInfo(bJson.dump());
-            }
+            CloudRobotControl::instance().saveInfo(bJson.dump());
         } else {
             LOG(ERROR) << "parseError source is : " << source << " , no find";
         }

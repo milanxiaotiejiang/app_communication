@@ -29,6 +29,8 @@ FullCleanManager *FullCleanManager::m_instance_ptr = nullptr;
 
 internal_event::InternalEventPubManager *internal_event::InternalEventPubManager::instance_ = nullptr;
 
+ScheduleThread *sThd = nullptr;
+
 int main(int argc, char **argv) {
 
     current_program_string = argv[0];
@@ -90,6 +92,10 @@ int main(int argc, char **argv) {
     UpgradeManager::instance().deleteExcessive();
 
     ScheduleManagerSingleton::instance().start(handle);
+
+    sThd = new ScheduleThread(handle);
+    sThd->start();
+    sThd->detach();
 
     ros::MultiThreadedSpinner spinner;
     spinner.spin();
@@ -322,6 +328,9 @@ void initNodeParams(const ros::NodeHandle &nh) {
     bool update_map;
     nh.param<bool>("update_map", update_map, false); //update_map
     Environment::instance().update_map = update_map;
+    bool direct_start_move_base;
+    nh.param<bool>("direct_start_move_base", direct_start_move_base, false); //direct_start_move_base
+    Environment::instance().direct_start_move_base = direct_start_move_base;
 
     LOG(INFO) << "core version : " << ros_version;
 }

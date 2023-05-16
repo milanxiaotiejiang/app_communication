@@ -51,9 +51,7 @@ private:
 
     void handleTask(const ScheduledTask &scheduledTask);
 
-    std::vector<std::string> split(const std::string &str, char delimiter);
-
-    std::string fix_cron_expression(const std::string &cron_expression);
+    static std::vector<std::string> split(const std::string &str, char delimiter);
 
 public:
     ScheduleManager();
@@ -74,6 +72,8 @@ public:
     static std::string format_time_point(const std::chrono::system_clock::time_point &time_point);
 
     static std::chrono::system_clock::time_point get_end_time(const TimerVo &timer);
+
+    static std::string fix_cron_expression(const std::string &cron_expression);
 };
 
 #endif //APP_COMMUNICATION_SCHEDULE_MANAGER_H

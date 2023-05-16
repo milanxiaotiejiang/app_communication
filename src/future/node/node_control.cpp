@@ -9,9 +9,13 @@
 #include "ros/xmlrpc_manager.h"
 #include "future/node/mode_validate.h"
 #include "leave/cartographer_node.h"
+#include "future/node/motor_server.h"
 
 void NodeControl::initialize(ros::NodeHandle handle) {
     nodeHandle = handle;
+
+    MotorServerSingleton::instance().init(handle);
+
     pool_.setNumOfThreads(THREAD_POOL_MAX_NUM);
 
     subscribe = new NodeControlSubscribe(handle);
@@ -82,20 +86,57 @@ void NodeControl::onWork() {
 //            state_ = node::State::work;
 //            work_state_ = node::WorkState::complete;
 //        } else {
-//            trySleep();
+//            defeatModeStart(node::State::work);
 //        }
 //        delete pFilterManager;
 //    });
     asyncOn([this]() {
-        CartographerPublisher::instance().publishStartCartoLocalization();
-        bool isSuccessful = ModeValidate::validate(node::State::work);
-        if (isSuccessful) {
-            setWorkMode(node::State::work);
-            state_ = node::State::work;
-            work_state_ = node::WorkState::complete;
+        bool motorServer = ModeValidate::validateMotorServer();
+        if (motorServer) {
+
+            CartographerPublisher::instance().publishStartCartoLocalization();
+            bool validateCartographer = ModeValidate::validateCartographer(node::State::work);
+//            bool validateCartographer = CartographerServiceClient::instance().callStartLocalization();
+            if (validateCartographer) {
+
+                if (Environment::instance().direct_start_move_base) {
+
+                    {
+                        bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
+                        if (baseAvailable) {
+                            setWorkMode(node::State::work);
+                            state_ = node::State::work;
+                            work_state_ = node::WorkState::complete;
+                        } else {
+                            defeatModeStart(node::State::work);
+                        }
+                    }
+
+                } else {
+
+                    CartographerPublisher::instance().publishControlMoveBase(true);
+                    bool validateMoveBase = ModeValidate::validateMoveBase(1);
+                    if (validateMoveBase) {
+
+                        bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
+                        if (baseAvailable) {
+                            setWorkMode(node::State::work);
+                            state_ = node::State::work;
+                            work_state_ = node::WorkState::complete;
+                        } else {
+                            defeatModeStart(node::State::work);
+                        }
+                    } else {
+                        defeatModeStart(node::State::work);
+                    }
+                }
+            } else {
+                defeatModeStart(node::State::work);
+            }
         } else {
-            trySleep();
+            defeatModeStart(node::State::work);
         }
+
     });
 }
 
@@ -119,19 +160,25 @@ void NodeControl::onMap() {
 //            state_ = node::State::map;
 //            map_state_ = node::MapState::complete;
 //        } else {
-//            trySleep();
+//            defeatModeStart(node::State::map);
 //        }
 //        delete pFilterManager;
 //    });
     asyncOn([this]() {
-        CartographerPublisher::instance().publishStartCartoMapping();
-        bool isSuccessful = ModeValidate::validate(node::State::map);
-        if (isSuccessful) {
-            setWorkMode(node::State::map);
-            state_ = node::State::map;
-            map_state_ = node::MapState::complete;
+
+        bool motorServer = ModeValidate::validateMotorServer();
+        if (motorServer) {
+            CartographerPublisher::instance().publishStartCartoMapping();
+            bool validateCartographer = ModeValidate::validateCartographer(node::State::map);
+            if (validateCartographer) {
+                setWorkMode(node::State::map);
+                state_ = node::State::map;
+                map_state_ = node::MapState::complete;
+            } else {
+                defeatModeStart(node::State::map);
+            }
         } else {
-            trySleep();
+            defeatModeStart(node::State::map);
         }
     });
 }
@@ -203,20 +250,57 @@ void NodeControl::trySleep() {
         map_state_ = node::MapState::normal;
         state_ = node::State::sleep;
 
-        CartographerPublisher::instance().publishShutdownCarto();
-        CartographerPublisher::instance().publishClearCurrentPose();
-        bool isSuccessful = ModeValidate::validate(node::State::sleep);
-        if (isSuccessful) {
-            setWorkMode(node::State::sleep);
-            work_state_ = node::WorkState::normal;
-            map_state_ = node::MapState::normal;
-            state_ = node::State::sleep;
+        if (Environment::instance().direct_start_move_base) {
+
+            {
+                CartographerPublisher::instance().publishShutdownCarto();
+                CartographerPublisher::instance().publishClearCurrentPose();
+                bool validateCartographer = ModeValidate::validateCartographer(node::State::sleep);
+//                bool validateCartographer = CartographerServiceClient::instance().callStopLocalization();
+                if (validateCartographer) {
+                    setWorkMode(node::State::sleep);
+                    work_state_ = node::WorkState::normal;
+                    map_state_ = node::MapState::normal;
+                    state_ = node::State::sleep;
+                } else {
+                    LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
+                    work_state_ = back_work_state_;
+                    map_state_ = back_map_state_;
+                    state_ = back_state_;
+                }
+            }
+
         } else {
-            LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
-            work_state_ = back_work_state_;
-            map_state_ = back_map_state_;
-            state_ = back_state_;
+
+            CartographerPublisher::instance().publishControlMoveBase(false);
+            bool validateMoveBase = ModeValidate::validateMoveBase(0);
+            if (validateMoveBase) {
+
+                CartographerPublisher::instance().publishShutdownCarto();
+                CartographerPublisher::instance().publishClearCurrentPose();
+                bool validateCartographer = ModeValidate::validateCartographer(node::State::sleep);
+//                bool validateCartographer = CartographerServiceClient::instance().callStopLocalization();
+                if (validateCartographer) {
+                    setWorkMode(node::State::sleep);
+                    work_state_ = node::WorkState::normal;
+                    map_state_ = node::MapState::normal;
+                    state_ = node::State::sleep;
+                } else {
+                    LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
+                    work_state_ = back_work_state_;
+                    map_state_ = back_map_state_;
+                    state_ = back_state_;
+                }
+
+            } else {
+                LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
+                work_state_ = back_work_state_;
+                map_state_ = back_map_state_;
+                state_ = back_state_;
+            }
+
         }
+
     });
 }
 
@@ -245,6 +329,16 @@ void NodeControl::resetLocalization(bool open) {
         // 将 Pose 消息转换为字典
         paramPose("/set_initial_pose", pose);
     }
+}
+
+void NodeControl::defeatModeStart(node::State state) {
+    if (state == node::State::work) {
+        LOG(INFO) << "工作模式启动失败，休息几秒尝试进入睡眠模式 ... ";
+    } else if (state == node::State::map) {
+        LOG(INFO) << "建图模式启动失败，休息几秒尝试进入睡眠模式 ... ";
+    }
+    sleep(5);
+    trySleep();
 }
 
 void NodeControl::update() {

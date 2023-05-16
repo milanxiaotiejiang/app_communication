@@ -103,6 +103,8 @@ namespace clean_history_db {
 
         bool laserInterrupt();
 
+        void updateProperty(const WorkStatus& workStatus, long cleanTime);
+
         //错误完成历史
         bool errorComplete(int error_code, std::string error_string, std::string error_code2);
 

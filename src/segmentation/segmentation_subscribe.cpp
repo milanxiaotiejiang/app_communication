@@ -14,8 +14,6 @@
 #include "task/TaskCenter.h"
 #include "segmentation/map_modification.h"
 #include "leave/map_control.h"
-#include "task/point_planner.h"
-#include "task/manager/manual.h"
 
 SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
     sub_node_control_ = handle.subscribe("/segmentation_task", 1, &SegmentationSubscribe::segmentationSubscribeCallback,
@@ -28,8 +26,8 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
 //    RealTask realTask;
 //    TaskExploration::task2RealTask(task, realTask);
 //    auto coverage = TaskExploration::explorationPlanningPath(realTask);
-//    MapPo map = SegmentationDataBase::instance().getDbMap();
-//    auto generateMat = SegmentationCenter::instance().generateMat();
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    auto generateMat = SegmentationCenter::instance().generateMat();
 
 
 //    vector<vector<PointVo>> params;
@@ -82,22 +80,22 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
 //        CartographerPublisher::instance().publishStartCartoLocalization();
 //    }
 
+//    std::vector<std::vector<cv::Point>> points;
+//    std::vector<cv::Point> ps;
+//    ps.emplace_back(0, 0);
+//    ps.emplace_back(0, 200);
+//    ps.emplace_back(100, 200);
+//    ps.emplace_back(100, 0);
+//    points.push_back(ps);
+//
+//    MapModification mapModification;
+////    mapModification.addFeasibleZone(points);
+//    mapModification.addObstacles(points);
 
-//    if (flag == 0) {
-//        PointPlanner::instance().cancelPath();
-//        return;
-//    }
-//    if (flag == 1) {
-//        ManualManager::instance().pause();
-//        return;
-//    }
-//    if (flag == 2) {
-//        ManualManager::instance().resume();
-//        return;
-//    }
 
     try {
         TaskCenter::instance().performTask(flag, TaskSource::App, 2);
+//        TaskDataBase::instance().modifyPrincipalTask(map.id, flag, true);
     } catch (app::exception const &e) {
         LOG(ERROR) << e.what();
     } catch (const std::exception &e) {

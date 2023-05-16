@@ -17,6 +17,7 @@
 #include "task/manager/SwitchModePublish.h"
 #include "manager/PublishInnerManager.h"
 #include "leave/cartographer_node.h"
+#include "leave/HotWindNote.h"
 #include "task/task_util.h"
 
 /*
@@ -230,7 +231,7 @@ void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
     backBaseRetryCount = 0;
     rechargeRetryCount = 0;
 
-    callSelfCleanClose();
+    HotWindNoteSingleton::instance().closeHotWind();
 
     //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
     notify_one([this]() {
@@ -472,6 +473,7 @@ void AsyncTaskCall::callGoPath() {
 }
 
 void AsyncTaskCall::callManualCleanStart() {
+    HotWindNoteSingleton::instance().closeHotWind();
     if (!isWaitTask(currentFlow())) {
         cancelTask();
         goodGame(event::GG::gg_manual_mode);
@@ -506,16 +508,12 @@ void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
         if (ParamManager::instance().getDry() == 0 && ltm->tm_hour >= 7) {
             return;
         }
-        MechanismManager::instance().openHotWind();
-        async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::minutes(20), [this]() {
-                    callSelfCleanClose();
-                });
+        HotWindNoteSingleton::instance().openHotWind();
     }
 }
 
 void AsyncTaskCall::callSelfCleanClose() {
-    MechanismManager::instance().closeHotWind();
+
 }
 
 void AsyncTaskCall::callSubsequentMode(int mode) {
@@ -1062,6 +1060,9 @@ void AsyncTaskCall::executeLift(bool lift) {
         return;
     }
     if (isPreparation(event_flow)) {
+        return;
+    }
+    if (isReturningBase(event_flow)) {
         return;
     }
     if (lift) {

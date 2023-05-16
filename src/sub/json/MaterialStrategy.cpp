@@ -4,6 +4,8 @@
 
 #include "sub/json/MaterialStrategy.h"
 #include "net/base/VersionSubscribe.h"
+#include "task/manager/MechanismManager.h"
+#include "leave/MaintenanceMode.h"
 
 ConsumableVo GetConsumableStrategy::handler(string params) {
     const Consumable &consumable = PropertyDataBase::instance().loadConsumable();
@@ -47,4 +49,26 @@ ConsumableVo ResetConsumableStrategy::handler(ResetConsumableVo params) {
                               consumable.aromatherapy_use,
                               consumable.disinfect_use);
     return consumableVo;
+}
+
+string HotWindModeStrategy::handler(int params) {
+    if (params > 0) {
+        HotWindNoteSingleton::instance().openHotWind();
+    } else {
+        HotWindNoteSingleton::instance().closeHotWind();
+    }
+    return "";
+}
+
+bool HotWindModeStatusStrategy::handler(string params) {
+    return HotWindNoteSingleton::instance().isHotWind();
+}
+
+string MaintenanceModeStrategy::handler(int params) {
+    MaintenanceModeSingleton::instance().operateMaintenanceMode(params > 0);
+    return "";
+}
+
+bool MaintenanceModeStatusStrategy::handler(string params) {
+    return MaintenanceModeSingleton::instance().isMaintenanceMode();
 }

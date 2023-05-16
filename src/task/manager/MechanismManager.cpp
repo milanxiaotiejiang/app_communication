@@ -168,20 +168,6 @@ void MechanismManager::quitManualControl() {
     PublishInnerManager::instance().publishKnobTask(map_start);
 }
 
-void MechanismManager::openHotWind() {
-    LOG(INFO) << "MechanismManager : 开启热风烘干.";
-    std_msgs::Int32 msg;
-    msg.data = 1;
-    PublishInnerManager::instance().publishSelfClean(msg);
-}
-
-void MechanismManager::closeHotWind() {
-    LOG(INFO) << "MechanismManager : 关闭热风烘干.";
-    std_msgs::Int32 msg;
-    msg.data = 0;
-    PublishInnerManager::instance().publishSelfClean(msg);
-}
-
 void MechanismManager::openKnife() {
     LOG(INFO) << "MechanismManager : 开启风刀.";
     std_msgs::Int32 msg;

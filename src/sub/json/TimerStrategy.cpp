@@ -60,7 +60,7 @@ string SetTimerStrategy::handler(TimerInfo params) {
                        params.getEndYear(),
                        params.getEndMonth(),
                        params.getEndDay(),
-                       true);
+                       false);
 
         timerInfoTask.push_back(tinf);
 
@@ -128,7 +128,7 @@ string UpdateTimerStrategy::handler(TimerInfo params) {
                 timer_infos[i].setEndYear(params.getEndYear());
                 timer_infos[i].setEndMonth(params.getEndMonth());
                 timer_infos[i].setEndDay(params.getEndDay());
-                timer_infos[i].setOld(true);
+                timer_infos[i].setOld(false);
                 //
                 break;
             }

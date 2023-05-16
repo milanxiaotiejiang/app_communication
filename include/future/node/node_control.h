@@ -65,6 +65,8 @@ private:
 
     void resetLocalization(bool open);
 
+    void defeatModeStart(node::State state);
+
 public:
     std::atomic<int> heart_beat;
 

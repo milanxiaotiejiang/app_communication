@@ -99,7 +99,7 @@ void ScheduleManager::update_task_schedule() {
                     }
             );
             LOG(INFO) << "定时名称 ： " << timer.getTimerName() << " ， 定时规则 ： " << timer.getTimerRule()
-                      << " ， 下次执行时间 ： " << format_time_point(scheduledTask.next_run_time);
+                      << "    下次执行时间 ： " << format_time_point(scheduledTask.next_run_time);
             tasks.push_back(scheduledTask);
 
         } catch (const cron::bad_cronexpr &ex) {
@@ -125,7 +125,7 @@ void ScheduleManager::task_update_thread_func() {
             update_task_schedule();
         }
 
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 
@@ -251,10 +251,9 @@ std::string ScheduleManager::fix_cron_expression(const std::string &cron_express
     std::vector<int> weekday_numbers;
     for (const std::string &weekday: split(weekdays, ',')) {
         int number = std::stoi(weekday);
-        if (number == 0) {
-            number = 1;
-        } else {
-            number++;
+        number++;
+        if (number == 7) {
+            number = 0;
         }
         weekday_numbers.push_back(number);
     }

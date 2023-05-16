@@ -402,5 +402,24 @@ int switch_ID(const std::string &str) {
     if (str == "reset_consumable") {
         return RESET_CONSUMABLE;
     }
+
+    if (str == "hot_wind_mode") {
+        return HOT_WIND_MODE;
+    }
+    if (str == "hot_wind_mode_status") {
+        return HOT_WIND_MODE_STATUS;
+    }
+    if (str == "maintenance_mode") {
+        return MAINTENANCE_MODE;
+    }
+    if (str == "maintenance_mode_status") {
+        return MAINTENANCE_MODE_STATUS;
+    }
+    if (str == "set_base_station") {
+        return SET_BASE_STATION;
+    }
+    if (str == "get_base_station") {
+        return GET_BASE_STATION;
+    }
     return -1;
 }

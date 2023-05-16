@@ -30,12 +30,12 @@
 #include "sub/json/CloudDeviceStrategy.h"
 #include "sub/json/KnobControlStrategy.h"
 #include "manager/cloud_robot_control.h"
+#include "sub/json/DBTaskStrategy.h"
+#include "exploration/ExplorationStrategy.h"
 
 
 JsonSubscribeCloud::JsonSubscribeCloud(ros::NodeHandle handle) : handle(handle) {
-    // sub_json_ = handle.subscribe(APP_JSON_V2, 1, &JsonSubscribeCloud::subscribeCallback, this);
-    service = handle.advertiseService("robot_control_srv", &JsonSubscribeCloud::function,
-                                      this);//写明服务的处理函数 handle_function cloud_srvs是service的名称
+    service = handle.advertiseService("robot_control_srv", &JsonSubscribeCloud::function, this);
 }
 
 JsonSubscribeCloud::~JsonSubscribeCloud() {
@@ -62,9 +62,14 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case GET_MULTI_MAPS_:
             messageStrategy = new GetMultiMapsStrategy();
             break;
+
+        case EDIT_MAP_:
+            messageStrategy = new EditMapStrategy();
+            break;
         case GET_EDIT_MAP_:
             messageStrategy = new GetEditMapStrategy();
             break;
+
         case GET_TASK_LIST_:
             messageStrategy = new GetTaskListStrategyV2();
             break;
@@ -132,6 +137,87 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             messageStrategy = new otaStrategy();
             break;
 
+            //20230509
+        case ADD_TASK:
+            messageStrategy = new AddTaskStrategy();
+            break;
+        case DELETE_TASK:
+            messageStrategy = new DeleteTaskStrategy();
+            break;
+        case LIST_TASK:
+            messageStrategy = new ListTaskStrategy();
+            break;
+        case QUERY_ID_TASK:
+            messageStrategy = new QueryIdTaskStrategy();
+            break;
+
+        case BUILD_PRINCIPAL_TASK:
+            messageStrategy = new BuildPrincipalTaskStrategy();
+            break;
+        case CANCEL_PRINCIPAL_TASK:
+            messageStrategy = new CancelPrincipalTaskStrategy();
+            break;
+        case PRINCIPAL_TASK:
+            messageStrategy = new PrincipalTaskStrategy();
+            break;
+
+        case CLEAR_CURRENT_LIST_TASK:
+            messageStrategy = new ClearCurrentListTaskStrategy();
+            break;
+
+        case MODIFY_TASK_NAME:
+            messageStrategy = new ModifyTaskNameStrategy();
+            break;
+        case MODIFY_TASK_RATE:
+            messageStrategy = new ModifyTaskRateStrategy();
+            break;
+        case MODIFY_TASK_WORK_STATUS:
+            messageStrategy = new ModifyTaskWorkStatusStrategy();
+            break;
+        case MODIFY_TASK_KNIFE:
+            messageStrategy = new ModifyTaskKnifeStrategy();
+            break;
+        case OPERATE_ADD_ZONE:
+            messageStrategy = new OperateAddZoneStrategy();
+            break;
+        case OPERATE_DELETE_ZONE:
+            messageStrategy = new OperateDeleteZoneStrategy();
+            break;
+        case OPERATE_MODIFY_ZONE:
+            messageStrategy = new OperateModifyZoneStrategy();
+            break;
+        case MODIFY_TASK_PARTITION:
+            messageStrategy = new ModifyTaskPartitionStrategy();
+            break;
+        case OPERATE_ADD_SUBREGION:
+            messageStrategy = new OperateAddSubregionStrategy();
+            break;
+        case OPERATE_DELETE_SUBREGION:
+            messageStrategy = new OperateDeleteSubregionStrategy();
+            break;
+
+        case ADD_TIMER_TASK:
+            messageStrategy = new AddTimerTaskStrategy();
+            break;
+        case DELETE_TIMER_TASK:
+            messageStrategy = new DeleteTimerTaskStrategy();
+            break;
+        case LIST_TIMER_TASK:
+            messageStrategy = new ListTimerTaskStrategy();
+            break;
+        case MODIFY_TIMER_TASK:
+            messageStrategy = new ModifyTimerTaskStrategy();
+            break;
+        case MODIFY_TIMER_NAME:
+            messageStrategy = new ModifyTimerNameStrategy();
+            break;
+
+        case EXPLORATION_TASK:
+            messageStrategy = new ExplorationTaskStrategy();
+            break;
+        case PERFORM_TASK:
+            messageStrategy = new PerformTaskStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
 

@@ -6,6 +6,7 @@
 #define APP_COMMUNICATION_MECHANISMMANAGER_H
 
 #include "model/WorkStatus.h"
+#include "leave/HotWindNote.h"
 
 class MechanismManager {
 public:
@@ -15,6 +16,7 @@ public:
     }
 
 public:
+
     void resetWorkStatus();
 
     void resetBelowWorkStatus();
@@ -26,10 +28,6 @@ public:
     void enterManualControl();
 
     void quitManualControl();
-
-    void openHotWind();
-
-    void closeHotWind();
 
     void openKnife();
 

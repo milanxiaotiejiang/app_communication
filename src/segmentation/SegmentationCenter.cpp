@@ -13,6 +13,7 @@
 #include "exploration/ExplorationCenter.h"
 #include "simulation.h"
 #include "db/task_data_base.h"
+#include "exploration/cv_extend.h"
 
 static bool DEBUG_DISPLAYS_SHOW = false;
 
@@ -29,7 +30,7 @@ bool SegmentationCenter::detectionTooSmallRoom(const cv::Mat &segmented_map, Roo
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
     int map_prohibition_expand_size_ = (int) std::floor(grid_spacing_in_pixel);
 
-    cv::erode(zero_map, compute_map, cv::Mat(), cv::Point(-1, -1), map_prohibition_expand_size_);
+    explorationErode(zero_map, compute_map, map_prohibition_expand_size_);
 
     cv::Mat room_map_int(room_map.rows, room_map.cols, CV_32SC1);
     for (int v = 0; v < compute_map.rows; ++v) {
@@ -485,8 +486,10 @@ cv::Mat SegmentationCenter::generateMat() const {
     //map中只包含 0 / 255
     for (int y = 0; y < map.rows; y++) {
         for (int x = 0; x < map.cols; x++) {
-            if (map.at<unsigned char>(y, x) != 255) {
+            if (map.at<unsigned char>(y, x) < 254) {
                 map.at<unsigned char>(y, x) = 0;
+            } else {
+                map.at<unsigned char>(y, x) = 255;
             }
         }
     }
@@ -494,6 +497,10 @@ cv::Mat SegmentationCenter::generateMat() const {
     auto type = map.type();
     auto cols = map.cols;//width
     auto rows = map.rows;//height
+
+    const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    drawBaseStation(map, stationPoint, plan.range_near_base_station, cv::Scalar(255));
 
     return map;
 }

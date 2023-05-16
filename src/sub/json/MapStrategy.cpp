@@ -11,16 +11,21 @@
 #include "leave/map_control.h"
 #include "leave/cartographer_node.h"
 #include "future/node/node_control.h"
+#include "task/manager/MechanismManager.h"
+#include "leave/HotWindNote.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
     // todo 此版本为单地图
     if (MapAttribute::instance().saveMap()) {
-        ExplorationCenter::instance().repaintCoveragePath(true);
 
         SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id,
                                                        params.getMapName());
+
         MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
         MapInfo param(mapPo.id, mapPo.name);
+
+        ExplorationCenter::instance().repaintCoveragePath(true);
+
         return param;
     } else {
         throw app::exception(make_error_code(error::create_map_fail));
@@ -81,6 +86,7 @@ string ChangeMapStrategy::handler(string params) {
     MapControl::instance().changeMapServer();
     if (NodeControl::instance().isWork()) {
         CartographerPublisher::instance().publishStartCartoLocalization();
+//        CartographerServiceClient::instance().callStartLocalization();
     }
     return "";
 }
@@ -158,6 +164,9 @@ vector<std::vector<float>> GetEditMapStrategy::handler(string params) {
 
 int ManualPushStartStrategy::handler(string params) {
     LOG(INFO) << "MapStrategy manual_push_start ...";
+
+    HotWindNoteSingleton::instance().closeHotWind();
+
     std_msgs::Int32 map_start;
     map_start.data = 2;
     PublishInnerManager::instance().publishKnobTask(map_start);
