@@ -11,6 +11,14 @@
 #include <cppfs/fs.h>
 #include <cppfs/FileHandle.h>
 
+struct TempTask {
+    long taskId{0};
+    std::string taskName{""};
+
+    TempTask() {}
+
+    TempTask(long taskId, const string &taskName) : taskId(taskId), taskName(taskName) {}
+};
 
 class UpgradeManager {
 public:
@@ -19,7 +27,14 @@ public:
         return obj;
     }
 
-    std::map<std::string, long> taskMaps;
+    std::map<std::string, TempTask> taskMaps;
+
+    bool is_valid_name(const std::string &str) {
+//    std::regex pattern(R"([ )"); // 匹配3-10个中文、英文字母、数字、下划线
+//    return std::regex_match(str, pattern);
+        std::regex pattern(R"([\w\xE4\xB8\x80-\xE9\xBE\xA5]{3,10})"); // 匹配3-10个中文、英文字母、数字、下划线
+        return std::regex_match(str, pattern);
+    }
 
     void upgradeTask() {
 
@@ -39,6 +54,7 @@ public:
 //        const cv::Point &start_point = poseTransferPoint(robot_position.x, robot_position.y);
 
 
+        int add_task_num = 1;
         //任务
 
         CombinationBriefList combination_brief_list_temp;
@@ -52,14 +68,24 @@ public:
         vector<CombinationBrief> briefList = combination_brief_list_temp.getCombinationBriefList();
         for (const auto &item: briefList) {
 
+
             if (item.getCombinationType() == 1) {
-                TaskVo taskVo(-1, map.id, item.getName(), item.getRate(),
+
+                std::string task_name = item.getName();
+                if (is_valid_name(task_name)) {
+                    task_name = "全覆盖任务" + to_string(add_task_num);
+                    add_task_num++;
+                }
+
+                TaskVo taskVo(-1, map.id, task_name, item.getRate(),
                               SqliteDataBase::ModeToInt(TaskMode::Cover), item.isPrincipal(),
                               false, false, SqliteDataBase::SourceToString(TaskSource::App), "", 0, 0, 0);
 
                 taskVo.setWorkStatus(item.getWorkStatus());
                 long taskId = TaskDataBase::instance().addTask(map.id, taskVo);
-                taskMaps[item.getCombinationID()] = taskId;
+
+                TempTask tempTask(taskId, task_name);
+                taskMaps[item.getCombinationID()] = tempTask;
 //                CombinationManager::get_instance()->DelateCombination(item.getCombinationID());
 
             } else if (item.getCombinationType() == 0) {
@@ -84,7 +110,13 @@ public:
                     } else {//正常
                         LOG(INFO) << "glog file is " << glog_info_time_pid_string;
 
-                        TaskVo taskVo(-1, map.id, combination_detail_temp.getName(), combination_detail_temp.getRate(),
+                        std::string task_name = combination_detail_temp.getName();
+                        if (is_valid_name(task_name)) {
+                            task_name = "划区任务" + to_string(add_task_num);
+                            add_task_num++;
+                        }
+
+                        TaskVo taskVo(-1, map.id, task_name, combination_detail_temp.getRate(),
                                       SqliteDataBase::ModeToInt(TaskMode::Zoned), combination_detail_temp.isPrincipal(),
                                       false, false, SqliteDataBase::SourceToString(TaskSource::App), "", 0, 0, 0);
                         std::vector<ZoneVo> zones;
@@ -105,8 +137,10 @@ public:
                         }
                         taskVo.setZones(zones);
                         taskVo.setWorkStatus(combination_detail_temp.getWorkStatus());
+
                         long taskId = TaskDataBase::instance().addTask(map.id, taskVo);
-                        taskMaps[item.getCombinationID()] = taskId;
+                        TempTask tempTask(taskId, task_name);
+                        taskMaps[item.getCombinationID()] = tempTask;
 //                        CombinationManager::get_instance()->DelateCombination(item.getCombinationID());
                     }
                 }
@@ -150,12 +184,22 @@ public:
         }
 
         if (!timer_info.empty()) {
+
+            int add_timer_num = 1;
+
             for (auto &timer: timer_info) {
                 if (!timer.getTaskId().empty()) {
-                    long taskId = taskMaps[timer.getTaskId()];
-                    if (taskId != 0) {
-                        TimerVo timerVo(0, timer.getTimerRule(), taskId, timer.getTimerName(),
-                                        timer.getTaskName(), timer.getIsExecute(), timer.getRate(), timer.getIsNever(),
+                    TempTask tempTask = taskMaps[timer.getTaskId()];
+                    if (tempTask.taskId != 0) {
+
+                        std::string timer_name = timer.getTimerName();
+                        if (is_valid_name(timer_name)) {
+                            timer_name = "定时任务" + to_string(add_timer_num);
+                            add_timer_num++;
+                        }
+
+                        TimerVo timerVo(0, timer.getTimerRule(), tempTask.taskId, timer_name,
+                                        tempTask.taskName, timer.getIsExecute(), timer.getRate(), timer.getIsNever(),
                                         timer.getIsSkip(),
                                         timer.getEndYear(), timer.getEndMonth(), timer.getEndDay());
                         TaskDataBase::instance().addTimer(map.id, timerVo);
