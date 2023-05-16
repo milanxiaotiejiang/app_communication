@@ -950,7 +950,7 @@ void AsyncTaskCall::executeLift(bool lift) {
     if (isPreparation(event_flow)) {
         return;
     }
-    if(isReturningBase(event_flow)){
+    if (isReturningBase(event_flow)) {
         return;
     }
     if (lift) {
