@@ -948,6 +948,9 @@ void AsyncTaskCall::executeLift(bool lift) {
     if (isPreparation(event_flow)) {
         return;
     }
+    if (isReturningBase(event_flow)) {
+        return;
+    }
     if (lift) {
         notify_one([this]() {
             pushError(loop::error_epoll::error_lift);
