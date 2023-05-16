@@ -125,7 +125,7 @@ void ScheduleManager::task_update_thread_func() {
             update_task_schedule();
         }
 
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 

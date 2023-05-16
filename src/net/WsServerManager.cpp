@@ -717,7 +717,9 @@ void WsServerManager::setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr) {
 }
 
 void WsServerManager::sendRequestData(const string &key, const std::string &data) {
-    wsServerThread->getWsServerSubThread()->sendRequestData(key, data);
+    if (wsServerThread != nullptr)
+        if (wsServerThread->getWsServerSubThread() != nullptr)
+            wsServerThread->getWsServerSubThread()->sendRequestData(key, data);
 }
 
 void WsServerManager::sendMessageBusTopic(const string &message) {
