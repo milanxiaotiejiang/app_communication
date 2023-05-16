@@ -94,9 +94,9 @@ void NodeControl::onWork() {
         bool motorServer = ModeValidate::validateMotorServer();
         if (motorServer) {
 
-//            CartographerPublisher::instance().publishStartCartoLocalization();
-//            bool validateCartographer = ModeValidate::validateCartographer(node::State::work);
-            bool validateCartographer = CartographerServiceClient::instance().callStartLocalization();
+            CartographerPublisher::instance().publishStartCartoLocalization();
+            bool validateCartographer = ModeValidate::validateCartographer(node::State::work);
+//            bool validateCartographer = CartographerServiceClient::instance().callStartLocalization();
             if (validateCartographer) {
 
                 if (Environment::instance().direct_start_move_base) {
@@ -253,10 +253,10 @@ void NodeControl::trySleep() {
         if (Environment::instance().direct_start_move_base) {
 
             {
-//                CartographerPublisher::instance().publishShutdownCarto();
-//                CartographerPublisher::instance().publishClearCurrentPose();
-//                bool validateCartographer = ModeValidate::validateCartographer(node::State::sleep);
-                bool validateCartographer = CartographerServiceClient::instance().callStopLocalization();
+                CartographerPublisher::instance().publishShutdownCarto();
+                CartographerPublisher::instance().publishClearCurrentPose();
+                bool validateCartographer = ModeValidate::validateCartographer(node::State::sleep);
+//                bool validateCartographer = CartographerServiceClient::instance().callStopLocalization();
                 if (validateCartographer) {
                     setWorkMode(node::State::sleep);
                     work_state_ = node::WorkState::normal;
@@ -276,10 +276,10 @@ void NodeControl::trySleep() {
             bool validateMoveBase = ModeValidate::validateMoveBase(0);
             if (validateMoveBase) {
 
-//                CartographerPublisher::instance().publishShutdownCarto();
-//                CartographerPublisher::instance().publishClearCurrentPose();
-//                bool validateCartographer = ModeValidate::validateCartographer(node::State::sleep);
-                bool validateCartographer = CartographerServiceClient::instance().callStopLocalization();
+                CartographerPublisher::instance().publishShutdownCarto();
+                CartographerPublisher::instance().publishClearCurrentPose();
+                bool validateCartographer = ModeValidate::validateCartographer(node::State::sleep);
+//                bool validateCartographer = CartographerServiceClient::instance().callStopLocalization();
                 if (validateCartographer) {
                     setWorkMode(node::State::sleep);
                     work_state_ = node::WorkState::normal;

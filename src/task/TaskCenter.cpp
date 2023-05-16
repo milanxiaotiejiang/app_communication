@@ -159,7 +159,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
     //地图管理类
     CartographerPublisher::instance().initialize(handle);
     CartographerSubscribe::instance().initialize(handle);
-    CartographerServiceClient::instance().initialize(handle);
+//    CartographerServiceClient::instance().initialize(handle);
     CartographerSubscribe::instance().setAsyncTaskCall(asyncTaskCall);
 
     //手动管理类
