@@ -140,14 +140,18 @@ bool ModeValidate::validateMotorServer() {
         return false;
     }
 
-    LOG(INFO) << "ModeValidate  MotorServer 服务可用校验 ------------------------------ ";
     sleep(2);
+
+    LOG(INFO) << "ModeValidate  MotorServer 服务可用校验 ------------------------------ ";
+
     bool callReadyCheckFirst = CartographerServiceClient::instance().callReadyCheck();
     if (callReadyCheckFirst) {
         return true;
     }
     LOG(INFO) << "ModeValidate  MotorServer 首次校验结果 " << callReadyCheckFirst << " ------------------------------ ";
+
     sleep(2);
+
     bool callReadyCheckAgain = CartographerServiceClient::instance().callReadyCheck();
     if (callReadyCheckAgain) {
         return true;

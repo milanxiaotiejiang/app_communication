@@ -134,6 +134,9 @@ void CartographerServiceClient::initialize(ros::NodeHandle handle) {
 }
 
 bool CartographerServiceClient::callSensorStatus() {
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
+    }
     back_charge_msgs::sensor_status srv;
     bool result = sensor_status.call(srv);
     if (result) {
@@ -152,6 +155,9 @@ bool CartographerServiceClient::callSensorStatus() {
 }
 
 bool CartographerServiceClient::callReadyCheck() {
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
+    }
     back_charge_msgs::ready_check srv;
     bool result = ready_check.call(srv);
     if (result) {
@@ -171,6 +177,9 @@ bool CartographerServiceClient::callReadyCheck() {
 }
 
 bool CartographerServiceClient::callStartLocalization() {
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
+    }
     back_charge_msgs::start_localization srv;
     bool result = start_localization.call(srv);
     if (result) {
@@ -184,6 +193,9 @@ bool CartographerServiceClient::callStartLocalization() {
 }
 
 bool CartographerServiceClient::callStopLocalization() {
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
+    }
     back_charge_msgs::stop_localization srv;
     bool result = stop_localization.call(srv);
     if (result) {
