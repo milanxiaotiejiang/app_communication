@@ -18,6 +18,8 @@ public:
     static bool validateMoveBase(int open);
 
     static bool validateMoveBaseAvailable();
+
+    static bool validateMotorServer();
 };
 
 

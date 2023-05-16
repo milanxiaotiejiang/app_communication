@@ -17,12 +17,15 @@
 MapInfo SaveMapStrategy::handler(MapInfo params) {
     // todo 此版本为单地图
     if (MapAttribute::instance().saveMap()) {
-        ExplorationCenter::instance().repaintCoveragePath(true);
 
         SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id,
                                                        params.getMapName());
+
         MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
         MapInfo param(mapPo.id, mapPo.name);
+
+        ExplorationCenter::instance().repaintCoveragePath(true);
+
         return param;
     } else {
         throw app::exception(make_error_code(error::create_map_fail));
@@ -82,7 +85,8 @@ string ChangeMapStrategy::handler(string params) {
     MapControl::instance().loadInformation(params);
     MapControl::instance().changeMapServer();
     if (NodeControl::instance().isWork()) {
-        CartographerPublisher::instance().publishStartCartoLocalization();
+//        CartographerPublisher::instance().publishStartCartoLocalization();
+        CartographerServiceClient::instance().callStartLocalization();
     }
     return "";
 }

@@ -14,6 +14,7 @@
 #include "task/TaskCenter.h"
 #include "segmentation/map_modification.h"
 #include "leave/map_control.h"
+#include "exploration/ExplorationCenter.h"
 
 SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
     sub_node_control_ = handle.subscribe("/segmentation_task", 1, &SegmentationSubscribe::segmentationSubscribeCallback,

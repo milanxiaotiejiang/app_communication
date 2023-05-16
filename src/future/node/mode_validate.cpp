@@ -8,6 +8,8 @@
 #include "future/node/node_control.h"
 #include "future/thread_pool.h"
 #include "task/point_planner.h"
+#include "leave/cartographer_node.h"
+#include "future/node/motor_server.h"
 
 int ModeValidate::getMoveBaseMode() {
     int move_base_mode = -1;
@@ -129,4 +131,27 @@ bool ModeValidate::validateMoveBaseAvailable() {
 //    move.detach();
 //
 //    moveBaseAvailableThread.join();
+}
+
+bool ModeValidate::validateMotorServer() {
+    bool firingResult = MotorServerSingleton::instance().start();
+    if (!firingResult) {
+        LOG(INFO) << "ModeValidate  MotorServer 雷达启动失败 ------------------------------ ";
+        return false;
+    }
+
+    LOG(INFO) << "ModeValidate  MotorServer 服务可用校验 ------------------------------ ";
+    sleep(2);
+    bool callReadyCheckFirst = CartographerServiceClient::instance().callReadyCheck();
+    if (callReadyCheckFirst) {
+        return true;
+    }
+    LOG(INFO) << "ModeValidate  MotorServer 首次校验结果 " << callReadyCheckFirst << " ------------------------------ ";
+    sleep(2);
+    bool callReadyCheckAgain = CartographerServiceClient::instance().callReadyCheck();
+    if (callReadyCheckAgain) {
+        return true;
+    }
+    LOG(INFO) << "ModeValidate  MotorServer 再次校验结果 " << callReadyCheckAgain << " ------------------------------ ";
+    return false;
 }

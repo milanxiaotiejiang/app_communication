@@ -7,6 +7,10 @@
 #include "future/node/node_control.h"
 #include "future/timer_call.h"
 #include "simulation.h"
+#include "back_charge_msgs/sensor_status.h"
+#include "back_charge_msgs/ready_check.h"
+#include "back_charge_msgs/start_localization.h"
+#include "back_charge_msgs/stop_localization.h"
 
 void CartographerPublisher::initialize(ros::NodeHandle handle) {
     save_map = handle.advertise<std_msgs::Int32>("/save_map", 1);
@@ -120,4 +124,74 @@ CartographerSubscribe::currentCartographerPoseCallback(const geometry_msgs::Pose
 
 void CartographerSubscribe::coverResult() {
     asyncTaskCall->executeCover();
+}
+
+void CartographerServiceClient::initialize(ros::NodeHandle handle) {
+    sensor_status = handle.serviceClient<back_charge_msgs::sensor_status>("sensor_status");
+    ready_check = handle.serviceClient<back_charge_msgs::ready_check>("ready_check");
+    start_localization = handle.serviceClient<back_charge_msgs::start_localization>("start_localization");
+    stop_localization = handle.serviceClient<back_charge_msgs::stop_localization>("stop_localization");
+}
+
+bool CartographerServiceClient::callSensorStatus() {
+    back_charge_msgs::sensor_status srv;
+    bool result = sensor_status.call(srv);
+    if (result) {
+        bool hlsStatus = srv.response.hls_status;//电机失能
+        bool imuStatus = srv.response.imu_status;//imu
+        bool laserStatus = srv.response.laser_status;//激光雷达
+        bool localizationStatus = srv.response.localization_status;//定位
+        LOG(INFO) << "callSensorStatus  hlsStatus : " << hlsStatus
+                  << " , imuStatus : " << imuStatus
+                  << " , laserStatus : " << laserStatus
+                  << " , localizationStatus : " << localizationStatus;
+    } else {
+        LOG(ERROR) << "Failed to call service sensor_status ...";
+    }
+    return result;
+}
+
+bool CartographerServiceClient::callReadyCheck() {
+    back_charge_msgs::ready_check srv;
+    bool result = ready_check.call(srv);
+    if (result) {
+        bool hlsStatus = srv.response.hls_status;//电机失能
+        bool imuStatus = srv.response.imu_status;//imu
+        bool laserStatus = srv.response.laser_status;//激光雷达
+        bool bumpTriggeredStatus = srv.response.bump_triggered;//后碰撞
+        LOG(INFO) << "callReadyCheck  hlsStatus : " << hlsStatus
+                  << " , imuStatus : " << imuStatus
+                  << " , laserStatus : " << laserStatus
+                  << " , bumpTriggeredStatus : " << bumpTriggeredStatus;
+        return hlsStatus && imuStatus && laserStatus && !bumpTriggeredStatus;
+    } else {
+        LOG(ERROR) << "Failed to call service ready_check ...";
+        return result;
+    }
+}
+
+bool CartographerServiceClient::callStartLocalization() {
+    back_charge_msgs::start_localization srv;
+    bool result = start_localization.call(srv);
+    if (result) {
+        bool tfValid = srv.response.tf_valid;
+        LOG(INFO) << "callStartLocalization  tfValid : " << tfValid;
+        return tfValid;
+    } else {
+        LOG(ERROR) << "Failed to call service start_localization ...";
+        return result;
+    }
+}
+
+bool CartographerServiceClient::callStopLocalization() {
+    back_charge_msgs::stop_localization srv;
+    bool result = stop_localization.call(srv);
+    if (result) {
+        bool tfValid = srv.response.tf_valid;
+        LOG(INFO) << "callStopLocalization  tfValid : " << tfValid;
+        return tfValid;
+    } else {
+        LOG(ERROR) << "Failed to call service stop_localization ...";
+        return result;
+    }
 }
