@@ -92,24 +92,18 @@ void PointPlanner::resetForMoveBaseServer() {
     share_move_base.reset();
 }
 
-void PointPlanner::initialize(ros::NodeHandle handle) {
-    PointPlanner::handle = handle;
-    LOG(INFO) << "PointPlanner initialize ...";
-    std::thread moveBaseThread([this]() {
-        move_base = new actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>("move_base", true);
-        move_base->waitForServer();
-        if (Environment::instance().re_planner) {
-            replan_client = new actionlib::SimpleActionClient<replan_msgs::ReplanAction>("replan", true);
-            replan_client->waitForServer();
-        }
-        initialize_finish = true;
-        LOG(INFO) << "PointPlanner open ...";
-    });
-    moveBaseThread.detach();
+bool PointPlanner::waitForReplanServer() {
+    share_replan.reset();
+    share_replan = std::make_shared<ReplanAction>("replan", true);
+    return false;
+}
+
+void PointPlanner::resetForReplanServer() {
+    share_replan.reset();
 }
 
 void PointPlanner::gotoPlannerPoint(const RealPoint &realPoint) {
- if (!initialize_finish) {
+    if (!initialize_finish) {
         throw app::exception(make_error_code(error::task_planner_failed_to_start));
     }
     LOG(INFO) << "AsyncTaskFramework : gotoPlannerPoint " << realPoint.realPosition << " ...";
@@ -130,19 +124,19 @@ void PointPlanner::goToPath(const std::vector<Cp> &pointList) {
     }
     replan_msgs::ReplanGoal path;
     cpToPath(pointList, path);
-    replan_client->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
+    share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
 }
 
 void PointPlanner::cancelGoal() {
     if (Environment::instance().re_planner) {
-        replan_client->cancelGoal();
+        share_replan->cancelGoal();
     }
     sleep(1);
     share_move_base->cancelGoal();
 }
 
 void PointPlanner::cancelPath() {
-    replan_client->cancelGoal();
+    share_replan->cancelGoal();
 }
 
 void PointPlanner::backBasePoint() {

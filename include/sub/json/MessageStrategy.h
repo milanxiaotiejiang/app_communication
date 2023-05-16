@@ -101,7 +101,6 @@ public:
                     "publish", "/response_json", baseResult
             );
             json jsonResult = requestModel;
-//            LOG(INFO) << jsonResult.dump();
             PublishOutManager::instance().publishJson(jsonResult.dump());
         } else if (source == MessageSource::Cloud) {
             json bJson = baseResult;

@@ -26,7 +26,7 @@ private:
     DR yawGoalTolerance = DR("/move_base/DWAPlannerROS", "yaw_goal_tolerance");
 
     std::shared_ptr<MoveBaseAction> share_move_base;
-    std::shared_ptr<ReplanAction> *replan_client;
+    std::shared_ptr<ReplanAction> share_replan;
 
     static void point2Goal(const RealPoint &point, move_base_msgs::MoveBaseGoal &goal);
 
@@ -66,7 +66,7 @@ public:
 
     void gotoPlannerFirstPoint(const RealPoint &realPoint);
 
-    void goToPath(const std::vector<Cp>& pointList);
+    void goToPath(const std::vector<Cp> &pointList);
 
     void cancelGoal();
 
