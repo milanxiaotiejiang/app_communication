@@ -223,14 +223,13 @@ bool PointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
         return sqrt(pow(B.getX() - A.getX(),2) + pow(B.getY() - A.getY(),2));
     };
 
-    auto addPoint = [](Point point, Line inc)
-    {
+    auto addPoint = [](Point point, Line inc) {
         Point new_point;
         new_point.setX(point.getX() + inc.getX());
         new_point.setY(point.getY() + inc.getY());
         return new_point;
     };
-    for (int i = 0; i < 4; i ++){
+    for (int i = 0; i < 4; i++) {
         LOG(INFO) << "point" << i << ": " << zoned[i].getX() << "  " << zoned[i].getY();
     }
 
@@ -240,7 +239,7 @@ bool PointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
     int x_size = ceil(x_length / step);
     int y_size = ceil(y_length / step);
     Line x_vector = zoned[1] - zoned[0];
-    Line x_step_vector = x_vector/x_size;
+    Line x_step_vector = x_vector / x_size;
 
     Line y_vector = zoned[3] - zoned[0];
     Line y_step_vector = y_vector / y_size;
@@ -260,8 +259,10 @@ bool PointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
     std::vector<int> current_index = {0, 0};
     PoseVo current_point;
     while (cnt > 0) {
-        current_point.setX(origin_x + current_index[0] * x_step_vector.getX() +  current_index[1] * y_step_vector.getX());
-        current_point.setY(origin_y + current_index[0] * x_step_vector.getY() +  current_index[1] * y_step_vector.getY());
+        current_point.setX(
+                origin_x + current_index[0] * x_step_vector.getX() + current_index[1] * y_step_vector.getX());
+        current_point.setY(
+                origin_y + current_index[0] * x_step_vector.getY() + current_index[1] * y_step_vector.getY());
         pointList.push_back(current_point);
         map[current_index[0]][current_index[1]] = 1;
         int next_x = current_index[0] + dir[dir_index][0];
@@ -531,6 +532,17 @@ std::vector<RealPoint> ExplorationGenerator::taskGeneratePointList(RealTask &tas
 
             generateRecPointListForViewPart(trs, poseList);
         }
+
+
+        std::vector<geometry_msgs::Pose2D> exploration_path;
+        for (const auto &item: poseList) {
+            geometry_msgs::Pose2D pose;
+            pose.x = item.getY();
+            pose.y = item.getX();
+            pose.theta = item.getTheta();
+            exploration_path.push_back(pose);
+        }
+        explorationCenter.pathPublish(exploration_path);
 
         pose2RealPoint(task, poseList, realPoints);
         return realPoints;
