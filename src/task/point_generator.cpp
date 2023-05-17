@@ -218,25 +218,35 @@ bool PointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
         return false;
     }
 
-    float max_x = max(max(zoned[0].getX(), zoned[1].getX()), max(zoned[2].getX(), zoned[3].getX()));
-    float min_x = min(min(zoned[0].getX(), zoned[1].getX()), min(zoned[2].getX(), zoned[3].getX()));
-    float max_y = max(max(zoned[0].getY(), zoned[1].getY()), max(zoned[2].getY(), zoned[3].getY()));
-    float min_y = min(min(zoned[0].getY(), zoned[1].getY()), min(zoned[2].getY(), zoned[3].getY()));
-    max_x = round(max_x / 0.05) * 0.05;
-    min_x = round(min_x / 0.05) * 0.05;
-    max_y = round(max_y / 0.05) * 0.05;
-    min_y = round(min_y / 0.05) * 0.05;
-    std::cout << max_x << max_y << min_x << min_y << std::endl;
+    auto pointDistance = [](Point A, Point B)
+    {
+        return sqrt(pow(B.getX() - A.getX(),2) + pow(B.getX() - A.getX(),2));
+    };
+
+    auto addPoint = [](Point point, Line inc)
+    {
+        Point new_point;
+        new_point.setX(point.getX() + inc.getX());
+        new_point.setY(point.getY() + inc.getY());
+        return new_point;
+    };
+    for (int i = 0; i < 4; i ++){
+        LOG(INFO) << "point" << i << ": " << zoned[i].getX() << "  " << zoned[i].getY();
+    }
 
     float step = 0.2;
-    float x_length = max_x - min_x;
-    float y_length = max_y - min_y;
+    float x_length = pointDistance(zoned[0], zoned[1]);
+    float y_length = pointDistance(zoned[0], zoned[3]);
     int x_size = ceil(x_length / step);
     int y_size = ceil(y_length / step);
-    float x_step = x_length / x_size;
-    float y_step = y_length / y_size;
-    float origin_x = min_x;
-    float origin_y = min_y;
+    Line x_vector = zoned[1] - zoned[0];
+    Line x_step_vector = x_vector/x_size;
+
+    Line y_vector = zoned[3] - zoned[0];
+    Line y_step_vector = y_vector / y_size;
+
+    float origin_x = zoned[0].getX();
+    float origin_y = zoned[0].getY();
     std::vector<std::vector<int>> dir{{1,  0},
                                       {0,  1},
                                       {-1, 0},
@@ -250,8 +260,8 @@ bool PointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
     std::vector<int> current_index = {0, 0};
     PoseVo current_point;
     while (cnt > 0) {
-        current_point.setX(origin_x + current_index[0] * x_step);
-        current_point.setY(origin_y + current_index[1] * y_step);
+        current_point.setX(origin_x + current_index[0] * x_step_vector.getX() +  current_index[1] * y_step_vector.getX());
+        current_point.setY(origin_y + current_index[0] * x_step_vector.getY() +  current_index[1] * y_step_vector.getY());
         pointList.push_back(current_point);
         map[current_index[0]][current_index[1]] = 1;
         int next_x = current_index[0] + dir[dir_index][0];
