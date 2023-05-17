@@ -95,7 +95,7 @@ void PointPlanner::resetForMoveBaseServer() {
 bool PointPlanner::waitForReplanServer() {
     share_replan.reset();
     share_replan = std::make_shared<ReplanAction>("replan", true);
-    return false;
+    return share_replan->waitForServer(ros::Duration(5));
 }
 
 void PointPlanner::resetForReplanServer() {

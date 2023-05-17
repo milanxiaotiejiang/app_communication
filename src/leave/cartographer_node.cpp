@@ -7,10 +7,10 @@
 #include "future/node/node_control.h"
 #include "future/timer_call.h"
 #include "simulation.h"
-#include "back_charge_msgs/sensor_status.h"
-#include "back_charge_msgs/ready_check.h"
-#include "back_charge_msgs/start_localization.h"
-#include "back_charge_msgs/stop_localization.h"
+//#include "back_charge_msgs/sensor_status.h"
+//#include "back_charge_msgs/ready_check.h"
+//#include "back_charge_msgs/start_localization.h"
+//#include "back_charge_msgs/stop_localization.h"
 
 void CartographerPublisher::initialize(ros::NodeHandle handle) {
     save_map = handle.advertise<std_msgs::Int32>("/save_map", 1);

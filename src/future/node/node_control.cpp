@@ -93,7 +93,7 @@ void NodeControl::onWork() {
     asyncOn([this]() {
         bool motorServer = ModeValidate::validateMotorServer();
         if (motorServer) {
-
+            sleep(2);
             CartographerPublisher::instance().publishStartCartoLocalization();
             bool validateCartographer = ModeValidate::validateCartographer(node::State::work);
 //            bool validateCartographer = CartographerServiceClient::instance().callStartLocalization();
