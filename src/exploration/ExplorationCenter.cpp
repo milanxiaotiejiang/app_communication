@@ -754,7 +754,7 @@ cv::Mat ExplorationCenter::prohibitionMat(const cv::Mat &room_map) const {
         if (vector.size() == 2) {
             const cv::Point &pointStart = MapAttribute::instance().rosPoint2MapPoint(prohibition_image, vector[0]);
             const cv::Point &pointEnd = MapAttribute::instance().rosPoint2MapPoint(prohibition_image, vector[1]);
-            cv::line(prohibition_image, pointStart, pointEnd, cv::Scalar(255));
+            cv::line(prohibition_image, pointStart, pointEnd, cv::Scalar(255), 2);
         }
     }
     return prohibition_image;

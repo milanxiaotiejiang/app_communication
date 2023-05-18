@@ -328,6 +328,8 @@ void AsyncTaskCall::garbage(event::SB sb) {
     LOG(INFO) << "AsyncTaskCall : 程序出现严重错误，不可恢复，以下是现场可保存的信息 " << sb;
     LOG(INFO) << " start ————————————————————————————————————————————————————";
 
+    CartographerServiceClient::instance().callSensorStatus();
+
     for (const auto &item: stopStack) {
         LOG(INFO) << "AsyncTaskCall stopStack : " << item;
     }
