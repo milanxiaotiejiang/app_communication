@@ -12,6 +12,8 @@
 #include "boost/iostreams/filtering_streambuf.hpp"
 #include "boost/iostreams/copy.hpp"
 #include "boost/iostreams/filter/gzip.hpp"
+#include "segmentation/SegmentationCenter.h"
+#include "segmentation/map_attribute.h"
 
 struct RRPoint {
     int16_t x;
@@ -423,17 +425,28 @@ struct RRMap {
             input << b;
         }
 
-
-        std::ofstream file("test.gz", std::ios_base::out | std::ios_base::binary);
-        boost::iostreams::filtering_streambuf<boost::iostreams::output> outbuf;
-
+        std::stringstream compressed;
+        boost::iostreams::filtering_streambuf<boost::iostreams::input> outbuf;
         outbuf.push(boost::iostreams::gzip_compressor());
-        outbuf.push(file);
+        outbuf.push(input);
+        boost::iostreams::copy(outbuf, compressed);
 
-        boost::iostreams::copy(input, outbuf);
+        std::string compressedString = compressed.str();
 
-        boost::iostreams::close(outbuf);
-        file.close();
+
+        //save file
+//        std::ofstream file("test.gz", std::ios_base::out | std::ios_base::binary);
+//        boost::iostreams::filtering_streambuf<boost::iostreams::output> outbuf;
+//
+//        outbuf.push(boost::iostreams::gzip_compressor());
+//        outbuf.push(file);
+//
+//        boost::iostreams::copy(input, outbuf);
+//
+//        boost::iostreams::close(outbuf);
+//        file.close();
+
+        std::cout << compressedString.size() << std::endl;
     };
 };
 

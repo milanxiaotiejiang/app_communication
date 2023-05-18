@@ -1,7 +1,6 @@
 #include "rec_app.h"
 #include "simulation.h"
 #include "manager/UpgradeManager.h"
-#include "alignment/rrmap.h"
 
 /**
  * https://github.com/fnc12/sqlite_orm
