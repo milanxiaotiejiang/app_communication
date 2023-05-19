@@ -218,9 +218,8 @@ bool PointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
         return false;
     }
 
-    auto pointDistance = [](Point A, Point B)
-    {
-        return sqrt(pow(B.getX() - A.getX(),2) + pow(B.getY() - A.getY(),2));
+    auto pointDistance = [](Point A, Point B) {
+        return sqrt(pow(B.getX() - A.getX(), 2) + pow(B.getY() - A.getY(), 2));
     };
 
     auto addPoint = [](Point point, Line inc) {

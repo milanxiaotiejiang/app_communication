@@ -596,6 +596,7 @@ void AsyncTaskCall::callPause() {
             auto currentPoint = findFrontPoint();
             plannerQueue.push_front(currentPoint);
         }
+        childPointQueue.clear();
     }
 }
 
@@ -768,8 +769,9 @@ void AsyncTaskCall::executeOnPathFeedBack(int step, geometry_msgs::Pose pose) {
 
 //            LOG(ERROR) << "AsyncTaskCall : executeOnPathFeedBack : "
 //                       << "  step " << step
-//                       << "  plannerQueue " << plannerQueue.size()
-//                       << "  childPointQueue " << childPointQueue.size()
+//                       << "  plannerQueue.size " << plannerQueue.size()
+//                       << "  childPointQueue.size " << childPointQueue.size()
+//                       << "  point.id " << point.id
 //                       << "  cp.id " << cp.id
 //                       << "  cp.pId " << cp.pId
 //                       << "  last " << cp.last;
