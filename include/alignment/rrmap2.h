@@ -14,8 +14,37 @@
 #include "boost/iostreams/filter/gzip.hpp"
 #include "segmentation/SegmentationCenter.h"
 #include "segmentation/map_attribute.h"
+#include "db/task_data_base.h"
+#include "thread"
 
-class RRMapBlock {
+#define BLOCK_TYPE_SIZE 2
+#define BLOCK_HEADER_SIZE 2
+#define BLOCK_DATA_SIZE 4
+
+class RRMapArray {
+public:
+    virtual ~RRMapArray() = default;
+
+    virtual std::vector<int8_t> toByteArray() = 0;
+
+    static void p4(std::vector<int8_t> &byteArray, int value) {
+        byteArray.push_back(value & 0xff);
+        byteArray.push_back((value >> 8) & 0xff);
+        byteArray.push_back((value >> 16) & 0xff);
+        byteArray.push_back((value >> 24) & 0xff);
+    }
+
+    static void p2(std::vector<int8_t> &byteArray, int value) {
+        byteArray.push_back(value & 0xff);
+        byteArray.push_back((value >> 8) & 0xff);
+    }
+
+    static void p1(std::vector<int8_t> &byteArray, int value) {
+        byteArray.push_back(value & 0xff);
+    }
+};
+
+class RRMapBlock : public RRMapArray {
 public:
     virtual ~RRMapBlock() = default;
 
@@ -25,7 +54,138 @@ public:
 
     virtual int dataLength() const = 0;
 
-    virtual std::vector<int8_t> toByteArray() const = 0;
+    virtual std::vector<int8_t> baseArray() const {
+        std::vector<int8_t> byteArray;
+        p2(byteArray, type());
+        p2(byteArray, headerLength());
+        p4(byteArray, dataLength());
+        return byteArray;
+    }
+};
+
+class RRPoint : public RRMapArray {
+private:
+    int16_t x;
+    int16_t y;
+public:
+    ~RRPoint() override = default;
+
+    RRPoint(int16_t x, int16_t y) : x(x), y(y) {}
+
+    static int toSize() {
+        return sizeof(x) + sizeof(y);
+    }
+
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray;
+        p2(byteArray, x * 50);
+        p2(byteArray, y * 50);
+        return byteArray;
+    }
+};
+
+class RRLine : public RRMapArray {
+private:
+    RRPoint pointStart;
+    RRPoint pointEnd;
+public:
+    ~RRLine() override = default;
+
+    RRLine(const RRPoint &pointStart, const RRPoint &pointEnd) : pointStart(pointStart), pointEnd(pointEnd) {}
+
+    static int toSize() {
+        return RRPoint::toSize() + RRPoint::toSize();
+    }
+
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray;
+        for (const auto &item: pointStart.toByteArray()) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: pointEnd.toByteArray()) {
+            byteArray.push_back(item);
+        }
+        return byteArray;
+    }
+};
+
+class RRZone : public RRMapArray {
+private:
+    RRPoint p0;
+    RRPoint p1;
+    RRPoint p2;
+    RRPoint p3;
+public:
+    ~RRZone() override = default;
+
+    RRZone(const RRPoint &p0, const RRPoint &p1, const RRPoint &p2, const RRPoint &p3) : p0(p0), p1(p1), p2(p2),
+                                                                                         p3(p3) {}
+
+    static int toSize() {
+        return RRPoint::toSize() + RRPoint::toSize() + RRPoint::toSize() + RRPoint::toSize();
+    }
+
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray;
+        for (const auto &item: p0.toByteArray()) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: p1.toByteArray()) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: p2.toByteArray()) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: p3.toByteArray()) {
+            byteArray.push_back(item);
+        }
+        return byteArray;
+    }
+};
+
+class RRMapSize : public RRMapBlock {
+private:
+    int32_t unknown = 0;
+    int32_t top;
+    int32_t left;
+    int32_t imgHeight;
+    int32_t imgWidth;
+
+    std::vector<int8_t> mapArray;
+public:
+    ~RRMapSize() override = default;
+
+    RRMapSize(int32_t top, int32_t left, int32_t imgHeight, int32_t imgWidth,
+              const std::vector<int8_t> &mapArray) : top(top), left(left), imgHeight(imgHeight),
+                                                     imgWidth(imgWidth), mapArray(mapArray) {}
+
+    int type() const override {
+        return 2;
+    }
+
+    int headerLength() const override {
+        return BLOCK_TYPE_SIZE + BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE +
+               sizeof(unknown) + sizeof(top) + sizeof(left) + sizeof(imgHeight) + sizeof(imgWidth);
+    }
+
+    int dataLength() const override {
+        return imgHeight * imgWidth;
+    }
+
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray = baseArray();
+
+        p4(byteArray, unknown);
+        p4(byteArray, top);
+        p4(byteArray, left);
+        p4(byteArray, imgHeight);
+        p4(byteArray, imgWidth);
+
+        for (const auto &item: mapArray) {
+            byteArray.push_back(item);
+        }
+        return byteArray;
+    }
 };
 
 class RRMapCharger : public RRMapBlock {
@@ -36,20 +196,491 @@ private:
 public:
     ~RRMapCharger() override = default;
 
+    RRMapCharger(int32_t chargerX, int32_t chargerY, int32_t chargerA) : chargerX(chargerX), chargerY(chargerY),
+                                                                         chargerA(chargerA) {}
+
     int type() const override {
         return 1;
     }
 
     int headerLength() const override {
-        return 8;
+        return BLOCK_TYPE_SIZE + BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE;
     }
 
     int dataLength() const override {
         return sizeof(chargerX) + sizeof(chargerY) + sizeof(chargerA);
     }
 
-    std::vector<int8_t> toByteArray() const override {
-        return std::vector<int8_t>();
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray = baseArray();
+        p4(byteArray, chargerX * 50);
+        p4(byteArray, chargerY * 50);
+        p4(byteArray, chargerA);
+        return byteArray;
+    }
+};
+
+class RRMapRobot : public RRMapBlock {
+private:
+    int32_t robotX;
+    int32_t robotY;
+    int32_t robotA;
+public:
+    ~RRMapRobot() override = default;
+
+    RRMapRobot(int32_t robotX, int32_t robotY, int32_t robotA) : robotX(robotX), robotY(robotY), robotA(robotA) {}
+
+    int type() const override {
+        return 8;
+    }
+
+    int headerLength() const override {
+        return BLOCK_TYPE_SIZE + BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE;
+    }
+
+    int dataLength() const override {
+        return sizeof(robotX) + sizeof(robotY) + sizeof(robotA);
+    }
+
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray = baseArray();
+        p4(byteArray, robotX * 50);
+        p4(byteArray, robotY * 50);
+        p4(byteArray, robotA);
+        return byteArray;
+    }
+};
+
+class RRMapGoTo : public RRMapBlock {
+private:
+    int32_t gotoX;
+    int32_t gotoY;
+public:
+    ~RRMapGoTo() override = default;
+
+    RRMapGoTo(int32_t gotoX, int32_t gotoY) : gotoX(gotoX), gotoY(gotoY) {}
+
+    int type() const override {
+        return 7;
+    }
+
+    int headerLength() const override {
+        return BLOCK_TYPE_SIZE + BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE;
+    }
+
+    int dataLength() const override {
+        return (sizeof(gotoX) + sizeof(gotoY)) / 2;
+    }
+
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray = baseArray();
+        p2(byteArray, gotoX * 50);
+        p2(byteArray, gotoY * 50);
+        return byteArray;
+    }
+
+};
+
+class RRMapPath : public RRMapBlock {
+private:
+    int32_t pairs = 0;
+    int32_t pointLength = 0;
+    int32_t pointSize = 0;
+    int32_t angle = 0;
+
+    std::vector<RRPoint> points;
+public:
+    ~RRMapPath() override = default;
+
+    RRMapPath(const std::vector<RRPoint> &points) : points(points) {
+        pairs = points.size() * RRPoint::toSize();
+        pointLength = points.size();
+        pointSize = RRPoint::toSize();
+        angle = 0;
+    }
+
+    int type() const override {
+        return 3;
+    }
+
+    int headerLength() const override {
+        return BLOCK_TYPE_SIZE + BLOCK_HEADER_SIZE +
+               sizeof(pairs) + sizeof(pointLength) + sizeof(pointSize) + sizeof(angle);
+    }
+
+    int dataLength() const override {
+        return points.size() * RRPoint::toSize();
+    }
+
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray = baseArray();
+        p4(byteArray, pointLength);
+        p4(byteArray, pointSize);
+        p4(byteArray, angle);
+        for (auto &point: points) {
+            for (const auto &byte: point.toByteArray()) {
+                byteArray.push_back(byte);
+            }
+        }
+        return byteArray;
+    }
+};
+
+class RRMapArea : public RRMapBlock {
+private:
+    int32_t number;
+
+    std::vector<RRZone> areas;
+public:
+    ~RRMapArea() override = default;
+
+    RRMapArea(const std::vector<RRZone> &areas) : areas(areas) {
+        number = areas.size();
+    }
+
+    int type() const override {
+        return 9;
+    }
+
+    int headerLength() const override {
+        return BLOCK_TYPE_SIZE + BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE + sizeof(number);
+    }
+
+    int dataLength() const override {
+        return areas.size() * RRZone::toSize();
+    }
+
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray = baseArray();
+        p4(byteArray, number);
+        for (auto &area: areas) {
+            for (const auto &byte: area.toByteArray()) {
+                byteArray.push_back(byte);
+            }
+        }
+        return byteArray;
+    }
+};
+
+class RRMapWall : public RRMapBlock {
+private:
+    int32_t number;
+
+    std::vector<RRLine> walls;
+public:
+    ~RRMapWall() override = default;
+
+    RRMapWall(const std::vector<RRLine> &walls) : walls(walls) {
+        number = walls.size();
+    }
+
+    int type() const override {
+        return 10;
+    }
+
+    int headerLength() const override {
+        return BLOCK_TYPE_SIZE + BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE + sizeof(number);
+    }
+
+    int dataLength() const override {
+        return walls.size() * RRLine::toSize();
+    }
+
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray = baseArray();
+        p4(byteArray, number);
+        for (auto &wall: walls) {
+            for (const auto &byte: wall.toByteArray()) {
+                byteArray.push_back(byte);
+            }
+        }
+        return byteArray;
+    }
+};
+
+class RRMapZone : public RRMapBlock {
+private:
+    int32_t number;
+
+    std::vector<RRZone> zones;
+public:
+    ~RRMapZone() override = default;
+
+    RRMapZone(const std::vector<RRZone> &zones) : zones(zones) {
+        number = zones.size();
+    }
+
+    int type() const override {
+        return 12;
+    }
+
+    int headerLength() const override {
+        return BLOCK_TYPE_SIZE + BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE + sizeof(number);
+    }
+
+    int dataLength() const override {
+        return zones.size() * RRZone::toSize();
+    }
+
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray = baseArray();
+        p4(byteArray, number);
+        for (auto &zone: zones) {
+            for (const auto &byte: zone.toByteArray()) {
+                byteArray.push_back(byte);
+            }
+        }
+        return byteArray;
+    }
+};
+
+class RRMapValid : public RRMapBlock {
+public:
+    ~RRMapValid() override = default;
+
+    int type() const override {
+        return 1024;
+    }
+
+    int headerLength() const override {
+        return BLOCK_TYPE_SIZE + BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE;
+    }
+
+    int dataLength() const override {
+        return 20;
+    }
+
+    std::vector<int8_t> toByteArray() override {
+        std::vector<int8_t> byteArray = baseArray();
+        for (int i = 0; i < 20; i++) {
+            p1(byteArray, i);
+        }
+        return byteArray;
+    }
+};
+
+class RRMap : public RRMapArray {
+private:
+    int8_t default_0 = 114;
+    int8_t default_1 = 114;
+    int16_t mapHeaderLength;
+    int32_t mapDataLength;
+    int16_t majorVersion;
+    int16_t minorVersion;
+    int32_t mapIndex;
+    int32_t mapSequence;
+
+    RRMapSize rrMapSize;
+    RRMapCharger rrMapCharger;
+    RRMapRobot rrMapRobot;
+    RRMapGoTo rrMapGoTo;
+    RRMapPath rrMapPath;
+    RRMapArea rrMapArea;
+    RRMapWall rrMapWall;
+    RRMapZone rrMapZone;
+    RRMapValid rrMapValid;
+public:
+    ~RRMap() override = default;
+
+    RRMap(const RRMapSize &rrMapSize, const RRMapCharger &rrMapCharger, const RRMapRobot &rrMapRobot,
+          const RRMapGoTo rrMapGoTo, const RRMapPath &rrMapPath,
+          const RRMapArea &rrMapArea, const RRMapWall &rrMapWall, const RRMapZone &rrMapZone,
+          const RRMapValid &rrMapValid) :
+            rrMapSize(rrMapSize), rrMapCharger(rrMapCharger), rrMapRobot(rrMapRobot),
+            rrMapGoTo(rrMapGoTo), rrMapPath(rrMapPath), rrMapArea(rrMapArea), rrMapWall(rrMapWall),
+            rrMapZone(rrMapZone), rrMapValid(rrMapValid) {
+        mapHeaderLength = sizeof(RRMap::default_0) + sizeof(RRMap::default_1) +
+                          sizeof(RRMap::mapHeaderLength) + sizeof(RRMap::mapDataLength) +
+                          sizeof(RRMap::majorVersion) + sizeof(RRMap::minorVersion) +
+                          sizeof(RRMap::mapIndex) + sizeof(RRMap::mapSequence);
+        majorVersion = 1;
+        minorVersion = 0;
+        mapIndex = 132;
+        mapSequence = 2289;
+    }
+
+    std::vector<int8_t> toByteArray() override {
+
+        auto sizeArray = rrMapSize.toByteArray();
+        auto chargerArray = rrMapCharger.toByteArray();
+        auto robotArray = rrMapRobot.toByteArray();
+        auto gotoArray = rrMapGoTo.toByteArray();
+        auto pathArray = rrMapPath.toByteArray();
+        auto areaArray = rrMapArea.toByteArray();
+        auto wallArray = rrMapWall.toByteArray();
+        auto zoneArray = rrMapZone.toByteArray();
+        auto validArray = rrMapValid.toByteArray();
+
+
+        mapDataLength =
+                sizeArray.size() + chargerArray.size() + robotArray.size() + gotoArray.size() + pathArray.size() +
+                areaArray.size() + wallArray.size() + zoneArray.size() + validArray.size();
+
+        std::vector<int8_t> byteArray;
+        p1(byteArray, default_0);
+        p1(byteArray, default_1);
+        p2(byteArray, mapHeaderLength);
+        p4(byteArray, mapDataLength);
+        p2(byteArray, majorVersion);
+        p2(byteArray, minorVersion);
+        p4(byteArray, mapIndex);
+        p4(byteArray, mapSequence);
+
+        for (const auto &item: sizeArray) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: chargerArray) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: robotArray) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: gotoArray) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: pathArray) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: areaArray) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: wallArray) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: zoneArray) {
+            byteArray.push_back(item);
+        }
+        for (const auto &item: validArray) {
+            byteArray.push_back(item);
+        }
+        return byteArray;
+    }
+};
+
+class RRMapTest {
+public:
+    static void v() {
+        std::thread t([]() {
+            sleep(10);
+            generate();
+        });
+        t.detach();
+    }
+
+    static void generate() {
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        std::vector<int8_t> mapArray;
+        for (int y = 0; y < map.rows; y++) {
+            for (int x = 0; x < map.cols; x++) {
+                if (map.at<unsigned char>(y, x) == 255) {
+                    RRMapArray::p1(mapArray, 15);
+                } else {
+                    RRMapArray::p1(mapArray, 0);
+                }
+            }
+        }
+        RRMapSize rrMapSize(0, 0, map.rows, map.cols, mapArray);
+        const RoomCoverage &coverage = ExplorationCenter::instance().obtainCoveragePath();
+        auto penaltyZoneList = MapAttribute::instance().getPenaltyZoneList();
+        auto virtualWallList = MapAttribute::instance().getVirtualWallList();
+
+        cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
+        const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
+        RRMapCharger rrMapCharger(stationPoint.x + 10, stationPoint.y + 20, 0);
+
+        cv::Point robotPosition = MapAttribute::instance().getRobotPositionPoint(map);
+        RRMapRobot rrMapRobot(robotPosition.x, robotPosition.y, -87);
+
+        RRMapGoTo rrMapGoTo(map.cols / 3, map.rows / 3);
+
+        std::vector<RRPoint> paths;
+        std::vector<PointVo> pointList = coverage.getPointList();
+        for (const auto &point: pointList) {
+            paths.emplace_back(point.getX(), point.getY());
+        }
+        RRMapPath rrMapPath(paths);
+
+        std::vector<RRZone> areas;
+        for (int i = 0; i < penaltyZoneList.size(); ++i) {
+            auto vector = penaltyZoneList[i];
+
+            const cv::Point &point0 = MapAttribute::instance().rosPoint2MapPoint(map, vector[0]);
+            const cv::Point &point1 = MapAttribute::instance().rosPoint2MapPoint(map, vector[1]);
+            const cv::Point &point2 = MapAttribute::instance().rosPoint2MapPoint(map, vector[2]);
+            const cv::Point &point3 = MapAttribute::instance().rosPoint2MapPoint(map, vector[3]);
+
+            RRPoint p0(point0.x, point0.y);
+            RRPoint p1(point1.x, point1.y);
+            RRPoint p2(point2.x, point2.y);
+            RRPoint p3(point3.x, point3.y);
+            RRZone zone(p0, p1, p2, p3);
+            areas.push_back(zone);
+        }
+        RRMapArea rrMapArea(areas);
+
+        std::vector<RRLine> walls;
+        for (const auto &vector: virtualWallList) {
+            const cv::Point &pointStart = MapAttribute::instance().rosPoint2MapPoint(map, vector[0]);
+            const cv::Point &pointEnd = MapAttribute::instance().rosPoint2MapPoint(map, vector[1]);
+            RRPoint p0(pointStart.x, pointStart.y);
+            RRPoint p1(pointEnd.x, pointEnd.y);
+            RRLine rrLine(p0, p1);
+            walls.push_back(rrLine);
+        }
+        RRMapWall rrMapWall(walls);
+
+        std::vector<RRZone> zones;
+        const vector <TaskVo> &tasks = TaskDataBase::instance().loadTaskFoMap(
+                SegmentationDataBase::instance().getDbMap().id);
+        for (const auto &task: tasks) {
+            if (task.getMode() == static_cast<int>(TaskMode::Zoned)) {
+                std::vector<ZoneVo> taskZones = task.getZones();
+                for (const auto &tzp: taskZones) {
+                    std::vector<PointVo> points = tzp.getPoints();
+                    RRPoint p0(points[0].getX(), points[0].getY());
+                    RRPoint p1(points[1].getX(), points[1].getY());
+                    RRPoint p2(points[2].getX(), points[2].getY());
+                    RRPoint p3(points[3].getX(), points[3].getY());
+                    RRZone zone(p0, p1, p2, p3);
+                    zones.push_back(zone);
+                }
+            }
+        }
+        RRMapZone rrMapZone(zones);
+
+        RRMapValid rrMapValid;
+
+        RRMap rrMap(rrMapSize, rrMapCharger, rrMapRobot, rrMapGoTo, rrMapPath,
+                    rrMapArea, rrMapWall, rrMapZone, rrMapValid);
+
+        const std::vector<int8_t> byteArray = rrMap.toByteArray();
+
+        std::stringstream input;
+        for (int8_t b: byteArray) {
+            input << b;
+        }
+
+//        std::stringstream compressed;
+//        boost::iostreams::filtering_streambuf<boost::iostreams::input> outbuf;
+//        outbuf.push(boost::iostreams::gzip_compressor());
+//        outbuf.push(input);
+//        boost::iostreams::copy(outbuf, compressed);
+//
+//        std::string compressedString = compressed.str();
+
+        //save file
+        std::ofstream file("test.rrmap", std::ios_base::out | std::ios_base::binary);
+        boost::iostreams::filtering_streambuf<boost::iostreams::output> outbuf;
+
+        outbuf.push(boost::iostreams::gzip_compressor());
+        outbuf.push(file);
+
+        boost::iostreams::copy(input, outbuf);
+
+        boost::iostreams::close(outbuf);
+        file.close();
+
+        std::cout << "finish" << std::endl;
     }
 };
 
