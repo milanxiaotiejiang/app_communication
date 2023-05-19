@@ -201,7 +201,7 @@ bool CartographerServiceClient::callStopLocalization() {
     if (result) {
         bool tfValid = srv.response.tf_valid;
         LOG(INFO) << "callStopLocalization  tfValid : " << tfValid;
-        return tfValid;
+        return !tfValid;
     } else {
         LOG(ERROR) << "Failed to call service stop_localization ...";
         return result;
