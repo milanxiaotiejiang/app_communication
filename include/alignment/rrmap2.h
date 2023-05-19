@@ -23,15 +23,17 @@
 #define SIZE_OF_HEAD_LENGTH 2
 #define SIZE_OF_DATA_LENGTH 4
 #define NUMERICAL_EXPANSION 50
+#define VALID_DEFAULT_LENGTH 20
+#define SIZE_OF_NUMBER_LENGTH 4
 
 enum MMapType {
     M_MAP_CHARGER = 1,
-    M_MAP_SIZE = 2,
+    M_MAP_RESOURCE = 2,
     M_MAP_PATH = 3,
-    M_MAP_GO_TO = 7,
+    M_MAP_TARGET = 7,
     M_MAP_ROBOT = 8,
-    M_MAP_AREA = 9,
-    M_MAP_WALL = 10,
+    M_MAP_PROHIBITION = 9,
+    M_MAP_VIRTUALLY = 10,
     M_MAP_ZONE = 12,
     M_MAP_VALID = 1024
 };
@@ -42,20 +44,28 @@ public:
 
     virtual std::vector<int8_t> toByteArray() = 0;
 
-    static void readInt(std::vector<int8_t> &byteArray, int value) {
+    static void writeIntToByteArray(std::vector<int8_t> &byteArray, int value) {
         byteArray.push_back(value & 0xff);
         byteArray.push_back((value >> 8) & 0xff);
         byteArray.push_back((value >> 16) & 0xff);
         byteArray.push_back((value >> 24) & 0xff);
     }
 
-    static void readShortToInt(std::vector<int8_t> &byteArray, int value) {
+    static void writeShortToByteArray(std::vector<int8_t> &byteArray, int value) {
         byteArray.push_back(value & 0xff);
         byteArray.push_back((value >> 8) & 0xff);
     }
 
-    static void readByteToInt(std::vector<int8_t> &byteArray, int value) {
+    static void writeByteToByteArray(std::vector<int8_t> &byteArray, int value) {
         byteArray.push_back(value & 0xff);
+    }
+
+    static void appendToByteArray(std::vector<int8_t> &byteArray, const std::vector<int8_t> &data) {
+        byteArray.insert(byteArray.end(), data.begin(), data.end());
+    }
+
+    static void updateByteArray(std::vector<int8_t> &byteArray, const std::vector<int8_t> &data, int start) {
+        std::copy(data.begin(), data.end(), byteArray.begin() + start);
     }
 };
 
@@ -71,21 +81,21 @@ public:
 
     virtual std::vector<int8_t> baseArray() const {
         std::vector<int8_t> byteArray;
-        readShortToInt(byteArray, static_cast<int>(type()));
-        readShortToInt(byteArray, headerLength());
-        readInt(byteArray, dataLength());
+        writeShortToByteArray(byteArray, static_cast<int>(type()));
+        writeShortToByteArray(byteArray, headerLength());
+        writeIntToByteArray(byteArray, dataLength());
         return byteArray;
     }
 };
 
-class RRPoint : public MMapObject {
+class MPoint : public MMapObject {
 private:
-    int x;
-    int y;
+    int32_t x;
+    int32_t y;
 public:
-    ~RRPoint() override = default;
+    ~MPoint() override = default;
 
-    RRPoint(int x, int y) : x(x), y(y) {}
+    MPoint(int32_t x, int32_t y) : x(x), y(y) {}
 
     static int toSize() {
         return (sizeof(x) + sizeof(y)) / 2;
@@ -93,89 +103,76 @@ public:
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray;
-        readShortToInt(byteArray, x * NUMERICAL_EXPANSION);
-        readShortToInt(byteArray, y * NUMERICAL_EXPANSION);
+        writeShortToByteArray(byteArray, x * NUMERICAL_EXPANSION);
+        writeShortToByteArray(byteArray, y * NUMERICAL_EXPANSION);
         return byteArray;
     }
 };
 
-class RRLine : public MMapObject {
+class MLine : public MMapObject {
 private:
-    RRPoint pointStart;
-    RRPoint pointEnd;
+    MPoint pointStart;
+    MPoint pointEnd;
 public:
-    ~RRLine() override = default;
+    ~MLine() override = default;
 
-    RRLine(const RRPoint &pointStart, const RRPoint &pointEnd) : pointStart(pointStart), pointEnd(pointEnd) {}
+    MLine(const MPoint &pointStart, const MPoint &pointEnd) : pointStart(pointStart), pointEnd(pointEnd) {}
 
     static int toSize() {
-        return RRPoint::toSize() + RRPoint::toSize();
+        return MPoint::toSize() + MPoint::toSize();
     }
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray;
-        for (const auto &item: pointStart.toByteArray()) {
-            byteArray.push_back(item);
-        }
-        for (const auto &item: pointEnd.toByteArray()) {
-            byteArray.push_back(item);
-        }
+        appendToByteArray(byteArray, pointStart.toByteArray());
+        appendToByteArray(byteArray, pointEnd.toByteArray());
         return byteArray;
     }
 };
 
-class RRZone : public MMapObject {
+class MZone : public MMapObject {
 private:
-    RRPoint p0;
-    RRPoint p1;
-    RRPoint p2;
-    RRPoint p3;
+    MPoint p0;
+    MPoint p1;
+    MPoint p2;
+    MPoint p3;
 public:
-    ~RRZone() override = default;
+    ~MZone() override = default;
 
-    RRZone(const RRPoint &p0, const RRPoint &p1, const RRPoint &p2, const RRPoint &p3) : p0(p0), p1(p1), p2(p2),
-                                                                                         p3(p3) {}
+    MZone(const MPoint &p0, const MPoint &p1, const MPoint &p2, const MPoint &p3) : p0(p0), p1(p1), p2(p2),
+                                                                                    p3(p3) {}
 
     static int toSize() {
-        return RRPoint::toSize() + RRPoint::toSize() + RRPoint::toSize() + RRPoint::toSize();
+        return MPoint::toSize() + MPoint::toSize() + MPoint::toSize() + MPoint::toSize();
     }
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray;
-        for (const auto &item: p0.toByteArray()) {
-            byteArray.push_back(item);
-        }
-        for (const auto &item: p1.toByteArray()) {
-            byteArray.push_back(item);
-        }
-        for (const auto &item: p2.toByteArray()) {
-            byteArray.push_back(item);
-        }
-        for (const auto &item: p3.toByteArray()) {
-            byteArray.push_back(item);
-        }
+        appendToByteArray(byteArray, p0.toByteArray());
+        appendToByteArray(byteArray, p1.toByteArray());
+        appendToByteArray(byteArray, p2.toByteArray());
+        appendToByteArray(byteArray, p3.toByteArray());
         return byteArray;
     }
 };
 
-class RRMapSize : public MMapHead {
+class MMapResource : public MMapHead {
 private:
-    int unknown = 0;
-    int top;
-    int left;
-    int imgHeight;
-    int imgWidth;
+    int32_t unknown = 0;
+    int32_t top = 0;
+    int32_t left = 0;
+    int32_t imgHeight;
+    int32_t imgWidth;
 
     std::vector<int8_t> mapArray;
 public:
-    ~RRMapSize() override = default;
+    ~MMapResource() override = default;
 
-    RRMapSize(int top, int left, int imgHeight, int imgWidth,
-              const std::vector<int8_t> &mapArray) : top(top), left(left), imgHeight(imgHeight),
-                                                     imgWidth(imgWidth), mapArray(mapArray) {}
+    MMapResource(int32_t imgHeight, int32_t imgWidth,
+                 const std::vector<int8_t> &mapArray) : imgHeight(imgHeight), imgWidth(imgWidth), mapArray(mapArray) {}
 
     MMapType type() const override {
-        return MMapType::M_MAP_SIZE;
+        return MMapType::M_MAP_RESOURCE;
     }
 
     int headerLength() const override {
@@ -190,11 +187,11 @@ public:
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray = baseArray();
 
-        readInt(byteArray, unknown);
-        readInt(byteArray, top);
-        readInt(byteArray, left);
-        readInt(byteArray, imgHeight);
-        readInt(byteArray, imgWidth);
+        writeIntToByteArray(byteArray, unknown);
+        writeIntToByteArray(byteArray, top);
+        writeIntToByteArray(byteArray, left);
+        writeIntToByteArray(byteArray, imgHeight);
+        writeIntToByteArray(byteArray, imgWidth);
 
         for (const auto &item: mapArray) {
             byteArray.push_back(item);
@@ -203,16 +200,16 @@ public:
     }
 };
 
-class RRMapCharger : public MMapHead {
+class MMapCharger : public MMapHead {
 private:
-    int chargerX;
-    int chargerY;
-    int chargerA;
+    int32_t chargerX;
+    int32_t chargerY;
+    int32_t chargerA;
 public:
-    ~RRMapCharger() override = default;
+    ~MMapCharger() override = default;
 
-    RRMapCharger(int chargerX, int chargerY, int chargerA) : chargerX(chargerX), chargerY(chargerY),
-                                                             chargerA(chargerA) {}
+    MMapCharger(int32_t chargerX, int32_t chargerY, int32_t chargerA) : chargerX(chargerX), chargerY(chargerY),
+                                                                        chargerA(chargerA) {}
 
     MMapType type() const override {
         return MMapType::M_MAP_CHARGER;
@@ -228,22 +225,22 @@ public:
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray = baseArray();
-        readInt(byteArray, chargerX * NUMERICAL_EXPANSION);
-        readInt(byteArray, chargerY * NUMERICAL_EXPANSION);
-        readInt(byteArray, chargerA);
+        writeIntToByteArray(byteArray, chargerX * NUMERICAL_EXPANSION);
+        writeIntToByteArray(byteArray, chargerY * NUMERICAL_EXPANSION);
+        writeIntToByteArray(byteArray, chargerA);
         return byteArray;
     }
 };
 
-class RRMapRobot : public MMapHead {
+class MMapRobot : public MMapHead {
 private:
-    int robotX;
-    int robotY;
-    int robotA;
+    int32_t robotX;
+    int32_t robotY;
+    int32_t robotA;
 public:
-    ~RRMapRobot() override = default;
+    ~MMapRobot() override = default;
 
-    RRMapRobot(int robotX, int robotY, int robotA) : robotX(robotX), robotY(robotY), robotA(robotA) {}
+    MMapRobot(int32_t robotX, int32_t robotY, int32_t robotA) : robotX(robotX), robotY(robotY), robotA(robotA) {}
 
     MMapType type() const override {
         return MMapType::M_MAP_ROBOT;
@@ -259,24 +256,24 @@ public:
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray = baseArray();
-        readInt(byteArray, robotX * NUMERICAL_EXPANSION);
-        readInt(byteArray, robotY * NUMERICAL_EXPANSION);
-        readInt(byteArray, robotA);
+        writeIntToByteArray(byteArray, robotX * NUMERICAL_EXPANSION);
+        writeIntToByteArray(byteArray, robotY * NUMERICAL_EXPANSION);
+        writeIntToByteArray(byteArray, robotA);
         return byteArray;
     }
 };
 
-class RRMapGoTo : public MMapHead {
+class MMapTarget : public MMapHead {
 private:
-    int gotoX;
-    int gotoY;
+    int32_t gotoX;
+    int32_t gotoY;
 public:
-    ~RRMapGoTo() override = default;
+    ~MMapTarget() override = default;
 
-    RRMapGoTo(int gotoX, int gotoY) : gotoX(gotoX), gotoY(gotoY) {}
+    MMapTarget(int32_t gotoX, int32_t gotoY) : gotoX(gotoX), gotoY(gotoY) {}
 
     MMapType type() const override {
-        return MMapType::M_MAP_GO_TO;
+        return MMapType::M_MAP_TARGET;
     }
 
     int headerLength() const override {
@@ -289,28 +286,28 @@ public:
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray = baseArray();
-        readShortToInt(byteArray, gotoX * NUMERICAL_EXPANSION);
-        readShortToInt(byteArray, gotoY * NUMERICAL_EXPANSION);
+        writeShortToByteArray(byteArray, gotoX * NUMERICAL_EXPANSION);
+        writeShortToByteArray(byteArray, gotoY * NUMERICAL_EXPANSION);
         return byteArray;
     }
 
 };
 
-class RRMapPath : public MMapHead {
+class MMapPath : public MMapHead {
 private:
-    int pairs = 0;
-    int pointLength = 0;
-    int pointSize = 0;
-    int angle = 0;
+    int32_t pairs = 0;
+    int32_t pointLength = 0;
+    int32_t pointSize = 0;
+    int32_t angle = 0;
 
-    std::vector<RRPoint> points;
+    std::vector<MPoint> points;
 public:
-    ~RRMapPath() override = default;
+    ~MMapPath() override = default;
 
-    RRMapPath(const std::vector<RRPoint> &points) : points(points) {
-        pairs = points.size() * RRPoint::toSize();
+    MMapPath(const std::vector<MPoint> &points) : points(points) {
+        pairs = points.size() * MPoint::toSize();
         pointLength = points.size();
-        pointSize = RRPoint::toSize();
+        pointSize = MPoint::toSize();
         angle = 0;
     }
 
@@ -324,134 +321,114 @@ public:
     }
 
     int dataLength() const override {
-        return points.size() * RRPoint::toSize();
+        return points.size() * MPoint::toSize();
     }
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray = baseArray();
-        readInt(byteArray, pointLength);
-        readInt(byteArray, pointSize);
-        readInt(byteArray, angle);
+        writeIntToByteArray(byteArray, pointLength);
+        writeIntToByteArray(byteArray, pointSize);
+        writeIntToByteArray(byteArray, angle);
         for (auto &point: points) {
-            for (const auto &byte: point.toByteArray()) {
-                byteArray.push_back(byte);
-            }
+            appendToByteArray(byteArray, point.toByteArray());
         }
         return byteArray;
     }
 };
 
-class RRMapArea : public MMapHead {
+class MMapProhibition : public MMapHead {
 private:
-    int number;
-
-    std::vector<RRZone> areas;
+    std::vector<MZone> prohibitions;
 public:
-    ~RRMapArea() override = default;
+    ~MMapProhibition() override = default;
 
-    RRMapArea(const std::vector<RRZone> &areas) : areas(areas) {
-        number = areas.size();
-    }
+    MMapProhibition(const std::vector<MZone> &areas) : prohibitions(areas) {}
 
     MMapType type() const override {
-        return MMapType::M_MAP_AREA;
+        return MMapType::M_MAP_PROHIBITION;
     }
 
     int headerLength() const override {
-        return SIZE_OF_HEAD_TYPE + SIZE_OF_HEAD_LENGTH + SIZE_OF_DATA_LENGTH + sizeof(number);
+        return SIZE_OF_HEAD_TYPE + SIZE_OF_HEAD_LENGTH + SIZE_OF_DATA_LENGTH + SIZE_OF_NUMBER_LENGTH;
     }
 
     int dataLength() const override {
-        return areas.size() * RRZone::toSize();
+        return prohibitions.size() * MZone::toSize();
     }
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray = baseArray();
-        readInt(byteArray, number);
-        for (auto &area: areas) {
-            for (const auto &byte: area.toByteArray()) {
-                byteArray.push_back(byte);
-            }
+        writeIntToByteArray(byteArray, prohibitions.size());
+        for (auto &area: prohibitions) {
+            appendToByteArray(byteArray, area.toByteArray());
         }
         return byteArray;
     }
 };
 
-class RRMapWall : public MMapHead {
+class MMapVirtually : public MMapHead {
 private:
-    int number;
-
-    std::vector<RRLine> walls;
+    std::vector<MLine> virtuallys;
 public:
-    ~RRMapWall() override = default;
+    ~MMapVirtually() override = default;
 
-    RRMapWall(const std::vector<RRLine> &walls) : walls(walls) {
-        number = walls.size();
-    }
+    MMapVirtually(const std::vector<MLine> &walls) : virtuallys(walls) {}
 
     MMapType type() const override {
-        return MMapType::M_MAP_WALL;
+        return MMapType::M_MAP_VIRTUALLY;
     }
 
     int headerLength() const override {
-        return SIZE_OF_HEAD_TYPE + SIZE_OF_HEAD_LENGTH + SIZE_OF_DATA_LENGTH + sizeof(number);
+        return SIZE_OF_HEAD_TYPE + SIZE_OF_HEAD_LENGTH + SIZE_OF_DATA_LENGTH + SIZE_OF_NUMBER_LENGTH;
     }
 
     int dataLength() const override {
-        return walls.size() * RRLine::toSize();
+        return virtuallys.size() * MLine::toSize();
     }
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray = baseArray();
-        readInt(byteArray, number);
-        for (auto &wall: walls) {
-            for (const auto &byte: wall.toByteArray()) {
-                byteArray.push_back(byte);
-            }
+        writeIntToByteArray(byteArray, virtuallys.size());
+        for (auto &wall: virtuallys) {
+            appendToByteArray(byteArray, wall.toByteArray());
         }
         return byteArray;
     }
 };
 
-class RRMapZone : public MMapHead {
+class MMapZone : public MMapHead {
 private:
-    int number;
-
-    std::vector<RRZone> zones;
+    std::vector<MZone> zones;
 public:
-    ~RRMapZone() override = default;
+    ~MMapZone() override = default;
 
-    RRMapZone(const std::vector<RRZone> &zones) : zones(zones) {
-        number = zones.size();
-    }
+    MMapZone(const std::vector<MZone> &zones) : zones(zones) {}
 
     MMapType type() const override {
         return MMapType::M_MAP_ZONE;
     }
 
     int headerLength() const override {
-        return SIZE_OF_HEAD_TYPE + SIZE_OF_HEAD_LENGTH + SIZE_OF_DATA_LENGTH + sizeof(number);
+        return SIZE_OF_HEAD_TYPE + SIZE_OF_HEAD_LENGTH + SIZE_OF_DATA_LENGTH + SIZE_OF_NUMBER_LENGTH;
     }
 
     int dataLength() const override {
-        return zones.size() * RRZone::toSize();
+        return zones.size() * MZone::toSize();
     }
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray = baseArray();
-        readInt(byteArray, number);
+        writeIntToByteArray(byteArray, zones.size());
         for (auto &zone: zones) {
-            for (const auto &byte: zone.toByteArray()) {
-                byteArray.push_back(byte);
-            }
+            appendToByteArray(byteArray, zone.toByteArray());
         }
         return byteArray;
     }
 };
 
-class RRMapValid : public MMapHead {
+class MMapValid : public MMapHead {
 public:
-    ~RRMapValid() override = default;
+    ~MMapValid() override = default;
 
     MMapType type() const override {
         return MMapType::M_MAP_VALID;
@@ -462,13 +439,13 @@ public:
     }
 
     int dataLength() const override {
-        return 20;
+        return VALID_DEFAULT_LENGTH;
     }
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray = baseArray();
-        for (int i = 0; i < 20; i++) {
-            readByteToInt(byteArray, i);
+        for (int i = 0; i < VALID_DEFAULT_LENGTH; i++) {
+            writeByteToByteArray(byteArray, i);
         }
         return byteArray;
     }
@@ -476,10 +453,9 @@ public:
 
 class RRMap : public MMapObject {
 private:
-    int8_t default_0 = 114;
-    int8_t default_1 = 114;
+    const std::array<int8_t, 2> defaults = {114, 114};
     int16_t mapHeaderLength;
-    int mapDataLength;
+    int mapDataLength{};
     int16_t majorVersion = 1;
     int16_t minorVersion = 0;
     int mapIndex = 1;
@@ -488,12 +464,9 @@ private:
     std::vector<std::unique_ptr<MMapObject>> mapArrays;
 
 public:
-    RRMap() {
-        mapHeaderLength = sizeof(RRMap::default_0) + sizeof(RRMap::default_1) +
-                          sizeof(RRMap::mapHeaderLength) + sizeof(RRMap::mapDataLength) +
-                          sizeof(RRMap::majorVersion) + sizeof(RRMap::minorVersion) +
-                          sizeof(RRMap::mapIndex) + sizeof(RRMap::mapSequence);
-    }
+    RRMap() : mapHeaderLength(defaults.size() + sizeof(RRMap::mapHeaderLength) + sizeof(RRMap::mapDataLength) +
+                              sizeof(RRMap::majorVersion) + sizeof(RRMap::minorVersion) +
+                              sizeof(RRMap::mapIndex) + sizeof(RRMap::mapSequence)) {}
 
     ~RRMap() override = default;
 
@@ -505,26 +478,24 @@ public:
 
         std::vector<int8_t> byteArray;
 
-        readByteToInt(byteArray, default_0);
-        readByteToInt(byteArray, default_1);
-        readShortToInt(byteArray, mapHeaderLength);
-        readInt(byteArray, mapDataLength);
-        readShortToInt(byteArray, majorVersion);
-        readShortToInt(byteArray, minorVersion);
-        readInt(byteArray, mapIndex);
-        readInt(byteArray, mapSequence);
+        for (const auto &default_value: defaults) {
+            writeByteToByteArray(byteArray, default_value);
+        }
+        writeShortToByteArray(byteArray, mapHeaderLength);
+        writeIntToByteArray(byteArray, mapDataLength);
+        writeShortToByteArray(byteArray, majorVersion);
+        writeShortToByteArray(byteArray, minorVersion);
+        writeIntToByteArray(byteArray, mapIndex);
+        writeIntToByteArray(byteArray, mapSequence);
 
         for (const auto &array: mapArrays) {
-            const auto objBytes = array->toByteArray();
-            byteArray.insert(byteArray.end(), objBytes.begin(), objBytes.end());
+            appendToByteArray(byteArray, array->toByteArray());
         }
 
         mapDataLength = byteArray.size() - mapHeaderLength;
-        std::vector<int8_t> data;
-        readInt(data, mapDataLength);
-        for (int i = 0; i < data.size(); i++) {
-            byteArray[4 + i] = data[i];
-        }
+        std::vector<int8_t> dataArray;
+        writeIntToByteArray(dataArray, mapDataLength);
+        updateByteArray(byteArray, dataArray, 4);
 
         return byteArray;
     }
@@ -546,34 +517,34 @@ public:
         for (int y = 0; y < map.rows; y++) {
             for (int x = 0; x < map.cols; x++) {
                 if (map.at<unsigned char>(y, x) == 255) {
-                    MMapObject::readByteToInt(mapArray, 15);
+                    MMapObject::writeByteToByteArray(mapArray, 15);
                 } else {
-                    MMapObject::readByteToInt(mapArray, 0);
+                    MMapObject::writeByteToByteArray(mapArray, 0);
                 }
             }
         }
-        RRMapSize rrMapSize(0, 0, map.rows, map.cols, mapArray);
+        MMapResource rrMapSize(map.rows, map.cols, mapArray);
         const RoomCoverage &coverage = ExplorationCenter::instance().obtainCoveragePath();
         auto penaltyZoneList = MapAttribute::instance().getPenaltyZoneList();
         auto virtualWallList = MapAttribute::instance().getVirtualWallList();
 
         cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
         const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
-        RRMapCharger rrMapCharger(stationPoint.x + 10, stationPoint.y + 20, 0);
+        MMapCharger rrMapCharger(stationPoint.x + 10, stationPoint.y + 20, 0);
 
         cv::Point robotPosition = MapAttribute::instance().getRobotPositionPoint(map);
-        RRMapRobot rrMapRobot(robotPosition.x, robotPosition.y, -87);
+        MMapRobot rrMapRobot(robotPosition.x, robotPosition.y, -87);
 
-        RRMapGoTo rrMapGoTo(map.cols / 3, map.rows / 3);
+        MMapTarget rrMapGoTo(map.cols / 3, map.rows / 3);
 
-        std::vector<RRPoint> paths;
+        std::vector<MPoint> paths;
         std::vector<PointVo> pointList = coverage.getPointList();
         for (const auto &point: pointList) {
             paths.emplace_back(point.getX(), point.getY());
         }
-        RRMapPath rrMapPath(paths);
+        MMapPath rrMapPath(paths);
 
-        std::vector<RRZone> areas;
+        std::vector<MZone> areas;
         for (int i = 0; i < penaltyZoneList.size(); ++i) {
             auto vector = penaltyZoneList[i];
 
@@ -582,27 +553,27 @@ public:
             const cv::Point &point2 = MapAttribute::instance().rosPoint2MapPoint(map, vector[2]);
             const cv::Point &point3 = MapAttribute::instance().rosPoint2MapPoint(map, vector[3]);
 
-            RRPoint p0(point0.x, point0.y);
-            RRPoint p1(point1.x, point1.y);
-            RRPoint p2(point2.x, point2.y);
-            RRPoint p3(point3.x, point3.y);
-            RRZone zone(p0, p1, p2, p3);
+            MPoint p0(point0.x, point0.y);
+            MPoint p1(point1.x, point1.y);
+            MPoint p2(point2.x, point2.y);
+            MPoint p3(point3.x, point3.y);
+            MZone zone(p0, p1, p2, p3);
             areas.push_back(zone);
         }
-        RRMapArea rrMapArea(areas);
+        MMapProhibition rrMapArea(areas);
 
-        std::vector<RRLine> walls;
+        std::vector<MLine> walls;
         for (const auto &vector: virtualWallList) {
             const cv::Point &pointStart = MapAttribute::instance().rosPoint2MapPoint(map, vector[0]);
             const cv::Point &pointEnd = MapAttribute::instance().rosPoint2MapPoint(map, vector[1]);
-            RRPoint p0(pointStart.x, pointStart.y);
-            RRPoint p1(pointEnd.x, pointEnd.y);
-            RRLine rrLine(p0, p1);
+            MPoint p0(pointStart.x, pointStart.y);
+            MPoint p1(pointEnd.x, pointEnd.y);
+            MLine rrLine(p0, p1);
             walls.push_back(rrLine);
         }
-        RRMapWall rrMapWall(walls);
+        MMapVirtually rrMapWall(walls);
 
-        std::vector<RRZone> zones;
+        std::vector<MZone> zones;
         const vector <TaskVo> &tasks = TaskDataBase::instance().loadTaskFoMap(
                 SegmentationDataBase::instance().getDbMap().id);
         for (const auto &task: tasks) {
@@ -610,29 +581,29 @@ public:
                 std::vector<ZoneVo> taskZones = task.getZones();
                 for (const auto &tzp: taskZones) {
                     std::vector<PointVo> points = tzp.getPoints();
-                    RRPoint p0(points[0].getX(), points[0].getY());
-                    RRPoint p1(points[1].getX(), points[1].getY());
-                    RRPoint p2(points[2].getX(), points[2].getY());
-                    RRPoint p3(points[3].getX(), points[3].getY());
-                    RRZone zone(p0, p1, p2, p3);
+                    MPoint p0(points[0].getX(), points[0].getY());
+                    MPoint p1(points[1].getX(), points[1].getY());
+                    MPoint p2(points[2].getX(), points[2].getY());
+                    MPoint p3(points[3].getX(), points[3].getY());
+                    MZone zone(p0, p1, p2, p3);
                     zones.push_back(zone);
                 }
             }
         }
-        RRMapZone rrMapZone(zones);
+        MMapZone rrMapZone(zones);
 
-        RRMapValid rrMapValid;
+        MMapValid rrMapValid;
 
         RRMap rrMap;
-        rrMap.addArray(make_unique<RRMapSize>(rrMapSize));
-        rrMap.addArray(make_unique<RRMapCharger>(rrMapCharger));
-        rrMap.addArray(make_unique<RRMapRobot>(rrMapRobot));
-        rrMap.addArray(make_unique<RRMapGoTo>(rrMapGoTo));
-        rrMap.addArray(make_unique<RRMapPath>(rrMapPath));
-        rrMap.addArray(make_unique<RRMapArea>(rrMapArea));
-        rrMap.addArray(make_unique<RRMapWall>(rrMapWall));
-        rrMap.addArray(make_unique<RRMapZone>(rrMapZone));
-        rrMap.addArray(make_unique<RRMapValid>(rrMapValid));
+        rrMap.addArray(make_unique<MMapResource>(rrMapSize));
+        rrMap.addArray(make_unique<MMapCharger>(rrMapCharger));
+        rrMap.addArray(make_unique<MMapRobot>(rrMapRobot));
+        rrMap.addArray(make_unique<MMapTarget>(rrMapGoTo));
+        rrMap.addArray(make_unique<MMapPath>(rrMapPath));
+        rrMap.addArray(make_unique<MMapProhibition>(rrMapArea));
+        rrMap.addArray(make_unique<MMapVirtually>(rrMapWall));
+        rrMap.addArray(make_unique<MMapZone>(rrMapZone));
+        rrMap.addArray(make_unique<MMapValid>(rrMapValid));
 
         const std::vector<int8_t> byteArray = rrMap.toByteArray();
 
