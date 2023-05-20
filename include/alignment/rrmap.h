@@ -15,21 +15,21 @@
 #include "segmentation/SegmentationCenter.h"
 #include "segmentation/map_attribute.h"
 
-struct RRPoint {
+struct MPoint {
     int16_t x;
     int16_t y;
 };
 
-struct RRLine {
-    RRPoint pointStart;
-    RRPoint pointEnd;
+struct MLine {
+    MPoint pointStart;
+    MPoint pointEnd;
 };
 
-struct RRZone {
-    RRPoint p0;
-    RRPoint p1;
-    RRPoint p2;
-    RRPoint p3;
+struct MZone {
+    MPoint p0;
+    MPoint p1;
+    MPoint p2;
+    MPoint p3;
 };
 
 struct RRBlock {
@@ -39,7 +39,7 @@ struct RRBlock {
     int32_t blockDataLength;
 };
 
-struct RRMapSize {
+struct MMapResource {
     // 28 + 166934 = 116962
     RRBlock rrBlock;            //  blockType = 2  blockHeaderLength = 28  blockDataLength = 116934
     int32_t unknown;            //
@@ -49,7 +49,7 @@ struct RRMapSize {
     int32_t imgWidth;           // 382
 };
 
-struct RRMapCharger {
+struct MMapCharger {
     // 8 + 12 = 20
     RRBlock rrBlock;            // blockType = 1  blockHeaderLength = 8  blockDataLength = 12
     int32_t chargerX;           // 25616
@@ -57,7 +57,7 @@ struct RRMapCharger {
     int32_t chargerA;
 };
 
-struct RRMapRobot {
+struct MMapRobot {
     //  8 + 12 = 20
     RRBlock rrBlock;            // blockType = 8  blockHeaderLength = 8  blockDataLength = 12
     int32_t robotX;             // 25607
@@ -65,7 +65,7 @@ struct RRMapRobot {
     int32_t robotA;             // -87
 };
 
-struct RRMapPath {
+struct MMapPath {
     // 20 + 616 = 636
     RRBlock rrBlock;            // blockType = 3  blockHeaderLength = 20  blockDataLength = 616
     // head
@@ -74,31 +74,31 @@ struct RRMapPath {
     int32_t pointSize;          // 4
     int32_t angle;              // 0
     // data
-    std::vector<RRPoint> points;// 共 154 个，即 pairs/4
+    std::vector<MPoint> points;// 共 154 个，即 pairs/4
 };
 
-struct RRMapArea {
+struct MMapProhibition {
     // 12 + 0 = 12
     RRBlock rrBlock;            // blockType = 9  blockHeaderLength = 12  blockDataLength = 0
     int32_t number;             // 0
     // data
-    std::vector<RRZone> zones;
+    std::vector<MZone> zones;
 };
 
-struct RRMapWall {
+struct MMapVirtually {
     // 12 + 72 = 84
     RRBlock rrBlock;            // blockType = 10  blockHeaderLength = 12  blockDataLength = 72
     int32_t number;             // 9
     // data
-    std::vector<RRLine> walls;
+    std::vector<MLine> virtuallys;
 };
 
-struct RRMapZone {
+struct MMapZone {
     // 12 + 0 = 12
     RRBlock rrBlock;            // blockType = 12  blockHeaderLength = 12  blockDataLength = 0
     int32_t number;             // 0
     // data
-    std::vector<RRZone> zones;
+    std::vector<MZone> zones;
 };
 
 struct RRMapUnknown1 {
@@ -128,25 +128,25 @@ struct RRMap {
     int32_t mapSequence;        // 4 2289
 
     // 166982 （20 + 116962）
-    RRMapSize rrMapSize;
+    MMapResource rrMapSize;
 
     // 167002 （166982 + 20）
-    RRMapCharger rrMapCharger;
+    MMapCharger rrMapCharger;
 
     // 167022 （167002 + 20）
-    RRMapRobot rrMapRobot;
+    MMapRobot rrMapRobot;
 
     // 167658 （167022 + 636）
-    RRMapPath rrMapPath;
+    MMapPath rrMapPath;
 
     // 167670 (167658 + 12)
-    RRMapArea rrMapArea;
+    MMapProhibition rrMapArea;
 
     // 167754 (167670 + 84)
-    RRMapWall rrMapWall;
+    MMapVirtually rrMapWall;
 
     // 167766 (167754 + 12)
-    RRMapZone rrMapZone;
+    MMapZone rrMapZone;
 
     // 167806 (167766 + 40)
     RRMapUnknown1 rrMapUnknown1;
@@ -242,9 +242,9 @@ struct RRMap {
         //RRMapSize
         int mapSizeType = 2;
         int mapSizeHeaderLength = sizeof(RRBlock::blockType) + sizeof(RRBlock::blockHeaderLength) +
-                                  sizeof(RRBlock::blockDataLength) + sizeof(RRMapSize::unknown) +
-                                  sizeof(RRMapSize::top) + sizeof(RRMapSize::left) +
-                                  sizeof(RRMapSize::imgHeight) + sizeof(RRMapSize::imgWidth);
+                                  sizeof(RRBlock::blockDataLength) + sizeof(MMapResource::unknown) +
+                                  sizeof(MMapResource::top) + sizeof(MMapResource::left) +
+                                  sizeof(MMapResource::imgHeight) + sizeof(MMapResource::imgWidth);
         int mapSizeDataLength = rows * cols;
         int unknown = 0;
         int top = 337;
@@ -276,8 +276,8 @@ struct RRMap {
         int chargerType = 1;
         int chargerHeaderLength = sizeof(RRBlock::blockType) + sizeof(RRBlock::blockHeaderLength) +
                                   sizeof(RRBlock::blockDataLength);
-        int chargerDataLength = sizeof(RRMapCharger::chargerX) + sizeof(RRMapCharger::chargerY) +
-                                sizeof(RRMapCharger::chargerA);
+        int chargerDataLength = sizeof(MMapCharger::chargerX) + sizeof(MMapCharger::chargerY) +
+                                sizeof(MMapCharger::chargerA);
         int chargerX = map_origin.x * 50;
         int chargerY = map_origin.y * 50;
         int chargerA = 0;
@@ -293,7 +293,7 @@ struct RRMap {
         int robotType = 8;
         int robotHeaderLength = sizeof(RRBlock::blockType) + sizeof(RRBlock::blockHeaderLength) +
                                 sizeof(RRBlock::blockDataLength);
-        int robotDataLength = sizeof(RRMapRobot::robotX) + sizeof(RRMapRobot::robotY) + sizeof(RRMapRobot::robotA);
+        int robotDataLength = sizeof(MMapRobot::robotX) + sizeof(MMapRobot::robotY) + sizeof(MMapRobot::robotA);
         int32_t robotX = robotPosition.x * 50;
         int32_t robotY = robotPosition.y * 50;
         int32_t robotA = -87;
@@ -306,13 +306,13 @@ struct RRMap {
         p4(byteArray, robotA);
 
         //RRMapPath
-        int rrPointSize = sizeof(RRPoint);
-        std::vector<RRPoint> points;
+        int rrPointSize = sizeof(MPoint);
+        std::vector<MPoint> points;
         int pathType = 3;
         int pathHeaderLength = sizeof(RRBlock::blockType) + sizeof(RRBlock::blockHeaderLength) +
-                               sizeof(RRBlock::blockDataLength) + sizeof(RRMapPath::pairs) +
-                               sizeof(RRMapPath::pointLength) + sizeof(RRMapPath::pointSize) +
-                               sizeof(RRMapPath::angle);
+                               sizeof(RRBlock::blockDataLength) + sizeof(MMapPath::pairs) +
+                               sizeof(MMapPath::pointLength) + sizeof(MMapPath::pointSize) +
+                               sizeof(MMapPath::angle);
         int pathDataLength = points.size() * rrPointSize;
         int32_t pairs = 0;
         int32_t pointLength = 0;
@@ -332,11 +332,11 @@ struct RRMap {
         }
 
         //RRMapArea
-        int rrZoneSize = sizeof(RRZone);
-        std::vector<RRZone> zones;
+        int rrZoneSize = sizeof(MZone);
+        std::vector<MZone> zones;
         int areaType = 9;
         int areaHeaderLength = sizeof(RRBlock::blockType) + sizeof(RRBlock::blockHeaderLength) +
-                               sizeof(RRBlock::blockDataLength) + sizeof(RRMapArea::number);
+                               sizeof(RRBlock::blockDataLength) + sizeof(MMapProhibition::number);
         int areaDataLength = zones.size() * rrZoneSize;
         int areaNumber = zones.size();
 
@@ -356,11 +356,11 @@ struct RRMap {
         }
 
         //RRMapWall
-        int rrLineSize = sizeof(RRLine);
-        std::vector<RRLine> walls;
+        int rrLineSize = sizeof(MLine);
+        std::vector<MLine> walls;
         int wallType = 10;
         int wallHeaderLength = sizeof(RRBlock::blockType) + sizeof(RRBlock::blockHeaderLength) +
-                               sizeof(RRBlock::blockDataLength) + sizeof(RRMapWall::number);
+                               sizeof(RRBlock::blockDataLength) + sizeof(MMapVirtually::number);
         int wallDataLength = walls.size() * rrLineSize;
         int wallNumber = walls.size();
 
@@ -376,11 +376,11 @@ struct RRMap {
         }
 
         //RRMapZone
-        int rrZoneSize2 = sizeof(RRZone);
-        std::vector<RRZone> zone2s;
+        int rrZoneSize2 = sizeof(MZone);
+        std::vector<MZone> zone2s;
         int zoneType = 12;
         int zoneHeaderLength = sizeof(RRBlock::blockType) + sizeof(RRBlock::blockHeaderLength) +
-                               sizeof(RRBlock::blockDataLength) + sizeof(RRMapZone::number);
+                               sizeof(RRBlock::blockDataLength) + sizeof(MMapZone::number);
         int zoneDataLength = zone2s.size() * rrZoneSize2;
         int zoneNumber = zone2s.size();
 
@@ -402,7 +402,7 @@ struct RRMap {
         //RRMap1024
         int validType = 1024;
         int validHeaderLength = sizeof(RRBlock::blockType) + sizeof(RRBlock::blockHeaderLength) +
-                                sizeof(RRBlock::blockDataLength) + sizeof(RRMapZone::number);
+                                sizeof(RRBlock::blockDataLength) + sizeof(MMapZone::number);
         int validDataLength = 20;
 
         p2(byteArray, validType);

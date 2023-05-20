@@ -30,7 +30,7 @@ void checkWorkStatus(const WorkStatus &workStatus) {
 }
 
 void checkName(const std::string &name) {
-    if (is_valid_name(name)) {
+    if (!is_valid_name(name)) {
         throw app::exception(make_error_code(error::invalid_name));
     }
 }

@@ -60,6 +60,22 @@ public:
         byteArray.push_back(value & 0xff);
     }
 
+    static int readIntFromByteArray(const std::vector<int8_t> &byteArray, int startIndex) {
+        return ((byteArray[startIndex + 3] & 0xff) << 24) |
+               ((byteArray[startIndex + 2] & 0xff) << 16) |
+               ((byteArray[startIndex + 1] & 0xff) << 8) |
+               (byteArray[startIndex] & 0xff);
+    }
+
+    static int readShortFromByteArray(const std::vector<int8_t> &byteArray, int startIndex) {
+        return ((byteArray[startIndex + 1] & 0xff) << 8) |
+               (byteArray[startIndex] & 0xff);
+    }
+
+    static int readByteFromByteArray(const std::vector<int8_t> &byteArray, int startIndex) {
+        return byteArray[startIndex] & 0xff;
+    }
+
     static void appendToByteArray(std::vector<int8_t> &byteArray, const std::vector<int8_t> &data) {
         byteArray.insert(byteArray.end(), data.begin(), data.end());
     }
@@ -70,22 +86,51 @@ public:
 };
 
 class MMapHead : public MMapObject {
+private:
+    MMapType type;
+    int headerLength;
+    int dataLength;
+    std::vector<int8_t> additionalHeader;
 public:
     ~MMapHead() override = default;
 
-    virtual MMapType type() const = 0;
-
-    virtual int headerLength() const = 0;
-
-    virtual int dataLength() const = 0;
-
-    virtual std::vector<int8_t> baseArray() const {
-        std::vector<int8_t> byteArray;
-        writeShortToByteArray(byteArray, static_cast<int>(type()));
-        writeShortToByteArray(byteArray, headerLength());
-        writeIntToByteArray(byteArray, dataLength());
-        return byteArray;
+    MMapHead(MMapType type) : type(type) {
     }
+
+    void setHeaderLength(int headerLength) {
+        MMapHead::headerLength = headerLength;
+    }
+
+    void setDataLength(int dataLength) {
+        MMapHead::dataLength = dataLength;
+    }
+
+    void setAdditionalHeader(const vector<int8_t> &additionalHeader) {
+        MMapHead::additionalHeader = additionalHeader;
+    }
+
+    virtual void buildHeaderLength() {
+        headerLength = SIZE_OF_HEAD_TYPE + SIZE_OF_HEAD_LENGTH + SIZE_OF_DATA_LENGTH + additionalHeader.size();
+    }
+
+    virtual void buildDataLength() = 0;
+
+    void writeHeadToByteArray(std::vector<int8_t> &byteArray) {
+        writeShortToByteArray(byteArray, static_cast<int>(type));
+        writeShortToByteArray(byteArray, headerLength);
+        writeIntToByteArray(byteArray, dataLength);
+        byteArray.insert(byteArray.end(), additionalHeader.begin(), additionalHeader.end());
+    }
+
+    void readHeadToByteArray(const std::vector<int8_t> &byteArray) {
+        type = static_cast<MMapType>(readShortFromByteArray(byteArray, 0));
+        headerLength = readShortFromByteArray(byteArray, SIZE_OF_HEAD_TYPE);
+        dataLength = readIntFromByteArray(byteArray, SIZE_OF_HEAD_TYPE + SIZE_OF_HEAD_LENGTH);
+        additionalHeader = std::vector<int8_t>(
+                byteArray.begin() + SIZE_OF_HEAD_TYPE + SIZE_OF_HEAD_LENGTH + SIZE_OF_DATA_LENGTH, byteArray.end()
+        );
+    }
+
 };
 
 class MPoint : public MMapObject {
@@ -168,21 +213,42 @@ private:
 public:
     ~MMapResource() override = default;
 
-    MMapResource(int32_t imgHeight, int32_t imgWidth,
-                 const std::vector<int8_t> &mapArray) : imgHeight(imgHeight), imgWidth(imgWidth), mapArray(mapArray) {}
+    MMapResource(MMapType type, int32_t imgHeight, int32_t imgWidth, const vector<int8_t> &mapArray)
+            : MMapHead(type),
+              imgHeight(
+                      imgHeight),
+              imgWidth(
+                      imgWidth),
+              mapArray(
+                      mapArray) {}
 
-    MMapType type() const override {
-        return MMapType::M_MAP_RESOURCE;
+    void buildHeaderLength() override {
+        MMapHead::buildHeaderLength();
     }
 
-    int headerLength() const override {
-        return SIZE_OF_HEAD_TYPE + SIZE_OF_HEAD_LENGTH + SIZE_OF_DATA_LENGTH +
-               sizeof(unknown) + sizeof(top) + sizeof(left) + sizeof(imgHeight) + sizeof(imgWidth);
+    void buildDataLength() override {
+
     }
 
-    int dataLength() const override {
-        return imgHeight * imgWidth;
-    }
+//    MMapResource(int32_t imgHeight, int32_t imgWidth, const vector<int8_t> &mapArray)
+//            : MMapHead(MMapType::M_MAP_RESOURCE),
+//              imgHeight(imgHeight),
+//              imgWidth(imgWidth),
+//              mapArray(mapArray) {
+//        dataLength = imgHeight * imgWidth;
+//    }
+//
+//    MMapResource(int32_t imgHeight, int32_t imgWidth,
+//                 const std::vector<int8_t> &mapArray) : imgHeight(imgHeight), imgWidth(imgWidth), mapArray(mapArray) {}
+
+//    int headerLength() const override {
+//        return +
+//                       sizeof(unknown) + sizeof(top) + sizeof(left) + sizeof(imgHeight) + sizeof(imgWidth);
+//    }
+//
+//    int dataLength() const override {
+//        return imgHeight * imgWidth;
+//    }
 
     std::vector<int8_t> toByteArray() override {
         std::vector<int8_t> byteArray = baseArray();
