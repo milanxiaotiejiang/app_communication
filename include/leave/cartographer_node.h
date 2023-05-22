@@ -99,30 +99,30 @@ public:
     void coverResult();
 };
 
-//class CartographerServiceClient {
-//private:
-//
-//    ros::ServiceClient sensor_status;
-//    ros::ServiceClient ready_check;
-//    ros::ServiceClient start_localization;
-//    ros::ServiceClient stop_localization;
-//
-//public:
-//    static auto &instance() {
-//        static CartographerServiceClient obj;
-//        return obj;
-//    }
-//
-//    void initialize(ros::NodeHandle handle);
-//
-//    bool callSensorStatus();
-//
-//    bool callReadyCheck();
-//
-//    bool callStartLocalization();
-//
-//    bool callStopLocalization();
-//
-//};
+class CartographerServiceClient {
+private:
+
+    ros::ServiceClient sensor_status;
+    ros::ServiceClient ready_check;
+    ros::ServiceClient start_localization;
+    ros::ServiceClient stop_localization;
+
+public:
+    static auto &instance() {
+        static CartographerServiceClient obj;
+        return obj;
+    }
+
+    void initialize(ros::NodeHandle handle);
+
+    bool callSensorStatus();
+
+    bool callReadyCheck();
+
+    bool callStartLocalization();
+
+    bool callStopLocalization();
+
+};
 
 #endif //APP_COMMUNICATION_CARTOGRAPHER_NODE_H

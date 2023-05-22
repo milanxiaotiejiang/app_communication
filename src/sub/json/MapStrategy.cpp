@@ -85,8 +85,8 @@ string ChangeMapStrategy::handler(string params) {
     MapControl::instance().loadInformation(params);
     MapControl::instance().changeMapServer();
     if (NodeControl::instance().isWork()) {
-        CartographerPublisher::instance().publishStartCartoLocalization();
-//        CartographerServiceClient::instance().callStartLocalization();
+//        CartographerPublisher::instance().publishStartCartoLocalization();
+        CartographerServiceClient::instance().callStartLocalization();
     }
     return "";
 }
