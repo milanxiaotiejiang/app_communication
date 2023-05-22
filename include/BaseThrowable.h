@@ -340,7 +340,7 @@ namespace error {
                 case error::invalid_disinfect_status:
                     return "Invalid disinfect_status";
                 case error::invalid_name:
-                    return "Invalid name";
+                    return "非法名称（名称由中英文、数字、下划线组成的3-30个字符）";
                 case error::invalid_rate:
                     return "Invalid rate";
                 case error::invalid_mode:

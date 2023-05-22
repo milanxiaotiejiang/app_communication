@@ -15,6 +15,7 @@
 #include "segmentation/map_modification.h"
 #include "leave/map_control.h"
 #include "task/manager/manual.h"
+#include "leave/HotWindNote.h"
 
 SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
     sub_node_control_ = handle.subscribe("/segmentation_task", 1, &SegmentationSubscribe::segmentationSubscribeCallback,

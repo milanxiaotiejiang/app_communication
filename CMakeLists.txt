@@ -65,12 +65,14 @@ catkin_package(
 find_package(OpenCV REQUIRED)
 find_package(eventpp)
 find_package(SqliteOrm REQUIRED)
+find_package(Boost COMPONENTS iostreams)
 
 file(GLOB GLOG_LIBRARIES /usr/lib/x86_64-linux-gnu/libglog.so)
 set(GLOG_INCLUDE_DIRS /usr/include)
 #set(ZLIB_LIBRARIES /usr/local/lib/libz.so)
 set(PYTHON_INCLUDE_DIRS "/usr/include/python2.7")
 set(BREAK_PAD_LIBRARIES /usr/local/lib/libbreakpad_client.a)
+set(BOOST_IOSTREAMS_DIRS ${Boost_INCLUDE_DIRS}/boost/iostreams)
 
 link_directories(/usr/local/lib)
 
@@ -78,6 +80,7 @@ message("glog_include_dirs=${GLOG_INCLUDE_DIRS}")
 message("glog_libraries=${GLOG_LIBRARIES}")
 message("zlib_libraries=${ZLIB_LIBRARIES}")
 message("break_pad_libraries=${BREAK_PAD_LIBRARIES}")
+message("boost_iostreams_dirs=${BOOST_IOSTREAMS_DIRS}")
 
 include_directories(include /usr/local/include/yaml-cpp)
 include_directories(${GLOG_INCLUDE_DIRS})
@@ -85,6 +88,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 include_directories(include ${OpenCV_INCLUDE_DIRS})
 include_directories(include ${PYTHON_INCLUDE_DIRS})
 include_directories(include /usr/local/include/breakpad)
+include_directories(include ${BOOST_IOSTREAMS_DIRS})
 
 message("cmake_current_source_dir=${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -143,6 +147,7 @@ target_link_libraries(rec_app_node
         eventpp::eventpp
         sqlite_orm::sqlite_orm sqlite3
         ${BREAK_PAD_LIBRARIES}
+        ${Boost_LIBRARIES}
         )
 
 target_link_libraries(dump_upload
