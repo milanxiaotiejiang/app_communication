@@ -110,7 +110,12 @@ void ExplorationCenter::repaintSubregionPath() {
 RoomCoverage ExplorationCenter::obtainCoveragePath() {
     auto map = SegmentationCenter::instance().generateMat();
     auto overtime = map.rows * map.cols / 20;
-    return coveragePathGenerator.obtainCoveragePath(overtime);
+    const RoomCoverage &coverage = coveragePathGenerator.obtainCoveragePath(overtime);
+    if (coverage.getPointList().empty() && coverage.getPoseList().empty()) {
+        repaintCoveragePath(false);
+        throw app::exception(make_error_code(error::exploration_path_planning_failed));
+    }
+    return coverage;
 }
 
 RoomCoverage ExplorationCenter::obtainSubregionPath() {
@@ -249,7 +254,8 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
 void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
                                              std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                             std::vector<cv::Point> &point_path) {
+                                             std::vector<cv::Point> &point_path,
+                                             bool distance) {
     if (exploration_path.empty()) {
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
@@ -265,11 +271,15 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
     geometry_msgs::Pose2D last = exploration_path[0];
     for (int i = 1; i < exploration_path.size() - 1; ++i) {
         if (!conversion::one_line(last, exploration_path[i], exploration_path[i + 1])) {
-            if (
-                    sqrt(pow(exploration_path[i].x - exploration_path[i + 1].x, 2) +
-                         pow(exploration_path[i + 1].y - exploration_path[i].y, 2)
-                    ) < 1.0
-                    ) {
+            if (distance) {
+                double point_sqrt = sqrt(pow(exploration_path[i].x - exploration_path[i + 1].x, 2) +
+                                         pow(exploration_path[i + 1].y - exploration_path[i].y, 2)
+                );
+                if (point_sqrt < 1.0) {
+                    last = exploration_path[i];
+                    optimize.push_back(exploration_path[i]);
+                }
+            } else {
                 last = exploration_path[i];
                 optimize.push_back(exploration_path[i]);
             }
@@ -420,7 +430,7 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
 
-    optimizePlanningPath(room_map, pose_path, point_path);
+    optimizePlanningPath(room_map, pose_path, point_path, false);
 
 }
 
@@ -671,7 +681,7 @@ bool ExplorationCenter::baseStationAvailable(cv::Mat &room_map, const cv::Point 
  */
 cv::Mat ExplorationCenter::findClosestPointRoom(cv::Mat &room_map, const cv::Point &point, double min_cell_area) {
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(room_map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(room_map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
     cv::Mat image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
     double distance = -100000;
     for (int i = 0; i < contours.size(); ++i) {

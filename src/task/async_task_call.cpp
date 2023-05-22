@@ -953,6 +953,9 @@ void AsyncTaskCall::executeLift(bool lift) {
     if (isReturningBase(event_flow)) {
         return;
     }
+    if (!isRegularTask(event_flow)) {
+        return;
+    }
     if (lift) {
         notify_one([this]() {
             pushError(loop::error_epoll::error_lift);

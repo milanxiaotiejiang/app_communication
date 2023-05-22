@@ -35,9 +35,9 @@ bool is_utf8(const std::string &string) {
 }
 
 bool is_valid_name(const std::string &str) {
-//    std::regex pattern(R"([ )"); // 匹配3-10个中文、英文字母、数字、下划线
+//    std::regex pattern(R"([ )"); // 匹配3-30个中文、英文字母、数字、下划线
 //    return std::regex_match(str, pattern);
-//    std::regex pattern(R"([\w\xE4\xB8\x80-\xE9\xBE\xA5]{3,20})"); // 匹配3-10个中文、英文字母、数字、下划线
+//    std::regex pattern(R"([\w\xE4\xB8\x80-\xE9\xBE\xA5]{3,20})"); // 匹配3-20个中文、英文字母、数字、下划线
     std::regex pattern("^[\u4e00-\u9fa5_a-zA-Z0-9]{3,30}$", std::regex_constants::icase);
     return std::regex_match(str, pattern);
 }

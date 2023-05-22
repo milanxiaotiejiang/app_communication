@@ -15,6 +15,7 @@ CoveragePathGenerator::CoveragePathGenerator() {
     CoveragePathGenerator::make_thread(run, this);
     coverage_planner_done = false;
     coverage_need_again = false;
+    retried_again_count = 0;
 }
 
 void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &exploration_path,
@@ -71,13 +72,21 @@ void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &ex
                 wait_cv.notify_one();
 
                 coverage_obtain_path = false;
+                retried_again_count = 0;
                 LOG(INFO) << "CoveragePathGenerator : 规划全部完成，支持获取全覆盖路径 ...";
             }
         } else {
-            LOG(INFO) << "CoveragePathGenerator : 全覆盖规划有异常情况，停止当前规划 ...";
-            coverage_need_again = false;
-            coverage_obtain_path = false;
-            coverage_planner_done = true;
+            retried_again_count++;
+            if (retried_again_count > 2) {
+                LOG(INFO) << "CoveragePathGenerator : 全覆盖规划有异常情况，停止当前规划 ...";
+                coverage_need_again = false;
+                coverage_obtain_path = false;
+                coverage_planner_done = true;
+            } else {
+                LOG(INFO) << "CoveragePathGenerator : 全覆盖规划有异常情况，尝试重新规划 " << retried_again_count << " ...";
+                sleep(5);
+                coverage_need_again = true;
+            }
         }
     }
 }
@@ -134,7 +143,6 @@ void CoveragePathGenerator::repaintCoveragePath() {
     } else {
         coverage_need_again = true;
     }
-
 }
 
 /**
@@ -247,27 +255,26 @@ void SubregionPathGenerator::publish() const {
 }
 
 void SubregionPathGenerator::preloadCoveragePath() {
-    {
-        std::unique_lock<std::mutex> lock(cv_mut);
-        coverage_obtain_path = true;
-    }
-    cv.notify_one();
+//    {
+//        std::unique_lock<std::mutex> lock(cv_mut);
+//        coverage_obtain_path = true;
+//    }
+//    cv.notify_one();
 }
 
 void SubregionPathGenerator::repaintCoveragePath() {
-    if (coverage_need_again) {
-        LOG(INFO) << "SubregionPathGenerator : 分区已通知需要重新规划，此处拦截多次的请求 ...";
-        return;
-    }
-
-    if (coverage_planner_done) {
-        {
-            std::unique_lock<std::mutex> lock(cv_mut);
-            coverage_obtain_path = true;
-        }
-        cv.notify_one();
-    } else {
-        coverage_need_again = true;
-    }
-
+//    if (coverage_need_again) {
+//        LOG(INFO) << "SubregionPathGenerator : 分区已通知需要重新规划，此处拦截多次的请求 ...";
+//        return;
+//    }
+//
+//    if (coverage_planner_done) {
+//        {
+//            std::unique_lock<std::mutex> lock(cv_mut);
+//            coverage_obtain_path = true;
+//        }
+//        cv.notify_one();
+//    } else {
+//        coverage_need_again = true;
+//    }
 }

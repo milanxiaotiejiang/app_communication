@@ -42,7 +42,8 @@ private:
 
     void optimizePlanningPath(const cv::Mat &room_map,
                               std::vector<geometry_msgs::Pose2D> &exploration_path,
-                              std::vector<cv::Point> &point_path);
+                              std::vector<cv::Point> &point_path,
+                              bool distance = true);
 
     bool baseStationAvailable(cv::Mat &room_map, const cv::Point &point);
 

@@ -18,6 +18,7 @@ private:
 
     std::atomic<bool> coverage_planner_done;
     std::atomic<bool> coverage_need_again;
+    std::atomic<int> retried_again_count;
 
     bool coverage_obtain_path = false;
 
