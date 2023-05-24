@@ -2,9 +2,9 @@
 echo "Upgrade Aircore"
 version=$(rosparam get /ros_version)
 major=${version:0:5}
-old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9" "0.9.10")
+old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9" "1.0.0")
 version_index=0
-for i in 1 2 3 4 5
+for i in 1 2 3 4 5 6
 do
   echo "${old_version[$i]}"
   if [[ $major = ${old_version[$i]} ]]
@@ -65,11 +65,15 @@ then
     echo "Upgrading libcartographer.so"
     echo "123456" | sudo -S cp /home/admin1/AirCore/libcartographer.so /usr/local/lib/
 fi
-echo "Updating 0.9.9"
-echo "Upgrading libcartographer.so"
-echo "123456" | sudo -S cp /home/admin1/AirCore/libcartographer.so /usr/local/lib/
-echo "Upgrading cartographer_rplidar.lua"
-rm /home/admin1/test_ws/install/share/robot_slam/params/cartographer_rplidar.lua
-cp /home/admin1/AirCore/cartographer_rplidar.lua /home/admin1/test_ws/install/share/robot_slam/params/
-
-
+if [ $version_index -lt 5 ]
+then
+  echo "Updating 0.9.9"
+  echo "Upgrading libcartographer.so"
+  echo "123456" | sudo -S cp /home/admin1/AirCore/libcartographer.so /usr/local/lib/
+  echo "Upgrading cartographer_rplidar.lua"
+  rm /home/admin1/test_ws/install/share/robot_slam/params/cartographer_rplidar.lua
+  cp /home/admin1/AirCore/cartographer_rplidar.lua /home/admin1/test_ws/install/share/robot_slam/params/
+fi
+  echo "Updating 1.0.0"
+  echo "Upgrading libcartographer.so"
+  echo "123456" | sudo -S cp /home/admin1/AirCore/libcartographer.so /usr/local/lib/
