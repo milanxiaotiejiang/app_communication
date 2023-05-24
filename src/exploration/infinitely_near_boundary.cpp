@@ -9,24 +9,28 @@
 #include "exploration/line.h"
 #include "exploration/A_star_pathplanner.h"
 #include "exploration/cv_extend.h"
+#include "exploration/douglas/DouglasPeucker.h"
+#include "exploration/douglas/Point2D.h"
 
 #define random(a, b) (rand() % (b - a) + a)
 
 static bool DISPLAY_TRAJECTORY = false;
 
-void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, const cv::Mat &room_map,
+void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
+                                                const cv::Mat &room_map,
                                                 std::vector<geometry_msgs::Pose2D> &pose_path,
                                                 std::vector<cv::Point> &point_path,
                                                 std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
-                                                const float map_resolution,
+                                                float map_resolution,
                                                 const cv::Point &starting_position,
                                                 const cv::Point2d &map_origin,
-                                                double robot_radius,
-                                                int number_extension,
-                                                int distance_from_obstacles,
-                                                int multiple_contour_spacing,
-                                                int random_number_generation_ratio,
-                                                int boundary_min_area) {
+                                                const double robot_radius,
+                                                const int number_extension,
+                                                const int distance_from_obstacles,
+                                                const int multiple_contour_spacing,
+                                                const int random_number_generation_ratio,
+                                                const int boundary_min_area,
+                                                const double path_eps) {
 
     double grid_spacing_in_meter = robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution;
@@ -70,7 +74,6 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
     if (principle_map.at<unsigned char>(reachablePoint.y, reachablePoint.x) != 255)
         return;
 
-    std::vector<cv::Point2f> middle_point_path;
     std::vector<std::vector<cv::Point2f>> middle_complex_path;
     for (int r = 0; r < number_extension; ++r) {
 
@@ -139,11 +142,6 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
             }
 
             if (isEligible) {
-                for (const auto &point: borderContour) {
-                    middle_point_path.push_back(point);
-                }
-                middle_point_path.push_back(borderContour.front());
-
                 std::vector<cv::Point2f> complex;
                 for (const auto &point: borderContour) {
                     complex.push_back(point);
@@ -157,53 +155,62 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
         }
     }
 
-    if (middle_point_path.empty()) {
+    if (middle_complex_path.empty()) {
         LOG(ERROR) << "Warning: there are no accessible points in this room.";
         return;
     }
 
-    if (DISPLAY_TRAJECTORY) {
-        auto show_map = original_map.clone();
-        for (const auto &item: middle_point_path) {
-            cv::circle(show_map, item, 1, cv::Scalar(64), CV_FILLED);
+    int path_eps_distance = static_cast<int>(std::floor(path_eps));
+    for (auto &middle_complex: middle_complex_path) {
+        // OpenCv
+        std::vector<cv::Point> list;
+        cv::approxPolyDP(middle_complex, list, 1.0, true);
+        std::vector<Point2D> points;
+        for (const auto &item: list) {
+            points.emplace_back(item.x, item.y);
         }
-        cv::imshow("show_map", show_map);
-        cv::waitKey();
-    }
+        // 自实现
+//        std::list<Point2D> line;
+//        for (const auto &point: middle_complex) {
+//            line.emplace_back(point.x, point.y);
+//        }
+//        DouglasPuecker2D<Point2D, Point2DAccessor> dp2d(line);
+//        dp2d.simplify(1.0F);
+//        std::list<Point2D> &list = dp2d.getLine();
+//
+//        std::vector<Point2D> points(list.begin(), list.end());
 
-    std::vector<geometry_msgs::Pose2D> fov_poses;
-    transformPointPathToPosePath(middle_point_path, fov_poses);
+        const std::vector<Point2D> &neededPoints = splitPointsIfNeeded(points, path_eps_distance);
 
-    for (std::vector<geometry_msgs::Pose2D>::iterator pose = fov_poses.begin(); pose != fov_poses.end(); ++pose) {
-        geometry_msgs::Pose2D current_pose;
-        current_pose.x = (((room_map.cols - pose->x) * map_resolution) + map_origin.x);
-        current_pose.y = (((room_map.rows - pose->y) * map_resolution) + map_origin.y);
-        current_pose.theta = pose->theta;
-        pose_path.push_back(current_pose);
-    }
+        std::vector<geometry_msgs::Pose2D> complex_poses = transformPointPathToPosePath(neededPoints);
 
-    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
-    for (const auto &middle_complex: middle_complex_path) {
-        std::vector<geometry_msgs::Pose2D> complex_poses;
-        transformPointPathToPosePath(middle_complex, complex_poses);
-        complex_path.push_back(complex_poses);
-    }
-
-    for (auto &complex: complex_path) {
+        geometry_msgs::Pose2D head_pose;
         std::vector<geometry_msgs::Pose2D> complex_pose;
-        for (std::vector<geometry_msgs::Pose2D>::iterator pose = complex.begin(); pose != complex.end(); ++pose) {
+        for (int i = 0; i < complex_poses.size(); i++) {
+            auto &pose = complex_poses[i];
             geometry_msgs::Pose2D current_pose;
-            current_pose.x = (((room_map.cols - pose->x) * map_resolution) + map_origin.x);
-            current_pose.y = (((room_map.rows - pose->y) * map_resolution) + map_origin.y);
-            current_pose.theta = pose->theta;
+            current_pose.x = (((room_map.cols - pose.x) * map_resolution) + map_origin.x);
+            current_pose.y = (((room_map.rows - pose.y) * map_resolution) + map_origin.y);
+            current_pose.theta = pose.theta;
             complex_pose.push_back(current_pose);
+            // pose_path return
+            pose_path.push_back(current_pose);
+            if (i == 0) {
+                head_pose.x = current_pose.x;
+                head_pose.y = current_pose.y;
+                head_pose.theta = current_pose.theta;
+            } else if (i == complex_poses.size() - 1) {
+                pose_path.push_back(head_pose);
+            }
         }
         complex_pose_path.push_back(complex_pose);
     }
+
 }
 
-void InfinitelyNearBoundary::transformPointPathToPosePath(const std::vector<cv::Point2f> &point_path,
-                                                          std::vector<geometry_msgs::Pose2D> &pose_path) {
+std::vector<geometry_msgs::Pose2D>
+InfinitelyNearBoundary::transformPointPathToPosePath(const std::vector<Point2D> &point_path) {
+    std::vector<geometry_msgs::Pose2D> pose_path;
     if (point_path.size() == 1) {
         geometry_msgs::Pose2D current_pose;
         current_pose.x = point_path[0].x;
@@ -211,14 +218,21 @@ void InfinitelyNearBoundary::transformPointPathToPosePath(const std::vector<cv::
         current_pose.theta = 0.;
         pose_path.push_back(current_pose);
     } else {
+
+        geometry_msgs::Pose2D zero_pose;
+        zero_pose.x = point_path[0].x;
+        zero_pose.y = point_path[0].y;
+        zero_pose.theta = 0.;
+        pose_path.push_back(zero_pose);
+
         for (size_t point_index = 1; point_index < point_path.size(); ++point_index) {
-            const cv::Point2f &current_point = point_path[point_index];
+            const Point2D &current_point = point_path[point_index];
 
             geometry_msgs::Pose2D current_pose;
             current_pose.x = current_point.x;
             current_pose.y = current_point.y;
             current_pose.theta = 0.;
-            cv::Point2f vector(0, 0);
+            Point2D vector(0, 0);
             if (point_index > 0) {
                 vector = current_point - point_path[point_index - 1];
             } else if (point_path.size() >= 2) {
@@ -230,4 +244,47 @@ void InfinitelyNearBoundary::transformPointPathToPosePath(const std::vector<cv::
             }
         }
     }
+    return pose_path;
+}
+
+std::vector<Point2D> InfinitelyNearBoundary::splitPoints(const Point2D &p1, const Point2D &p2, double distance) {
+    std::vector<Point2D> split;
+
+    double dx = p2.x - p1.x;
+    double dy = p2.y - p1.y;
+    double dist = std::sqrt(dx * dx + dy * dy);
+    int numPoints = std::ceil(dist / distance);
+
+    for (int i = 0; i <= numPoints; ++i) {
+        double t = static_cast<double>(i) / numPoints;
+        double x = p1.x + t * dx;
+        double y = p1.y + t * dy;
+        split.emplace_back(x, y);
+    }
+
+    return split;
+}
+
+std::vector<Point2D> InfinitelyNearBoundary::splitPointsIfNeeded(const std::vector<Point2D> &points, double distance) {
+    std::vector<Point2D> results;
+
+    for (size_t i = 0; i < points.size() - 1; ++i) {
+        const Point2D &currentPoint = points[i];
+        const Point2D &nextPoint = points[i + 1];
+
+        double dx = nextPoint.x - currentPoint.x;
+        double dy = nextPoint.y - currentPoint.y;
+        double dist = std::sqrt(dx * dx + dy * dy);
+
+        if (dist > distance) {
+            std::vector<Point2D> interpolatedPoints = splitPoints(currentPoint, nextPoint, distance);
+            results.insert(results.end(), interpolatedPoints.begin(), interpolatedPoints.end());
+        } else {
+            results.push_back(currentPoint);
+        }
+    }
+
+    results.push_back(points.back());
+
+    return results;
 }

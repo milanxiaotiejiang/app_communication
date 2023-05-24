@@ -298,7 +298,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
     LOG(INFO) << "exploration_path after point size : " << exploration_path.size();
 
     if (DISPLAY_TRAJECTORY)
-        planning_pose_path_display(room_map, map_origin, exploration_path, 1, "optimizePlanningPath");
+        planning_pose_path_display(room_map, map_origin, exploration_path, 3, "optimizePlanningPath");
 
     pose2CVPoint(room_map, point_path, exploration_path, map_origin);
     if (DISPLAY_TRAJECTORY)
@@ -306,7 +306,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT) {
         for (int i = 0; i < complex_path.size(); i++) {
-            planning_pose_path_display(room_map, map_origin, complex_path[i], 1,
+            planning_pose_path_display(room_map, map_origin, complex_path[i], 3,
                                        "optimizePlanningPath " + std::to_string(i));
         }
     }
@@ -400,6 +400,9 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
     }
     int random_number_generation_ratio = plan.random_number_generation_ratio;
     int boundary_min_area = plan.boundary_min_area;
+
+    double path_eps_ = std::max(std::floor(grid_spacing_in_pixel), plan.path_eps);
+
     LOG(INFO) << "(infinitely near boundary) distance_from_obstacles: " << distance_from_obstacles;
     LOG(INFO) << "(infinitely near boundary) number_extension: " << number_extension;
     LOG(INFO) << "(infinitely near boundary) multiple_contour_spacing: " << multiple_contour_spacing;
@@ -433,7 +436,8 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
                                               distance_from_obstacles,
                                               multiple_contour_spacing,
                                               random_number_generation_ratio,
-                                              boundary_min_area
+                                              boundary_min_area,
+                                              path_eps_
     );
 
     int end_time = ros::Time::now().sec;
