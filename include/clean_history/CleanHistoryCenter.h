@@ -74,7 +74,7 @@ namespace clean_history_db {
         bool setBackBaseRetries(int retries);
 
         // 清洁中更新清洁面积和清洁时间
-        bool updateCleanHistory(const RealPoint &real_point);
+        bool updateCleanHistory(const RealBlock &realBlock, const RealPoint &realPoint);
 
         //设置返回摆渡点是否成功
         bool setBackBasePointArrived(int state);

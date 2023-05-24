@@ -27,20 +27,18 @@ protected:
     std::deque<TaskStack> stopStack;
 
     std::deque<RealTask> waitTaskQueue;
-    std::deque<RealPoint> plannerQueue;
-    std::deque<Cp> childPointQueue;
-    int unitTimeout;
+    std::deque<RealBlock> plannerQueue;
 
     RealTask runTask;
 
-    RealPoint flowSeizeSeatPoint;
-    RealPoint flowOpenMechanismPoint;
-    RealPoint flowCloseMechanismPoint;
-    RealPoint flowOutStationPoint;
+    RealBlock flowSeizeSeatPoint;
+    RealBlock flowOpenMechanismPoint;
+    RealBlock flowCloseMechanismPoint;
+    RealBlock flowOutStationPoint;
 
-    RealPoint flowEndSleepPoint;
-    RealPoint flowInBasePoint;
-    RealPoint flowInStationPoint;
+    RealBlock flowEndSleepPoint;
+    RealBlock flowInBasePoint;
+    RealBlock flowInStationPoint;
 
     std::string runTaskId() const {
         return runTask.getId();
@@ -58,11 +56,11 @@ protected:
         return runTask.getMode();
     }
 
-    std::vector<RealPoint> realPoints() const {
+    std::vector<RealBlock> realPoints() const {
         return runTask.getRealPoints();
     }
 
-    std::vector<RealPoint> planPoints() const {
+    std::vector<RealBlock> planPoints() const {
         return runTask.getPlanPoints();
     }
 
@@ -86,7 +84,7 @@ protected:
 
     bool isPlannerEmpty(event::flow flow);
 
-    void recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint);
+    void recordEmergencyStop(event::flow event_flow, const RealBlock &realPoint);
 
     bool recoverableEmergencyStop();
 
@@ -98,7 +96,7 @@ protected:
 
     void release() override;
 
-    static std::string output_interpolation_point(int id) {
+    static std::string output_interpolation_block(int id) {
         switch (id) {
             case FLOW_SEIZE_SEAT:
                 return "启动节点";

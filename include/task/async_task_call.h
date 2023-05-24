@@ -55,18 +55,18 @@ protected:
 
     void handleTask(const RealTask &task) override;
 
-    void handlePoint(const RealPoint &point) override;
+    void handleBlock(const RealBlock &block) override;
 
 
     virtual void handleExecuteTask(const RealTask &task);
 
-    void handleAutoPoint(const RealPoint &point);
+    void handleAutoBlock(const RealBlock &block);
 
-    void handlePointManualControl(const RealPoint &point);
+    void handleBlockManualControl(const RealBlock &block);
 
-    void handlePointSpecialDevice(const RealPoint &point);
+    void handleBlockSpecialDevice(const RealBlock &block);
 
-    void initTaskPoint(const RealTask &realTask);
+    void initTaskBlock(const RealTask &realTask);
 
     virtual void goodGame(event::GG gg);
 
@@ -74,24 +74,22 @@ protected:
 
     void reset();
 
-    virtual void handleFlowPoint(const RealPoint &point) = 0;
+    virtual void handleFlowBlock(const RealBlock &block) = 0;
 
-    virtual void processControl(const RealPoint &point) = 0;
+    virtual void processControl(const RealBlock &block) = 0;
 
-    virtual void handlePlannerPoint(const RealPoint &point);
+    virtual void handlePlannerBlock(const RealBlock &block);
 
-    RealPoint findFrontPoint();
+    RealBlock findFrontBlock();
 
-    RealPoint findFrontNextPoint();
+    RealBlock findFrontNextBlock();
 
     bool isBasePointReached(float disAccuracy, float angleAccuracy);
 
 
-    void callGoNextPoint(const RealPoint &nextPoint);
+    void callGoNextBlock(const RealBlock &realBlock);
 
-    void callPointComplete(const std::function<void()> &f);
-
-    void callGoPath();
+    void callBlockComplete(const std::function<void()> &f);
 
     void callManualCleanStart();
 
@@ -125,10 +123,6 @@ public:
     void executeUnrecoverableError();
 
     void executeOneTask(const RealTask &task);
-
-    void executeOnNext(event::error error);
-
-    void executePointFeedback(geometry_msgs::Pose2D pose);
 
     void executeOnPathDone(event::error error);
 
@@ -171,7 +165,7 @@ public:
 
     std::vector<RealTask> runTaskList();
 
-    std::vector<RealPoint> runTaskPoint();
+    std::vector<RealBlock> runTaskBlock();
 
 };
 

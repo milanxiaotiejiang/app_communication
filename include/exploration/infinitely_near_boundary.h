@@ -21,6 +21,7 @@ public:
                             const cv::Mat &room_map,
                             std::vector<geometry_msgs::Pose2D> &pose_path,
                             std::vector<cv::Point> &point_path,
+                            std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
                             float map_resolution,
                             const cv::Point &starting_position,
                             const cv::Point2d &map_origin,

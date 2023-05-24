@@ -54,6 +54,6 @@ std::vector<RealTask> ManualManager::runTaskList() {
     return asyncTaskCall->runTaskList();
 }
 
-std::vector<RealPoint> ManualManager::runTaskPoint() {
-    return asyncTaskCall->runTaskPoint();
+std::vector<RealBlock> ManualManager::runTaskBlock() {
+    return asyncTaskCall->runTaskBlock();
 }

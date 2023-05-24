@@ -35,7 +35,7 @@ bool AsyncTaskRecord::isReturningBase(event::flow flow) {
 }
 
 bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend) {
-    LOG(INFO) << "AsyncTaskRecord : lastEmergencyStop : " << lastEmergencyStop();
+//    LOG(INFO) << "AsyncTaskRecord : lastEmergencyStop : " << lastEmergencyStop();
     if (isManualMode()) {
         return false;
     }
@@ -88,7 +88,7 @@ bool AsyncTaskRecord::isPlannerEmpty(event::flow flow) {
     return flow == event::flow::flowing_water_production && plannerQueue.empty();
 }
 
-void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint) {
+void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealBlock &realPoint) {
     TaskStack stack(event_flow, realPoint);
     stopStack.push_back(stack);
     if (stopStack.size() > MAX_RECORD_TASK_STACK_SIZE) {

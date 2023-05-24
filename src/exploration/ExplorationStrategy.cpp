@@ -29,6 +29,7 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
 
     std::vector<geometry_msgs::Pose2D> exploration_path;
     std::vector<cv::Point> point_path;
+    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
 
     ExplorationCenter &explorationCenter = ExplorationCenter::instance();
 
@@ -39,17 +40,18 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
 
         if (targetId == -1) {
             if (rooms.empty()) {
-                explorationCenter.generatePlanningPathFull(baseMap, explorerMode, exploration_path, point_path);
+                explorationCenter.generatePlanningPathFull(baseMap, explorerMode, exploration_path, point_path,
+                                                           complex_path);
             } else {
                 explorationCenter.generatePlanningSegmentationPath(baseMap, segmented_map, rooms, explorerMode,
-                                                                   exploration_path, point_path);
+                                                                   exploration_path, point_path, complex_path);
             }
         } else {
             const cv::Mat &oneMap = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, targetId);
-            explorationCenter.generatePlanningPathSub(oneMap, explorerMode, exploration_path, point_path);
+            explorationCenter.generatePlanningPathSub(oneMap, explorerMode, exploration_path, point_path, complex_path);
         }
     } else {
-        explorationCenter.generatePlanningPathFull(baseMap, explorerMode, exploration_path, point_path);
+        explorationCenter.generatePlanningPathFull(baseMap, explorerMode, exploration_path, point_path, complex_path);
     }
 
     explorationCenter.pathPublish(exploration_path);
@@ -57,24 +59,17 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
     string uuid_string = boost::uuids::to_string(uuid);
 
-    std::vector<PoseVo> poseList;
-    std::vector<PointVo> pointList;
-    for (const auto &item: exploration_path) {
-        poseList.emplace_back(item.y, item.x, item.theta);
-    }
-    for (const auto &item: point_path) {
-        pointList.emplace_back(item.x, item.y);
-    }
-
-    auto coverage = RoomCoverage(uuid_string, pointList, poseList);
-    explorationCenter.cacheRoomCoverage(coverage);
+    RoomCoverage roomCoverage;
+    TaskExploration::planningPath2RoomCoverage(roomCoverage, exploration_path, point_path, complex_path);
+    roomCoverage.setCoverageId(uuid_string);
+    explorationCenter.cacheRoomCoverage(roomCoverage);
 
     RoomCoverage result;
-    result.setCoverageId(coverage.getCoverageId());
+    result.setCoverageId(roomCoverage.getCoverageId());
     if (dataMode == DATA_MODE_GEOMETRY_POSE) {
-        result.setPoseList(coverage.getPoseList());
+        result.setPoseList(roomCoverage.getPoseList());
     } else if (dataMode == DATA_MODE_OPEN_CV_POINT) {
-        result.setPointList(coverage.getPointList());
+        result.setPointList(roomCoverage.getPointList());
     }
     return result;
 }

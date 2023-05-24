@@ -8,26 +8,26 @@
 #include "future/timer_call.h"
 #include "task/manager/MechanismManager.h"
 
-void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
-    if (point.id == FLOW_SEIZE_SEAT) {
+void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
+    if (block.id == FLOW_SEIZE_SEAT) {
 //        setFlow(event::flow::out_base_station);
         setFlow(event::flow::switch_node_work_mode);
-    } else if (point.id == FLOW_OUT_STATION) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_OUT_STATION) {
+        if (block.arrive) {
 //            setFlow(event::flow::switch_node_work_mode);
             setFlow(event::flow::preliminary_preparation_completed);
         } else {
             setFlow(event::flow::software_interrupt_task);
         }
-    } else if (point.id == FLOW_END_SLEEP) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_END_SLEEP) {
+        if (block.arrive) {
 //            setFlow(event::flow::preliminary_preparation_completed);
             setFlow(event::flow::out_base_station);
         } else {
             setFlow(event::flow::software_interrupt_task);
         }
-    } else if (point.id == FLOW_IN_BASE_POINT) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_IN_BASE_POINT) {
+        if (block.arrive) {
             if (rechargeRetryCount == 0) {
                 setFlow(event::flow::arrive_base_point_success);
             } else {
@@ -41,8 +41,8 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
                 setFlow(event::flow::software_interrupt_task);
             }
         }
-    } else if (point.id == FLOW_IN_STATION) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_IN_STATION) {
+        if (block.arrive) {
             setFlow(event::flow::arrive_base_station_success);
         } else {
             if (rechargeRetryCount < MAX_RECHARGE_RETRY_COUNT) {
@@ -52,14 +52,14 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
                 setFlow(event::flow::software_interrupt_task);
             }
         }
-    } else if (point.id == FLOW_CLOSE_MECHANISM) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_CLOSE_MECHANISM) {
+        if (block.arrive) {
             setFlow(event::flow::flowing_water_execution_completed);
         } else {
             setFlow(event::flow::hardware_interrupt_task);
         }
-    } else if (point.id == FLOW_OPEN_MECHANISM) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_OPEN_MECHANISM) {
+        if (block.arrive) {
             setFlow(event::flow::cleaning_mechanism_ready);
         } else {
             setFlow(event::flow::hardware_interrupt_task);
@@ -67,7 +67,7 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
     }
 }
 
-void HeadTailPointCall::processControl(const RealPoint &point) {
+void HeadTailPointCall::processControl(const RealBlock &block) {
     switch (currentFlow()) {
         case event::flow::out_base_station: {
             callOutBaseStation();
@@ -76,7 +76,7 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
         case event::flow::switch_node_work_mode: {
             callSwitchWorkMode([this](bool work) {
                 flowEndSleepPoint.arrive = work;
-                pushPoint(flowEndSleepPoint);
+                pushBlock(flowEndSleepPoint);
             });
             break;
         }
@@ -91,19 +91,19 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
         }
         case event::flow::cleaning_mechanism_ready: {
             LOG(INFO) << "HeadTailPointCall : 清洁机构下放成功，准备执行规划点位任务，当前去第一个点 ...";
-            recordEmergencyStop(event::flow::ensure_move_to_start_point, point);
+            recordEmergencyStop(event::flow::ensure_move_to_start_point, block);
             setFlow(event::flow::ensure_move_to_start_point);
-            RealPoint front = plannerQueue.front();
+            RealBlock front = plannerQueue.front();
             callGoFirstPoint(front);
             break;
         }
         case event::flow::ensure_move_to_start_point: {
-            if (point.arrive) {
+            if (block.arrive) {
                 LOG(INFO) << "HeadTailPointCall : 到达第一个点位，开始流水线作业 ...";
                 setFlow(event::flow::flowing_water_production);
-                pushPoint(point);
+                pushBlock(block);
             } else {
-                auto currentPoint = findFrontPoint();
+                auto currentPoint = findFrontBlock();
                 if (firstRetryCount < MAX_FIRST_RETRY_COUNT) {
                     LOG(INFO) << "HeadTailPointCall : 未到达第一个点位，重试中 ...";
                     firstRetryCount++;
@@ -112,33 +112,28 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
                 } else {
                     LOG(INFO) << "HeadTailPointCall : 第一个点位重试后不能到达，跳点进入后续流程 ...";
                     setFlow(event::flow::flowing_water_production);
-                    pushPoint(point);
+                    pushBlock(block);
                 }
             }
             break;
         }
         case event::flow::flowing_water_production: {
-            if (Environment::instance().re_planner) {
-                if (plannerQueue.size() == 1) {
-                    callPointComplete([this]() {
-                        callBackBasePoint();
-                    });
-                } else {
-                    if (childPointQueue.empty()) {
-                        callGoPath();
+            if (plannerQueue.size() == 1) {
+                //最后一个已经走完，移除最后一个再次执行一次，走收拖头
+                LOG(INFO) << "HeadTailPointCall : 清扫结束，准备回基站点 ...";
+                callBlockComplete([this]() {
+                    callBackBasePoint();
+                });
+            } else {
+                auto nextBlock = findFrontNextBlock();
+                if (nextBlock.inClean) {
+                    if (nextBlock.timely_step > 0) {
+                        nextBlock.already_step = nextBlock.already_step + nextBlock.timely_step + 1;
+                        nextBlock.timely_step = 0;
+                        exchangeFrontPoint(nextBlock);
                     }
                 }
-            } else {
-                if (plannerQueue.size() == 1) {
-                    //最后一个已经走完，移除最后一个再次执行一次，走收拖头
-                    LOG(INFO) << "HeadTailPointCall : 清扫结束，准备回基站点 ...";
-                    callPointComplete([this]() {
-                        callBackBasePoint();
-                    });
-                } else {
-                    auto nextPoint = findFrontNextPoint();
-                    callGoNextPoint(nextPoint);
-                }
+                callGoNextBlock(nextBlock);
             }
             break;
         }
@@ -173,14 +168,14 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
             break;
         }
         case event::flow::hardware_interrupt_task: {
-            LOG(INFO) << "HeadTailPointCall : 清洁机构出错，执行返回基站命令 错误 ： " << output_interpolation_point(point.id);
+            LOG(INFO) << "HeadTailPointCall : 清洁机构出错，执行返回基站命令 错误 ： " << output_interpolation_block(block.id);
             callBackBasePoint();
             break;
         }
         case event::flow::software_interrupt_task: {
             LOG(ERROR) << "HeadTailPointCall software_interrupt_task ...";
             cancelTask();
-            softwareInterruptTask(point);
+            softwareInterruptTask(block);
             break;
         }
     }
@@ -196,7 +191,7 @@ void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, bool knife, 
         async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this]() {
             LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
             notify_one([this]() {
-                pushPoint(flowOpenMechanismPoint);
+                pushBlock(flowOpenMechanismPoint);
             });
         });
     } else {
@@ -204,7 +199,7 @@ void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, bool knife, 
                 std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this]() {
                     LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
                     notify_one([this]() {
-                        pushPoint(flowOpenMechanismPoint);
+                        pushBlock(flowOpenMechanismPoint);
                     });
                 });
     }
@@ -223,7 +218,7 @@ void HeadTailPointCall::callCloseMechanism(function<void()> f) {
                 ->scheduleLater(std::chrono::seconds(1), [this]() {
                     LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
                     notify_one([this]() {
-                        pushPoint(flowCloseMechanismPoint);
+                        pushBlock(flowCloseMechanismPoint);
                     });
                 });
     } else {
@@ -231,24 +226,24 @@ void HeadTailPointCall::callCloseMechanism(function<void()> f) {
                 ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this]() {
                     LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
                     notify_one([this]() {
-                        pushPoint(flowCloseMechanismPoint);
+                        pushBlock(flowCloseMechanismPoint);
                     });
                 });
     }
 }
 
-void HeadTailPointCall::callGoFirstPoint(RealPoint point) {
-    PointPlanner::instance().gotoPlannerFirstPoint(point);
+void HeadTailPointCall::callGoFirstPoint(RealBlock block) {
+    PointPlanner::instance().goToPathFirst(block);
     async::TimerCall::instance().baseLoop()
-            ->scheduleLater(std::chrono::seconds(point.timeout), [this, &point]() {
-                auto currentPoint = findFrontPoint();
-                if (currentPoint.id == point.id) {
-                    executeOnNext(event::error::TIMEOUT);
+            ->scheduleLater(std::chrono::seconds(block.timeout), [this, &block]() {
+                auto currentPoint = findFrontBlock();
+                if (currentPoint.id == block.id) {
+                    executeOnPathDone(event::error::TIMEOUT);
                 }
             });
 }
 
-void HeadTailPointCall::exchangeFrontPoint(const RealPoint &point) {
+void HeadTailPointCall::exchangeFrontPoint(const RealBlock &point) {
     plannerQueue.pop_front();
     plannerQueue.push_front(point);
 }

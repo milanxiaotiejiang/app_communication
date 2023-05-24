@@ -8,6 +8,7 @@
 #include "string"
 #include "model/WorkStatus.h"
 #include "model/Task.h"
+#include "RealBlock.h"
 #include "RealPoint.h"
 #include "model/RoomVo.h"
 #include "model/task.h"
@@ -47,8 +48,8 @@ private:
     int totalStep;
     int totalFrequency;
 
-    std::vector<RealPoint> planPoints;
-    std::vector<RealPoint> realPoints;
+    std::vector<RealBlock> planBlocks;
+    std::vector<RealBlock> realBlocks;
 
 public:
     RealTask() = default;
@@ -237,47 +238,47 @@ public:
         RealTask::totalFrequency = totalFrequency;
     }
 
-    const vector<RealPoint> &getPlanPoints() const {
-        return planPoints;
+    const vector<RealBlock> &getPlanPoints() const {
+        return planBlocks;
     }
 
-    void setPlanPoints(const vector<RealPoint> &planPoints) {
-        RealTask::planPoints = planPoints;
+    void setPlanPoints(const vector<RealBlock> &planPoints) {
+        RealTask::planBlocks = planPoints;
     }
 
-    const vector<RealPoint> &getRealPoints() const {
-        return realPoints;
+    const vector<RealBlock> &getRealPoints() const {
+        return realBlocks;
     }
 
-    void setRealPoints(const vector<RealPoint> &realPoints) {
-        RealTask::realPoints = realPoints;
+    void setRealPoints(const vector<RealBlock> &realPoints) {
+        RealTask::realBlocks = realPoints;
     }
 
-    void assignmentPoint(RealPoint &realPoint, int pointId) const {
-        realPoint.id = pointId;
+    void assignmentPoint(RealBlock &block, int pointId) const {
+        block.id = pointId;
         if (isRenew()) {
-            realPoint.newTaskId = getTaskId();
+            block.newTaskId = getTaskId();
         } else {
-            realPoint.oldTaskId = getId();
+            block.oldTaskId = getId();
         }
     }
 
-    void changeArrivalStatus(const RealPoint &point) {
+    void changeArrivalStatus(const RealBlock &block) {
         bool isContains;
-        for (auto realPoint: realPoints) {
-            if (realPoint.id == point.id) {
+        for (auto realPoint: realBlocks) {
+            if (realPoint.id == block.id) {
                 isContains = true;
                 if (realPoint.arrive) {
                     break;
                 } else {
-                    if (point.arrive) {
-                        realPoint.arrive = point.arrive;
+                    if (block.arrive) {
+                        realPoint.arrive = block.arrive;
                     }
                 }
             }
         }
         if (!isContains) {
-            realPoints.push_back(point);
+            realBlocks.push_back(block);
         }
 
     }

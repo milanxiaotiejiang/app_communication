@@ -8,23 +8,12 @@
 #include "task/point_routine.h"
 #include "simulation.h"
 
-void PointPlanner::point2Goal(const RealPoint &point, move_base_msgs::MoveBaseGoal &goal) {
-    goal.target_pose.header.frame_id = "map";
-    goal.target_pose.header.stamp = ros::Time::now();
-    goal.target_pose.pose.position.x = point.realPosition.x;
-    goal.target_pose.pose.position.y = point.realPosition.y;
-    goal.target_pose.pose.position.z = point.realPosition.z;
-    goal.target_pose.pose.orientation.x = point.realOrientation.x;
-    goal.target_pose.pose.orientation.y = point.realOrientation.y;
-    goal.target_pose.pose.orientation.z = point.realOrientation.z;
-    goal.target_pose.pose.orientation.w = point.realOrientation.w;
-}
-
-void PointPlanner::cpToPath(const vector<Cp> &pointList, replan_msgs::ReplanGoal &goal_path) {
+void PointPlanner::cpToPath(const std::vector<RealPoint> &points, replan_msgs::ReplanGoal &goal_path) {
+    LOG(INFO) << "PointPlanner send path points.size : " << points.size();
     nav_msgs::Path path;
     path.header.frame_id = "map";
     path.header.stamp = ros::Time::now();
-    for (const auto &item: pointList) {
+    for (auto item: points) {
         geometry_msgs::PoseStamped pose;
         pose.header.frame_id = "map";
         pose.header.stamp = ros::Time::now();
@@ -38,27 +27,6 @@ void PointPlanner::cpToPath(const vector<Cp> &pointList, replan_msgs::ReplanGoal
         path.poses.push_back(pose);
     }
     goal_path.source_path = path;
-}
-
-void PointPlanner::activeCd() {
-    PointRoutine::instance().pointActive();
-}
-
-void PointPlanner::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback) {
-    move_base_msgs::MoveBaseFeedback_<allocator<void>>::_base_position_type stamped = feedback->base_position;
-    geometry_msgs::PoseStamped_<allocator<void>>::_pose_type pose = stamped.pose;
-    geometry_msgs::Pose_<allocator<void>>::_position_type &point = pose.position;
-    geometry_msgs::Pose2D pose2D;
-    pose2D.x = point.x;
-    pose2D.y = point.y;
-    pose2D.theta = 0.;
-    PointRoutine::instance().pointFeedback(pose2D);
-}
-
-void PointPlanner::doneCd(const actionlib::SimpleClientGoalState &state,
-                          const move_base_msgs::MoveBaseResultConstPtr &result) {
-//    LOG(INFO) << "PointPlanner  pointCd " << state.getText();
-    PointRoutine::instance().pointDone(state);
 }
 
 void PointPlanner::activeCB() {
@@ -81,17 +49,6 @@ void PointPlanner::initialize(ros::NodeHandle handle) {
     initialize_finish = true;
 }
 
-bool PointPlanner::waitForMoveBaseServer() {
-    share_move_base.reset();
-    share_move_base = std::make_shared<MoveBaseAction>("move_base", true);
-//    share_move_base->waitForServer();
-    return share_move_base->waitForServer(ros::Duration(5));
-}
-
-void PointPlanner::resetForMoveBaseServer() {
-    share_move_base.reset();
-}
-
 bool PointPlanner::waitForReplanServer() {
     share_replan.reset();
     share_replan = std::make_shared<ReplanAction>("replan", true);
@@ -102,37 +59,19 @@ void PointPlanner::resetForReplanServer() {
     share_replan.reset();
 }
 
-void PointPlanner::gotoPlannerPoint(const RealPoint &realPoint) {
-    if (!initialize_finish) {
-        throw app::exception(make_error_code(error::task_planner_failed_to_start));
-    }
-    LOG(INFO) << "AsyncTaskFramework : gotoPlannerPoint " << realPoint.realPosition << " ...";
-    move_base_msgs::MoveBaseGoal goal;
-    point2Goal(realPoint, goal);
-    share_move_base->sendGoal(goal, &doneCd, &activeCd, &feedbackCb);
-}
-
-void PointPlanner::gotoPlannerFirstPoint(const RealPoint &realPoint) {
+void PointPlanner::goToPathFirst(const RealBlock &block) {
     xyGoalTolerance.d(0.15);
     yawGoalTolerance.d(0.15);
-    gotoPlannerPoint(realPoint);
+    goToPath(block);
 }
 
-void PointPlanner::goToPath(const std::vector<Cp> &pointList) {
+void PointPlanner::goToPath(const RealBlock &block) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::task_planner_failed_to_start));
     }
     replan_msgs::ReplanGoal path;
-    cpToPath(pointList, path);
+    cpToPath(std::vector<RealPoint>{block.plannerPoints.begin() + block.already_step, block.plannerPoints.end()}, path);
     share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
-}
-
-void PointPlanner::cancelGoal() {
-    if (Environment::instance().re_planner) {
-        share_replan->cancelGoal();
-    }
-    sleep(1);
-    share_move_base->cancelGoal();
 }
 
 void PointPlanner::cancelPath() {
@@ -142,15 +81,17 @@ void PointPlanner::cancelPath() {
 void PointPlanner::backBasePoint() {
     xyGoalTolerance.d(0.1);
     yawGoalTolerance.d(0.1);
-    move_base_msgs::MoveBaseGoal goal;
-    goal.target_pose.header.frame_id = "map";
-    goal.target_pose.header.stamp = ros::Time::now();
-    goal.target_pose.pose.position.x = RETURN_POINT_X_;
-    goal.target_pose.pose.position.y = 0;
-    goal.target_pose.pose.position.z = 0;
-    goal.target_pose.pose.orientation.x = 0;
-    goal.target_pose.pose.orientation.y = 0;
-    goal.target_pose.pose.orientation.z = 0;
-    goal.target_pose.pose.orientation.w = 1;
-    share_move_base->sendGoal(goal, &doneCd, &activeCd, &feedbackCb);
+    auto backBasePoint = createBackBasePoint();
+    replan_msgs::ReplanGoal path;
+    cpToPath(std::vector<RealPoint>{backBasePoint}, path);
+    share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
+}
+
+RealPoint PointPlanner::createBackBasePoint() {
+    RealPoint realPoint;
+    RealPosition realPosition(RETURN_POINT_X_, 0, 0);
+    RealOrientation realOrientation(0, 0, 0, 1);
+    realPoint.realPosition = std::move(realPosition);
+    realPoint.realOrientation = std::move(realOrientation);
+    return realPoint;
 }

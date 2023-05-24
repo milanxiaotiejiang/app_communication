@@ -17,6 +17,7 @@ static bool DISPLAY_TRAJECTORY = false;
 void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, const cv::Mat &room_map,
                                                 std::vector<geometry_msgs::Pose2D> &pose_path,
                                                 std::vector<cv::Point> &point_path,
+                                                std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
                                                 const float map_resolution,
                                                 const cv::Point &starting_position,
                                                 const cv::Point2d &map_origin,
@@ -69,8 +70,8 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
     if (principle_map.at<unsigned char>(reachablePoint.y, reachablePoint.x) != 255)
         return;
 
-
     std::vector<cv::Point2f> middle_point_path;
+    std::vector<std::vector<cv::Point2f>> middle_complex_path;
     for (int r = 0; r < number_extension; ++r) {
 
         int scale_in_pixel = (int) std::floor(half_grid_spacing_as_int +//机器人半径
@@ -142,6 +143,12 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
                     middle_point_path.push_back(point);
                 }
                 middle_point_path.push_back(borderContour.front());
+
+                std::vector<cv::Point2f> complex;
+                for (const auto &point: borderContour) {
+                    complex.push_back(point);
+                }
+                middle_complex_path.push_back(complex);
             } else {
                 LOG(INFO) << "InfinitelyNearBoundary : maxTraversal =" << maxTraversal
                           << " , accessibleCount = " << accessibleCount;
@@ -175,6 +182,24 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
         pose_path.push_back(current_pose);
     }
 
+    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
+    for (const auto &middle_complex: middle_complex_path) {
+        std::vector<geometry_msgs::Pose2D> complex_poses;
+        transformPointPathToPosePath(middle_complex, complex_poses);
+        complex_path.push_back(complex_poses);
+    }
+
+    for (auto &complex: complex_path) {
+        std::vector<geometry_msgs::Pose2D> complex_pose;
+        for (std::vector<geometry_msgs::Pose2D>::iterator pose = complex.begin(); pose != complex.end(); ++pose) {
+            geometry_msgs::Pose2D current_pose;
+            current_pose.x = (((room_map.cols - pose->x) * map_resolution) + map_origin.x);
+            current_pose.y = (((room_map.rows - pose->y) * map_resolution) + map_origin.y);
+            current_pose.theta = pose->theta;
+            complex_pose.push_back(current_pose);
+        }
+        complex_pose_path.push_back(complex_pose);
+    }
 }
 
 void InfinitelyNearBoundary::transformPointPathToPosePath(const std::vector<cv::Point2f> &point_path,

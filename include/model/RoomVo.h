@@ -300,11 +300,13 @@ private:
     std::string coverageId;
     std::vector<PointVo> pointList;
     std::vector<PoseVo> poseList;
+    std::vector<std::vector<PoseVo>> complexList;
 public:
     RoomCoverage() {}
 
-    RoomCoverage(std::string coverageId, const std::vector<PointVo> &pointList, const std::vector<PoseVo> &poseList)
-            : coverageId(coverageId), pointList(pointList), poseList(poseList) {}
+    RoomCoverage(const std::string &coverageId, const std::vector<PointVo> &pointList,
+                 const std::vector<PoseVo> &poseList, const std::vector<std::vector<PoseVo>> &complexList) : coverageId(
+            coverageId), pointList(pointList), poseList(poseList), complexList(complexList) {}
 
     const std::string &getCoverageId() const {
         return coverageId;
@@ -328,6 +330,14 @@ public:
 
     void setPoseList(const std::vector<PoseVo> &poseList) {
         RoomCoverage::poseList = poseList;
+    }
+
+    const std::vector<std::vector<PoseVo>> &getComplexList() const {
+        return complexList;
+    }
+
+    void setComplexList(const std::vector<std::vector<PoseVo>> &complexList) {
+        RoomCoverage::complexList = complexList;
     }
 
     friend void to_json(json &j, const RoomCoverage &roomCoverage) {

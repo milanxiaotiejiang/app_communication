@@ -27,12 +27,6 @@ public:
         PointRoutine::asyncTaskCall = asyncTaskCall;
     }
 
-    void pointActive();
-
-    void pointFeedback(geometry_msgs::Pose2D pose);
-
-    void pointDone(const actionlib::SimpleClientGoalState &state);
-
     void pathActive();
 
     void pathFeedback(const replan_msgs::ReplanFeedbackConstPtr& pose);

@@ -37,7 +37,7 @@ public:
 
     std::vector<RealTask> runTaskList();
 
-    std::vector<RealPoint> runTaskPoint();
+    std::vector<RealBlock> runTaskBlock();
 
     void shutdown();
 

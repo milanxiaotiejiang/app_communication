@@ -38,7 +38,7 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
         } else if (flag == 3) {
             ZooInnerStatus::instance().setUrgencyStopStatus(false);
         } else {
-            TaskCenter::instance().performTask(flag, TaskSource::App, 1);
+            TaskCenter::instance().performTask(flag, TaskSource::App, 2);
         }
     } catch (app::exception const &e) {
         LOG(ERROR) << e.what();

@@ -28,6 +28,7 @@ static bool DISPLAY_TRAJECTORY_RESULT = false;
  * @param max_deviation_from_track 为避免轨道上的障碍物，最大允许偏离轨道两侧的理想距离
  */
 void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
+                                               std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
                                                const float map_resolution, const cv::Point &starting_position,
                                                const cv::Point2d &map_origin, const double grid_spacing_in_pixel,
                                                const double grid_obstacle_offset, const double path_eps,
@@ -142,9 +143,10 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
     cv::Point robot_pos = rotated_starting_point;
 
     std::vector<cv::Point2f> fov_middlepoint_path;
+    std::vector<std::vector<cv::Point2f>> complex_middle_path;
     for (size_t cell = 0; cell < cell_polygons.size(); ++cell) {
         computeBoustrophedonPath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
-                                 fov_middlepoint_path,
+                                 fov_middlepoint_path, complex_middle_path,
                                  robot_pos, grid_spacing_as_int, half_grid_spacing_as_int, path_eps,
                                  max_deviation_from_track, grid_obstacle_offset / map_resolution);
     }
@@ -157,6 +159,12 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
     RoomRotator room_rotation;
     std::vector<geometry_msgs::Pose2D> fov_poses;
     room_rotation.transformPathBackToOriginalRotation(fov_middlepoint_path, fov_poses, R);
+    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
+    for (const auto &complex_middle: complex_middle_path) {
+        std::vector<geometry_msgs::Pose2D> complex;
+        room_rotation.transformPathBackToOriginalRotation(complex_middle, complex, R);
+        complex_path.push_back(complex);
+    }
 
     if (DISPLAY_TRAJECTORY_RESULT) {
         cv::Mat room_map_path = room_map.clone();
@@ -173,12 +181,41 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         cv::waitKey();
     }
 
+    if (DISPLAY_TRAJECTORY_RESULT) {
+        cv::Mat room_map_path = room_map.clone();
+        cv::circle(room_map_path, starting_position, 3, cv::Scalar(160), CV_FILLED);
+        for (const auto &complex: complex_path) {
+            for (size_t i = 0; i < complex.size() - 1; ++i) {
+                cv::circle(room_map_path, cv::Point(cvRound(complex[i].x), cvRound(complex[i].y)), 1, cv::Scalar(200),
+                           CV_FILLED);
+                cv::line(room_map_path, cv::Point(cvRound(complex[i].x), cvRound(complex[i].y)),
+                         cv::Point(cvRound(complex[i + 1].x), cvRound(complex[i + 1].y)), cv::Scalar(100), 1);
+            }
+            cv::circle(room_map_path, cv::Point(cvRound(complex.back().x), cvRound(complex.back().y)), 1,
+                       cv::Scalar(200), CV_FILLED);
+            cv::imshow("room_map_path_intermediate", room_map_path);
+            cv::waitKey();
+        }
+    }
+
     for (std::vector<geometry_msgs::Pose2D>::iterator pose = fov_poses.begin(); pose != fov_poses.end(); ++pose) {
         geometry_msgs::Pose2D current_pose;
         current_pose.x = (((room_map.cols - pose->x) * map_resolution) + map_origin.x);
         current_pose.y = (((room_map.rows - pose->y) * map_resolution) + map_origin.y);
         current_pose.theta = pose->theta;
         pose_path.push_back(current_pose);
+    }
+
+    for (auto &complex: complex_path) {
+        std::vector<geometry_msgs::Pose2D> complex_pose;
+        for (std::vector<geometry_msgs::Pose2D>::iterator pose = complex.begin(); pose != complex.end(); ++pose) {
+            geometry_msgs::Pose2D current_pose;
+            current_pose.x = (((room_map.cols - pose->x) * map_resolution) + map_origin.x);
+            current_pose.y = (((room_map.rows - pose->y) * map_resolution) + map_origin.y);
+            current_pose.theta = pose->theta;
+            complex_pose.push_back(current_pose);
+        }
+        complex_pose_path.push_back(complex_pose);
     }
 
 }
@@ -412,6 +449,7 @@ void BoustrophedonExplorer::computeCellDecomposition(const cv::Mat &room_map, co
 void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, const float map_resolution,
                                                      const GeneralizedPolygon &cell,
                                                      std::vector<cv::Point2f> &fov_middlepoint_path,
+                                                     std::vector<std::vector<cv::Point2f>> &complex_middle_path,
                                                      cv::Point &robot_pos,//当前点，在每一次执行完都会修改该点数据
                                                      const int grid_spacing_as_int, const int half_grid_spacing_as_int,
                                                      const double path_eps, const int max_deviation_from_track,
@@ -622,8 +660,11 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
     for (std::vector<cv::Point>::iterator point = current_fov_path.begin(); point != current_fov_path.end(); ++point)
         fov_middlepoint_path_part.push_back(cv::Point2f(point->x, point->y));
     cv::transform(fov_middlepoint_path_part, fov_middlepoint_path_part, R_cell_inv);
+
     fov_middlepoint_path.insert(fov_middlepoint_path.end(), fov_middlepoint_path_part.begin(),
                                 fov_middlepoint_path_part.end());
+
+    complex_middle_path.push_back(fov_middlepoint_path_part);
 
     if (DISPLAY_TRAJECTORY) {
         cv::Mat cell_fov_path_disp = cell_map.clone();

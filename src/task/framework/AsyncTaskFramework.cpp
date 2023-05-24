@@ -29,23 +29,23 @@ void AsyncTaskFramework::execute() {
         //如果满足条件表达式返回 true，则 wait 函数调用结束，走下面的代码流程。
         cv.wait(lock, [this] {
             return !manualEpollDeque.empty() || !specialEpollDeque.empty() || !errorEpollDeque.empty() ||
-                   !urgencyStopDeque.empty() || !taskEpollDeque.empty() || !pointEpollDeque.empty();
+                   !urgencyStopDeque.empty() || !taskEpollDeque.empty() || !blockEpollDeque.empty();
         });
 
         if (manualEpollDeque.size() + specialEpollDeque.size() + errorEpollDeque.size()
-            + urgencyStopDeque.size() + taskEpollDeque.size() + pointEpollDeque.size() != 1) {
+            + urgencyStopDeque.size() + taskEpollDeque.size() + blockEpollDeque.size() != 1) {
             LOG(WARNING) << "数据有误，请上传当前日志文件并联系开发者 "
                          << " manualEpollDeque " << manualEpollDeque.size()
                          << ", specialEpollDeque " << specialEpollDeque.size()
                          << ", errorEpollDeque " << errorEpollDeque.size()
                          << ", urgencyStopDeque " << urgencyStopDeque.size()
                          << ", taskEpollDeque " << taskEpollDeque.size()
-                         << ", pointEpollDeque " << pointEpollDeque.size();
+                         << ", pointEpollDeque " << blockEpollDeque.size();
         }
 
         loop::execute_handle handle = loop::execute_handle::handle_unknown;
         RealTask realTask;
-        RealPoint realPoint;
+        RealBlock realBlock;
         if (!manualEpollDeque.empty()) {
             handle = function_manual_epoll();
         } else if (!specialEpollDeque.empty()) {
@@ -58,9 +58,9 @@ void AsyncTaskFramework::execute() {
             realTask = taskEpollDeque.back();
             taskEpollDeque.clear();
             handle = loop::execute_handle::handle_task;
-        } else if (!pointEpollDeque.empty()) {
-            realPoint = pointEpollDeque.back();
-            pointEpollDeque.clear();
+        } else if (!blockEpollDeque.empty()) {
+            realBlock = blockEpollDeque.back();
+            blockEpollDeque.clear();
             handle = loop::execute_handle::handle_point;
         }
         lock.unlock();
@@ -76,7 +76,7 @@ void AsyncTaskFramework::execute() {
         } else if (handle == loop::execute_handle::handle_task) {
             handleTask(realTask);
         } else if (handle == loop::execute_handle::handle_point) {
-            handlePoint(realPoint);
+            handleBlock(realBlock);
         }
 
     }
@@ -384,7 +384,7 @@ void AsyncTaskFramework::pushTask(const RealTask &data) {
     taskEpollDeque.push_back(data);
 }
 
-void AsyncTaskFramework::pushPoint(const RealPoint &data) {
-    pointEpollDeque.push_back(data);
+void AsyncTaskFramework::pushBlock(const RealBlock &data) {
+    blockEpollDeque.push_back(data);
 }
 

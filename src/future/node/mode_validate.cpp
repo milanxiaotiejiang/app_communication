@@ -109,13 +109,8 @@ bool ModeValidate::validateMoveBase(int open) {
 
 bool ModeValidate::validateMoveBaseAvailable() {
     LOG(INFO) << "ModeValidate  MoveBase 服务可用校验 ------------------------------ ";
-    if (!Environment::instance().re_planner) {
-        return PointPlanner::instance().waitForMoveBaseServer();
-    } else {
-        bool moveBaseServer = PointPlanner::instance().waitForMoveBaseServer();
-        bool replanServer = PointPlanner::instance().waitForReplanServer();
-        return moveBaseServer && replanServer;
-    }
+    bool replanServer = PointPlanner::instance().waitForReplanServer();
+    return replanServer;
 
     // 测试线程终端的代码
 //    boost::thread moveBaseAvailableThread([]() {

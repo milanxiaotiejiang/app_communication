@@ -58,6 +58,7 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     std::vector<geometry_msgs::Pose2D> exploration_path;
     std::vector<cv::Point> point_path;
+    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
 
     //1
 //    const cv::Mat &map = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, 60400);
@@ -73,17 +74,17 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
 //        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//        generatePlanningPathFull(map, 1, exploration_path, point_path);
+//        generatePlanningPathFull(map, 1, exploration_path, point_path, complex_path);
     }
 
     //4
     if (DISPLAY_TRAJECTORY_EFFECT) {
-//        try {
-//            const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//            infinitelyNearBoundary(map, exploration_path, point_path);
-//        } catch (...) {
-//
-//        }
+        try {
+            const cv::Mat &map = SegmentationCenter::instance().generateMat();
+            infinitelyNearBoundary(map, exploration_path, point_path, complex_path);
+        } catch (...) {
+
+        }
     }
 
 //    pathPublish(exploration_path);
@@ -127,7 +128,8 @@ RoomCoverage ExplorationCenter::obtainSubregionPath() {
 void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, ExplorationModel model, int explorer_mode,
                                              bool ordain_start, const cv::Point &start_position,
                                              std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                             std::vector<cv::Point> &point_path) {
+                                             std::vector<cv::Point> &point_path,
+                                             std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     cv::Mat map = room_map.clone();
 
     cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
@@ -236,14 +238,15 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
     if (!ParamManager::instance().getEnergy() && explorer_mode == BOUSTROPHEDON_EXPLORER_MODE) {
         BoustrophedonExplorer boustrophedon_explorer;
-        boustrophedon_explorer.getExplorationPath(latelyMap, exploration_path, map_resolution_from_subscription,
-                                                  robotPosition, map_origin,
+        boustrophedon_explorer.getExplorationPath(latelyMap, exploration_path, complex_path,
+                                                  map_resolution_from_subscription, robotPosition, map_origin,
                                                   grid_spacing_in_pixel, grid_obstacle_offset_,
                                                   path_eps_, min_cell_area_, max_deviation_from_track_,
                                                   TSP_NEAREST_NEIGHBOR);
     } else {
         EnergyFunctionalExplorator energy_functional_explorer;
-        energy_functional_explorer.getExplorationPath(latelyMap, exploration_path, map_resolution_from_subscription,
+        energy_functional_explorer.getExplorationPath(latelyMap, exploration_path, complex_path,
+                                                      map_resolution_from_subscription,
                                                       robotPosition, map_origin, grid_spacing_in_pixel);
     }
 
@@ -255,6 +258,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
                                              std::vector<geometry_msgs::Pose2D> &exploration_path,
                                              std::vector<cv::Point> &point_path,
+                                             std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path,
                                              bool distance) {
     if (exploration_path.empty()) {
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
@@ -293,12 +297,19 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
     }
     LOG(INFO) << "exploration_path after point size : " << exploration_path.size();
 
-    if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT)
+    if (DISPLAY_TRAJECTORY)
         planning_pose_path_display(room_map, map_origin, exploration_path, 1, "optimizePlanningPath");
 
     pose2CVPoint(room_map, point_path, exploration_path, map_origin);
     if (DISPLAY_TRAJECTORY)
         planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
+
+    if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT) {
+        for (int i = 0; i < complex_path.size(); i++) {
+            planning_pose_path_display(room_map, map_origin, complex_path[i], 1,
+                                       "optimizePlanningPath " + std::to_string(i));
+        }
+    }
 
 
 //    std_msgs::Header header;
@@ -336,7 +347,8 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
 
 void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
                                                std::vector<geometry_msgs::Pose2D> &pose_path,
-                                               std::vector<cv::Point> &point_path) {
+                                               std::vector<cv::Point> &point_path,
+                                               std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
     }
@@ -412,7 +424,8 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
     int start_time = ros::Time::now().sec;
 
     InfinitelyNearBoundary infinitelyNearBoundary;
-    infinitelyNearBoundary.getExplorationPath(room_map.clone(), latelyMap, pose_path, point_path,
+    infinitelyNearBoundary.getExplorationPath(room_map.clone(), latelyMap,
+                                              pose_path, point_path, complex_path,
                                               map_resolution_from_subscription,
                                               stationPoint, map_origin,
                                               plan.robot_radius,
@@ -430,13 +443,14 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
 
-    optimizePlanningPath(room_map, pose_path, point_path, false);
+    optimizePlanningPath(room_map, pose_path, point_path, complex_path, false);
 
 }
 
 void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int explorer_mode,
                                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                                 std::vector<cv::Point> &point_path) {
+                                                 std::vector<cv::Point> &point_path,
+                                                 std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     std::unique_lock<std::recursive_mutex> lock(cv_mut);
 
     LOG(INFO) << "------------------------- start generatePlanningPathRect -------------------------";
@@ -454,17 +468,19 @@ void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int ex
                          false,
                          cv::Point(0, 0),
                          exploration_path,
-                         point_path
+                         point_path,
+                         complex_path
     );
 
-    optimizePlanningPath(room_map, exploration_path, point_path);
+    optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
 
     LOG(INFO) << "------------------------- end generatePlanningPathRect -------------------------";
 }
 
 void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, int explorer_mode,
                                                 std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                                std::vector<cv::Point> &point_path) {
+                                                std::vector<cv::Point> &point_path,
+                                                std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     std::unique_lock<std::recursive_mutex> lock(cv_mut);
 
     LOG(INFO) << "------------------------- start generatePlanningPathSub -------------------------";
@@ -482,17 +498,19 @@ void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, int exp
                          false,
                          cv::Point(0, 0),
                          exploration_path,
-                         point_path
+                         point_path,
+                         complex_path
     );
 
-    optimizePlanningPath(room_map, exploration_path, point_path);
+    optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
 
     LOG(INFO) << "------------------------- end generatePlanningPathSub -------------------------";
 }
 
 void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int explorer_mode,
                                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                                 std::vector<cv::Point> &point_path) {
+                                                 std::vector<cv::Point> &point_path,
+                                                 std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     std::unique_lock<std::recursive_mutex> lock(cv_mut);
 
     LOG(INFO) << "------------------------- start generatePlanningPathFull -------------------------";
@@ -510,10 +528,11 @@ void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int ex
                          false,
                          cv::Point(0, 0),
                          exploration_path,
-                         point_path
+                         point_path,
+                         complex_path
     );
 
-    optimizePlanningPath(room_map, exploration_path, point_path);
+    optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
 
     LOG(INFO) << "------------------------- end generatePlanningPathFull -------------------------";
 }
@@ -521,7 +540,8 @@ void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int ex
 void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map, cv::Mat segmented_map,
                                                          std::vector<Room> rooms, int explorer_mode,
                                                          std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                                         std::vector<cv::Point> &point_path) {
+                                                         std::vector<cv::Point> &point_path,
+                                                         std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     std::unique_lock<std::recursive_mutex> lock(cv_mut);
 
     LOG(INFO) << "------------------------- start generatePlanningSegmentationPath -------------------------";
@@ -590,10 +610,11 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
                                                                explorer_mode,
                                                                i != 0, start_position,
                                                                child_exploration_path,
-                                                               child_point_path
+                                                               child_point_path,
+                                                               complex_path
             );
 
-            optimizePlanningPath(map, child_exploration_path, child_point_path);
+            optimizePlanningPath(map, child_exploration_path, child_point_path, complex_path);
 
             each_pose_map.insert(std::make_pair(pos, child_exploration_path));
             each_point_map.insert(std::make_pair(pos, child_point_path));
@@ -631,7 +652,7 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
         }
     }
 
-    optimizePlanningPath(room_map, exploration_path, point_path);
+    optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
 
     LOG(INFO) << "------------------------- end generatePlanningSegmentationPath -------------------------";
 }

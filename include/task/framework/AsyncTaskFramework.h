@@ -35,7 +35,7 @@ private:
     std::deque<loop::error_epoll> errorEpollDeque;
     std::deque<loop::urgency_stop> urgencyStopDeque;
     std::deque<RealTask> taskEpollDeque;
-    std::deque<RealPoint> pointEpollDeque;
+    std::deque<RealBlock> blockEpollDeque;
 
     atomic<bool> sleepTimeout;
 
@@ -63,7 +63,7 @@ protected:
 
     virtual void handleTask(const RealTask &task) = 0;
 
-    virtual void handlePoint(const RealPoint &point) = 0;
+    virtual void handleBlock(const RealBlock &block) = 0;
 
 //    void notify_one(const std::function<void()> &triggerProcess);
 
@@ -153,7 +153,7 @@ protected:
 
     void pushTask(const RealTask &data);
 
-    void pushPoint(const RealPoint &data);
+    void pushBlock(const RealBlock &data);
 
 };
 

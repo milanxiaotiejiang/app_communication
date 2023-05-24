@@ -23,8 +23,6 @@ public:
     bool update_map;
     bool direct_start_move_base;
 
-    bool re_planner = true;
-
     static bool will() {
         return (rand() % 10) > 5;
     }

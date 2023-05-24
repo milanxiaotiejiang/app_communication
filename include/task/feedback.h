@@ -10,7 +10,7 @@
 #include "future/async_call.h"
 #include "model/Point.h"
 #include "model/RoomVo.h"
-#include "RealPoint.h"
+#include "task/RealBlock.h"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -53,7 +53,7 @@ public:
 
     void execute() override;
 
-    void triggerStart(std::string taskId, const std::vector<RealPoint> &points);
+    void triggerStart(std::string taskId, const std::vector<RealBlock> &points);
 
     void triggerEnd();
 

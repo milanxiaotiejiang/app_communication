@@ -420,7 +420,7 @@ namespace clean_history_db {
         return true;
     }
 
-    bool CleanHistoryCenter::updateCleanHistory(const RealPoint &real_point) {
+    bool CleanHistoryCenter::updateCleanHistory(const RealBlock &realBlock, const RealPoint &realPoint) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
         if (current_history_.task_id_.empty()) {
             return false;
@@ -432,10 +432,10 @@ namespace clean_history_db {
         current_time = timep * 1000;//毫秒
         current_history_.clean_time_ = (current_time - current_history_.execute_time_) / 1000 / 60;
         //更新点位执行情况
-        current_history_.current_frequency_ = real_point.realProgress.currentFrequency;
-        current_history_.current_step_ = real_point.realProgress.currentStep;
+        current_history_.current_frequency_ = realBlock.currentFrequency;
+        current_history_.current_step_ = realPoint.id;
         //更新清洁面积
-        current_history_.clean_area_ += (abs((double) real_point.timeout - 5.0) / 20 * 0.35);
+        current_history_.clean_area_ += (abs((double) realPoint.timeout - 5.0) / 20 * 0.35);
         //更新到数据库
         CleanHistoryDataBase::instance().updateHistory(current_history_);
         return true;

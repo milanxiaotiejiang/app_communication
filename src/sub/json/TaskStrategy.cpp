@@ -108,12 +108,26 @@ VersionInfo GetRosVersionStrategy::handler(string params) {
 deque<PointProgressVo> GetFinishedPointStrategy::handler(string params) {
     //操作，获取当前任务状态
     deque<PointProgressVo> finished_point_list;
-    for (const auto &point: ManualManager::instance().runTaskPoint()) {
-        PointProgressVo pointProgressVo(point.realPosition.x, point.realPosition.y,
-                                        point.realProgress.currentStep, point.realProgress.totalStep,
-                                        point.realProgress.currentFrequency, point.realProgress.totalFrequency,
-                                        point.work_status, point.mode, point.inClean,
-                                        point.taskId, point.renew, point.oldTaskId, point.newTaskId);
+    for (const auto &block: ManualManager::instance().runTaskBlock()) {
+        if (block.id < 0) {
+            continue;
+        }
+        auto plannerPoints = block.plannerPoints;
+        if (plannerPoints.empty()) {
+            continue;
+        }
+        int current_step = block.already_step + block.timely_step;
+        if (current_step > plannerPoints.size()) {
+            continue;
+        }
+        auto point = plannerPoints[current_step];
+
+        PointProgressVo pointProgressVo(
+                point.realPosition.x, point.realPosition.y,
+                point.id, block.totalStep,
+                block.currentFrequency, block.totalFrequency,
+                block.work_status, block.mode, block.inClean,
+                block.taskId, block.renew, block.oldTaskId, block.newTaskId);
         finished_point_list.push_back(pointProgressVo);
     }
     return finished_point_list;

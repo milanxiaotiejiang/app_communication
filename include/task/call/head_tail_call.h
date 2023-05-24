@@ -9,16 +9,16 @@
 
 class HeadTailPointCall : public AsyncTaskCall {
 private:
-    void callGoFirstPoint(RealPoint point);
+    void callGoFirstPoint(RealBlock block);
 
-    void exchangeFrontPoint(const RealPoint &point);
+    void exchangeFrontPoint(const RealBlock &point);
 
 protected:
-    void handleFlowPoint(const RealPoint &point) override;
+    void handleFlowBlock(const RealBlock &block) override;
 
-    void processControl(const RealPoint &point) override;
+    void processControl(const RealBlock &block) override;
 
-    virtual void softwareInterruptTask(const RealPoint &point) = 0;
+    virtual void softwareInterruptTask(const RealBlock &point) = 0;
 
     void callOpenMechanism(const WorkStatus &status, bool knife, function<void()> f) override;
 

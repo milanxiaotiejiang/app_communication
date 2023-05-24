@@ -28,7 +28,8 @@ private:
     std::mutex wait_mutex;
 
     void realGenerator(std::vector<geometry_msgs::Pose2D> &exploration_path,
-                       std::vector<cv::Point> &point_path);
+                       std::vector<cv::Point> &point_path,
+                       std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
 protected:
     [[noreturn]] void execute() override;
@@ -61,7 +62,8 @@ private:
     std::mutex wait_mutex;
 
     void realGenerator(std::vector<geometry_msgs::Pose2D> &exploration_path,
-                       std::vector<cv::Point> &point_path);
+                       std::vector<cv::Point> &point_path,
+                       std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
 protected:
     [[noreturn]] void execute() override;

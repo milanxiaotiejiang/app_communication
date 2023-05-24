@@ -21,34 +21,138 @@
 #include "exploration/path_exploration_preview_task.h"
 #include "db/segmentation_data_base.h"
 #include "geometry_msgs/Polygon.h"
+#include "task/point_planner.h"
 
-RealPoint PointGenerator::buildPoint(int id, const RealTask &task) {
-    RealPoint point;
-    point.id = id;
-    point.taskId = task.getId();
+RealBlock PointGenerator::buildBlock(int id, const RealTask &task) {
+    RealBlock block;
+    block.id = id;
+    block.taskId = task.getId();
 
-    point.renew = task.isRenew();
+    block.renew = task.isRenew();
     if (task.isRenew()) {
-        point.newTaskId = task.getTaskId();
+        block.newTaskId = task.getTaskId();
     } else {
         if (task.getMode() == 7) {
-            point.oldTaskId = task.getCombination().getCombinationID();
+            block.oldTaskId = task.getCombination().getCombinationID();
         }
     }
 
-    point.name = task.getName();
-    point.rate = task.getRate();
-    point.mode = task.getMode();
+    block.name = task.getName();
+    block.rate = task.getRate();
+    block.totalFrequency = task.getRate();
+    block.mode = task.getMode();
 
-    point.knife = task.isKnife();
-    point.work_status = task.getWorkStatus();
-    return point;
+    block.knife = task.isKnife();
+    block.work_status = task.getWorkStatus();
+    return block;
 }
 
-void PointGenerator::pose2RealPoint(RealTask &realTask, std::vector<PoseVo> poseList,
-                                    std::vector<RealPoint> &realPointList) {
+void PointGenerator::complexPathToRealBlock(RealTask &realTask,
+                                            const std::vector<std::vector<PoseVo>> &complexList,
+                                            std::vector<RealBlock> &blockList) {
     auto originPose = MapAttribute::instance().getMapOriginPose();
 
+    std::vector<std::vector<PoseVo>> complexAngleList;
+    for (const auto &complex: complexList) {
+        std::vector<PoseVo> poseList = recalculateAngle(originPose, complex);
+        complexAngleList.push_back(poseList);
+    }
+
+    std::vector<std::vector<geometry_msgs::PoseStamped>> complexGeometryList;
+    for (const auto &complex: complexAngleList) {
+        std::vector<geometry_msgs::PoseStamped> geometryList = convertToGeometry(complex);
+        complexGeometryList.push_back(geometryList);
+    }
+
+    std::vector<RealBlock> initBlockList;
+    for (const auto &complex: complexGeometryList) {
+        auto realBlock = buildBlock(0, realTask);
+
+        for (const auto &pose: complex) {
+            RealPoint realPoint;
+            RealPosition realPosition(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
+            RealOrientation realOrientation(pose.pose.orientation.x, pose.pose.orientation.y,
+                                            pose.pose.orientation.z, pose.pose.orientation.w);
+            realPoint.realPosition = std::move(realPosition);
+            realPoint.realOrientation = std::move(realOrientation);
+            realBlock.plannerPoints.push_back(realPoint);
+        }
+
+        initBlockList.push_back(realBlock);
+    }
+
+    std::vector<RealBlock> rateBlockList;
+    for (int i = 0; i < realTask.getRate(); ++i) {
+        for (auto &block: initBlockList) {
+            if (!block.plannerPoints.empty()) {
+                block.currentFrequency = i + 1;
+                rateBlockList.push_back(block);
+            }
+        }
+    }
+
+    std::vector<RealBlock> wholeBlockList;
+    addSinglePoint(wholeBlockList, realTask, rateBlockList[0].plannerPoints[0]);
+    for (int i = 0; i < rateBlockList.size(); i++) {
+        if (i == rateBlockList.size() - 1) {
+            auto currentBlock = rateBlockList[i];
+            wholeBlockList.push_back(currentBlock);
+        } else {
+            auto currentBlock = rateBlockList[i];
+            auto nextBlock = rateBlockList[i + 1];
+
+            wholeBlockList.push_back(currentBlock);
+            addSinglePoint(wholeBlockList, realTask, nextBlock.plannerPoints[0]);
+        }
+    }
+
+    int block_accumulation = 0;
+    int point_accumulation = 0;
+    for (auto &block: wholeBlockList) {
+        block.id = block_accumulation;
+
+        for (auto &point: block.plannerPoints) {
+            point.id = point_accumulation;
+            point.blockId = block_accumulation;
+            point_accumulation++;
+        }
+        block_accumulation++;
+    }
+
+    geometry_msgs::Pose::_position_type lastPose;
+    for (auto &block: wholeBlockList) {
+        auto plannerPoints = block.plannerPoints;
+        long timeout_accumulation = 0;
+        for (auto &pose: plannerPoints) {
+            geometry_msgs::Pose::_position_type currentPose;
+            currentPose.x = pose.realPosition.x;
+            currentPose.y = pose.realPosition.y;
+            currentPose.z = pose.realPosition.z;
+            long timeout = conversion::cal_distance(lastPose, currentPose) * 20 + 5;//掉头5s
+            pose.timeout = timeout;
+            timeout_accumulation += timeout;
+
+            lastPose.x = pose.realPosition.x;
+            lastPose.y = pose.realPosition.y;
+            lastPose.z = pose.realPosition.z;
+        }
+
+        block.timeout = timeout_accumulation;
+        block.totalStep = point_accumulation;
+    }
+
+    realTask.setTotalStep(point_accumulation);
+    realTask.setTotalFrequency(realTask.getRate());
+
+    for (const auto &block: wholeBlockList) {
+        blockList.emplace_back(block);
+    }
+
+}
+
+std::vector<PoseVo> PointGenerator::recalculateAngle(const geometry_msgs::Pose &originPose,
+                                                     const std::vector<PoseVo> &poseList) {
+    std::vector<PoseVo> results(poseList.size());
     for (size_t point_index = 0; point_index < poseList.size(); ++point_index) {
         double theta = 0.;
 
@@ -59,153 +163,128 @@ void PointGenerator::pose2RealPoint(RealTask &realTask, std::vector<PoseVo> pose
             auto next_point = cv::Point2f(poseList[point_index + 1].getX(), poseList[point_index + 1].getY());
             vector = next_point - current_point;
             if (vector.x != 0 || vector.y != 0) {
-                theta = std::atan2(vector.y, vector.x);
+                theta = atan2(vector.y, vector.x);
             }
         } else {
             auto next_point = cv::Point2f(originPose.position.x, originPose.position.y);
             vector = next_point - current_point;
             if (vector.x != 0 || vector.y != 0) {
-                theta = std::atan2(vector.y, vector.x);
+                theta = atan2(vector.y, vector.x);
             }
         }
-        poseList[point_index].setTheta(theta);
+
+        results[point_index] = PoseVo(poseList[point_index].getX(), poseList[point_index].getY(), theta);
     }
+    return results;
+}
 
-
-    std::vector<geometry_msgs::PoseStamped> path_pose_stamped(poseList.size());
+std::vector<geometry_msgs::PoseStamped> PointGenerator::convertToGeometry(const std::vector<PoseVo> &complex) {
+    std::vector<geometry_msgs::PoseStamped> results(complex.size());
     std_msgs::Header header;
     header.stamp = ros::Time::now();
     header.frame_id = "/map";
-    for (size_t i = 0; i < poseList.size(); ++i) {
-        PoseVo &vo = poseList[i];
-        path_pose_stamped[i].header = header;
-        path_pose_stamped[i].header.seq = i;
-        path_pose_stamped[i].pose.position.x = vo.getX();
-        path_pose_stamped[i].pose.position.y = vo.getY();
-        path_pose_stamped[i].pose.position.z = 0.;
+    for (size_t i = 0; i < complex.size(); ++i) {
+        PoseVo vo = complex[i];
+
+        results[i].header = header;
+        results[i].header.seq = i;
+        results[i].pose.position.x = vo.getX();
+        results[i].pose.position.y = vo.getY();
+        results[i].pose.position.z = 0.;
         Eigen::Quaterniond quaternion;
         quaternion = Eigen::AngleAxisd(vo.getTheta(), Eigen::Vector3d::UnitZ());
-        tf::quaternionEigenToMsg(quaternion, path_pose_stamped[i].pose.orientation);
+        tf::quaternionEigenToMsg(quaternion, results[i].pose.orientation);
     }
-
-
-    int rate = realTask.getRate();
-    int totalStep = path_pose_stamped.size() * rate;
-    int accumulation = 0;
-
-    geometry_msgs::Pose::_position_type lastPose;
-    for (int i = 0; i < rate; ++i) {
-        for (int j = 0; j < path_pose_stamped.size(); ++j) {
-            auto pose = path_pose_stamped[j];
-
-            RealPosition realPosition(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
-            RealOrientation realOrientation(pose.pose.orientation.x, pose.pose.orientation.y,
-                                            pose.pose.orientation.z, pose.pose.orientation.w);
-            RealProgress realProgress(j + 1, totalStep, i + 1, rate);
-
-            auto realPoint = buildPoint(accumulation, realTask);
-
-            realPoint.realPosition = std::move(realPosition);
-            realPoint.realOrientation = std::move(realOrientation);
-            realPoint.realProgress = std::move(realProgress);
-
-            realPoint.timeout = conversion::cal_distance(lastPose, pose.pose.position) * 20 + 5;//掉头5s
-
-            realPoint.inClean = j != 0;
-
-            realPointList.push_back(realPoint);
-
-            accumulation++;
-
-            lastPose.x = pose.pose.position.x;
-            lastPose.y = pose.pose.position.y;
-            lastPose.z = pose.pose.position.z;
-        }
-    }
-
-    realTask.setTotalStep(totalStep);
-    realTask.setTotalFrequency(rate);
+    return results;
 }
 
-void PointGenerator::combinationPose2RealPoint(RealTask realTask, std::vector<CombinationPoseVo> poseList,
-                                               vector<RealPoint> &realPointList) {
-    auto originPose = MapAttribute::instance().getMapOriginPose();
-
-    for (size_t point_index = 0; point_index < poseList.size(); ++point_index) {
-        double theta = 0.;
-
-        auto current_point = cv::Point2f(poseList[point_index].getX(), poseList[point_index].getY());
-
-        cv::Point2f vector(0, 0);
-        if (point_index < poseList.size() - 1) {
-            auto next_point = cv::Point2f(poseList[point_index + 1].getX(), poseList[point_index + 1].getY());
-            vector = next_point - current_point;
-            if (vector.x != 0 || vector.y != 0) {
-                theta = std::atan2(vector.y, vector.x);
-            }
-        } else {
-            auto next_point = cv::Point2f(originPose.position.x, originPose.position.y);
-            vector = next_point - current_point;
-            if (vector.x != 0 || vector.y != 0) {
-                theta = std::atan2(vector.y, vector.x);
-            }
-        }
-        poseList[point_index].setTheta(theta);
-    }
-
-
-    std_msgs::Header header;
-    header.stamp = ros::Time::now();
-    header.frame_id = "/map";
-
-    int rate = realTask.getRate();
-    int totalStep = poseList.size() * rate;
-    int accumulation = 0;
-
-    geometry_msgs::Pose::_position_type lastPose;
-    for (int i = 0; i < rate; ++i) {
-        for (int j = 0; j < poseList.size(); ++j) {
-
-            CombinationPoseVo &vo = poseList[j];
-
-            geometry_msgs::PoseStamped pose;
-            pose.header = header;
-            pose.header.seq = i;
-            pose.pose.position.x = vo.getX();
-            pose.pose.position.y = vo.getY();
-            pose.pose.position.z = 0.;
-            Eigen::Quaterniond quaternion;
-            quaternion = Eigen::AngleAxisd(vo.getTheta(), Eigen::Vector3d::UnitZ());
-            tf::quaternionEigenToMsg(quaternion, pose.pose.orientation);
-
-
-            RealPosition realPosition(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
-            RealOrientation realOrientation(pose.pose.orientation.x, pose.pose.orientation.y,
-                                            pose.pose.orientation.z, pose.pose.orientation.w);
-            RealProgress realProgress(j + 1, totalStep, i + 1, rate);
-
-            auto realPoint = buildPoint(accumulation, realTask);
-            realPoint.realPosition = std::move(realPosition);
-            realPoint.realOrientation = std::move(realOrientation);
-            realPoint.realProgress = std::move(realProgress);
-
-            realPoint.timeout = conversion::cal_distance(lastPose, pose.pose.position) * 20 + 5;//掉头5s
-
-            realPoint.inClean = j != 0;
-
-            realPointList.push_back(realPoint);
-
-            accumulation++;
-
-            lastPose.x = pose.pose.position.x;
-            lastPose.y = pose.pose.position.y;
-            lastPose.z = pose.pose.position.z;
-        }
-    }
-
-    realTask.setTotalStep(totalStep);
-    realTask.setTotalFrequency(rate);
+void PointGenerator::addSinglePoint(std::vector<RealBlock> &blockList, const RealTask &realTask,
+                                    const RealPoint &singlePoint) {
+    RealBlock firstBlock = buildBlock(0, realTask);
+    firstBlock.inClean = false;
+    firstBlock.plannerPoints.push_back(singlePoint);
+    blockList.push_back(firstBlock);
 }
+
+//void PointGenerator::combinationPose2RealPoint(RealTask realTask, std::vector<CombinationPoseVo> poseList,
+//                                               vector<RealPoint> &realPointList) {
+//    auto originPose = MapAttribute::instance().getMapOriginPose();
+//
+//    for (size_t point_index = 0; point_index < poseList.size(); ++point_index) {
+//        double theta = 0.;
+//
+//        auto current_point = cv::Point2f(poseList[point_index].getX(), poseList[point_index].getY());
+//
+//        cv::Point2f vector(0, 0);
+//        if (point_index < poseList.size() - 1) {
+//            auto next_point = cv::Point2f(poseList[point_index + 1].getX(), poseList[point_index + 1].getY());
+//            vector = next_point - current_point;
+//            if (vector.x != 0 || vector.y != 0) {
+//                theta = std::atan2(vector.y, vector.x);
+//            }
+//        } else {
+//            auto next_point = cv::Point2f(originPose.position.x, originPose.position.y);
+//            vector = next_point - current_point;
+//            if (vector.x != 0 || vector.y != 0) {
+//                theta = std::atan2(vector.y, vector.x);
+//            }
+//        }
+//        poseList[point_index].setTheta(theta);
+//    }
+//
+//
+//    std_msgs::Header header;
+//    header.stamp = ros::Time::now();
+//    header.frame_id = "/map";
+//
+//    int rate = realTask.getRate();
+//    int totalStep = poseList.size() * rate;
+//    int accumulation = 0;
+//
+//    geometry_msgs::Pose::_position_type lastPose;
+//    for (int i = 0; i < rate; ++i) {
+//        for (int j = 0; j < poseList.size(); ++j) {
+//
+//            CombinationPoseVo &vo = poseList[j];
+//
+//            geometry_msgs::PoseStamped pose;
+//            pose.header = header;
+//            pose.header.seq = i;
+//            pose.pose.position.x = vo.getX();
+//            pose.pose.position.y = vo.getY();
+//            pose.pose.position.z = 0.;
+//            Eigen::Quaterniond quaternion;
+//            quaternion = Eigen::AngleAxisd(vo.getTheta(), Eigen::Vector3d::UnitZ());
+//            tf::quaternionEigenToMsg(quaternion, pose.pose.orientation);
+//
+//
+//            RealPosition realPosition(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
+//            RealOrientation realOrientation(pose.pose.orientation.x, pose.pose.orientation.y,
+//                                            pose.pose.orientation.z, pose.pose.orientation.w);
+//            RealProgress realProgress(j + 1, totalStep, i + 1, rate);
+//
+//            auto realPoint = buildPoint(accumulation, realTask);
+//            realPoint.realPosition = std::move(realPosition);
+//            realPoint.realOrientation = std::move(realOrientation);
+//            realPoint.realProgress = std::move(realProgress);
+//
+//            realPoint.timeout = conversion::cal_distance(lastPose, pose.pose.position) * 20 + 5;//掉头5s
+//
+//            realPoint.inClean = j != 0;
+//
+//            realPointList.push_back(realPoint);
+//
+//            accumulation++;
+//
+//            lastPose.x = pose.pose.position.x;
+//            lastPose.y = pose.pose.position.y;
+//            lastPose.z = pose.pose.position.z;
+//        }
+//    }
+//
+//    realTask.setTotalStep(totalStep);
+//    realTask.setTotalFrequency(rate);
+//}
 
 
 // add gang,该函数输入为zoned，即矩形的四个端点，输出为PoseVo的队列
@@ -228,9 +307,9 @@ bool PointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
         new_point.setY(point.getY() + inc.getY());
         return new_point;
     };
-    for (int i = 0; i < 4; i++) {
-        LOG(INFO) << "point" << i << ": " << zoned[i].getX() << "  " << zoned[i].getY();
-    }
+//    for (int i = 0; i < 4; i++) {
+//        LOG(INFO) << "point" << i << ": " << zoned[i].getX() << "  " << zoned[i].getY();
+//    }
 
     float step = 0.2;
     float x_length = pointDistance(zoned[0], zoned[1]);
@@ -277,225 +356,270 @@ bool PointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
     return true;
 }
 
-std::vector<RealPoint> CoveragePointGenerator::taskGeneratePointList(RealTask &task) {
-    std::vector<RealPoint> taskPointList;
-    auto taskId = task.getId();
-    auto roomCoverage = ExplorationCenter::instance().findRoomCoverage(taskId, false);
-    auto poseList = roomCoverage.getPoseList();
-    std::vector<RealPoint> realPoints;
-    pose2RealPoint(task, poseList, realPoints);
-    return realPoints;
-}
-
-std::vector<RealPoint> RectanglePointGenerator::taskGeneratePointList(RealTask &task) {
-    std::vector<float> zoned = task.getZoned0();
-    if (zoned.size() != 8)
-        throw app::exception(make_error_code(error::room_mb_file_open_fail));
-
-    std::vector<std::vector<cv::Point>> polygon_array;
-    auto map = SegmentationCenter::instance().generateMat();
-
-    std::vector<cv::Point> cvPoints;
-    for (int i = 0; i < zoned.size(); i = i + 2) {
-        Point point(zoned[i], zoned[i + 1]);
-        auto cvPoint = MapAttribute::instance().rosPoint2MapPoint(map, point);
-        cvPoints.push_back(cvPoint);
+void PointGenerator::generateChildPointFlow(const std::vector<PoseVo> &points, std::vector<PoseVo> &cpList,
+                                            float resolution_) {
+    if (points.empty()) {
+        return;
     }
 
-    polygon_array.push_back(cvPoints);
-    cv::Mat zoned_image = cv::Mat::zeros(map.rows, map.cols, CV_8UC1);
-    cv::fillPoly(zoned_image, polygon_array, cv::Scalar(255));
+    double min_sq_resolution = resolution_ * resolution_;
 
-    std::vector<geometry_msgs::Pose2D> exploration_path;
-    std::vector<cv::Point> point_path;
-    ExplorationCenter::instance().generatePlanningPathRect(zoned_image, BOUSTROPHEDON_EXPLORER_MODE,
-                                                           exploration_path, point_path);
+    int accumulate = 0;
 
-    ExplorationCenter::instance().pathPublish(exploration_path);
+    auto firstPoint = points[0];
+    cpList.push_back(firstPoint);
+    accumulate++;
 
-    std::vector<PoseVo> poseList;
-    for (const auto &item: exploration_path) {
-        poseList.emplace_back(item.y, item.x, item.theta);
-    }
-    std::vector<RealPoint> realPoints;
-    pose2RealPoint(task, poseList, realPoints);
+    double last_x = firstPoint.getX();
+    double last_y = firstPoint.getY();
 
-    return realPoints;
-}
+    for (unsigned int i = 1; i < points.size(); ++i) {
+        auto currentPoint = points[i];
+        double loop_x = currentPoint.getX();
+        double loop_y = currentPoint.getY();
+//        auto loopPosition = currentPoint.realPosition;
+//        auto loopOrientation = currentPoint.realOrientation;
 
-bool
-CombinationPointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
-                                                           std::vector<CombinationPoseVo> &pointList) {
-    if (zoned.empty() || zoned.size() != 4) {
-        return false;
-    }
-
-    int index = 0;
-    float min_sum = zoned[index].getX() + zoned[index].getY();
-
-    Point start_point;
-    for (int i = 1; i < zoned.size(); i++) {
-        if (min_sum > (zoned[i].getX() + zoned[i].getY())) {
-            min_sum = zoned[i].getX() + zoned[i].getY();
-            index = i;
-        }
-    }
-
-    int index_last, index_next;
-    index_last = index - 1;
-    index_next = index + 1;
-
-    if (index == 0) {
-        index_last = 3;
-    }
-    if (index == 3) {
-        index_next = 0;
-    }
-
-    Point point = zoned[index];
-    Point point_last = zoned[index_last];
-    Point point_next = zoned[index_next];
-
-    float x_len, y_len;
-    x_len = conversion::cal_distance(point, point_last);
-    y_len = conversion::cal_distance(point, point_next);
-
-    start_point.setXandY(point.getX(), point.getY());//存放目标起点坐标
-
-
-    float x_dir[2], y_dir[2];
-    x_dir[0] = point_last.getX() - point.getX();
-    x_dir[1] = point_last.getY() - point.getY();
-    y_dir[0] = point_next.getX() - point.getX();
-    y_dir[1] = point_next.getY() - point.getY();
-
-
-    int num = 12;
-    if (x_len <= y_len) {
-
-        CombinationPoseVo first(point.getX(), point.getY(), 0, 0);
-        pointList.push_back(first);
-
-        if (x_len > 1.5) {
-            num = ((int) ((x_len + 0.5) / 0.3) + 1 + 1) * 2;
-        }
-
-        for (int i = 0; i < num - 1; i++) {
-            float x_param, y_param;
-            if (i % 4 < 2)
-                y_param = 1;
-            else
-                y_param = 0;
-            x_param = (float) (((i) / 2 + (i) % 2)) / (num / 2 - 1);
-
-            CombinationPoseVo temp_task(point.getX() + x_param * x_dir[0] + y_param * y_dir[0],
-                                        point.getY() + x_param * x_dir[1] + y_param * y_dir[1],
-                                        0, i + 1
-            );
-            pointList.push_back(temp_task);
-        }
-    } else {
-        CombinationPoseVo first(point.getX(), point.getY(), 0, 0);
-        pointList.push_back(first);
-
-
-        if (y_len > 1.5) {
-            num = ((int) ((y_len + 0.5) / 0.3) + 1 + 1) * 2;
-        }
-
-        for (int i = 0; i < num - 1; i++) {
-            float x_param, y_param;
-            if (i % 4 < 2)
-                x_param = 1;
-            else
-                x_param = 0;
-            y_param = (float) (((i) / 2 + (i) % 2)) / (num / 2 - 1);
-
-
-            CombinationPoseVo temp_task(point.getX() + x_param * x_dir[0] + y_param * y_dir[0],
-                                        point.getY() + x_param * x_dir[1] + y_param * y_dir[1],
-                                        0, i + 1
-            );
-            pointList.push_back(temp_task);
-        }
-    }
-
-    return true;
-}
-
-std::vector<RealPoint> CombinationPointGenerator::taskGeneratePointList(RealTask &task) {
-    auto combination = task.getCombination();
-
-    ViewPartList viewPartListTemp;
-    if (!ViewPartManager::get_instance()->GetViewPartList(viewPartListTemp)) {
-        throw app::exception(make_error_code(error::combination_point_get_view_part_fail));
-    }
-
-    std::string combination_id_temp = combination.getCombinationID();
-    CombinationBrief combination_brief_temp;
-    if (CombinationManager::get_instance()->GetCombination(combination_brief_temp, combination_id_temp) != SUCCESS_) {
-        throw app::exception(make_error_code(error::combination_brief_get_fail));
-    }
-    CombinationDetail combination_detail_temp(combination_brief_temp);
-    vector<string> partNotMached = combination_brief_temp.toDetail(combination_detail_temp, viewPartListTemp);
-    if (partNotMached.size() > 0) {
-        for (auto &item: partNotMached) {
-            CombinationManager::get_instance()->DelatePartID(item);
-        }
-    }
-
-    std::vector<ViewPart> viewPartList = combination_detail_temp.getViewPartList();
-    if (viewPartList.size() <= 0) {
-        throw app::exception(make_error_code(error::combination_pointlist_empty));
-    }
-
-    std::vector<CombinationPoseVo> pointList;
-    for (auto &item: viewPartList) {
-        switch (item.getMode()) {
-            case 1: {
-                auto zoned = item.getZoned();
-                if (!generateRecPointListForViewPart(zoned, pointList)) {
-                    LOG(ERROR) << "加载矩形" << item.getPartID() << "失败";
-                }
-                break;
+        double dist = (loop_x - last_x) * (loop_x - last_x) + (loop_y - last_y) * (loop_y - last_y);
+        if (dist > min_sq_resolution) {
+            int steps = ceil((std::sqrt(dist)) / resolution_);
+            // add a points in-between
+            double deltaX = (loop_x - last_x) / steps;
+            double deltaY = (loop_y - last_y) / steps;
+            for (int j = 1; j < steps; ++j) {
+                PoseVo position(last_x + j * deltaX, last_y + j * deltaY, currentPoint.getTheta());
+                cpList.push_back(position);
+                accumulate++;
             }
         }
-    }
 
-    if (pointList.empty()) {
-        throw app::exception(make_error_code(error::combination_pointlist_empty));
+        cpList.emplace_back(loop_x, loop_y, currentPoint.getTheta());
+        accumulate++;
+        last_x = loop_x;
+        last_y = loop_y;
     }
-
-    std::vector<PoseVo> poseList;
-    for (const auto &item: pointList) {
-        poseList.push_back(PoseVo(item.getY(), item.getX(), 0));
-    }
-
-    std::vector<geometry_msgs::Pose2D> exploration_path;
-    for (const auto &item: poseList) {
-        geometry_msgs::Pose2D pose;
-        pose.x = item.getX();
-        pose.y = item.getY();
-        exploration_path.push_back(pose);
-    }
-    ExplorationCenter::instance().pathPublish(exploration_path);
-
-    std::vector<RealPoint> realPoints;
-    combinationPose2RealPoint(task, pointList, realPoints);
-    return realPoints;
 }
 
-std::vector<RealPoint> FullPointGenerator::taskGeneratePointList(RealTask &task) {
-    std::vector<RealPoint> taskPointList;
-    auto taskId = task.getId();
-    auto roomCoverage = ExplorationCenter::instance().findRoomCoverage(taskId, true);
-    auto poseList = roomCoverage.getPoseList();
-    std::vector<RealPoint> realPoints;
-    pose2RealPoint(task, poseList, realPoints);
-    return realPoints;
-}
+//std::vector<RealPoint> CoveragePointGenerator::taskGeneratePointList(RealTask &task) {
+//    std::vector<RealPoint> taskPointList;
+//    auto taskId = task.getId();
+//    auto roomCoverage = ExplorationCenter::instance().findRoomCoverage(taskId, false);
+//    auto poseList = roomCoverage.getPoseList();
+//    std::vector<RealPoint> realPoints;
+//    pose2RealPoint(task, poseList, realPoints);
+//    return realPoints;
+//}
 
-std::vector<RealPoint> ExplorationGenerator::taskGeneratePointList(RealTask &task) {
+//std::vector<RealPoint> RectanglePointGenerator::taskGeneratePointList(RealTask &task) {
+//    std::vector<float> zoned = task.getZoned0();
+//    if (zoned.size() != 8)
+//        throw app::exception(make_error_code(error::room_mb_file_open_fail));
+//
+//    std::vector<std::vector<cv::Point>> polygon_array;
+//    auto map = SegmentationCenter::instance().generateMat();
+//
+//    std::vector<cv::Point> cvPoints;
+//    for (int i = 0; i < zoned.size(); i = i + 2) {
+//        Point point(zoned[i], zoned[i + 1]);
+//        auto cvPoint = MapAttribute::instance().rosPoint2MapPoint(map, point);
+//        cvPoints.push_back(cvPoint);
+//    }
+//
+//    polygon_array.push_back(cvPoints);
+//    cv::Mat zoned_image = cv::Mat::zeros(map.rows, map.cols, CV_8UC1);
+//    cv::fillPoly(zoned_image, polygon_array, cv::Scalar(255));
+//
+//    std::vector<geometry_msgs::Pose2D> exploration_path;
+//    std::vector<cv::Point> point_path;
+//    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
+//    ExplorationCenter::instance().generatePlanningPathRect(zoned_image, BOUSTROPHEDON_EXPLORER_MODE,
+//                                                           exploration_path, point_path, complex_path);
+//
+//    ExplorationCenter::instance().pathPublish(exploration_path);
+//
+//    std::vector<PoseVo> poseList;
+//    for (const auto &item: exploration_path) {
+//        poseList.emplace_back(item.y, item.x, item.theta);
+//    }
+//    std::vector<RealPoint> realPoints;
+//    pose2RealPoint(task, poseList, realPoints);
+//
+//    return realPoints;
+//}
+
+//bool
+//CombinationPointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
+//                                                           std::vector<CombinationPoseVo> &pointList) {
+//    if (zoned.empty() || zoned.size() != 4) {
+//        return false;
+//    }
+//
+//    int index = 0;
+//    float min_sum = zoned[index].getX() + zoned[index].getY();
+//
+//    Point start_point;
+//    for (int i = 1; i < zoned.size(); i++) {
+//        if (min_sum > (zoned[i].getX() + zoned[i].getY())) {
+//            min_sum = zoned[i].getX() + zoned[i].getY();
+//            index = i;
+//        }
+//    }
+//
+//    int index_last, index_next;
+//    index_last = index - 1;
+//    index_next = index + 1;
+//
+//    if (index == 0) {
+//        index_last = 3;
+//    }
+//    if (index == 3) {
+//        index_next = 0;
+//    }
+//
+//    Point point = zoned[index];
+//    Point point_last = zoned[index_last];
+//    Point point_next = zoned[index_next];
+//
+//    float x_len, y_len;
+//    x_len = conversion::cal_distance(point, point_last);
+//    y_len = conversion::cal_distance(point, point_next);
+//
+//    start_point.setXandY(point.getX(), point.getY());//存放目标起点坐标
+//
+//
+//    float x_dir[2], y_dir[2];
+//    x_dir[0] = point_last.getX() - point.getX();
+//    x_dir[1] = point_last.getY() - point.getY();
+//    y_dir[0] = point_next.getX() - point.getX();
+//    y_dir[1] = point_next.getY() - point.getY();
+//
+//
+//    int num = 12;
+//    if (x_len <= y_len) {
+//
+//        CombinationPoseVo first(point.getX(), point.getY(), 0, 0);
+//        pointList.push_back(first);
+//
+//        if (x_len > 1.5) {
+//            num = ((int) ((x_len + 0.5) / 0.3) + 1 + 1) * 2;
+//        }
+//
+//        for (int i = 0; i < num - 1; i++) {
+//            float x_param, y_param;
+//            if (i % 4 < 2)
+//                y_param = 1;
+//            else
+//                y_param = 0;
+//            x_param = (float) (((i) / 2 + (i) % 2)) / (num / 2 - 1);
+//
+//            CombinationPoseVo temp_task(point.getX() + x_param * x_dir[0] + y_param * y_dir[0],
+//                                        point.getY() + x_param * x_dir[1] + y_param * y_dir[1],
+//                                        0, i + 1
+//            );
+//            pointList.push_back(temp_task);
+//        }
+//    } else {
+//        CombinationPoseVo first(point.getX(), point.getY(), 0, 0);
+//        pointList.push_back(first);
+//
+//
+//        if (y_len > 1.5) {
+//            num = ((int) ((y_len + 0.5) / 0.3) + 1 + 1) * 2;
+//        }
+//
+//        for (int i = 0; i < num - 1; i++) {
+//            float x_param, y_param;
+//            if (i % 4 < 2)
+//                x_param = 1;
+//            else
+//                x_param = 0;
+//            y_param = (float) (((i) / 2 + (i) % 2)) / (num / 2 - 1);
+//
+//
+//            CombinationPoseVo temp_task(point.getX() + x_param * x_dir[0] + y_param * y_dir[0],
+//                                        point.getY() + x_param * x_dir[1] + y_param * y_dir[1],
+//                                        0, i + 1
+//            );
+//            pointList.push_back(temp_task);
+//        }
+//    }
+//
+//    return true;
+//}
+
+//std::vector<RealPoint> CombinationPointGenerator::taskGeneratePointList(RealTask &task) {
+//    auto combination = task.getCombination();
+//
+//    ViewPartList viewPartListTemp;
+//    if (!ViewPartManager::get_instance()->GetViewPartList(viewPartListTemp)) {
+//        throw app::exception(make_error_code(error::combination_point_get_view_part_fail));
+//    }
+//
+//    std::string combination_id_temp = combination.getCombinationID();
+//    CombinationBrief combination_brief_temp;
+//    if (CombinationManager::get_instance()->GetCombination(combination_brief_temp, combination_id_temp) != SUCCESS_) {
+//        throw app::exception(make_error_code(error::combination_brief_get_fail));
+//    }
+//    CombinationDetail combination_detail_temp(combination_brief_temp);
+//    vector<string> partNotMached = combination_brief_temp.toDetail(combination_detail_temp, viewPartListTemp);
+//    if (partNotMached.size() > 0) {
+//        for (auto &item: partNotMached) {
+//            CombinationManager::get_instance()->DelatePartID(item);
+//        }
+//    }
+//
+//    std::vector<ViewPart> viewPartList = combination_detail_temp.getViewPartList();
+//    if (viewPartList.size() <= 0) {
+//        throw app::exception(make_error_code(error::combination_pointlist_empty));
+//    }
+//
+//    std::vector<CombinationPoseVo> pointList;
+//    for (auto &item: viewPartList) {
+//        switch (item.getMode()) {
+//            case 1: {
+//                auto zoned = item.getZoned();
+//                if (!generateRecPointListForViewPart(zoned, pointList)) {
+//                    LOG(ERROR) << "加载矩形" << item.getPartID() << "失败";
+//                }
+//                break;
+//            }
+//        }
+//    }
+//
+//    if (pointList.empty()) {
+//        throw app::exception(make_error_code(error::combination_pointlist_empty));
+//    }
+//
+//    std::vector<PoseVo> poseList;
+//    for (const auto &item: pointList) {
+//        poseList.push_back(PoseVo(item.getY(), item.getX(), 0));
+//    }
+//
+//    std::vector<geometry_msgs::Pose2D> exploration_path;
+//    for (const auto &item: poseList) {
+//        geometry_msgs::Pose2D pose;
+//        pose.x = item.getX();
+//        pose.y = item.getY();
+//        exploration_path.push_back(pose);
+//    }
+//    ExplorationCenter::instance().pathPublish(exploration_path);
+//
+//    std::vector<RealPoint> realPoints;
+//    combinationPose2RealPoint(task, pointList, realPoints);
+//    return realPoints;
+//}
+
+//std::vector<RealPoint> FullPointGenerator::taskGeneratePointList(RealTask &task) {
+//    std::vector<RealPoint> taskPointList;
+//    auto taskId = task.getId();
+//    auto roomCoverage = ExplorationCenter::instance().findRoomCoverage(taskId, true);
+//    auto poseList = roomCoverage.getPoseList();
+//    std::vector<RealPoint> realPoints;
+//    pose2RealPoint(task, poseList, realPoints);
+//    return realPoints;
+//}
+
+std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &task) {
 
     TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
 
@@ -507,11 +631,12 @@ std::vector<RealPoint> ExplorationGenerator::taskGeneratePointList(RealTask &tas
         double rows = room_map.rows * map_resolution_from_subscription;
         double cols = room_map.cols * map_resolution_from_subscription;
 
-        std::vector<RealPoint> realPoints;
         std::vector<PoseVo> poseList;
+        std::vector<std::vector<PoseVo>> complexPoseList;
 
         std::vector<ZoneVo> zones = task.getZoned();
         for (const auto &zone: zones) {
+
             std::vector<PointVo> points = zone.getPoints();
             std::vector<Point> trs;
             geometry_msgs::Polygon polygon;
@@ -529,9 +654,18 @@ std::vector<RealPoint> ExplorationGenerator::taskGeneratePointList(RealTask &tas
                 polygon.points.push_back(point32);
             }
 
-            generateRecPointListForViewPart(trs, poseList);
-        }
+            std::vector<PoseVo> zonePoseList;
+            generateRecPointListForViewPart(trs, zonePoseList);
 
+            std::vector<PoseVo> subPoseList;
+            generateChildPointFlow(zonePoseList, subPoseList, 0.2);
+
+            for (const auto &item: subPoseList) {
+                poseList.push_back(item);
+            }
+
+            complexPoseList.push_back(subPoseList);
+        }
 
         std::vector<geometry_msgs::Pose2D> exploration_path;
         for (const auto &item: poseList) {
@@ -543,16 +677,17 @@ std::vector<RealPoint> ExplorationGenerator::taskGeneratePointList(RealTask &tas
         }
         explorationCenter.pathPublish(exploration_path);
 
-        pose2RealPoint(task, poseList, realPoints);
-        return realPoints;
+        std::vector<RealBlock> blocks;
+        complexPathToRealBlock(task, complexPoseList, blocks);
+        return blocks;
     } else {
         auto coverage = TaskExploration::explorationPlanningPath(task);
 
-        const auto &poseList = coverage.getPoseList();
-        std::vector<RealPoint> realPoints;
-        pose2RealPoint(task, poseList, realPoints);
+        const std::vector<std::vector<PoseVo>> &complexList = coverage.getComplexList();
+        std::vector<RealBlock> blocks;
+        complexPathToRealBlock(task, complexList, blocks);
 
-        return realPoints;
+        return blocks;
     }
 
 }

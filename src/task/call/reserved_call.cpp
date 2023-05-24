@@ -118,7 +118,7 @@ void ReservedCall::handleExecuteTask(const RealTask &task) {
     AsyncTaskCall::handleExecuteTask(task);
 }
 
-void ReservedCall::handleFlowPoint(const RealPoint &point) {
+void ReservedCall::handleFlowBlock(const RealBlock &point) {
     if (point.id == FLOW_SEIZE_SEAT) {
         setFlow(event::flow::out_base_station);
     } else if (point.id == FLOW_OUT_STATION) {
@@ -138,18 +138,31 @@ void ReservedCall::handleFlowPoint(const RealPoint &point) {
     } else if (point.id == FLOW_OPEN_MECHANISM) {
         CleanHistoryCenter::instance().setOpenMechanism(point.arrive ? SUCCEED : FAIL);
     }
-    HeadTailPointCall::handleFlowPoint(point);
+    HeadTailPointCall::handleFlowBlock(point);
 }
 
-void ReservedCall::processControl(const RealPoint &point) {
+void ReservedCall::processControl(const RealBlock &point) {
     HeadTailPointCall::processControl(point);
 }
 
-void ReservedCall::handlePlannerPoint(const RealPoint &point) {
-    //当前进度和清洁面积更新到历史记录中
-    CleanHistoryCenter::instance().updateCleanHistory(point);
+void ReservedCall::handlePlannerBlock(const RealBlock &block) {
+    if (block.id < 0) {
+        return;
+    }
+    auto plannerPoints = block.plannerPoints;
+    if (plannerPoints.empty()) {
+        return;
+    }
+    int current_step = block.already_step + block.timely_step;
+    if (current_step > plannerPoints.size()) {
+        return;
+    }
+    auto point = plannerPoints[current_step];
 
-    AsyncTaskCall::handlePlannerPoint(point);
+    //当前进度和清洁面积更新到历史记录中
+    CleanHistoryCenter::instance().updateCleanHistory(block);
+
+    AsyncTaskCall::handlePlannerBlock(block);
 }
 
 void ReservedCall::forceInterruptTask(event::SB sb) {
@@ -169,7 +182,7 @@ void ReservedCall::forceInterruptTask(event::SB sb) {
     garbage(sb);
 }
 
-void ReservedCall::softwareInterruptTask(const RealPoint &point) {
+void ReservedCall::softwareInterruptTask(const RealBlock &point) {
     auto error_pair = generateErrorByRealPoint(point.id);
     CleanHistoryCenter::instance().errorComplete(
             std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair)
