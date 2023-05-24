@@ -160,7 +160,7 @@ void ReservedCall::handlePlannerBlock(const RealBlock &block) {
     auto point = plannerPoints[current_step];
 
     //当前进度和清洁面积更新到历史记录中
-    CleanHistoryCenter::instance().updateCleanHistory(block);
+    CleanHistoryCenter::instance().updateCleanHistory(block, point);
 
     AsyncTaskCall::handlePlannerBlock(block);
 }
