@@ -215,7 +215,7 @@ void AsyncTaskFramework::setUrgencyStop(loop::urgency_stop urgency_stop) {
 }
 
 void AsyncTaskFramework::callOutBaseStation() {
-    LOG(INFO) << "AsyncTaskFramework : 获得新的任务了，准备请求出站啦 ...";
+    LOG(INFO) << "AsyncTaskFramework : 准备齐全，请求出站啦 ...";
     StationManager::instance().outStation();
 }
 
@@ -230,7 +230,7 @@ void AsyncTaskFramework::callCancelBackStation() {
 }
 
 void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
-    LOG(INFO) << "AsyncTaskFramework : 出站成功，查看当前是否处于工作状态 ...";
+    LOG(INFO) << "AsyncTaskFramework : 新任务来了，查看当前是否处于工作状态 ...";
     if (!isWorkMode()) {
         LOG(INFO) << "AsyncTaskFramework : 不是工作状态，准备启动工作状态 ...";
 
@@ -246,9 +246,9 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
                 async::TimerCall::instance().baseLoop()->cancelAny();
             }
             LOG(INFO) << "AsyncTaskFramework : 工作模式启动状态 "
-                      << " 是否是工作 ： " << NodeControl::instance().isWork()
-                      << " 是否是建图 ： " << NodeControl::instance().isMap()
-                      << " 是否是睡眠 ： " << NodeControl::instance().isSleep()
+                      << "  是否是工作 ： " << NodeControl::instance().isWork()
+                      << "  是否是建图 ： " << NodeControl::instance().isMap()
+                      << "  是否是睡眠 ： " << NodeControl::instance().isSleep()
                       << " ...";
             notify_one([this, &f]() {
                 f(isWorkMode());

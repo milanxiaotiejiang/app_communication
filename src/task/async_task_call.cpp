@@ -409,7 +409,7 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
             block.currentFrequency, block.totalFrequency,
             block.work_status, block.mode, block.inClean,
             block.taskId, block.renew, block.oldTaskId, block.newTaskId);
-    LOG(ERROR) << pointProgressVo;
+    LOG(INFO) << pointProgressVo;
     PointProgressPublish::instance().publishProgressPoint(pointProgressVo);
 
     runTask.changeArrivalStatus(block);

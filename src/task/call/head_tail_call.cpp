@@ -99,18 +99,18 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
         }
         case event::flow::ensure_move_to_start_point: {
             if (block.arrive) {
-                LOG(INFO) << "HeadTailPointCall : 到达第一个点位，开始流水线作业 ...";
+                LOG(INFO) << "HeadTailPointCall : 到达第一个区域，开始流水线作业 ...";
                 setFlow(event::flow::flowing_water_production);
                 pushBlock(block);
             } else {
                 auto currentPoint = findFrontBlock();
                 if (firstRetryCount < MAX_FIRST_RETRY_COUNT) {
-                    LOG(INFO) << "HeadTailPointCall : 未到达第一个点位，重试中 ...";
+                    LOG(INFO) << "HeadTailPointCall : 未到达第一个区域，重试中 ...";
                     firstRetryCount++;
                     exchangeFrontPoint(currentPoint);
                     callGoFirstPoint(currentPoint);
                 } else {
-                    LOG(INFO) << "HeadTailPointCall : 第一个点位重试后不能到达，跳点进入后续流程 ...";
+                    LOG(INFO) << "HeadTailPointCall : 第一个区域重试后不能到达，跳点进入后续流程 ...";
                     setFlow(event::flow::flowing_water_production);
                     pushBlock(block);
                 }

@@ -26,7 +26,7 @@
 #include "exploration/cv_extend.h"
 
 static bool DISPLAY_TRAJECTORY = false;
-static bool DISPLAY_TRAJECTORY_EFFECT = false;
+static bool DISPLAY_TRAJECTORY_EFFECT = true;
 
 void ExplorationCenter::initialize(ros::NodeHandle handle) {
     ros::Time::init();

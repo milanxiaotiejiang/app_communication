@@ -9,7 +9,7 @@
 #include "simulation.h"
 
 void PointPlanner::cpToPath(const std::vector<RealPoint> &points, replan_msgs::ReplanGoal &goal_path) {
-    LOG(INFO) << "PointPlanner send path points.size : " << points.size();
+    LOG(WARNING) << "PointPlanner send to replan path size : " << points.size();
     nav_msgs::Path path;
     path.header.frame_id = "map";
     path.header.stamp = ros::Time::now();
@@ -39,7 +39,7 @@ void PointPlanner::feedBackCB(const replan_msgs::ReplanFeedbackConstPtr &feed_ba
 
 void
 PointPlanner::doneCB(const actionlib::SimpleClientGoalState &state, const replan_msgs::ReplanResultConstPtr &result) {
-//    LOG(INFO) << "PointPlanner  pathCd " << state.getText();
+    LOG(WARNING) << "PointPlanner pathCd result " << state.getText();
     PointRoutine::instance().pathDone(state);
 }
 

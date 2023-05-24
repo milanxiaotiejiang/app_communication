@@ -164,7 +164,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
     for (auto &middle_complex: middle_complex_path) {
         // OpenCv
         std::vector<cv::Point> list;
-        cv::approxPolyDP(middle_complex, list, 1.0, true);
+        cv::approxPolyDP(middle_complex, list, 1.0, false);
         std::vector<Point2D> points;
         for (const auto &item: list) {
             points.emplace_back(item.x, item.y);
