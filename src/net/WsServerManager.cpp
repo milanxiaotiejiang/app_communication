@@ -39,6 +39,12 @@
 
 #include "tool/map_compress.h"
 
+#include "boost/iostreams/filtering_streambuf.hpp"
+#include "boost/iostreams/copy.hpp"
+#include "boost/iostreams/filter/gzip.hpp"
+
+#include "tool/base64.h"
+
 //#include "tool/ZLibString.hpp"
 
 using namespace code_machina;
@@ -183,6 +189,7 @@ void on_open(server *s, websocketpp::connection_hdl hdl) {
     ask.osModel = osModel;
     ask.osSource = osSource;
     ask.subMap[MAP_APP] = false;
+    ask.subMap[GZIP_MAP_APP] = false;
     ask.subMap[ODOM_APP] = false;
     ask.subMap[ROBOT_STATUS] = false;
     ask.subMap[NOTICE_APP] = false;
@@ -669,6 +676,60 @@ void WsServerManager::setMapApp(const nav_msgs::OccupancyGrid &occupancyGrid) {
     requestModel.setMsg(map);
 
     json jsonResult = requestModel;
+    NetModel netModel(NET_MODEL_MAP, jsonResult.dump());
+    serverDataCollection.add(netModel);
+}
+
+void WsServerManager::setMapApp2(const nav_msgs::OccupancyGrid &occupancyGrid) {
+    if (occupancyGrid.data.size() == 0) {
+        return;
+    }
+    if (occupancyGrid.data.size() != occupancyGrid.info.width * occupancyGrid.info.height) {
+        return;
+    }
+    RosOrientation orientation(occupancyGrid.info.origin.orientation.w,
+                               occupancyGrid.info.origin.orientation.x,
+                               occupancyGrid.info.origin.orientation.y,
+                               occupancyGrid.info.origin.orientation.z);
+    RosPosition position(occupancyGrid.info.origin.position.x,
+                         occupancyGrid.info.origin.position.y,
+                         occupancyGrid.info.origin.position.z);
+    RosOrigin origin(orientation, position);
+
+    RosMapLoadTime mapLoadTime(occupancyGrid.info.map_load_time.nsec, occupancyGrid.info.map_load_time.sec);
+
+    RosStamp stamp(occupancyGrid.header.stamp.nsec, occupancyGrid.header.stamp.sec);
+    RosHeader header(occupancyGrid.header.frame_id, occupancyGrid.header.seq, stamp);
+
+    RosInfo info(occupancyGrid.info.width, occupancyGrid.info.height, occupancyGrid.info.resolution,
+                 mapLoadTime, origin);
+
+    std::vector<int8_t> occupancyList = occupancyGrid.data;
+
+    std::stringstream input;
+    for (int8_t b: occupancyList) {
+        input << b;
+    }
+
+    std::stringstream compressed;
+    boost::iostreams::filtering_streambuf<boost::iostreams::input> outbuf;
+    outbuf.push(boost::iostreams::gzip_compressor());
+    outbuf.push(input);
+    boost::iostreams::copy(outbuf, compressed);
+
+    std::string compressedString = compressed.str();
+
+    const string &base64Encode = base64_encode(compressedString);
+
+    GRosMap map(base64Encode, header, info);
+
+    RequestModel<GRosMap> requestModel;
+    requestModel.setOp("publish");
+    requestModel.setTopic(GZIP_MAP_APP);
+    requestModel.setMsg(map);
+
+    json jsonResult = requestModel;
+
     NetModel netModel(NET_MODEL_MAP, jsonResult.dump());
     serverDataCollection.add(netModel);
 }
