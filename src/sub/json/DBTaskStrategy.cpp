@@ -49,14 +49,12 @@ long AddTimerTaskStrategy::handler(TimerVo params) {
     const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params.getTaskId());
     checkName(params.getTaskName());
     checkName(params.getTimerName());
-    const string &timerRule = params.getTimerRule();
-    if (!is_valid_crontab(timerRule)) {
-        throw std::invalid_argument("Invalid timer_rule");
-    }
-    int rate = params.getRate();
-    checkRate(rate);
+    checkRate(params.getRate());
 
     MapPo map = SegmentationDataBase::instance().getDbMap();
+
+    checkSameTimer(map.id, params.getTimerRule());
+
     long timer = TaskDataBase::instance().addTimer(map.id, params);
 
     ScheduleManagerSingleton::instance().trigger_task_update();
@@ -76,6 +74,11 @@ vector<TimerVo> ListTimerTaskStrategy::handler(string params) {
 
 string ModifyTimerTaskStrategy::handler(TimerVo params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
+
+    checkName(params.getTimerName());
+    checkRate(params.getRate());
+    checkSameTimer(map.id, params.getTimerRule());
+
     TaskDataBase::instance().modifyTimer(map.id, params);
     ScheduleManagerSingleton::instance().trigger_task_update();
     return "";

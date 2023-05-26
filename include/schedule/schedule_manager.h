@@ -74,6 +74,11 @@ public:
     static std::chrono::system_clock::time_point get_end_time(const TimerVo &timer);
 
     static std::string fix_cron_expression(const std::string &cron_expression);
+
+    static std::vector<std::time_t> cronTimePoints(const std::string &cron_expression, std::time_t endTime);
+
+    static bool hasSameTimePoint(const std::vector<std::time_t> &originalPoints,
+                                 const std::string &targetExpression, std::time_t endTime);
 };
 
 #endif //APP_COMMUNICATION_SCHEDULE_MANAGER_H

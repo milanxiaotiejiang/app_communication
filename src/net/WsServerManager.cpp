@@ -364,6 +364,12 @@ public:
                                     wsServerSend(server, ask.second.hdl, realData, key);
                                     dataMap[key] = "";
                                 }
+                            } else if (key == TASK_POINT) {
+                                auto realData = dataMap[key];
+                                if (!realData.empty()) {
+                                    wsServerSend(server, ask.second.hdl, realData, key);
+                                    dataMap[key] = "";
+                                }
                             } else {
                                 auto realData = dataMap[key];
                                 if (!realData.empty()) {
