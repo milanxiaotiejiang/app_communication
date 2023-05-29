@@ -8,7 +8,6 @@
 #include <sys/time.h>
 #include <cstdlib>
 
-
 class Timer {
 public:
     Timer() {

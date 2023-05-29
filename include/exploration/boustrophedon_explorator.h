@@ -126,6 +126,7 @@ struct BoustrophedonCell {
 class BoustrophedonExplorer {
 protected:
     AStarPlanner path_planner_;
+    bool isShow;
 
     static const uchar BORDER_PIXEL_VALUE = 25;
 
@@ -165,7 +166,7 @@ protected:
 public:
     void
     getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &path, const float map_resolution,
-                       const cv::Point& starting_position, const cv::Point2d& map_origin,
+                       const cv::Point &starting_position, const cv::Point2d &map_origin,
                        const double grid_spacing_in_pixel,
                        const double grid_obstacle_offset, const double path_eps,
                        const double min_cell_area, const int max_deviation_from_track,

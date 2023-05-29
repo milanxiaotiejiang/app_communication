@@ -4,11 +4,15 @@
 
 #include "sub/json/ProjectStrategy.h"
 #include "manager/VersionManager.h"
+#include "leave/ParamManager.h"
+#include "leave/robot_speed.h"
+#include "manager/cloud_robot_control.h"
+#include "db/path.h"
 
 string ProjectStrategy::handler(Project params) {
     string filePath;
-    filePath.append(ros::package::getPath("data_base"));
-    filePath.append("/config/project_info.txt");
+    filePath.append(path::data_base_config_dir());
+    filePath.append("project_info.txt");
 
     if (!sh::File::exists(filePath)) {
         unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
@@ -37,8 +41,8 @@ string getProjectStrategy::handler(string params) {
     bool is_location;
 
     string filePath;
-    filePath.append(ros::package::getPath("data_base"));
-    filePath.append("/config/project_info.txt");
+    filePath.append(path::data_base_config_dir());
+    filePath.append("project_info.txt");
 
     sh::File *pFile1 = new sh::File(filePath);
     string responseP;
@@ -46,10 +50,10 @@ string getProjectStrategy::handler(string params) {
         responseP = pFile1->readAll();
         if (responseP.length() > 0) {
             is_location = true;
-            PublishOutManager::instance().getPubOut()->robot_result = responseP;
+            CloudRobotControl::instance().saveInfo(responseP);
         } else {
             is_location = false;
-            PublishOutManager::instance().getPubOut()->robot_result = "there is no project!!!";
+            CloudRobotControl::instance().saveInfo("there is no project!!!");
         }
     } else {
     }
@@ -60,8 +64,8 @@ string getProjectStrategy::handler(string params) {
 
 string PadVersionStrategy::handler(string params) {
     string filePath;
-    filePath.append(ros::package::getPath("data_base"));
-    filePath.append("/config/pad_version_info.txt");
+    filePath.append(path::data_base_config_dir());
+    filePath.append("pad_version_info.txt");
 
     if (!sh::File::exists(filePath)) {
         unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
@@ -90,4 +94,20 @@ string PadVersionStrategy::handler(string params) {
 int MachineModelStrategy::handler(string params) {
     int machineVersion = VersionManager::instance().getMachineVersion();
     return machineVersion;
+}
+
+ParamVo GetRobotParamsStrategy::handler(string params) {
+    int tof = ParamManager::instance().getTof();
+    bool silver = ParamManager::instance().getSilver();
+    RobotSpeed robotSpeed;
+    float speed = robotSpeed.currentSpeed();
+    return ParamVo(tof, silver, speed);
+}
+
+ParamVo SetRobotParamsStrategy::handler(ParamVo params) {
+    ParamManager::instance().setTof(params.getTof());
+    ParamManager::instance().setSilver(params.isSilver());
+    RobotSpeed robotSpeed;
+    robotSpeed.changeSpeed(params.getSpeed());
+    return params;
 }

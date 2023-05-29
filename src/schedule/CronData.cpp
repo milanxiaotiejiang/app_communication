@@ -48,7 +48,6 @@ namespace croncpp {
             //适应协议
             if (match[4] != "*" || match[6] != "*")
                 valid &= check_dom_vs_dow(match[4], match[6]);
-            //  std::cout <<"valid: "<< valid <<"  "<< match[6]  << std::endl;
             valid &= validate_date_vs_months();
         }
     }

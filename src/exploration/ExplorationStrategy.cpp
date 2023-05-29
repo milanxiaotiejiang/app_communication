@@ -11,6 +11,11 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "leave/ParamManager.h"
+#include "db/task_data_base.h"
+#include "exploration/path_exploration_preview_task.h"
+#include "task/TaskCenter.h"
+
 const int DATA_MODE_GEOMETRY_POSE = 1;
 const int DATA_MODE_OPEN_CV_POINT = 2;
 
@@ -34,20 +39,17 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
 
         if (targetId == -1) {
             if (rooms.empty()) {
-                explorationCenter.generatePlanningPath(baseMap, ExplorationModel::FULL, explorerMode, false,
-                                                       cv::Point(0, 0), exploration_path, point_path);
+                explorationCenter.generatePlanningPathFull(baseMap, explorerMode, exploration_path, point_path);
             } else {
                 explorationCenter.generatePlanningSegmentationPath(baseMap, segmented_map, rooms, explorerMode,
                                                                    exploration_path, point_path);
             }
         } else {
             const cv::Mat &oneMap = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, targetId);
-            explorationCenter.generatePlanningPath(oneMap, ExplorationModel::SUB, explorerMode, false, cv::Point(0, 0),
-                                                   exploration_path, point_path);
+            explorationCenter.generatePlanningPathSub(oneMap, explorerMode, exploration_path, point_path);
         }
     } else {
-        explorationCenter.generatePlanningPath(baseMap, ExplorationModel::FULL, explorerMode, false, cv::Point(0, 0),
-                                               exploration_path, point_path);
+        explorationCenter.generatePlanningPathFull(baseMap, explorerMode, exploration_path, point_path);
     }
 
     explorationCenter.pathPublish(exploration_path);
@@ -111,6 +113,7 @@ bool PlanParamSetStrategy::handler(PlanParam params) {
             params.getRandomNumberGenerationRatio(),
             params.getBoundaryMinArea()
     );
+    ExplorationCenter::instance().repaintCoveragePath(false);
 }
 
 PlanParam PlanParamResetStrategy::handler(string params) {
@@ -124,4 +127,26 @@ PlanParam PlanParamResetStrategy::handler(string params) {
                      planPo.min_critical_point_distance_factor, planPo.max_area_for_merging,
                      planPo.distance_from_obstacles, planPo.number_extension, planPo.multiple_contour_spacing,
                      planPo.random_number_generation_ratio, planPo.boundary_min_area);
+}
+
+bool SetExplorerEnergyStrategy::handler(bool params) {
+    ParamManager::instance().setEnergy(params);
+    return ParamManager::instance().getEnergy();
+}
+
+bool GetExplorerEnergyStrategy::handler(string params) {
+    return ParamManager::instance().getEnergy();
+}
+
+RoomCoverage ExplorationTaskStrategy::handler(long params) {
+    const TaskVo &task = TaskDataBase::instance().loadTaskFoId(params);
+    RealTask realTask;
+    TaskExploration::task2RealTask(task, realTask);
+    auto coverage = TaskExploration::explorationPlanningPath(realTask);
+
+    RoomCoverage result;
+    result.setCoverageId(coverage.getCoverageId());
+    result.setPoseList(coverage.getPoseList());
+    result.setPointList(coverage.getPointList());
+    return result;
 }

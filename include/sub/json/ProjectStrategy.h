@@ -6,10 +6,11 @@
 #define APP_COMMUNICATION_PROJECTSTRATEGY_H
 
 #include "MessageStrategy.h"
-#include "model/BaseResult.h"
+#include "net/base/BaseResult.h"
 #include "model/Project.h"
 
 #include "tool/write_file.hpp"
+#include "model/ParamVo.h"
 
 class ProjectStrategy : public MessageStrategy<Project, string> {
 public:
@@ -29,6 +30,16 @@ public:
 class MachineModelStrategy : public MessageStrategy<string, int> {
 public:
     int handler(string params) override;
+};
+
+class GetRobotParamsStrategy : public MessageStrategy<string, ParamVo> {
+public:
+    ParamVo handler(string params) override;
+};
+
+class SetRobotParamsStrategy : public MessageStrategy<ParamVo, ParamVo> {
+public:
+    ParamVo handler(ParamVo params) override;
 };
 
 #endif //APP_COMMUNICATION_PROJECTSTRATEGY_H

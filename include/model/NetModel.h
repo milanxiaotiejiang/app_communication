@@ -7,11 +7,11 @@
 
 struct NetModel {
     int key;
-    string value;
+    std::string value;
 
     NetModel() {}
 
-    NetModel(int key, const string &value) : key(key), value(value) {}
+    NetModel(int key, const std::string &value) : key(key), value(value) {}
 };
 
 #endif //APP_COMMUNICATION_NETMODEL_H

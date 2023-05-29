@@ -8,6 +8,7 @@
 #include "glog/logging.h"
 #include "exploration/line.h"
 #include "exploration/A_star_pathplanner.h"
+#include "exploration/cv_extend.h"
 
 #define random(a, b) (rand() % (b - a) + a)
 
@@ -72,14 +73,14 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
     std::vector<cv::Point2f> middle_point_path;
     for (int r = 0; r < number_extension; ++r) {
 
-        int scale_in_pixel = half_grid_spacing_as_int +//机器人半径
-                             distance_from_obstacles +//与障碍物的间距
-                             half_grid_spacing_as_int * 2 * r +//多轮廓
-                             multiple_contour_spacing * r;
-        LOG(INFO) << "(infinitely near boundary) scale_in_pixel: " << scale_in_pixel;
+        int scale_in_pixel = (int) std::floor(half_grid_spacing_as_int +//机器人半径
+                                              distance_from_obstacles +//与障碍物的间距
+                                              grid_spacing_in_pixel * r +//多轮廓
+                                              multiple_contour_spacing * r);
+        LOG(INFO) << "(infinitely near boundary) 边界距离 scale_in_pixel: " << scale_in_pixel << " px";
 
         auto borderMat = room_map.clone();
-        cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(1, 1), scale_in_pixel);
+        explorationErode(borderMat, borderMat, scale_in_pixel);
 
         if (DISPLAY_TRAJECTORY) {
             cv::imshow("m " + std::to_string(r) + " " + std::to_string(scale_in_pixel), borderMat);
@@ -89,13 +90,14 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
         std::vector<std::vector<cv::Point>> borderContours;
         cv::findContours(borderMat, borderContours, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
 
-        for (const auto &vector: borderContours) {
+        for (const auto &borderContour: borderContours) {
 
-            if (vector.empty())
+            if (borderContour.empty())
                 continue;
 
             cv::Mat room_mat = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
-            cv::drawContours(room_mat, std::vector<std::vector<cv::Point> >(1, vector), -1, cv::Scalar(255), CV_FILLED);
+            cv::drawContours(room_mat, std::vector<std::vector<cv::Point> >(1, borderContour), -1, cv::Scalar(255),
+                             CV_FILLED);
 
             if (DISPLAY_TRAJECTORY) {
                 cv::imshow("m " + std::to_string(r) + " " + std::to_string(scale_in_pixel), room_mat);
@@ -109,18 +111,18 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
                         area_px++;
             auto area = area_px * map_resolution * map_resolution;
             if (area < boundary_min_area) {
-                LOG(INFO) << "InfinitelyNearBoundary : Discard small obstacles , area =" << area << " ...";
+//                LOG(INFO) << "InfinitelyNearBoundary : Discard small obstacles , area =" << area << " ...";
                 continue;
             }
 
             bool isEligible = false;
             int accessibleCount = 0;
 
-            int maxTraversal = vector.size() / random_number_generation_ratio;
+            int maxTraversal = borderContour.size() / random_number_generation_ratio;
 
             for (int i = 0; i < maxTraversal; i++) {
-                auto random = rand() % vector.size();
-                auto randomPoint = vector[random];
+                auto random = rand() % borderContour.size();
+                auto randomPoint = borderContour[random];
                 double length = path_planner.planPath(original_map, reachablePoint, randomPoint,
                                                       1, robot_radius, map_resolution);
 //                LOG(INFO) << "InfinitelyNearBoundary : r = " << std::to_string(r) << " , p = "
@@ -129,20 +131,20 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
                 if (length < 1e90) {
                     accessibleCount++;
                 }
-                if (accessibleCount > maxTraversal * 0.5) {
+                if (accessibleCount >= maxTraversal * 0.5) {
                     isEligible = true;
                     break;
                 }
             }
 
             if (isEligible) {
-                for (const auto &point: vector) {
+                for (const auto &point: borderContour) {
                     middle_point_path.push_back(point);
                 }
-                middle_point_path.push_back(vector.front());
+                middle_point_path.push_back(borderContour.front());
             } else {
-                LOG(INFO) << "InfinitelyNearBoundary : maxTraversal =" << maxTraversal << " , accessibleCount = "
-                          << accessibleCount;
+                LOG(INFO) << "InfinitelyNearBoundary : maxTraversal =" << maxTraversal
+                          << " , accessibleCount = " << accessibleCount;
             }
 
         }
@@ -173,7 +175,6 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map, con
         pose_path.push_back(current_pose);
     }
 
-    optimizePathColumn(pose_path);
 }
 
 void InfinitelyNearBoundary::transformPointPathToPosePath(const std::vector<cv::Point2f> &point_path,
@@ -203,28 +204,5 @@ void InfinitelyNearBoundary::transformPointPathToPosePath(const std::vector<cv::
                 pose_path.push_back(current_pose);
             }
         }
-    }
-}
-
-void InfinitelyNearBoundary::optimizePathColumn(std::vector<geometry_msgs::Pose2D> &vector) {
-    if (vector.size() < 3) {
-        return;
-    }
-    std::vector<geometry_msgs::Pose2D> optimize;
-    optimize.push_back(vector[0]);
-    geometry_msgs::Pose2D last = vector[0];
-    for (int i = 1; i < vector.size() - 1; ++i) {
-        if (!conversion::one_line(last, vector[i], vector[i + 1])) {
-            if (sqrt(pow(vector[i].x - vector[i + 1].x, 2) + pow(vector[i + 1].y - vector[i].y, 2)) < 1.0) {
-                last = vector[i];
-                optimize.push_back(vector[i]);
-            }
-        }
-    }
-    optimize.push_back(vector[vector.size() - 1]);
-
-    vector.clear();
-    for (const auto &item: optimize) {
-        vector.push_back(item);
     }
 }

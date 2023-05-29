@@ -29,15 +29,13 @@
 #include "sub/json/NoticeStrategy.h"
 #include "sub/json/CloudDeviceStrategy.h"
 #include "sub/json/KnobControlStrategy.h"
+#include "manager/cloud_robot_control.h"
+#include "sub/json/DBTaskStrategy.h"
+#include "exploration/ExplorationStrategy.h"
 
 
-JsonSubscribeCloud::JsonSubscribeCloud(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut)
-        : handle(handle),
-          pubInner(std::move(pubInner)),
-          pubOut(std::move(pubOut)) {
-    // sub_json_ = handle.subscribe(APP_JSON_V2, 1, &JsonSubscribeCloud::subscribeCallback, this);
-    service = handle.advertiseService("robot_control_srv", &JsonSubscribeCloud::function,
-                                      this);//写明服务的处理函数 handle_function cloud_srvs是service的名称
+JsonSubscribeCloud::JsonSubscribeCloud(ros::NodeHandle handle) : handle(handle) {
+    service = handle.advertiseService("robot_control_srv", &JsonSubscribeCloud::function, this);
 }
 
 JsonSubscribeCloud::~JsonSubscribeCloud() {
@@ -61,33 +59,20 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case GET_DEVICE_STATUS_:
             messageStrategy = new GetDeviceStatusStrategyV2();
             break;
-//        case APP_ALONG_CLEAN_:
-//            messageStrategy = new AppAlongCleanStrategy();
-//            break;
-//        case SAVE_MAP_:
-//            messageStrategy = new SaveMapStrategy();
-//            break;
         case GET_MULTI_MAPS_:
             messageStrategy = new GetMultiMapsStrategy();
             break;
-//        case CHANGE_MAP_:
-//            messageStrategy = new ChangeMapStrategy();
-//            break;
-//        case EDIT_MAP_:
-//            messageStrategy = new EditMapStrategy();
-//            break;
+
+        case EDIT_MAP_:
+            messageStrategy = new EditMapStrategy();
+            break;
         case GET_EDIT_MAP_:
             messageStrategy = new GetEditMapStrategy();
             break;
-//        case EXECUTE_TASK_:
-//            messageStrategy = new ExecuteTaskStrategy();
-//            break;
+
         case GET_TASK_LIST_:
             messageStrategy = new GetTaskListStrategyV2();
             break;
-//        case GET_FINISHED_POINT_:
-//            messageStrategy = new GetFinishedPointStrategy();
-//            break;
         case APP_SPOT_:
             messageStrategy = new StatusResumeStrategy();
             break;
@@ -97,72 +82,12 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case APP_CHARGE_:
             messageStrategy = new StatusChargeStrategy();
             break;
-//        case CHANGE_WORK_STATUS_:
-//            messageStrategy = new ChangeWorkModeStrategy();
-//            break;
         case CHANGE_AROM_STATUS_:
             messageStrategy = new ChangeAromStatusStrategy();
             break;
-//        case CONTINUITY_TASK_LIST_:
-//            messageStrategy = new SetContinuityTaskStrategy();
-//            break;
-//        case POLYGON_TASK_LIST_:
-//            messageStrategy = new SetPolygonTaskStrategy();
-//            break;
-
-//        case OPEN_SELF_CLEANING_:
-//            messageStrategy = new SelfCleanStrategy();
-//            break;
-//        case ROBOT_RELOCATION_:
-//            messageStrategy = new RobotRelocateStrategy();
-//            break;
-
-//        case TEACH_MODE_START_:
-//            messageStrategy = new StartTeachModeStrategy();
-//            break;
-//        case TEACH_MODE_STOP_:
-//            messageStrategy = new StopTeachModeStrategy();
-//            break;
-//        case TEACH_HEART_BEAT_:
-//            messageStrategy = new HeartBeatofTeachModeStrategy();
-//            break;
-        case GET_TEACH_PATH_LIST_:
-            messageStrategy = new GetTeachModeListStrategy();
-            break;
-        case GET_TEACH_PATH_DETAIL_:
-            messageStrategy = new GetTeachModeDetialStrategy();
-            break;
-        case DELETE_TEACH_PATH_LIST_:
-            messageStrategy = new DeleteTeachModeStrategy();
-            break;
-//        case GET_FULL_PLAN_:
-//            messageStrategy = new GetFullPlanStrategy();
-//            break;
-//        case ROBOT_MOVE_:
-//            messageStrategy = new RobotMoveStrategy();
-//            break;
-
-//        case TRY_TO_ENTER_:
-//            messageStrategy = new RobotTryEnterModeStrategy();
-//            break;
-//        case FORCED_TO_ENTER_:
-//            messageStrategy = new RobotForceEnterModeStrategy();
-//            break;
-//        case WORK_TO_ENTER_:
-//            messageStrategy = new RobotPreparetoWorkStrategy();
-//            break;
-//        case WORK_TO_MAP_APP_:
-//            messageStrategy = new MapPreparetoWorkStrategy();
-//            break;
         case CLEAN_HISTORY_REQUEST_:
             messageStrategy = new GetCloudCleanHistoryStrategy();
             break;
-//        case COMBINATION_PART_ADD_:
-//            messageStrategy = new CombinationPartAddStrategy();
-//            break;
-//        case COMBINATION_COMBINATION_ADD_:
-//            messageStrategy = new CombinationCombinationAddStartegy();
-//            break;
         case COMBINATION_PART_LIST_:
             messageStrategy = new CombinationPartListStrategyV2();
             break;
@@ -181,43 +106,24 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case COMBINATION_COMBINATION_DELETE_:
             messageStrategy = new CombinationCombinationDeleteStrategy();
             break;
-//        case COMBINATION_PART_UPDATE_:
-//            messageStrategy = new CombinationPartUpdateStrategy();
-//            break;
-//        case COMBINATION_COMBINATION_UPDATE_:
-//            messageStrategy = new CombinationCombinationUpdateStrategy();
-//            break;
         case IS_IN_BASEMENT_:
             messageStrategy = new IsInBasementStrategy();
             break;
         case GET_ROS_VERSION_:
             messageStrategy = new GetRosVersionStrategy();
             break;
-//        case PLAY_VOICE_:
-//            messageStrategy = new PlayerRecruitVoiceStrategy();
-//            break;
-//        case LIGHT_BELT_MODE_:
-//            messageStrategy = new LightBeltModeStrategy();
-//            break;
-//        case OPEN_MACHINE_DRAWER_:
-//            messageStrategy = new OpenMachineDrawerStrategy();
-//            break;
-//        case SET_POWER_REDUCTION:
-//            messageStrategy = new PowerReductionStrategy();
-//            break;
-
 
         case UPD_TIMER_:
             messageStrategy = new UpdateTimerStrategy();
             break;
         case SET_TIMER_:
-            messageStrategy = new AddTimerStrategy();
+            messageStrategy = new SetTimerStrategy();
             break;
         case GET_TIMER_LIST_:
             messageStrategy = new GetTimerListStrategy();
             break;
         case DEL_TIMER_:
-            messageStrategy = new DeleteTimerStrategy();
+            messageStrategy = new DelTimerStrategy();
             break;
         case SAVE_LOCATION:
             messageStrategy = new LocationStrategy();
@@ -231,6 +137,87 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             messageStrategy = new otaStrategy();
             break;
 
+            //20230509
+        case ADD_TASK:
+            messageStrategy = new AddTaskStrategy();
+            break;
+        case DELETE_TASK:
+            messageStrategy = new DeleteTaskStrategy();
+            break;
+        case LIST_TASK:
+            messageStrategy = new ListTaskStrategy();
+            break;
+        case QUERY_ID_TASK:
+            messageStrategy = new QueryIdTaskStrategy();
+            break;
+
+        case BUILD_PRINCIPAL_TASK:
+            messageStrategy = new BuildPrincipalTaskStrategy();
+            break;
+        case CANCEL_PRINCIPAL_TASK:
+            messageStrategy = new CancelPrincipalTaskStrategy();
+            break;
+        case PRINCIPAL_TASK:
+            messageStrategy = new PrincipalTaskStrategy();
+            break;
+
+        case CLEAR_CURRENT_LIST_TASK:
+            messageStrategy = new ClearCurrentListTaskStrategy();
+            break;
+
+        case MODIFY_TASK_NAME:
+            messageStrategy = new ModifyTaskNameStrategy();
+            break;
+        case MODIFY_TASK_RATE:
+            messageStrategy = new ModifyTaskRateStrategy();
+            break;
+        case MODIFY_TASK_WORK_STATUS:
+            messageStrategy = new ModifyTaskWorkStatusStrategy();
+            break;
+        case MODIFY_TASK_KNIFE:
+            messageStrategy = new ModifyTaskKnifeStrategy();
+            break;
+        case OPERATE_ADD_ZONE:
+            messageStrategy = new OperateAddZoneStrategy();
+            break;
+        case OPERATE_DELETE_ZONE:
+            messageStrategy = new OperateDeleteZoneStrategy();
+            break;
+        case OPERATE_MODIFY_ZONE:
+            messageStrategy = new OperateModifyZoneStrategy();
+            break;
+        case MODIFY_TASK_PARTITION:
+            messageStrategy = new ModifyTaskPartitionStrategy();
+            break;
+        case OPERATE_ADD_SUBREGION:
+            messageStrategy = new OperateAddSubregionStrategy();
+            break;
+        case OPERATE_DELETE_SUBREGION:
+            messageStrategy = new OperateDeleteSubregionStrategy();
+            break;
+
+        case ADD_TIMER_TASK:
+            messageStrategy = new AddTimerTaskStrategy();
+            break;
+        case DELETE_TIMER_TASK:
+            messageStrategy = new DeleteTimerTaskStrategy();
+            break;
+        case LIST_TIMER_TASK:
+            messageStrategy = new ListTimerTaskStrategy();
+            break;
+        case MODIFY_TIMER_TASK:
+            messageStrategy = new ModifyTimerTaskStrategy();
+            break;
+        case MODIFY_TIMER_NAME:
+            messageStrategy = new ModifyTimerNameStrategy();
+            break;
+
+        case EXPLORATION_TASK:
+            messageStrategy = new ExplorationTaskStrategy();
+            break;
+        case PERFORM_TASK:
+            messageStrategy = new PerformTaskStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
 
@@ -238,10 +225,8 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
 
         messageContext.startDateProgressing(MessageSource::Cloud, jdecode);
 
-        res.resp = PublishOutManager::instance().getPubOut()->robot_result;//pubOut.robot_result;
-        //   LOG(ERROR) << "JsonSubscribeCloud method : " << res.resp;
-        //pubOut.robot_result = "{}";
-        PublishOutManager::instance().getPubOut()->robot_result = "{}";
+        res.resp = CloudRobotControl::instance().useInfo();
+        CloudRobotControl::instance().reset();
         delete messageStrategy;
     }
 

@@ -11,24 +11,25 @@
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <opencv2/opencv.hpp>
+#include <condition_variable>
 #include "yaml-cpp/yaml.h"
 
 #include "glog/logging.h"
 #include "model/Point.h"
+#include "db/path.h"
 
 const double map_resolution_from_subscription = 0.05;
 
 const int VIRTUAL_WALL_DUS_COUNT = 2;
 const int PENALTY_ZONE_DUS_COUNT = 4;
 
-const std::string map_yaml_path = ros::package::getPath("robot_slam")
-                                  + "/maps/mymap.yaml";
-const std::string prohibition_yaml_path = ros::package::getPath("data_base")
-                                          + "/config/prohibition_areas.yaml";
-
 class MapAttribute {
 private:
     bool initialize_finish = false;
+
+    std::atomic<bool> creating_map{false};
+    std::condition_variable wait_cv;
+    std::mutex wait_mutex;
 
     geometry_msgs::Pose map_origin_pose;
     cv::Point2d map_origin;
@@ -38,11 +39,11 @@ private:
     std::vector<std::vector<Point>> virtualWallList;
     std::vector<std::vector<Point>> penaltyZoneList;
 
-    const double robot_radius_ = 0.30;
+    const double robot_radius_ = 0.26;
     const int map_correction_closing_neighborhood_size_ = 1;
-    const double grid_obstacle_offset_ = 0.2;
-    const double path_eps_ = 1.0;
-    const double min_cell_area_ = 100.0;
+    const double grid_obstacle_offset_ = 0.16;
+    const double path_eps_ = 7.0;
+    const double min_cell_area_ = 60.0;
     const int max_deviation_from_track_ = -1;
     const int range_near_base_station_ = 5;
 
@@ -68,6 +69,8 @@ public:
     bool isInitializeFinish() const {
         return initialize_finish;
     }
+
+    bool isCreatingMap() const;
 
     const geometry_msgs::Pose &getMapOriginPose() const {
         return map_origin_pose;
@@ -109,6 +112,12 @@ public:
                            const YAML::Node &node, int dusCount) const;
 
     cv::Point rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const;
+
+    cv::Point rosPoint2MapPoint(double rows, double cols, const Point &point) const;
+
+    bool saveMap();
+
+    void notifySaveMap();
 };
 
 

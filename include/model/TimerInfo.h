@@ -72,6 +72,8 @@ private:
     int end_month;//截止日期月
     int end_day;//截止日期日
 
+    bool old{true};
+
 public:
     TimerInfo();
 
@@ -80,7 +82,7 @@ public:
     //TimerInfo(const std::string &timerId, const std::string &timerRule,  const std::string &timername, const std::string &taskId, bool isExecute,int  Rate,bool is_never,bool is_skip,const std::string &endyear,const std::string &endmonth,const std::string &endday);
     TimerInfo(const std::string &timerId, const std::string &timerRule, const std::string &timername,
               const std::string &taskId, bool isExecute, int Rate, const std::string &taskname, bool is_never,
-              bool is_skip, int endyear, int endmonth, int endday);
+              bool is_skip, int endyear, int endmonth, int endday, bool old);
 
     const std::string &getTimerId() const;
 
@@ -143,8 +145,8 @@ public:
                 {"is_skip",    b.is_skip},
                 {"year",       b.end_year},
                 {"month",      b.end_month},
-                {"day",        b.end_day}
-
+                {"day",        b.end_day},
+                {"old",        b.old}
         };
     }
 
@@ -172,8 +174,15 @@ public:
         j.at("year").get_to(b.end_year);
         j.at("month").get_to(b.end_month);
         j.at("day").get_to(b.end_day);
-        // j.at("task_name").get_to(b.task_name);
+
+        if (j.contains("old")) {
+            j.at("old").get_to(b.old);
+        }
     }
+
+    bool isOld() const;
+
+    void setOld(bool old);
 };
 
 

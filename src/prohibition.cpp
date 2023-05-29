@@ -1,5 +1,6 @@
 #include "prohibition.h"
 #include "yaml-cpp/yaml.h"
+#include "db/path.h"
 #include <fstream>
 #include <iostream>
 #include <ros/package.h>
@@ -7,16 +8,11 @@
 
 using namespace std;
 
-std::string partition_path = ros::package::getPath("data_base") + "/config/devide_area.yaml";
+std::string partition_path = path::data_base_config_dir() + "devide_area.yaml";
 
 int set_prohibition(float *point, int num) {
 
-    string path;
-    path.append(ros::package::getPath("data_base"));
-    path.append("/config/prohibition_areas.yaml");
-    // path.append("/home/admin1/test_ws/src/data_base/config/prohibition_areas.yaml");
-
-    YAML::Node config = YAML::LoadFile(path);
+    YAML::Node config = YAML::LoadFile(path::prohibition_areas_path());
 
     int prohibition_num;//障碍物个数
     prohibition_num = config["prohibition_areas"].size();
@@ -45,7 +41,7 @@ int set_prohibition(float *point, int num) {
         prohibition_position.push_back(temp1);
     }
 
-    ofstream fout(path);
+    ofstream fout(path::prohibition_areas_path());
 
     config.reset();//将yaml文件清空
 
@@ -67,12 +63,8 @@ int set_prohibition(float *point, int num) {
 }
 
 int reset_prohibition(void) {
-    string path;
-    path.append(ros::package::getPath("data_base"));
-    path.append("/config/prohibition_areas.yaml");
-    // path.append("/home/admin1/test_ws/src/data_base/config/prohibition_areas.yaml");
-    YAML::Node config = YAML::LoadFile(path);
-    ofstream fout(path);
+    YAML::Node config = YAML::LoadFile(path::prohibition_areas_path());
+    ofstream fout(path::prohibition_areas_path());
     config.reset();//将yaml文件清空
     //对yaml文件进行操作
 
@@ -87,11 +79,7 @@ int reset_prohibition(void) {
 }
 
 bool get_prohibition(vector<vector<float>> &prohibition_position) {
-    string path;
-    path.append(ros::package::getPath("data_base"));
-    path.append("/config/prohibition_areas.yaml");
-    // path.append("/home/admin1/test_ws/src/data_base/config/prohibition_areas.yaml");
-    YAML::Node config = YAML::LoadFile(path);
+    YAML::Node config = YAML::LoadFile(path::prohibition_areas_path());
     int prohibition_num;//障碍物个数
     prohibition_num = config["prohibition_areas"].size();
     vector<int> point_num;

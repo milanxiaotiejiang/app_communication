@@ -7,10 +7,15 @@
 
 #include "glog/logging.h"
 #include "model/Task.h"
+#include "model/task.h"
 #include "task/RealTask.h"
 #include "task/subscribe/ZooRobotStatusSubscribe.h"
 #include "task/subscribe/FlagResultSubscribe.h"
-#include "task/async_task_call.h"
+#include "task/call/reserved_call.h"
+#include "task/subscribe/carpet_detect_subscribe.h"
+#include "task/subscribe/lift_detect_subscribe.h"
+#include "leave/cartographer_node.h"
+#include "db/task_model.h"
 
 const int LOW_RSOC = 10;
 
@@ -21,15 +26,19 @@ class TaskCenter {
 private:
     ros::NodeHandle nodeHandle;
 
-    AsyncTaskCall *asyncTaskCall = nullptr;
+    ReservedCall *asyncTaskCall = nullptr;
 
     ZooRobotStatusSubscribe *zooRobotStatusSubscribe;
     FlagOutSubscribe *flagOutSubscribe;
     FlagInSubscribe *flagInSubscribe;
+    CarpetDetectSubscribe *carpetDetectSubscribe;
+    LiftDetectSubscribe *liftDetectSubscribe;
 
-    void task2RealTask(const Task &task, RealTask &realTask);
+    std::string preTask(const RealTask &task);
 
-    void realExecuteTask(const Task &task);
+    std::string proTask(const RealTask &task);
+
+    static std::string realTask(RealTask task);
 
 public:
     static auto &instance() {
@@ -43,7 +52,8 @@ public:
 
     void executeTask(const Task &task);
 
-};
+    std::string performTask(const long taskId, TaskSource on_source, int on_rate);
 
+};
 
 #endif //APP_COMMUNICATION_TASKCENTER_H

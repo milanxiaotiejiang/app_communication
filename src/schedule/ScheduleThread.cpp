@@ -19,11 +19,10 @@
 #include "simulation.h"
 
 ScheduleThread::ScheduleThread(ros::NodeHandle handle) : handle(handle) {
-    sub_json_ = handle.subscribe(APP_SCHEDULE, 1, &ScheduleThread::subscribeCallback, this);
+    sub_json_ = handle.subscribe("/app_schedule", 1, &ScheduleThread::subscribeCallback, this);
 }
 
-ScheduleThread::~ScheduleThread() {
-}
+ScheduleThread::~ScheduleThread() = default;
 
 std::string fixWeek(std::string strin) {
     //处理cron中默认dayofweek，有的默认从1开始，有的默认从0开始。从0开始就加一
@@ -89,7 +88,7 @@ void execTask(TimerInfo &tsk) {
     tk->setRate(tsk.getRate());
     tk->setLaunchPeople("admin1");
     //任务运行中，不分配任务
-    if (!ManualManager::instance().runTaskId().empty()) {
+    if (ManualManager::instance().taskRunning()) {
         LOG(INFO) << "当前有任务在执行，定时清扫被取消";
     } else {
         if (tk->getMode() == 6) {
@@ -97,10 +96,11 @@ void execTask(TimerInfo &tsk) {
             std::vector<geometry_msgs::Pose2D> exploration_path;
             std::vector<cv::Point> point_path;
             const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
-            ExplorationCenter::instance().generatePlanningPath(baseMap, ExplorationModel::FULL,
-                                                               BOUSTROPHEDON_EXPLORER_MODE, false,
-                                                               cv::Point(0, 0),
-                                                               exploration_path, point_path);
+            ExplorationCenter::instance().generatePlanningPathFull(baseMap,
+                                                                   BOUSTROPHEDON_EXPLORER_MODE,
+                                                                   exploration_path,
+                                                                   point_path
+            );
 
             ExplorationCenter::instance().pathPublish(exploration_path);
             boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -161,8 +161,8 @@ void execTask(TimerInfo &tsk) {
 void ScheduleThread::startScheduleCheck() {
     string fileName;
     string sss;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_dir());
+    fileName.append("timer_info_json.txt");
     //设置清扫计时器
 
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
@@ -189,6 +189,7 @@ void ScheduleThread::startScheduleCheck() {
                 for (int i = 0; i < timer_infos.size(); i++) {
 
                     std::shared_ptr<TimerInfo> ti = make_shared<TimerInfo>();
+
                     ti->setTimerRule(timer_infos[i].getTimerRule());
                     ti->setTaskId(timer_infos[i].getTaskId());
                     ti->setRate(timer_infos[i].getRate());
@@ -198,6 +199,15 @@ void ScheduleThread::startScheduleCheck() {
                     ti->setEndYear(timer_infos[i].getEndYear());
                     ti->setEndMonth(timer_infos[i].getEndMonth());
                     ti->setEndDay(timer_infos[i].getEndDay());
+                    ti->setOld(timer_infos[i].isOld());
+                    ti->setTimerName(timer_infos[i].getTimerName());
+
+                    if (ti->isOld()) {
+                        continue;
+                    }
+
+//                    std::cout << ti->getTimerName() << std::endl;
+
                     std::string sRule1 = ti->getTimerRule(); //
                     std::string sRule = fixWeek(sRule1);
 
@@ -241,8 +251,8 @@ void ScheduleThread::subscribeCallback(const std_msgs::String &result) {
     //
     string fileName;
 
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_dir());
+    fileName.append("timer_info_json.txt");
     //设置清扫计时器
     // sh::File *fff = new sh::File(fileName);
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);

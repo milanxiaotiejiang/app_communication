@@ -10,7 +10,7 @@
 #include "vector"
 #include "string"
 #include "set"
-#include <opencv2/core/types.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "glog/logging.h"
 
@@ -72,6 +72,10 @@ public:
 
     void setName(const std::string &name);
 
+    long getDbId() const;
+
+    void setDbId(long dbId);
+
     friend std::ostream &operator<<(std::ostream &os, const Room &room);
 
 protected:
@@ -88,6 +92,8 @@ protected:
     double room_perimeter_;
 
     std::string name;
+
+    long db_id_ = -1;
 
 };
 

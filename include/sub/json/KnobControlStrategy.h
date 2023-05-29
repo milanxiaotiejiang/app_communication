@@ -18,5 +18,10 @@ public:
     string handler(bool method) override;
 };
 
+class CollectDustStrategy : public MessageStrategy<string, string> {
+public:
+    string handler(string method) override;
+};
+
 
 #endif //APP_COMMUNICATION_KNOBCONTROLSTRATEGY_H

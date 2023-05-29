@@ -8,13 +8,13 @@
 #include "MessageStrategy.h"
 #include <std_msgs/Int32.h>
 
-#include "model/BaseResult.h"
+#include "net/base/BaseResult.h"
 #include "model/Partion.h"
 #include "model/Point.h"
 #include "model/Task.h"
 #include "string"
 #include "tool/write_file.hpp"
-#include <model/BaseMethod.h>
+#include "net/base/BaseMethod.h"
 
 #include <nlohmann/json.hpp>
 #include <opencv2/core/core.hpp>
@@ -33,19 +33,29 @@
 #include <tf/transform_datatypes.h>
 #include <tf/transform_listener.h>
 #include "glog/logging.h"
-#include "tool/ThreadPool.h"
 #include <chrono>
 #include "model/UpgradeModel.h"
 #include "task/model/PointProgressVo.h"
+#include "model/task.h"
 
 class ExecuteTaskStrategy : public MessageStrategy<Task, string> {
 public:
     string handler(Task params) override;
 };
 
+class PerformTaskStrategy : public MessageStrategy<OnTask, string> {
+public:
+    string handler(OnTask params) override;
+};
+
 class GetTaskListStrategy : public MessageStrategy<string, std::vector<Task>> {
 public:
     vector<Task> handler(string params) override;
+};
+
+class RunningTaskStrategy : public MessageStrategy<string, RunTask> {
+public:
+    RunTask handler(string params) override;
 };
 
 class GetTaskListStrategyV2 : public MessageStrategy<string, std::vector<TaskUpgrade>> {

@@ -10,21 +10,23 @@
 
 using json = nlohmann::json;
 
-//sweep 扫
-//mop 湿拖
-//vacuum 吸
-//push 尘推
-//aromatherapy 香薰
-//disinfect xiaosha
-
+/**
+ * 超静音尘推      push_status
+ * 扫吸           vacuum_status
+ * 尘推 & 扫吸     vacuum_status + push_status
+ * 湿拖           mop_status
+ *
+ * 尘推滚刷     push_status
+ * 湿拖滚刷     mop_status + vacuum_status
+ */
 class WorkStatus {
 private:
-    int sweep_status{-1};
-    int mop_status{-1};
-    int vacuum_status{-1};
-    int push_status{-1};
-    int aromatherapy_status{-1};
-    int disinfect_status{-1};
+    int sweep_status{-1};//清扫
+    int mop_status{-1};//湿拖
+    int vacuum_status{-1};//尘吸
+    int push_status{-1};//尘推
+    int aromatherapy_status{-1};//香薰
+    int disinfect_status{-1};//消杀
 
 public:
     virtual ~WorkStatus();

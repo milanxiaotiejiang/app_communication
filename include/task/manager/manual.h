@@ -6,18 +6,18 @@
 #define APP_COMMUNICATION_MANUAL_H
 
 
-#include "task/async_task_call.h"
+#include "task/call/head_tail_call.h"
 
 class ManualManager {
 private:
-    AsyncTaskCall *asyncTaskCall;
+    HeadTailPointCall *asyncTaskCall;
 public:
     static auto &instance() {
         static ManualManager obj;
         return obj;
     }
 
-    void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
+    void setAsyncTaskCall(HeadTailPointCall *asyncTaskCall) {
         ManualManager::asyncTaskCall = asyncTaskCall;
     }
 
@@ -31,7 +31,9 @@ public:
 
     void quit_manual_mode();
 
-    std::string runTaskId();
+    bool taskRunning();
+
+    RealTask runningTask() const;
 
     std::vector<RealTask> runTaskList();
 

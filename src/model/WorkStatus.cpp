@@ -63,8 +63,8 @@ void WorkStatus::setDisinfectStatus(int disinfectStatus) {
 }
 
 std::ostream &operator<<(std::ostream &os, const WorkStatus &status) {
-    os << "sweep_status: " << status.sweep_status << " mop_status: " << status.mop_status << " vacuum_status: "
-       << status.vacuum_status << " push_status: " << status.push_status << " aromatherapy_status: "
-       << status.aromatherapy_status << " disinfect_status: " << status.disinfect_status;
+    os << "sweep: " << status.sweep_status << " mop: " << status.mop_status << " vacuum: "
+       << status.vacuum_status << " push: " << status.push_status << " aromatherapy: "
+       << status.aromatherapy_status << " disinfect: " << status.disinfect_status;
     return os;
 }

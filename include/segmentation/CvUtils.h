@@ -17,6 +17,8 @@ namespace CvUtils {
     cv::Mat read(const std::string &fileName);
 
     bool savePng(const std::string &fileName, const cv::Mat &src);
+
+    bool savePgm(const std::string &fileName, const cv::Mat &src);
 }
 
 

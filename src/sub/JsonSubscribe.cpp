@@ -29,6 +29,8 @@
 
 #include "glog/logging.h"
 #include "simulation.h"
+#include "sub/json/DBTaskStrategy.h"
+#include "sys/syscall.h"
 
 JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
     sub_json_ = handle.subscribe(APP_JSON, 3, &JsonSubscribe::subscribeCallback, this);
@@ -37,11 +39,11 @@ JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
 JsonSubscribe::~JsonSubscribe() {}
 
 void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
-//    LOG(INFO) << "subscribeCallback : " << syscall(SYS_gettid) << " " << result.data;
+    LOG(INFO) << "subscribeCallback : " << syscall(SYS_gettid) << " " << result.data;
 
     json jDecode = json::parse(result.data);
 
-    auto requestModel = jDecode.get<RequestModel<Entrance>>();
+    auto requestModel = jDecode.get<RequestModel<Entrance >>();
     auto entrance = requestModel.getMsg();
 
     MessageBaseStrategy *messageStrategy = nullptr;
@@ -53,9 +55,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case GET_DEVICE_STATUS_:
             messageStrategy = new GetDeviceStatusStrategy();
             break;
-        case APP_ALONG_CLEAN_:
-            messageStrategy = new AppAlongCleanStrategy();
-            break;
         case SAVE_MAP_:
             messageStrategy = new SaveMapStrategy();
             break;
@@ -65,17 +64,28 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case CHANGE_MAP_:
             messageStrategy = new ChangeMapStrategy();
             break;
+        case MODIFY_MAP_NAME:
+            messageStrategy = new ModifyMapNameStrategy();
+            break;
+        case DELETE_MAP:
+            messageStrategy = new DeleteMapStrategy();
+            break;
+
         case EDIT_MAP_:
             messageStrategy = new EditMapStrategy();
             break;
         case GET_EDIT_MAP_:
             messageStrategy = new GetEditMapStrategy();
             break;
+
         case EXECUTE_TASK_:
             messageStrategy = new ExecuteTaskStrategy();
             break;
         case GET_TASK_LIST_:
             messageStrategy = new GetTaskListStrategy();
+            break;
+        case RUNNING_TASK:
+            messageStrategy = new RunningTaskStrategy();
             break;
         case GET_FINISHED_POINT_:
             messageStrategy = new GetFinishedPointStrategy();
@@ -94,9 +104,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case CHANGE_AROM_STATUS_:
             messageStrategy = new ChangeAromStatusStrategy();
-            break;
-        case OPEN_SELF_CLEANING_:
-            messageStrategy = new SelfCleanStrategy();
             break;
 
         case TEACH_MODE_START_:
@@ -133,9 +140,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case WORK_TO_MAP_APP_:
             messageStrategy = new MapPreparetoWorkStrategy();
-            break;
-        case WORK_TO_GRID_MAP_APP_:
-            messageStrategy = new GridMapPreparetoWorkStrategy();
             break;
         case CLEAN_HISTORY_REQUEST_:
             messageStrategy = new GetCleanHistoryStrategy();
@@ -176,29 +180,17 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case GET_ROS_VERSION_:
             messageStrategy = new GetRosVersionStrategy();
             break;
-        case PLAY_VOICE_:
-            messageStrategy = new PlayerRecruitVoiceStrategy();
-            break;
-        case LIGHT_BELT_MODE_:
-            messageStrategy = new LightBeltModeStrategy();
-            break;
-        case OPEN_MACHINE_DRAWER_:
-            messageStrategy = new OpenMachineDrawerStrategy();
-            break;
-        case SET_POWER_REDUCTION:
-            messageStrategy = new PowerReductionStrategy();
-            break;
         case UPD_TIMER_:
             messageStrategy = new UpdateTimerStrategy();
             break;
         case SET_TIMER_:
-            messageStrategy = new AddTimerStrategy();
+            messageStrategy = new SetTimerStrategy();
             break;
         case GET_TIMER_LIST_:
             messageStrategy = new GetTimerListStrategy();
             break;
         case DEL_TIMER_:
-            messageStrategy = new DeleteTimerStrategy();
+            messageStrategy = new DelTimerStrategy();
             break;
         case SAVE_LOCATION:
             messageStrategy = new LocationStrategy();
@@ -215,9 +207,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case MAIN_COMBINATION_WAY:
             messageStrategy = new CombinationMainStrategy();
             break;
-        case GET_MATERIAL_STATUS:
-            messageStrategy = new GetMaterialStrategy();
-            break;
         case CANCEL_MAIN_COMBINATION:
             messageStrategy = new CancelCombinationMainStrategy();
             break;
@@ -233,6 +222,10 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case KNOB_CONTROL:
             messageStrategy = new KnobControlStrategy();
             break;
+        case COLLECT_DUST:
+            messageStrategy = new CollectDustStrategy();
+            break;
+
         case ROOM_MAP_DATA:
             messageStrategy = new RoomMapDataStrategy();
             break;
@@ -269,35 +262,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case MANUAL_PUSH_RESET:
             messageStrategy = new ManualPushResetStrategy();
             break;
-        case MANUAL_PUSH_SAVE:
-            messageStrategy = new ManualPushSaveStrategy();
-            break;
-        case GET_FULL_CLEANING_MODE:
-            messageStrategy = new GetFullCleaningModeStrategy();
-            break;
-        case SET_FULL_CLEANING_MODE:
-            messageStrategy = new SetFullCleaningModeStrategy();
-            break;
-        case GET_FULL_CLEAN_LIST:
-
-        case FULL_CLEANING_ADD:
-            messageStrategy = new FullCLeaningAddStrategy();
-            break;
-        case FULL_CLEANING_UPDATE:
-            messageStrategy = new FullCleaningUpdateStrategy();
-            break;
-        case FULL_CLEANING_DELETE:
-            messageStrategy = new FullCLeaningDeleteStrategy();
-            break;
-        case FULL_CLEANING_DETAIL:
-            messageStrategy = new FullCleaningDetailsStrategy();
-            break;
-        case FULL_CLEANING_MAIN:
-            messageStrategy = new FullCleaningMainStrategy();
-            break;
-        case FULL_CLEANING_MAIN_CANCEL:
-            messageStrategy = new CancelFullCleaningMainStrategy();
-            break;
         case ENTER_MANUAL_MODE:
             messageStrategy = new EnterManualStrategy();
             break;
@@ -318,6 +282,145 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case REBOOT:
             messageStrategy = new RebootStrategy();
+            break;
+        case GET_ROBOT_PARAMS:
+            messageStrategy = new GetRobotParamsStrategy();
+            break;
+        case SET_ROBOT_PARAMS:
+            messageStrategy = new SetRobotParamsStrategy();
+            break;
+        case GET_HOT_WIND_MODE:
+            messageStrategy = new GetHotWindModeStrategy();
+            break;
+        case SET_HOT_WIND_MODE:
+            messageStrategy = new SetHotWindModeStrategy();
+            break;
+
+        case MAP_OBSTACLES:
+            messageStrategy = new MapObstaclesStrategy();
+            break;
+        case MAP_FEASIBLE_ZONE:
+            messageStrategy = new MapFeasibleZoneStrategy();
+            break;
+        case MAP_APPLY_INCREASE_AREA:
+            messageStrategy = new MapApplyIncreaseArea();
+            break;
+
+        case SET_EXPLORER_ENERGY:
+            messageStrategy = new SetExplorerEnergyStrategy();
+            break;
+        case GET_EXPLORER_ENERGY:
+            messageStrategy = new GetExplorerEnergyStrategy();
+            break;
+        case AUTOMATIC_OILING:
+            messageStrategy = new AutomaticOilingStrategy();
+            break;
+
+        case ADD_TASK:
+            messageStrategy = new AddTaskStrategy();
+            break;
+        case DELETE_TASK:
+            messageStrategy = new DeleteTaskStrategy();
+            break;
+        case LIST_TASK:
+            messageStrategy = new ListTaskStrategy();
+            break;
+        case QUERY_ID_TASK:
+            messageStrategy = new QueryIdTaskStrategy();
+            break;
+
+        case BUILD_PRINCIPAL_TASK:
+            messageStrategy = new BuildPrincipalTaskStrategy();
+            break;
+        case CANCEL_PRINCIPAL_TASK:
+            messageStrategy = new CancelPrincipalTaskStrategy();
+            break;
+        case PRINCIPAL_TASK:
+            messageStrategy = new PrincipalTaskStrategy();
+            break;
+
+        case CLEAR_CURRENT_LIST_TASK:
+            messageStrategy = new ClearCurrentListTaskStrategy();
+            break;
+
+        case MODIFY_TASK_NAME:
+            messageStrategy = new ModifyTaskNameStrategy();
+            break;
+        case MODIFY_TASK_RATE:
+            messageStrategy = new ModifyTaskRateStrategy();
+            break;
+        case MODIFY_TASK_WORK_STATUS:
+            messageStrategy = new ModifyTaskWorkStatusStrategy();
+            break;
+        case MODIFY_TASK_KNIFE:
+            messageStrategy = new ModifyTaskKnifeStrategy();
+            break;
+        case OPERATE_ADD_ZONE:
+            messageStrategy = new OperateAddZoneStrategy();
+            break;
+        case OPERATE_DELETE_ZONE:
+            messageStrategy = new OperateDeleteZoneStrategy();
+            break;
+        case OPERATE_MODIFY_ZONE:
+            messageStrategy = new OperateModifyZoneStrategy();
+            break;
+        case MODIFY_TASK_PARTITION:
+            messageStrategy = new ModifyTaskPartitionStrategy();
+            break;
+        case OPERATE_ADD_SUBREGION:
+            messageStrategy = new OperateAddSubregionStrategy();
+            break;
+        case OPERATE_DELETE_SUBREGION:
+            messageStrategy = new OperateDeleteSubregionStrategy();
+            break;
+
+        case ADD_TIMER_TASK:
+            messageStrategy = new AddTimerTaskStrategy();
+            break;
+        case DELETE_TIMER_TASK:
+            messageStrategy = new DeleteTimerTaskStrategy();
+            break;
+        case LIST_TIMER_TASK:
+            messageStrategy = new ListTimerTaskStrategy();
+            break;
+        case MODIFY_TIMER_TASK:
+            messageStrategy = new ModifyTimerTaskStrategy();
+            break;
+        case MODIFY_TIMER_NAME:
+            messageStrategy = new ModifyTimerNameStrategy();
+            break;
+
+        case EXPLORATION_TASK:
+            messageStrategy = new ExplorationTaskStrategy();
+            break;
+        case PERFORM_TASK:
+            messageStrategy = new PerformTaskStrategy();
+            break;
+
+        case GET_CONSUMABLE:
+            messageStrategy = new GetConsumableStrategy();
+            break;
+        case RESET_CONSUMABLE:
+            messageStrategy = new ResetConsumableStrategy();
+            break;
+
+        case HOT_WIND_MODE:
+            messageStrategy = new HotWindModeStrategy();
+            break;
+        case HOT_WIND_MODE_STATUS:
+            messageStrategy = new HotWindModeStatusStrategy();
+            break;
+        case MAINTENANCE_MODE:
+            messageStrategy = new MaintenanceModeStrategy();
+            break;
+        case MAINTENANCE_MODE_STATUS:
+            messageStrategy = new MaintenanceModeStatusStrategy();
+            break;
+        case SET_BASE_STATION:
+            messageStrategy = new SetBaseStationStrategy();
+            break;
+        case GET_BASE_STATION:
+            messageStrategy = new GetBaseStationStrategy();
             break;
     }
     if (messageStrategy != nullptr) {

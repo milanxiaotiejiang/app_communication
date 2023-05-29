@@ -5,8 +5,11 @@
 #ifndef APP_COMMUNICATION_POINTPROGRESSVO_H
 #define APP_COMMUNICATION_POINTPROGRESSVO_H
 
-
 #include "model/WorkStatus.h"
+
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 class PointProgressVo {
 private:
@@ -18,14 +21,32 @@ private:
     int currentFrequency{};
     int totalFrequency{};
     WorkStatus work_status;
-    int m_mode;
+    int mode;
     bool is_cleaning;
+
+    std::string taskId;//运行中的任务ID
+
+    bool renew{false};//新旧任务标志位
+    std::string oldTaskId;//旧任务，有值就是CombinationID，没值就是全覆盖
+    long newTaskId{0};//新任务，可从数据库查找到的
+
 public:
-    PointProgressVo();
+    PointProgressVo() = default;
 
-    PointProgressVo(const std::string &id, float x, float y, int currentStep, int totalStep, int currentFrequency,
-                    int totalFrequency, const WorkStatus &workStatus, int mMode, bool isCleaning);
-
+    PointProgressVo(float x, float y, int currentStep, int totalStep, int currentFrequency,
+                    int totalFrequency, const WorkStatus &workStatus, int mode, bool isCleaning,
+                    const std::string &taskId, bool renew, const std::string &oldTaskId, long newTaskId) :
+            id(boost::uuids::to_string(boost::uuids::random_generator()())),
+            x(x), y(y),
+            currentStep(currentStep), totalStep(totalStep),
+            currentFrequency(currentFrequency), totalFrequency(totalFrequency),
+            work_status(workStatus),
+            mode(mode),
+            is_cleaning(isCleaning),
+            taskId(taskId),
+            renew(renew),
+            oldTaskId(oldTaskId),
+            newTaskId(newTaskId) {}
 
     friend void to_json(json &j, const PointProgressVo &vo) {
         j = json{
@@ -37,8 +58,12 @@ public:
                 {"currentFrequency", vo.currentFrequency},
                 {"totalFrequency",   vo.totalFrequency},
                 {"work_status",      vo.work_status},
-                {"mode",             vo.m_mode},
-                {"is_cleaning",      vo.is_cleaning}
+                {"mode",             vo.mode},
+                {"is_cleaning",      vo.is_cleaning},
+                {"task_id",          vo.taskId},
+                {"renew",            vo.renew},
+                {"old_task_id",      vo.oldTaskId},
+                {"new_task_id",      vo.newTaskId}
         };
     }
 
@@ -51,8 +76,12 @@ public:
         j.at("currentFrequency").get_to(vo.currentFrequency);
         j.at("totalFrequency").get_to(vo.totalFrequency);
         j.at("work_status").get_to(vo.work_status);
-        j.at("mode").get_to(vo.m_mode);
+        j.at("mode").get_to(vo.mode);
         j.at("is_cleaning").get_to(vo.is_cleaning);
+        j.at("task_id").get_to(vo.taskId);
+        j.at("renew").get_to(vo.renew);
+        j.at("old_task_id").get_to(vo.oldTaskId);
+        j.at("new_task_id").get_to(vo.newTaskId);
     }
 };
 

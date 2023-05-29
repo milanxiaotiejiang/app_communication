@@ -42,25 +42,29 @@ public:
     string handler(bool params) override;
 };
 
-class SelfCleanStrategy : public MessageStrategy<string, string> {
+class GetHotWindModeStrategy : public MessageStrategy<string, int> {
 public:
-    string handler(string params) override;
+    int handler(string params) override;
 };
 
-class OpenMachineDrawerStrategy : public MessageStrategy<string, string> {
+class SetHotWindModeStrategy : public MessageStrategy<int, int> {
 public:
-    string handler(string params) override;
+    int handler(int params) override;
 };
 
-class LightBeltModeStrategy : public MessageStrategy<int, string> {
+class AutomaticOilingStrategy : public MessageStringStrategy {
 public:
-    string handler(int params) override;
+    void handler() override;
 };
 
-class PlayerRecruitVoiceStrategy : public MessageStrategy<int, string> {
+class SetBaseStationStrategy : public MessageStrategy<bool, string> {
 public:
-    string handler(int params) override;
+    string handler(bool params) override;
 };
 
+class GetBaseStationStrategy : public MessageStrategy<string, bool> {
+public:
+    bool handler(string params) override;
+};
 
 #endif//APP_COMMUNICATION_DEVICESTRATEGY_H

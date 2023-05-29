@@ -9,6 +9,7 @@
 #include "task/point_generator.h"
 #include "BaseThrowable.h"
 #include "task/async_task_call.h"
+#include "db/SqliteDataBase.h"
 
 /**
  * 任务分发
@@ -18,14 +19,18 @@ private:
     AsyncTaskCall *asyncTaskCall;
 
     static std::shared_ptr<PointGenerator> pointGeneratorFactory(const RealTask &realTask) {
-        if (realTask.getMode() == 10) {
-            return std::make_shared<CoveragePointGenerator>(CoveragePointGenerator());
-        } else if (realTask.getMode() == 2) {
-            return std::make_shared<RectanglePointGenerator>(RectanglePointGenerator());
-        } else if (realTask.getMode() == 7) {
-            return std::make_shared<CombinationPointGenerator>(CombinationPointGenerator());
-        } else if (realTask.getMode() == 6) {
-            return std::make_shared<FullPointGenerator>(FullPointGenerator());
+        if (realTask.isRenew()) {
+            return std::make_shared<ExplorationGenerator>(ExplorationGenerator());
+        } else {
+            if (realTask.getMode() == 10) {
+                return std::make_shared<CoveragePointGenerator>(CoveragePointGenerator());
+            } else if (realTask.getMode() == 2) {
+                return std::make_shared<RectanglePointGenerator>(RectanglePointGenerator());
+            } else if (realTask.getMode() == 7) {
+                return std::make_shared<CombinationPointGenerator>(CombinationPointGenerator());
+            } else if (realTask.getMode() == 6) {
+                return std::make_shared<FullPointGenerator>(FullPointGenerator());
+            }
         }
         throw app::exception(make_error_code(error::task_mode_no_find));
     }

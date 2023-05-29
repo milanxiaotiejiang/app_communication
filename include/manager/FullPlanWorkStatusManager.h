@@ -8,7 +8,7 @@
 
 #include "model/WorkStatus.h"
 
-const std::string FULL_CLEANING_MODE = "/config/full_cleaning_mode.txt";
+const std::string FULL_CLEANING_MODE = "full_cleaning_mode.txt";
 
 class FullPlanWorkStatusManager {
 public:

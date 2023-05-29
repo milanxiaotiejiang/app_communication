@@ -5,7 +5,7 @@
 #ifndef APP_COMMUNICATION_ROOMVO_H
 #define APP_COMMUNICATION_ROOMVO_H
 
-#include <opencv2/core/types.hpp>
+#include <opencv2/opencv.hpp>
 #include "string"
 #include "vector"
 
@@ -29,6 +29,18 @@ public:
     int getY() const;
 
     void setY(int y);
+
+    bool operator==(const PointVo &rhs) const;
+
+    bool operator!=(const PointVo &rhs) const;
+
+    bool operator<(const PointVo &rhs) const;
+
+    bool operator>(const PointVo &rhs) const;
+
+    bool operator<=(const PointVo &rhs) const;
+
+    bool operator>=(const PointVo &rhs) const;
 
     friend void to_json(json &j, const PointVo &pointVo) {
         j = json{

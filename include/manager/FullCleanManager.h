@@ -8,6 +8,7 @@
 #include <ros/package.h>
 #include "tool/write_file.hpp"
 #include "model/FullClean.h"
+#include "db/path.h"
 
 class FullCleanManager {
 
@@ -23,8 +24,8 @@ private:
 
 public:
     FullCleanManager() {
-        m_filename.append(ros::package::getPath("data_base"));
-        m_filename.append("/config/fullclean_list_primcipal_json_work.txt");
+        m_filename.append(path::data_base_config_dir());
+        m_filename.append("fullclean_list_primcipal_json_work.txt");
         m_file_ptr = make_shared<sh::File>(m_filename);
     }
 

@@ -119,24 +119,24 @@ public:
         }
         std::cout << "\n";
 
-        std::cout
-                << "Distance matrix data ================================================================================================================================ ";
+//        std::cout
+//                << "Distance matrix data ================================================================================================================================ ";
+//
+//        for (int y = 0; y < distance_matrix.rows; y++) {
+//            for (int x = 0; x < distance_matrix.cols; x++) {
+//                const std::string &basicString = std::to_string((int) distance_matrix.at<double>(y, x));
+//                if (basicString.length() == 2) {
+//                    std::cout << " ";
+//                } else if (basicString.length() == 1) {
+//                    std::cout << "  ";
+//                }
+//                std::cout << basicString;
+//                std::cout << "  ";
+//            }
+//            std::cout << " " << std::endl;
+//        }
 
-        for (int y = 0; y < distance_matrix.rows; y++) {
-            for (int x = 0; x < distance_matrix.cols; x++) {
-                const std::string &basicString = std::to_string((int) distance_matrix.at<double>(y, x));
-                if (basicString.length() == 2) {
-                    std::cout << " ";
-                } else if (basicString.length() == 1) {
-                    std::cout << "  ";
-                }
-                std::cout << basicString;
-                std::cout << "  ";
-            }
-            std::cout << " " << std::endl;
-        }
-
-        LOG(INFO) << "Distance matrix created in " << tim.getElapsedTimeInMilliSec() << " ms";
+        LOG(INFO) << "Distance matrix created in " << (tim.getElapsedTimeInMilliSec() / 1000) << " s";
     }
 
     void cleanDistanceMatrix(const cv::Mat &distance_matrix, cv::Mat &distance_matrix_cleaned,

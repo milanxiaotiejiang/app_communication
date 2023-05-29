@@ -4,6 +4,8 @@
 
 #include "clean_history/CleanHistoryCenter.h"
 #include "model/InternalEvent.h"
+#include "db/SqliteDataBase.h"
+#include "db/property_data_base.h"
 
 namespace clean_history_db {
     bool CleanHistoryCenter::initialize() {
@@ -33,26 +35,42 @@ namespace clean_history_db {
         return true;
     }
 
-    bool CleanHistoryCenter::addCleanHistory(const Task &task) {
+    bool CleanHistoryCenter::addCleanHistory(const RealTask &task) {
         std::cout << "add clean history" << std::endl;
-        std::cout << "task id" << task.getTaskId() << std::endl;
+        std::cout << "task id " << task.getId() << std::endl;
         std::unique_lock<std::mutex> lock(history_update_mutex_);
         long launch_time;//记录时间
         time_t timep;
         time(&timep);
         launch_time = timep * 1000;//毫秒
         //根据当前任务生成一个CleanHistory
-        CleanHistory new_clean_history(task.getTaskId(), task.getMode(),
-                                       task.getRate(), task.getLaunchPeople(),
+        std::string launch_people = task.getLaunchPeople();
+        int mode = 0;
+        if (task.isRenew()) {
+            launch_people = task.getOnSource();
+            if (task.getMode() == 0) {
+                mode = 7;
+            } else if (task.getMode() == 1) {
+                mode = 6;
+            } else if (task.getMode() == 2) {
+                mode = 2;
+            } else if (task.getMode() == 3) {
+                mode = 3;
+            }
+        } else {
+            mode = task.getMode();
+        }
+        CleanHistory new_clean_history(task.getId(), mode,
+                                       task.getRate(), launch_people,
                                        task.getTimeMode(), launch_time);
         CleanHistoryDataBase::instance().addCleanHistory(new_clean_history);
 
         return true;
     }
 
-    bool CleanHistoryCenter::launchFailed(const Task &task, const app::exception &e) {
+    bool CleanHistoryCenter::launchFailed(const RealTask &task, const app::exception &e) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
-        CleanHistory history = CleanHistoryDataBase::instance().getCleanHistory(task.getTaskId());
+        CleanHistory history = CleanHistoryDataBase::instance().getCleanHistory(task.getId());
         //设置错误码
         std::tuple<int, std::string, std::string> error_pair = generateErrorMessageFromException(e);
         history.error_code_ = std::get<0>(error_pair);//待定
@@ -230,6 +248,8 @@ namespace clean_history_db {
                 return make_tuple(3180, "清水箱空，任务无法启动", "CCR_180");
             case error::dirty_water_level_check_failed:
                 return make_tuple(3181, "污水箱满，任务无法启动", "CCR_181");
+            case error::dispatcher_maintenance_mode:
+                return make_tuple(3182, "维护模式不能启动任务", "CCR_182");
             default:
                 std::string base_string = "CCR_";
                 std::string ex_string = to_string(100 + e.code().value());
@@ -251,8 +271,8 @@ namespace clean_history_db {
         history.disinfect_status_ = real_task.getWorkStatus().getDisinfectStatus();
         //更新遍数和点数
         if (!real_task.getPlanPoints().empty()) {
-            history.total_step_ = real_task.getPlanPoints().front().getRealProgress().totalStep;
-            history.total_frequency_ = real_task.getPlanPoints().front().getRealProgress().totalFrequency;
+            history.total_step_ = real_task.getTotalStep();
+            history.total_frequency_ = real_task.getTotalFrequency();
         }
         //更新历史纪录
         CleanHistoryDataBase::instance().updateHistory(history);
@@ -338,18 +358,22 @@ namespace clean_history_db {
         return true;
     }
 
-    bool CleanHistoryCenter::equipmentErrorBack(SpecialInfo mode) {
+    bool CleanHistoryCenter::equipmentErrorBack(
+            bool clean_water_level_check_failed_,
+            bool dirty_water_level_check_failed_,
+            bool motor_error_
+    ) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
         if (current_history_.task_id_.empty()) {
             return false;
         }
-        if (mode.clean_water_level_check_failed_) {
+        if (clean_water_level_check_failed_) {
             current_history_.oper_event_.push_back(internal_event::CLEAN_WATER_LEVEL_CHECK_FAILED);
         }
-        if (mode.dirty_water_level_check_failed_) {
+        if (dirty_water_level_check_failed_) {
             current_history_.oper_event_.push_back(internal_event::DIRTY_WATER_LEVEL_CHECK_FAILED);
         }
-        if (mode.motor_error_) {
+        if (motor_error_) {
             current_history_.oper_event_.push_back(internal_event::MOTOR_ERROR_RECOVERY_FAILED);
         }
         CleanHistoryDataBase::instance().updateHistory(current_history_);
@@ -408,10 +432,10 @@ namespace clean_history_db {
         current_time = timep * 1000;//毫秒
         current_history_.clean_time_ = (current_time - current_history_.execute_time_) / 1000 / 60;
         //更新点位执行情况
-        current_history_.current_frequency_ = real_point.getRealProgress().currentFrequency;
-        current_history_.current_step_ = real_point.getRealProgress().currentStep;
+        current_history_.current_frequency_ = real_point.realProgress.currentFrequency;
+        current_history_.current_step_ = real_point.realProgress.currentStep;
         //更新清洁面积
-        current_history_.clean_area_ += (abs((double) real_point.getRealError().timeout - 5.0) / 20 * 0.35);
+        current_history_.clean_area_ += (abs((double) real_point.timeout - 5.0) / 20 * 0.35);
         //更新到数据库
         CleanHistoryDataBase::instance().updateHistory(current_history_);
         return true;
@@ -439,7 +463,7 @@ namespace clean_history_db {
 
     bool CleanHistoryCenter::setRechargeRetries(int retries) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
-        if (!current_history_.task_id_.empty()) {
+        if (current_history_.task_id_.empty()) {
             return false;
         }
         current_history_.recharge_retries_ = retries;
@@ -450,7 +474,7 @@ namespace clean_history_db {
     //设置清洁机构关闭是否成功
     bool CleanHistoryCenter::setCloseMechanism(int state) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
-        if (!current_history_.task_id_.empty()) {
+        if (current_history_.task_id_.empty()) {
             return false;
         }
         current_history_.close_mechanism_ = state;
@@ -461,7 +485,7 @@ namespace clean_history_db {
     //设置清洁机构打开是否成功
     bool CleanHistoryCenter::setOpenMechanism(int state) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
-        if (!current_history_.task_id_.empty()) {
+        if (current_history_.task_id_.empty()) {
             return false;
         }
         current_history_.open_mechanism_ = state;
@@ -501,9 +525,31 @@ namespace clean_history_db {
         }
         CleanHistoryDataBase::instance().updateHistory(current_history_);
 
+        long cleanTime = (current_history_.end_time_ - current_history_.execute_time_) / 1000;
+        WorkStatus workStatus(
+                current_history_.sweep_status_,
+                current_history_.mop_status_,
+                current_history_.vacuum_status_,
+                current_history_.push_status_,
+                current_history_.aromatherapy_status_,
+                current_history_.disinfect_status_
+        );
+        updateProperty(workStatus, cleanTime);
+
         CleanHistory default_history;
         current_history_ = default_history;
         return true;
+    }
+
+    void CleanHistoryCenter::updateProperty(const WorkStatus &workStatus, long cleanTime) {
+        PropertyDataBase::instance().updateConsumable(
+                workStatus.getSweepStatus() > 0 ? cleanTime : 0,
+                workStatus.getMopStatus() > 0 ? cleanTime : 0,
+                workStatus.getVacuumStatus() > 0 ? cleanTime : 0,
+                workStatus.getPushStatus() > 0 ? cleanTime : 0,
+                workStatus.getAromatherapyStatus() > 0 ? cleanTime : 0,
+                workStatus.getDisinfectStatus() > 0 ? cleanTime : 0
+        );
     }
 
     //错误结束当前任务
@@ -529,6 +575,39 @@ namespace clean_history_db {
         return true;
     }
 
+    bool CleanHistoryCenter::successComplete(int error_code, std::string error_string, std::string error_code2) {
+        std::unique_lock<std::mutex> lock(history_update_mutex_);
+        if (current_history_.task_id_.empty()) {
+            return false;
+        }
+        long end_time;
+        time_t timep;
+        time(&timep);
+        end_time = timep * 1000;//毫秒
+        current_history_.end_time_ = end_time;
+        current_history_.history_state_ = history_state::done;
+        current_history_.error_code_ = error_code;
+        current_history_.error_msg_ = error_string;
+        current_history_.error_code2_ = error_code2;
+
+        CleanHistoryDataBase::instance().updateHistory(current_history_);
+
+        long cleanTime = (current_history_.end_time_ - current_history_.execute_time_) / 1000;
+        WorkStatus workStatus(
+                current_history_.sweep_status_,
+                current_history_.mop_status_,
+                current_history_.vacuum_status_,
+                current_history_.push_status_,
+                current_history_.aromatherapy_status_,
+                current_history_.disinfect_status_
+        );
+        updateProperty(workStatus, cleanTime);
+
+        CleanHistory default_history;
+        current_history_ = default_history;
+        return true;
+    }
+
     bool CleanHistoryCenter::laserInterrupt() {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
         if (current_history_.task_id_.empty()) {
@@ -546,6 +625,17 @@ namespace clean_history_db {
         current_history_.error_code2_ = "CCR_219";
 
         CleanHistoryDataBase::instance().updateHistory(current_history_);
+
+        long cleanTime = (current_history_.end_time_ - current_history_.execute_time_) / 1000;
+        WorkStatus workStatus(
+                current_history_.sweep_status_,
+                current_history_.mop_status_,
+                current_history_.vacuum_status_,
+                current_history_.push_status_,
+                current_history_.aromatherapy_status_,
+                current_history_.disinfect_status_
+        );
+        updateProperty(workStatus, cleanTime);
 
         CleanHistory default_history;
         current_history_ = default_history;
@@ -570,6 +660,17 @@ namespace clean_history_db {
 
         CleanHistoryDataBase::instance().updateHistory(current_history_);
 
+        long cleanTime = (current_history_.end_time_ - current_history_.execute_time_) / 1000;
+        WorkStatus workStatus(
+                current_history_.sweep_status_,
+                current_history_.mop_status_,
+                current_history_.vacuum_status_,
+                current_history_.push_status_,
+                current_history_.aromatherapy_status_,
+                current_history_.disinfect_status_
+        );
+        updateProperty(workStatus, cleanTime);
+
         CleanHistory default_history;
         current_history_ = default_history;
         return true;
@@ -592,6 +693,17 @@ namespace clean_history_db {
 
         CleanHistoryDataBase::instance().updateHistory(current_history_);
 
+        long cleanTime = (current_history_.end_time_ - current_history_.execute_time_) / 1000;
+        WorkStatus workStatus(
+                current_history_.sweep_status_,
+                current_history_.mop_status_,
+                current_history_.vacuum_status_,
+                current_history_.push_status_,
+                current_history_.aromatherapy_status_,
+                current_history_.disinfect_status_
+        );
+        updateProperty(workStatus, cleanTime);
+
         CleanHistory default_history;
         current_history_ = default_history;
         return true;
@@ -613,10 +725,10 @@ namespace clean_history_db {
                 return make_tuple(3304, "转场时被关机", "CCR_304");
             case event::flow::cleaning_mechanism_ready:
                 return make_tuple(3305, "转场时被关机", "CCR_305");
-            case event::flow::again_move_to_start_point:
-                return make_tuple(3307, "转场时被关机", "CCR_307");
-            case event::flow::again_prepare_cleaning_mechanism:
-                return make_tuple(3308, "转场时被关机", "CCR_308");
+//            case event::flow::again_move_to_start_point:
+//                return make_tuple(3307, "转场时被关机", "CCR_307");
+//            case event::flow::again_prepare_cleaning_mechanism:
+//                return make_tuple(3308, "转场时被关机", "CCR_308");
             case event::flow::flowing_water_production:
                 return make_tuple(3306, "清洁时被关机", "CCR_306");
             case event::flow::flowing_water_execution_completed:
@@ -629,38 +741,38 @@ namespace clean_history_db {
                 return make_tuple(3312, "自动返回基站时被关机", "CCR_312");
             case event::flow::arrive_base_station_success:
                 return make_tuple(3313, "自动返回基站时被关机", "CCR_313");
-            case event::flow::manual_over_and_move_base_point:
-                return make_tuple(3314, "手动返回基站时被关机", "CCR_314");
-            case event::flow::manual_back_try_move_base_point:
-                return make_tuple(3315, "手动返回基站时被关机", "CCR_315");
-            case event::flow::manual_base_point_and_close_mechanism:
-                return make_tuple(3316, "手动返回基站时被关机", "CCR_316");
-            case event::flow::manual_mechanism_close_and_charging:
-                return make_tuple(3317, "手动返回基站时被关机", "CCR_317");
-            case event::flow::manual_over_success:
-                return make_tuple(3318, "手动返回基站时被关机", "CCR_318");
-            case event::flow::manual_task_pause:
-                return make_tuple(3319, "手动暂停后被关机", "CCR_319");
-            case event::flow::force_over_and_move_base_point:
-                return make_tuple(3320, "强制返回基站时被关机", "CCR_320");
-            case event::flow::force_back_try_move_base_point:
-                return make_tuple(3321, "强制返回基站时被关机", "CCR_321");
-            case event::flow::force_base_point_and_close_mechanism:
-                return make_tuple(3322, "强制返回基站时被关机", "CCR_322");
-            case event::flow::force_mechanism_close_and_charging:
-                return make_tuple(3323, "强制返回基站时被关机", "CCR_323");
-            case event::flow::force_over_success:
-                return make_tuple(3324, "强制返回基站时被关机", "CCR_324");
-            case event::flow::urgency_stop_pause:
-                return make_tuple(3325, "急停时被关机", "CCR_325");
-            case event::flow::manual_control_over_and_move_base_point:
-                return make_tuple(3326, "手动返回基站时被关机", "CCR_326");
-            case event::flow::manual_control_back_try_move_base_point:
-                return make_tuple(3327, "手动返回基站时被关机", "CCR_327");
-            case event::flow::manual_control_base_point_and_charging:
-                return make_tuple(3328, "手动返回基站时被关机", "CCR_328");
-            case event::flow::manual_control_over_success:
-                return make_tuple(3329, "手动返回基站时被关机", "CCR_329");
+//            case event::flow::manual_over_and_move_base_point:
+//                return make_tuple(3314, "手动返回基站时被关机", "CCR_314");
+//            case event::flow::manual_back_try_move_base_point:
+//                return make_tuple(3315, "手动返回基站时被关机", "CCR_315");
+//            case event::flow::manual_base_point_and_close_mechanism:
+//                return make_tuple(3316, "手动返回基站时被关机", "CCR_316");
+//            case event::flow::manual_mechanism_close_and_charging:
+//                return make_tuple(3317, "手动返回基站时被关机", "CCR_317");
+//            case event::flow::manual_over_success:
+//                return make_tuple(3318, "手动返回基站时被关机", "CCR_318");
+//            case event::flow::manual_task_pause:
+//                return make_tuple(3319, "手动暂停后被关机", "CCR_319");
+//            case event::flow::force_over_and_move_base_point:
+//                return make_tuple(3320, "强制返回基站时被关机", "CCR_320");
+//            case event::flow::force_back_try_move_base_point:
+//                return make_tuple(3321, "强制返回基站时被关机", "CCR_321");
+//            case event::flow::force_base_point_and_close_mechanism:
+//                return make_tuple(3322, "强制返回基站时被关机", "CCR_322");
+//            case event::flow::force_mechanism_close_and_charging:
+//                return make_tuple(3323, "强制返回基站时被关机", "CCR_323");
+//            case event::flow::force_over_success:
+//                return make_tuple(3324, "强制返回基站时被关机", "CCR_324");
+//            case event::flow::force_task_pause:
+//                return make_tuple(3325, "急停时被关机", "CCR_325");
+//            case event::flow::manual_control_over_and_move_base_point:
+//                return make_tuple(3326, "手动返回基站时被关机", "CCR_326");
+//            case event::flow::manual_control_back_try_move_base_point:
+//                return make_tuple(3327, "手动返回基站时被关机", "CCR_327");
+//            case event::flow::manual_control_base_point_and_charging:
+//                return make_tuple(3328, "手动返回基站时被关机", "CCR_328");
+//            case event::flow::manual_control_over_success:
+//                return make_tuple(3329, "手动返回基站时被关机", "CCR_329");
             case event::flow::hardware_interrupt_task:
                 return make_tuple(3330, "硬件出错后被关机", "CCR_330");
             case event::flow::software_interrupt_task:

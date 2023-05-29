@@ -3,11 +3,11 @@
 //
 
 #include "sub/json/NoticeStrategy.h"
+#include "db/path.h"
 
 vector<Notice> NoticeListStrategy::handler(string params) {
-    std::string basePath = ros::package::getPath("data_base") + "/config/";
     std::string noticeFilePath;
-    noticeFilePath.append(basePath);
+    noticeFilePath.append(path::data_base_config_dir());
     noticeFilePath.append("notice.txt");
 
     std::string content;

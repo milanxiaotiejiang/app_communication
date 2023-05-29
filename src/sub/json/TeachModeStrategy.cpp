@@ -16,8 +16,8 @@ string StopTeachModeStrategy::handler(ClossTeachMode params) {
         bool can_save = true;//判断是否能保存
         string fileName;
         string sss;
-        fileName.append(ros::package::getPath("data_base"));
-        fileName.append("/config/teach_point_json.txt");
+        fileName.append(path::data_base_config_dir());
+        fileName.append("teach_point_json.txt");
         std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
         if (fff->open(std::ios::in)) {//打开成功
             sss = fff->readAll();
@@ -68,8 +68,8 @@ string HeartBeatofTeachModeStrategy::handler(string params) {
 vector<ResponseGetTeachTask> GetTeachModeListStrategy::handler(string params) {
     string fileName;
     string sss;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/teach_point_json.txt");
+    fileName.append(path::data_base_config_dir());
+    fileName.append("teach_point_json.txt");
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
     if (fff->open(std::ios::in)) {
         sss = fff->readAll();
@@ -100,8 +100,8 @@ vector<ResponseGetTeachTask> GetTeachModeListStrategy::handler(string params) {
 vector<Point> GetTeachModeDetialStrategy::handler(string params) {
     string fileName;
     string sss;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/teach_point_json.txt");
+    fileName.append(path::data_base_config_dir());
+    fileName.append("teach_point_json.txt");
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
     if (fff->open(std::ios::in)) {
         sss = fff->readAll();
@@ -183,8 +183,8 @@ string DeleteTeachModeStrategy::handler(vector<string> params) {
     //读文件
     string fileName;
     string sss;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/teach_point_json.txt");
+    fileName.append(path::data_base_config_dir());
+    fileName.append("teach_point_json.txt");
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
     if (fff->open(std::ios::in)) {
         sss = fff->readAll();

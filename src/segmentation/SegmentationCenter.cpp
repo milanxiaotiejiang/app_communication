@@ -12,10 +12,12 @@
 #include "BaseThrowable.h"
 #include "exploration/ExplorationCenter.h"
 #include "simulation.h"
+#include "db/task_data_base.h"
+#include "exploration/cv_extend.h"
 
 static bool DEBUG_DISPLAYS_SHOW = false;
 
-bool SegmentationCenter::detectionTooSmallRoom(const cv::Mat &segmented_map, Room room, PlanPo plan) const {
+bool SegmentationCenter::detectionTooSmallRoom(const cv::Mat &segmented_map, Room room, const PlanPo &plan) const {
     auto room_map = segmented_map.clone();
     cv::Mat zero_map = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
     cv::drawContours(zero_map, std::vector<std::vector<cv::Point> >(1, room.getMembers()),
@@ -28,7 +30,7 @@ bool SegmentationCenter::detectionTooSmallRoom(const cv::Mat &segmented_map, Roo
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
     int map_prohibition_expand_size_ = (int) std::floor(grid_spacing_in_pixel);
 
-    cv::erode(zero_map, compute_map, cv::Mat(), cv::Point(-1, -1), map_prohibition_expand_size_);
+    explorationErode(zero_map, compute_map, map_prohibition_expand_size_);
 
     cv::Mat room_map_int(room_map.rows, room_map.cols, CV_32SC1);
     for (int v = 0; v < compute_map.rows; ++v) {
@@ -57,7 +59,7 @@ bool SegmentationCenter::detectionTooSmallRoom(const cv::Mat &segmented_map, Roo
     return !area_to_label_map.empty();
 }
 
-bool SegmentationCenter::pointInRoom(const cv::Mat &segmented_map, Room room, cv::Point point) const {
+bool SegmentationCenter::pointInRoom(const cv::Mat &segmented_map, Room room, const cv::Point &point) const {
     cv::Mat zero_map = cv::Mat::zeros(segmented_map.rows, segmented_map.cols, CV_8UC1);
     cv::drawContours(zero_map, std::vector<std::vector<cv::Point> >(1, room.getMembers()),
                      -1, cv::Scalar(255), CV_FILLED);
@@ -95,14 +97,10 @@ bool SegmentationCenter::lineThroughRoom(const cv::Mat &segmented_map, Room room
     return or_member_size > 0;
 }
 
-void SegmentationCenter::initialize() {
+void SegmentationCenter::initialize(const ros::NodeHandle &handle) {
     ros::Time::init();
     // 1.加载需要的地图的信息（仅地图信息）
-    initialize_finish = SegmentationDataBase::instance().loadMap();
-    if (!initialize_finish) {
-        LOG(ERROR) << "data DB Map load fail !";
-        return;
-    }
+    // MapControl::instance().initialize()
     // 2.根据地图的信息检查分区地图的数据完整性
     if (!checkPartition()) {
         resetSegmentation();
@@ -115,6 +113,8 @@ void SegmentationCenter::initialize() {
     MapAttribute::instance().loadPenaltyZone();
     // 6.加载参数
     MapAttribute::instance().loadPlanParam();
+
+    segmentationSubscribe = new SegmentationSubscribe(handle);
 
     // test
 //    resetSegmentation();
@@ -145,9 +145,8 @@ void SegmentationCenter::resetSegmentation() {
     auto dbMap = SegmentationDataBase::instance().getDbMap();
     SegmentationDataBase::instance().removeAllRoom(dbMap.id);
 
-    auto segmentationPgmPath = dbMap.path + SEGMENTATION_MB + dbMap.id;
-    if (access(segmentationPgmPath.c_str(), F_OK) == 0) {//存在
-        std::remove(segmentationPgmPath.c_str());
+    if (access(path::map_segmentation_path().c_str(), F_OK) == 0) {//存在
+        std::remove(path::map_segmentation_path().c_str());
     }
 }
 
@@ -155,6 +154,9 @@ void SegmentationCenter::originalSegmentation(cv::Mat &segmented_map, std::vecto
                                               const cv::Point &ps, const cv::Point &pe) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
     // 1.加载原始地图
     cv::Mat map = generateMat();
@@ -200,7 +202,7 @@ void SegmentationCenter::originalSegmentation(cv::Mat &segmented_map, std::vecto
     for (int y = 0; y < map.rows; y++) {
         for (int x = 0; x < map.cols; x++) {
             if (map.at<unsigned char>(y, x) == 255) {
-                new_members.push_back(cv::Point(x, y));
+                new_members.emplace_back(x, y);
             }
         }
     }
@@ -222,6 +224,9 @@ void SegmentationCenter::handSegmentation(cv::Mat &segmented_map, std::vector<Ro
                                           const cv::Point &ps, const cv::Point &pe) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
     if (target_index < 0 || target_index >= rooms.size()) {
         throw app::exception(make_error_code(error::room_array_out_of_bounds));
@@ -325,6 +330,9 @@ void SegmentationCenter::mergeRoom(cv::Mat &segmented_map, std::vector<Room> &ro
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
     if (target_index < 0 || target_index >= rooms.size() ||
         room_to_merge_index < 0 || room_to_merge_index >= rooms.size()) {
         throw app::exception(make_error_code(error::room_array_out_of_bounds));
@@ -385,7 +393,7 @@ void SegmentationCenter::mergeRoom(cv::Mat &segmented_map, std::vector<Room> &ro
         whole_display(segmented_map, rooms, "mergeRoom");
 }
 
-void SegmentationCenter::reRoomName(int targetId, std::string name) {
+void SegmentationCenter::reRoomName(int targetId, const std::string &name) {
     SegmentationDataBase::instance().reRoomName(targetId, name);
 }
 
@@ -393,12 +401,19 @@ void SegmentationCenter::memory2Storage(cv::Mat &segmented_map, std::vector<Room
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
     SegmentationDataBase::instance().memory2Storage(segmented_map, rooms);
+    ExplorationCenter::instance().repaintSubregionPath();
 }
 
 void SegmentationCenter::storage2Memory(cv::Mat &segmented_map, std::vector<Room> &rooms) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
     SegmentationDataBase::instance().storage2Memory(segmented_map, rooms, map_resolution_from_subscription);
 
@@ -409,6 +424,9 @@ void SegmentationCenter::storage2Memory(cv::Mat &segmented_map, std::vector<Room
 void SegmentationCenter::automaticSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttribute::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
     }
 
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
@@ -433,11 +451,11 @@ void SegmentationCenter::automaticSegmentation(cv::Mat &segmented_map, std::vect
 
 }
 
-cv::Mat SegmentationCenter::choiceOneRoom(cv::Mat &segmented_map, std::vector<Room> &rooms, int targetId) {
+cv::Mat SegmentationCenter::choiceOneRoom(cv::Mat &segmented_map, std::vector<Room> &rooms, long targetId) {
     int targetIndex = -1;
     for (int i = 0; i < rooms.size(); ++i) {
         auto room = rooms[i];
-        if (room.getID() == targetId) {
+        if (room.getDbId() == targetId) {
             targetIndex = i;
         }
     }
@@ -458,8 +476,7 @@ cv::Mat SegmentationCenter::choiceOneRoom(cv::Mat &segmented_map, std::vector<Ro
 
 cv::Mat SegmentationCenter::generateMat() const {
     auto dbMap = SegmentationDataBase::instance().getDbMap();
-    std::string image_filename = dbMap.path + dbMap.name;//"sim_mymap.pgm";
-    cv::Mat map = cv::imread(image_filename.c_str(), cv::ImreadModes::IMREAD_GRAYSCALE);
+    cv::Mat map = cv::imread(path::map_pgm_path().c_str(), cv::ImreadModes::IMREAD_GRAYSCALE);
 
     cv::normalize(map, map, 0, 255, cv::NORM_MINMAX);
 //    map.convertTo(map, CV_8U);
@@ -469,8 +486,10 @@ cv::Mat SegmentationCenter::generateMat() const {
     //map中只包含 0 / 255
     for (int y = 0; y < map.rows; y++) {
         for (int x = 0; x < map.cols; x++) {
-            if (map.at<unsigned char>(y, x) != 255) {
+            if (map.at<unsigned char>(y, x) < 254) {
                 map.at<unsigned char>(y, x) = 0;
+            } else {
+                map.at<unsigned char>(y, x) = 255;
             }
         }
     }
@@ -479,14 +498,17 @@ cv::Mat SegmentationCenter::generateMat() const {
     auto cols = map.cols;//width
     auto rows = map.rows;//height
 
+    const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    drawBaseStation(map, stationPoint, plan.range_near_base_station, cv::Scalar(255));
+
     return map;
 }
 
 bool SegmentationCenter::checkPartition() const {
     auto dbMap = SegmentationDataBase::instance().getDbMap();
-    auto segmentationPgmPath = dbMap.path + SEGMENTATION_MB + dbMap.id;
-    if (access(segmentationPgmPath.c_str(), F_OK) == 0) {
-        auto roomList = SegmentationDataBase::instance().selectByMapId(dbMap.id);
+    if (access(path::map_segmentation_path().c_str(), F_OK) == 0) {
+        auto roomList = SegmentationDataBase::instance().selectRoomByMapId(dbMap.id);
         if (roomList.empty()) {
             return false;
         }
@@ -506,13 +528,18 @@ bool SegmentationCenter::checkPartition() const {
     }
 }
 
-MapRoomVo SegmentationCenter::toVoRoom(cv::Mat &segmented_map, std::vector<Room> &rooms) const {
+MapRoomVo SegmentationCenter::resultMapRoomVo() const {
+
+    cv::Mat segmented_map;
+    std::vector<Room> rooms;
+    SegmentationCenter::instance().storage2Memory(segmented_map, rooms);
+
     std::vector<RoomVo> roomVos;
     for (auto &item: rooms) {
         std::vector<PointVo> memberPoints;
         auto members = item.getMembers();
         for (const auto &member: members) {
-            memberPoints.push_back(PointVo(member.x, member.y));
+            memberPoints.emplace_back(member.x, member.y);
         }
 
         std::vector<int> neighborRoomIds;
@@ -521,11 +548,11 @@ MapRoomVo SegmentationCenter::toVoRoom(cv::Mat &segmented_map, std::vector<Room>
             neighborRoomIds.push_back(neighbor);
         }
         auto center = item.getCenter();
-        RoomVo roomVo(item.getID(), item.getName(),
+        RoomVo roomVo(item.getDbId(), item.getName(),
                       PointVo(center.x, center.y), memberPoints, neighborRoomIds,
                       item.getArea(), item.getPerimeter());
         roomVos.push_back(roomVo);
     }
+
     return MapRoomVo(segmented_map.cols, segmented_map.rows, roomVos);
 }
-

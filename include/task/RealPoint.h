@@ -16,7 +16,7 @@ public:
     double y;
     double z;
 
-    RealPosition() {}
+    RealPosition() = default;
 
     RealPosition(double x, double y, double z) : x(x), y(y), z(z) {}
 
@@ -33,6 +33,8 @@ public:
     double z;
     double w;
 
+    RealOrientation() = default;
+
     RealOrientation(double x, double y, double z, double w) : x(x), y(y), z(z), w(w) {}
 
     friend std::ostream &operator<<(std::ostream &os, const RealOrientation &orientation) {
@@ -47,6 +49,8 @@ public:
     int totalStep;
     int currentFrequency;
     int totalFrequency;
+
+    RealProgress() = default;
 
     RealProgress(int currentStep, int totalStep, int currentFrequency, int totalFrequency) : currentStep(currentStep),
                                                                                              totalStep(totalStep),
@@ -64,115 +68,54 @@ public:
 
 class RealError {
 public:
-    bool arrive;
-    std::string error_msg;
-    int timeout = 0;
+    int errorCode{};
+    std::string errorMessage;
 
-    RealError(bool arrive, const std::string &errorMsg) : arrive(arrive), error_msg(errorMsg) {}
+    RealError() = default;
 
-
+    RealError(int errorCode, const std::string &errorMessage) : errorCode(errorCode), errorMessage(errorMessage) {}
 };
 
-class SpecialInfo {
-public:
-    bool clean_water_level_check_failed_{false};
-    bool dirty_water_level_check_failed_{false};
-    bool motor_error_{false};
-};
+//class SpecialInfo {
+//public:
+//    bool clean_water_level_check_failed_{false};
+//    bool dirty_water_level_check_failed_{false};
+//    bool motor_error_{false};
+//
+//    SpecialInfo() = default;
+//};
 
 class RealPoint {
 public:
-    int id{};
-    std::string task_id{};
-    int mode;
-    bool inClean;
-    RealPosition realPosition{0, 0, 0};
-    RealOrientation realOrientation{0, 0, 0, 0};
-    RealProgress realProgress{0, 0, 0, 0};
-    WorkStatus work_status;
-    RealError realError{false, ""};
-    SpecialInfo specialInfo;
+    int id{0};//序列点位ID，一般按排序顺序设置
+    std::string taskId;//运行中的任务ID
 
-    RealPoint() {}
+    bool arrive{false};//当前点为是否达到指定目标
+    int timeout = 0;//运行中超时时间
 
-    RealPoint(int id, const std::string &taskId, int mode, WorkStatus work_status) : id(id), task_id(taskId),
-                                                                                     mode(mode),
-                                                                                     work_status(work_status) {}
+    bool renew{false};//新旧任务标志位
+    std::string oldTaskId;//旧任务，有值就是CombinationID，没值就是全覆盖
+    long newTaskId{0};//新任务，可从数据库查找到的
 
-    int getId() const {
-        return id;
-    }
+    std::string name;//任务名称
+    int rate{1};//任务次数
+    int mode{};//任何模式，注意新旧的区分
 
-    void setId(int id) {
-        RealPoint::id = id;
-    }
+    bool knife{false};//风刀开关
 
-    const std::string &getTaskId() const {
-        return task_id;
-    }
+    RealPosition realPosition{0, 0, 0};//geometry_msgs::PoseStamped pose 的 position
+    RealOrientation realOrientation{0, 0, 0, 0};//geometry_msgs::PoseStamped pose 的 orientation
+    RealProgress realProgress{0, 0, 0, 0};//进度控制，由全覆盖路径和次数 rate 生成
+    RealError realError{0, ""};//错误处理，int 类型的 code，string 类型的 message
 
-    void setTaskId(const std::string &taskId) {
-        task_id = taskId;
-    }
+    WorkStatus work_status;//清洁模式状态，应当和风刀 knife 并行
+    bool inClean{false};//未知
 
-    int getMode() const {
-        return mode;
-    }
+    RealPoint() = default;
 
-    void setMode(int mode) {
-        RealPoint::mode = mode;
-    }
-
-    bool isInClean() const {
-        return inClean;
-    }
-
-    void setInClean(bool inClean) {
-        RealPoint::inClean = inClean;
-    }
-
-    const RealPosition &getRealPosition() const {
-        return realPosition;
-    }
-
-    void setRealPosition(const RealPosition &realPosition) {
-        RealPoint::realPosition = realPosition;
-    }
-
-    const RealOrientation &getRealOrientation() const {
-        return realOrientation;
-    }
-
-    void setRealOrientation(const RealOrientation &realOrientation) {
-        RealPoint::realOrientation = realOrientation;
-    }
-
-    const RealProgress &getRealProgress() const {
-        return realProgress;
-    }
-
-    void setRealProgress(const RealProgress &realProgress) {
-        RealPoint::realProgress = realProgress;
-    }
-
-    const WorkStatus &getWorkStatus() const {
-        return work_status;
-    }
-
-    void setWorkStatus(const WorkStatus &workStatus) {
-        work_status = workStatus;
-    }
-
-    const RealError &getRealError() const {
-        return realError;
-    }
-
-    const SpecialInfo &getSpecialInfo() const {
-        return specialInfo;
-    }
-
-    void setRealError(const RealError &realError) {
-        RealPoint::realError = realError;
+    friend std::ostream &operator<<(std::ostream &os, const RealPoint &point) {
+        os << "id: " << point.id << " realProgress: " << point.realProgress;
+        return os;
     }
 };
 

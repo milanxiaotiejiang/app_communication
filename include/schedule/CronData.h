@@ -70,8 +70,9 @@ namespace croncpp {
         template<typename T>
         static std::string &replace_string_name_with_numeric(std::string &s);
 
-    private:
         void parse(const std::string &cron_expression);
+
+    private:
 
         template<typename T>
         bool validate_numeric(const std::string &s, std::set<T> &numbers);

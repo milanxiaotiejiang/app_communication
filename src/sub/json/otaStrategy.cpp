@@ -170,7 +170,7 @@ int otaStrategy::handlePad(OtaInfo &params) {
     for (int i = 0; i < 10; i++) {
         ros::Duration(2).sleep();
         LOG(INFO) << "Send notice to pad:" << noticeFile << "  " << i;
-        NoticeManager::get_instance()->sendNotice(6666, noticeTime, noticeFile, params.getota_desc(),
+        NoticeManager::instance().sendNotice(6666, noticeTime, noticeFile, params.getota_desc(),
                                                   filename); //文件名传递给pad
     }
     return result;
@@ -209,6 +209,6 @@ int otaStrategy::handleEcu(OtaInfo &params) {
     path.data = ecu_ota_folder + ecu_path.substr(found + 1, ecu_path.length() - found);
     path.data = ecu_ota_folder + ecu_path.substr(found + 1, ecu_path.length() - found - 5) + ".rbl";
     LOG(INFO) << "Notify driver ecu ota start:" << ecu_path.substr(found + 1, ecu_path.length() - found) << "  ";
-    PublishInnerManager::instance().getPubInner()->publishOtaLow(path); //发给下位机
+    PublishInnerManager::instance().publishOtaLow(path); //发给下位机
     return 0;
 }

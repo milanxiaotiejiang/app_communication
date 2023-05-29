@@ -6,7 +6,7 @@
 
 MapInfo::MapInfo() {}
 
-MapInfo::MapInfo(int mapId, const std::string &mapName) : map_id(mapId), map_name(mapName) {}
+MapInfo::MapInfo(const std::string &id, const std::string &mapName) : id(id), map_name(mapName) {}
 
 MapInfo::~MapInfo() {
 
@@ -26,4 +26,12 @@ const std::string &MapInfo::getMapName() const {
 
 void MapInfo::setMapName(const std::string &mapName) {
     map_name = mapName;
+}
+
+const std::string &MapInfo::getId() const {
+    return id;
+}
+
+void MapInfo::setId(const std::string &id) {
+    MapInfo::id = id;
 }

@@ -7,10 +7,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "pub/PubInner.h"
-#include "pub/PubOut.h"
-
-#include "model/BaseResult.h"
+#include "net/base/BaseResult.h"
 #include "model/Location.h"
 #include "MessageStrategy.h"
 

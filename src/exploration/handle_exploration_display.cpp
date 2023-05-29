@@ -54,6 +54,12 @@ void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origi
     }
     cv::imshow(winname, fov_path_map);
     cv::waitKey();
+
+//    const std::string &basicString = path::robot_slam_map_path();
+//    auto uuid = boost::uuids::to_string(boost::uuids::random_generator()());
+//    auto randomPngPath = basicString + uuid + ".png";
+//    auto depth = fov_path_map.clone();
+//    CvUtils::savePng(randomPngPath, depth);
 }
 
 void planning_point_path_display(const cv::Mat &map, std::vector<cv::Point> point_path, float resize,
@@ -205,10 +211,9 @@ void save_planning_point_segmentation_path(const cv::Mat &map, cv::Mat segmented
 
         }
     }
-    const std::string &basicString = ros::package::getPath("robot_slam") + "/maps/";
 
     auto uuid = boost::uuids::to_string(boost::uuids::random_generator()());
-    auto randomPngPath = basicString + uuid + ".png";
+    auto randomPngPath = path::robot_slam_map_dir() + uuid + ".png";
     auto depth = segmented_map.clone();
     CvUtils::savePng(randomPngPath, depth);
 }

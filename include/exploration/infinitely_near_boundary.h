@@ -16,8 +16,6 @@ private:
     void transformPointPathToPosePath(const std::vector<cv::Point2f> &point_path,
                                       std::vector<geometry_msgs::Pose2D> &pose_path);
 
-    void optimizePathColumn(std::vector<geometry_msgs::Pose2D> &vector);
-
 public:
     void getExplorationPath(const cv::Mat &original_map,
                             const cv::Mat &room_map,

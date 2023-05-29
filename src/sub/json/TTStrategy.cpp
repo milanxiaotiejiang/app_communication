@@ -3,30 +3,11 @@
 //
 
 #include "sub/json/TTStrategy.h"
-
-string AppAlongCleanStrategy::handler(vector<float> params) {
-    //发布贴边命令
-    geometry_msgs::Twist clean_msg;//用于发布贴边消息
-    clean_msg.linear.x = params[0];//存放目标起点坐标
-    clean_msg.linear.y = params[1];
-    clean_msg.angular.x = params[2];//存放x
-    clean_msg.angular.y = params[3];//存放y
-    clean_msg.angular.z = 4.0;//4.0表示贴边模式，3.0 表示全覆盖，2.0表示工作，1表示返回基站，0表示停止
-    clean_msg.linear.z = 1.0;//表示工作状态
-
-    ROS_INFO("start point:%f,%f    end point:%f,%f ", clean_msg.linear.x, clean_msg.linear.y,
-             clean_msg.angular.x, clean_msg.angular.y);
-    return "";
-}
-
-string PowerReductionStrategy::handler(string params) {
-    NoticeManager::get_instance()->setPlannerType(NoticeManager::get_instance()->getPlannerType() + 1);
-    return "";
-}
+#include "tool/DangerousThreadPool.h"
 
 string TTErrorCheck::handler(string params) {
-    extern ThreadPool pool;
-    auto pythonFun = []() {
+    DangerousThreadPool dangerousThreadPool(1);
+    dangerousThreadPool.enqueue([]() {
 //        Py_Initialize();
 //        PyRun_SimpleString("PyRun_SimpleString");
 //        PyRun_SimpleString("import sys");
@@ -50,8 +31,7 @@ string TTErrorCheck::handler(string params) {
 //        Py_Finalize();
 
         std::system("python3 /home/admin1/test/SystemErrorCheck_Robot.py");  // "ls -l > test.txt"
-    };
-    pool.submit(pythonFun);
+    });
 
     return "";
 }

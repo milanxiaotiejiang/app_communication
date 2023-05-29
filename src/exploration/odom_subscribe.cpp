@@ -34,7 +34,7 @@ void OdomSubscribe::subscribeCallback(const nav_msgs::OdometryConstPtr &msg) {
     p.header = msg->header;
     p.pose = msg->pose.pose;
     passed_path.poses.emplace_back(p);
-    PublishInnerManager::instance().getPubInner()->publishPassedPath(passed_path);
+    PublishInnerManager::instance().publishPassedPath(passed_path);
 
     geometry_msgs::Pose current_pose;
     current_pose.position = msg->pose.pose.position;

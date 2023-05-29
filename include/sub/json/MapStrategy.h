@@ -7,13 +7,14 @@
 
 #include "MessageStrategy.h"
 #include "string"
-#include <model/BaseMethod.h>
+#include "net/base/BaseMethod.h"
 
 #include "model/MapInfo.h"
-#include "model/BaseResult.h"
+#include "net/base/BaseResult.h"
 #include "tool/write_file.hpp"
 
 #include "prohibition.h"
+#include "model/RoomVo.h"
 
 #include <nlohmann/json.hpp>
 
@@ -30,9 +31,19 @@ public:
     vector<MapInfo> handler(string params) override;
 };
 
-class ChangeMapStrategy : public MessageStrategy<string, int> {
+class ChangeMapStrategy : public MessageStrategy<string, string> {
 public:
-    int handler(string params) override;
+    string handler(string params) override;
+};
+
+class ModifyMapNameStrategy : public MessageStrategy<MapInfo, string> {
+public:
+    string handler(MapInfo params) override;
+};
+
+class DeleteMapStrategy : public MessageStrategy<string, string> {
+public:
+    string handler(string params) override;
 };
 
 class EditMapStrategy : public MessageStrategy<std::vector<std::vector<float>>, string> {
@@ -55,11 +66,19 @@ public:
     int handler(string params) override;
 };
 
-
-class ManualPushSaveStrategy : public MessageStrategy<MapInfo, MapInfo> {
+class MapObstaclesStrategy : public MessageStrategy<vector<vector<PointVo>>, string> {
 public:
-    MapInfo handler(MapInfo params) override;
+    string handler(vector<vector<PointVo>> params) override;
 };
 
+class MapFeasibleZoneStrategy : public MessageStrategy<vector<vector<PointVo>>, string> {
+public:
+    string handler(vector<vector<PointVo>> params) override;
+};
+
+class MapApplyIncreaseArea : public MessageStrategy<vector<int>, string> {
+public:
+    string handler(vector<int> params) override;
+};
 
 #endif //APP_COMMUNICATION_MAPSTRATEGY_H

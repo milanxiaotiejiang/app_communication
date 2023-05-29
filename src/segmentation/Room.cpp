@@ -220,6 +220,14 @@ void Room::setName(const std::string &name) {
     Room::name = name;
 }
 
+long Room::getDbId() const {
+    return db_id_;
+}
+
+void Room::setDbId(long dbId) {
+    db_id_ = dbId;
+}
+
 bool sortRoomsAscending(Room a, Room b) {
     return (a.getArea() < b.getArea());
 }

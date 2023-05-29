@@ -5,7 +5,6 @@
 #ifndef C_PTHREAD_TASK_H
 #define C_PTHREAD_TASK_H
 
-#include "TeachModePoint.h"
 #include "WorkStatus.h"
 #include "vector"
 #include "FullPath.h"
@@ -14,6 +13,7 @@
 #include <ostream>
 #include <stdlib.h>
 #include <string>
+#include "model/TeachModePoint.h"
 
 #include <nlohmann/json.hpp>
 

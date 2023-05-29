@@ -9,15 +9,19 @@
 #include "model/RoomVo.h"
 #include "CvUtils.h"
 #include "db/segmentation_model.h"
+#include "segmentation_subscribe.h"
 #include <opencv2/opencv.hpp>
+#include <ros/node_handle.h>
 
 class SegmentationCenter {
 private:
     bool initialize_finish = false;
 
-    bool detectionTooSmallRoom(const cv::Mat &segmented_map, Room room, PlanPo plan) const;
+    SegmentationSubscribe *segmentationSubscribe;
 
-    bool pointInRoom(const cv::Mat &segmented_map, Room room, cv::Point point) const;
+    bool detectionTooSmallRoom(const cv::Mat &segmented_map, Room room, const PlanPo &plan) const;
+
+    bool pointInRoom(const cv::Mat &segmented_map, Room room, const cv::Point &point) const;
 
     bool lineThroughRoom(const cv::Mat &segmented_map, Room room, const cv::Point &ps, const cv::Point &pe) const;
 
@@ -30,7 +34,7 @@ public:
     /**
      * 初始化
      */
-    void initialize();
+    void initialize(const ros::NodeHandle &handle);
 
     /**
      * 重置所有分区的设置
@@ -56,7 +60,7 @@ public:
                    int room_to_merge_index);
 
 
-    void reRoomName(int targetId, std::string name);
+    void reRoomName(int targetId, const std::string &name);
 
     /**
      * 落盘
@@ -77,13 +81,13 @@ public:
      * 选择某个房间
      * @return 返回仅包含此房间的地图
      */
-    cv::Mat choiceOneRoom(cv::Mat &segmented_map, std::vector<Room> &rooms, int targetId);
+    cv::Mat choiceOneRoom(cv::Mat &segmented_map, std::vector<Room> &rooms, long targetId);
 
     cv::Mat generateMat() const;
 
     bool checkPartition() const;
 
-    MapRoomVo toVoRoom(cv::Mat &segmented_map, std::vector<Room> &rooms) const;
+    MapRoomVo resultMapRoomVo() const;
 };
 
 

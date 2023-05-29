@@ -3,7 +3,6 @@
 //
 
 #include "task/manager/manual.h"
-#include "pub/PubInner.h"
 #include "manager/PublishInnerManager.h"
 #include "task/manager/MechanismManager.h"
 
@@ -32,7 +31,7 @@ void ManualManager::shutdown() {
     msg.data = 1;
     MechanismManager::instance().resetWorkStatus();
     sleep(1);
-    PublishInnerManager::instance().getPubInner()->publishShutDown(msg);
+    PublishInnerManager::instance().publishShutDown(msg);
 }
 
 void ManualManager::reboot() {
@@ -40,11 +39,15 @@ void ManualManager::reboot() {
     msg.data = 1;
     MechanismManager::instance().resetWorkStatus();
     sleep(1);
-    PublishInnerManager::instance().getPubInner()->publishReboot(msg);
+    PublishInnerManager::instance().publishReboot(msg);
 }
 
-std::string ManualManager::runTaskId() {
-    return asyncTaskCall->runTaskId();
+bool ManualManager::taskRunning() {
+    return asyncTaskCall->taskRunning();
+}
+
+RealTask ManualManager::runningTask() const {
+    return asyncTaskCall->runningTask();
 }
 
 std::vector<RealTask> ManualManager::runTaskList() {

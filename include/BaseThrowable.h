@@ -91,13 +91,44 @@ namespace error {
         not_paused_status,
         the_current_state_is_uncontrollable,
         machine_is_in_emergency_stop_command_not_supported,
+        machine_is_in_manual_mode_command_not_supported,
+        operation_failure_please_restart_the_machine,
         the_current_task_is_not_completed,
         not_supported_temporarily,
         already_in_manual_clean_mode,
         not_in_manual_clean_mode,
+        manual_in_the_base_station,
         current_in_manual_clean_mode,
         clean_water_level_check_failed,
-        dirty_water_level_check_failed
+        dirty_water_level_check_failed,
+        operation_is_not_allowed_in_the_station,
+        operation_not_allowed_in_outbound,
+        in_creating_map,
+        coverage_path_overtime,
+        failed_to_parse_speed_related_files,
+        failed_to_parse_fall_prevention_related_files,
+        mode_switching_is_not_supported,
+        create_map_fail,
+        the_main_task_is_not_set,
+        invalid_sweep_status,
+        invalid_mop_status,
+        invalid_vacuum_status,
+        invalid_push_status,
+        invalid_aromatherapy_status,
+        invalid_disinfect_status,
+        invalid_name,
+        invalid_rate,
+        invalid_mode,
+        invalid_source,
+        invalid_zones,
+        invalid_subregions,
+        no_task_for_return_base_station,
+        add_zone_fail,
+        add_subregion_fail,
+        cannot_switch_to_the_current_map,
+        map_id_does_not_exist,
+        no_run_task,
+        dispatcher_maintenance_mode
     };// enum value
 
     class category : public std::error_category {
@@ -255,9 +286,13 @@ namespace error {
                 case error::the_current_state_is_uncontrollable:
                     return "当前状态不可控制";
                 case error::machine_is_in_emergency_stop_command_not_supported:
-                    return "机器处于急停状态，不支持本次指令";
+                    return "急停状态，不支持本次指令";
+                case error::machine_is_in_manual_mode_command_not_supported:
+                    return "手动模式，不支持本次指令";
+                case error::operation_failure_please_restart_the_machine:
+                    return "运行故障，请重启机器";
                 case error::the_current_task_is_not_completed:
-                    return "当前任务未执行完成";
+                    return "暂不支持任务下发";
                 case error::not_supported_temporarily:
                     return "暂不支持";
                 case error::fullclean_brief_get_fail:
@@ -266,12 +301,70 @@ namespace error {
                     return "已经在手动模式中";
                 case error::not_in_manual_clean_mode:
                     return "当前不在手动模式中";
+                case error::manual_in_the_base_station:
+                    return "请推回基站关闭手动模式";
                 case error::current_in_manual_clean_mode:
                     return "手动模式中，任务无法启动";
                 case error::clean_water_level_check_failed:
                     return "清水箱空，任务无法启动";
                 case error::dirty_water_level_check_failed:
                     return "污水箱满，任务无法启动";
+                case error::operation_is_not_allowed_in_the_station:
+                    return "进站中不允许操作";
+                case error::operation_not_allowed_in_outbound:
+                    return "出站中不允许操作";
+                case error::in_creating_map:
+                    return "地图创建中";
+                case error::coverage_path_overtime:
+                    return "获取全覆盖路径超时";
+                case error::failed_to_parse_speed_related_files:
+                    return "解析速度相关文件失败";
+                case error::failed_to_parse_fall_prevention_related_files:
+                    return "解析防跌落相关文件失败";
+                case error::mode_switching_is_not_supported:
+                    return "暂不支持模式切换，请稍后调用";
+                case error::create_map_fail:
+                    return "保存地图失败，请稍后调用";
+                case error::the_main_task_is_not_set:
+                    return "The main task is not set";
+                case error::invalid_sweep_status:
+                    return "Invalid sweep_status";
+                case error::invalid_mop_status:
+                    return "Invalid mop_status";
+                case error::invalid_vacuum_status:
+                    return "Invalid vacuum_status";
+                case error::invalid_push_status:
+                    return "Invalid push_status";
+                case error::invalid_aromatherapy_status:
+                    return "Invalid aromatherapy_status";
+                case error::invalid_disinfect_status:
+                    return "Invalid disinfect_status";
+                case error::invalid_name:
+                    return "非法名称（名称由中英文、数字、下划线组成的3-30个字符）";
+                case error::invalid_rate:
+                    return "Invalid rate";
+                case error::invalid_mode:
+                    return "Invalid mode";
+                case error::invalid_source:
+                    return "Invalid source";
+                case error::invalid_zones:
+                    return "Invalid zones";
+                case error::invalid_subregions:
+                    return "Invalid subregions";
+                case error::no_task_for_return_base_station:
+                    return "当前无任务，返回基站需要拍急停后推回基站位置";
+                case error::add_zone_fail:
+                    return "矩形框添加失败";
+                case error::add_subregion_fail:
+                    return "区域添加失败";
+                case error::cannot_switch_to_the_current_map:
+                    return "不能切换为当前地图";
+                case error::map_id_does_not_exist:
+                    return "不存在此地图";
+                case error::no_run_task:
+                    return "no run task";
+                case error::dispatcher_maintenance_mode:
+                    return "维护模式不能启动任务";
                 default:
                     return "Unknown";
             }

@@ -6,96 +6,144 @@
 #include "task/point_planner.h"
 #include "task/point_routine.h"
 #include "task/task_dispatcher.h"
-#include "task/subscribe/zoo_inner_status.h"
-#include "task/manager/NodeWorkModeManager.h"
-#include "task/manager/StationManager.h"
-#include "task/call/timely_call.h"
 #include "task/call/head_tail_call.h"
 #include "simulation.h"
+
 #include "task/manager/PointProgressPublish.h"
 #include "task/manager/SwitchModePublish.h"
 #include "task/manager/manual.h"
-#include "task/subscribe/async_machine.h"
-#include "model/VersionSubscribe.h"
-#include "manager/PublishOutManager.h"
-#include "future/thread_pool.h"
+#include "task/manager/NodeWorkModeManager.h"
+#include "task/manager/StationManager.h"
 #include "task/manager/NativeSystemManager.h"
+
+#include "task/subscribe/zoo_inner_status.h"
+#include "task/subscribe/async_machine.h"
+
+#include "net/base/VersionSubscribe.h"
+
+#include "manager/PublishOutManager.h"
+#include "manager/InternalEventPubManager.h"
+
+#include "future/thread_pool.h"
 #include "clean_history/CleanHistoryCenter.h"
-#include "manager//InternalEventPubManager.h"
+#include "future/node/node_control.h"
 
-/*
- * task转换成realtask，赋值taskid，mode，rate，区域，组合路径区域描述，任务发起人，任务启动时间，timeMode
- */
-void TaskCenter::task2RealTask(const Task &task, RealTask &realTask) {
-    realTask.setId(task.getTaskId());
-    realTask.setMode(task.getMode());
-    realTask.setRate(task.getRate());
-//    realTask.setWorkStatus(task.getWorkStatus());
-    realTask.setZoned(task.getZoned());
-    realTask.setCombination(task.getCombination());
-    realTask.setLaunchPeople(task.getLaunchPeople());
-    realTask.setLaunchTime(task.getLaunchTime());
-    realTask.setTimeMode(task.getTimeMode());
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
-    //realTask.setCombinationType(task.)；
+#include "db/task_data_base.h"
+#include "exploration/path_exploration_preview_task.h"
+#include "task/manager/MechanismManager.h"
+#include "leave/MaintenanceMode.h"
+
+std::string TaskCenter::preTask(const RealTask &task) {
+    LOG(INFO) << "preTask ------------------" << task.getRate();
+    //拦截手动下发的任务且前期出站后期进站
+    if (task.isRenew()) {
+        const std::string &source = task.getSource();
+        TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
+        if (taskSource == TaskSource::App || taskSource == TaskSource::Pad) {
+            if (!asyncTaskCall->canIssuedTask(task)) {
+                throw app::exception(make_error_code(error::the_current_task_is_not_completed));
+            }
+        }
+    } else {
+        const std::string &launchPeople = task.getLaunchPeople();
+        if (launchPeople == "App" || launchPeople == "Pad") {
+            if (!asyncTaskCall->canIssuedTask(task)) {
+                throw app::exception(make_error_code(error::the_current_task_is_not_completed));
+            }
+        }
+    }
+
+    //添加一条历史纪录
+    clean_history_db::CleanHistoryCenter::instance().addCleanHistory(task);
+    try {
+        return proTask(task);
+    } catch (app::exception const &e) {
+        //如果错误，会走到此处，历史更新错误信息
+        clean_history_db::CleanHistoryCenter::instance().launchFailed(task, e);
+        const error_code &code = e.code();
+        throw e;
+    }
 }
 
+std::string TaskCenter::proTask(const RealTask &task) {
+    LOG(INFO) << "TASK ID : " << task.getId();
+    if (AsyncMachine::instance().getError() == loop::error_epoll::error_unrecoverable) {
+        throw app::exception(make_error_code(error::operation_failure_please_restart_the_machine));
+    }
 
-/*
- * 执行函数，调用来执行整个任务
- */
-void TaskCenter::realExecuteTask(const Task &task) {
-    SwitchModePublish::instance().cancel();
-
-    LOG(INFO) << "TASK ID : " << task.getTaskId();
     //如果是急停按钮推下的状态中，那么直接报错且不执行任务
     auto isUrgencyStopStatus = ZooInnerStatus::instance().getUrgencyStopStatus();
     if (isUrgencyStopStatus) {
         throw app::exception(make_error_code(error::machine_is_in_emergency_stop));
-    }//如果当前电量少于10%，那么报错且不执行任务
+    }
+
+    //当前在手动模式中
+    if (AsyncMachine::instance().getError() == loop::error_epoll::error_manual_clean_start
+        || AsyncMachine::instance().getError() == loop::error_epoll::error_manual_clean_end) {
+        throw app::exception(make_error_code(error::current_in_manual_clean_mode));
+    }
+
+    //建图模式下，不能够分发任务
+    if (Environment::instance().isRealEnvironment) {
+        if (NodeControl::instance().isMap()) {
+            throw app::exception(make_error_code(error::dispatcher_task_work_mode_mapping));
+        }
+    }
+
+    if (MaintenanceModeSingleton::instance().isMaintenanceMode()) {
+        throw app::exception(make_error_code(error::dispatcher_maintenance_mode));
+    }
+
+    //如果当前电量少于10%，那么报错且不执行任务
     auto RSOC = ZooInnerStatus::instance().getRsoc();
     if (RSOC < LOW_RSOC) {
         throw app::exception(make_error_code(error::dispatcher_task_low_rsoc));
     }
 
-    //建图模式下，不能够分发任务
-    if (Environment::instance().isRealEnvironment) {
-        auto workMode = NodeWorkModeManager::instance().getWorkMode();
-        if (workMode == WorkMode::MAPPING) {
-            throw app::exception(make_error_code(error::dispatcher_task_work_mode_mapping));
-        }
-    }
-
     //没有传感器数据的情况下，不能够分发任务
     //todo /imu /scan /odom without any data reject
     //todo /knob
-    //当前在手动模式中
-    if (AsyncMachine::instance().getFlow() == event::flow::manual_cleaning) {
-        throw app::exception(make_error_code(error::current_in_manual_clean_mode));
-    }
-    //当前任务还未结束，不能下发新的任务
-    if (AsyncMachine::instance().getFlow() != event::flow::waiting_for_task) {
+
+    if (!asyncTaskCall->canIssuedTask(task)) {
         throw app::exception(make_error_code(error::the_current_task_is_not_completed));
     }
 
-    //先验条件全部满足，可以下发任务，先将task转换成realtask，再通过TaskDtcher分发
-    RealTask realTask;
-    task2RealTask(task, realTask);
-    TaskDispatcher::instance().dispatcherTask(realTask);
+    if (task.isRenew()) {
+        //如果任务是湿拖任务，清水箱已空或者污水箱已满，不能分发任务
+        if (task.getWorkStatus().getMopStatus() == 1) {
+            if (ZooInnerStatus::instance().getCleanWaterLevel() == 0) {
+                throw app::exception(make_error_code(error::clean_water_level_check_failed));
+            }
+            if (ZooInnerStatus::instance().getDirtyWaterLevel() == 100) {
+                throw app::exception(make_error_code(error::dirty_water_level_check_failed));
+            }
+        }
+        if (task.getWorkStatus().getVacuumStatus() == 1) {
+            if (ZooInnerStatus::instance().getDirtyWaterLevel() == 100) {
+                throw app::exception(make_error_code(error::dirty_water_level_check_failed));
+            }
+        }
+    }
 
+    return realTask(task);
+}
+
+std::string TaskCenter::realTask(RealTask task) {
+    TaskDispatcher::instance().dispatcherTask(task);
+    return task.getId();
 }
 
 void TaskCenter::initialize(ros::NodeHandle handle) {
 
-    if (isTimely) {
-        asyncTaskCall = new TimelyPointCall();
-    } else {
-        asyncTaskCall = new HeadTailPointCall();
-    }
+    asyncTaskCall = new ReservedCall();
 
     PointProgressPublish::instance().initialize(handle);
 
-    PointPlanner::instance().initialize();
+    PointPlanner::instance().initialize(handle);
     PointRoutine::instance().setAsyncTaskCall(asyncTaskCall);
 
     //任务分发类
@@ -107,6 +155,12 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
     //基站管理类
     StationManager::instance().initialize(handle);
     StationManager::instance().setAsyncTaskCall(asyncTaskCall);
+
+    //地图管理类
+    CartographerPublisher::instance().initialize(handle);
+    CartographerSubscribe::instance().initialize(handle);
+    CartographerServiceClient::instance().initialize(handle);
+    CartographerSubscribe::instance().setAsyncTaskCall(asyncTaskCall);
 
     //手动管理类
     ManualManager::instance().setAsyncTaskCall(asyncTaskCall);
@@ -122,14 +176,23 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
     flagOutSubscribe = new FlagOutSubscribe(handle);
     //进站管理类
     flagInSubscribe = new FlagInSubscribe(handle);
+    //地毯检测
+    carpetDetectSubscribe = new CarpetDetectSubscribe(handle);
+    carpetDetectSubscribe->setAsyncTaskCall(asyncTaskCall);
+    //电梯
+    liftDetectSubscribe = new LiftDetectSubscribe(handle);
+    liftDetectSubscribe->setAsyncTaskCall(asyncTaskCall);
 
     if (!Environment::instance().isRealEnvironment) {
         std::thread moveBaseThread([]() {
             sleep(10);
+            NodeControl::instance().emulate();
             int last_machine_code = 10006;
             while (1) {
                 sleep(1);
-
+//                LOG(ERROR) << "isSleep : " << NodeControl::instance().isSleep()
+//                           << " isWork : " << NodeControl::instance().isWork()
+//                           << " isMap : " << NodeControl::instance().isMap();
                 NativeSystemManager::instance().urgencyStop(ZooInnerStatus::instance().getUrgencyStopStatus());
                 long current_execute_time = clean_history_db::CleanHistoryCenter::instance().getCurrentCleanTime();
                 WorkStatus workStatus(0, 0, 0, 0, 0, 0);
@@ -147,7 +210,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
                                              ZooInnerStatus::instance().getIsCharging(),
                                              ZooInnerStatus::instance().getAromStatus());
                 VersionSubscribe<ShowWorkStatus> statusResponse(1, status);
-                PublishOutManager::instance().getPubOut()->publishStatus(statusResponse);
+                PublishOutManager::instance().publishStatus(statusResponse);
             }
         });
         moveBaseThread.detach();
@@ -155,6 +218,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
 
     if (!Environment::instance().isRealEnvironment) {
         ZooInnerStatus::instance().setRsoc(60);
+        ZooInnerStatus::instance().setCleanWaterLevel(50);
     }
 }
 
@@ -164,18 +228,20 @@ void TaskCenter::uninstall() {
     delete zooRobotStatusSubscribe;
     delete flagOutSubscribe;
     delete flagInSubscribe;
+    delete carpetDetectSubscribe;
 }
 
-//executTask主要增加了一条历史记录
 void TaskCenter::executeTask(const Task &task) {
-    //添加一条历史纪录
-    clean_history_db::CleanHistoryCenter::instance().addCleanHistory(task);
-    try {
-        realExecuteTask(task);
-    } catch (app::exception const &e) {
-        //如果错误，会走到此处，历史更新错误信息
-        clean_history_db::CleanHistoryCenter::instance().launchFailed(task, e);
-        const error_code &code = e.code();
-        throw e;
-    }
+    RealTask realTask;
+    TaskExploration::task2RealTask(task, realTask);
+    preTask(realTask);
+}
+
+std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int on_rate) {
+    auto task = TaskDataBase::instance().loadTaskFoId(taskId);
+    RealTask realTask;
+    realTask.setRate(task.getRate() * on_rate);
+    realTask.setOnSource(SqliteDataBase::SourceToString(on_source));
+    TaskExploration::task2RealTask(task, realTask);
+    return preTask(realTask);
 }

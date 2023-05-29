@@ -2,8 +2,12 @@
 // Created by Looper on 2022/10/13.
 //
 
+#include <std_msgs/String.h>
 #include "segmentation/map_attribute.h"
 #include "db/segmentation_data_base.h"
+#include "manager/PublishInnerManager.h"
+#include "BaseThrowable.h"
+#include "leave/cartographer_node.h"
 
 /**
  * map_origin_pose.position (0,0) 为显示地图的左下角，即 starting_position_pose.x 越大，机器人越靠右；starting_position_pose.y 越大，机器人越考上
@@ -25,10 +29,10 @@ cv::Point MapAttribute::getRobotPositionPoint(const cv::Mat &room_map) const {
 }
 
 void MapAttribute::loadStation() {
-    if (access(map_yaml_path.c_str(), F_OK) != 0) {//存在
+    if (access(path::map_yaml_path().c_str(), F_OK) != 0) {//存在
         return;
     }
-    YAML::Node config = YAML::LoadFile(map_yaml_path);
+    YAML::Node config = YAML::LoadFile(path::map_yaml_path());
     const YAML::Node &originNode = config["origin"];
     if (!originNode.IsDefined()) {
         return;
@@ -53,11 +57,11 @@ void MapAttribute::resetProhibition() {
 }
 
 void MapAttribute::loadVirtualWall() {
-    if (access(prohibition_yaml_path.c_str(), F_OK) != 0) {//存在
+    if (access(path::prohibition_areas_path().c_str(), F_OK) != 0) {//存在
         return;
     }
 
-    YAML::Node config = YAML::LoadFile(prohibition_yaml_path);
+    YAML::Node config = YAML::LoadFile(path::prohibition_areas_path());
     const YAML::Node &prohibitionNode = config["prohibition_areas"];
     if (!prohibitionNode.IsDefined()) {
         return;
@@ -73,11 +77,11 @@ void MapAttribute::loadVirtualWall() {
 }
 
 void MapAttribute::loadPenaltyZone() {
-    if (access(prohibition_yaml_path.c_str(), F_OK) != 0) {//存在
+    if (access(path::prohibition_areas_path().c_str(), F_OK) != 0) {//存在
         return;
     }
 
-    YAML::Node config = YAML::LoadFile(prohibition_yaml_path);
+    YAML::Node config = YAML::LoadFile(path::prohibition_areas_path());
     const YAML::Node &prohibitionNode = config["prohibition_areas"];
     if (!prohibitionNode.IsDefined()) {
         return;
@@ -96,6 +100,11 @@ void MapAttribute::loadPlanParam() {
     std::string &map_id = SegmentationDataBase::instance().getDbMap().id;
     auto planPo = SegmentationDataBase::instance().getDbPlan(map_id);
     if (planPo.map_id.empty()) {
+        loadDefaultPlanParam();
+    }
+    auto planPo2 = SegmentationDataBase::instance().getDbPlan(map_id);
+    if (planPo2.version == 1) {
+        SegmentationDataBase::instance().removePlanParam(map_id);
         loadDefaultPlanParam();
     }
 }
@@ -150,4 +159,43 @@ cv::Point MapAttribute::rosPoint2MapPoint(const cv::Mat &room_map, const Point &
     position.x = x / map_resolution_from_subscription;
     position.y = y / map_resolution_from_subscription;
     return position;
+}
+
+cv::Point MapAttribute::rosPoint2MapPoint(double rows, double cols, const Point &point) const {
+    double x = cols - (point.getY() - map_origin_pose.position.x);
+    double y = rows - (point.getX() - map_origin_pose.position.y);
+    cv::Point position;
+    position.x = x / map_resolution_from_subscription;
+    position.y = y / map_resolution_from_subscription;
+    return position;
+}
+
+bool MapAttribute::isCreatingMap() const {
+    return creating_map;
+}
+
+bool MapAttribute::saveMap() {
+    //防止二次进入
+    if (creating_map) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
+    creating_map = true;
+
+    //发送建图保存指令
+    CartographerPublisher::instance().publishSaveMap();
+
+    //加锁
+    std::unique_lock<std::mutex> lck(wait_mutex);
+    if (wait_cv.wait_for(lck, std::chrono::seconds(20)) == std::cv_status::timeout) {
+        //timeout
+        creating_map = false;
+        return false;
+    } else {
+        creating_map = false;
+        return true;
+    }
+}
+
+void MapAttribute::notifySaveMap() {
+    wait_cv.notify_all();
 }

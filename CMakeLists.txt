@@ -51,25 +51,27 @@ find_package(catkin REQUIRED COMPONENTS
         clean_msgs
         message_generation
         eigen_conversions
+        back_charge_msgs
         )
 
 catkin_package(
         INCLUDE_DIRS include
         LIBRARIES app_communication
-        CATKIN_DEPENDS roscpp rospy std_msgs clean_msgs
-        CATKIN_DEPENDS message_runtime
+        CATKIN_DEPENDS roscpp rospy std_msgs clean_msgs message_runtime
         #  DEPENDS system_lib
 )
 
 find_package(OpenCV REQUIRED)
 find_package(eventpp)
 find_package(SqliteOrm REQUIRED)
+find_package(Boost COMPONENTS iostreams)
 
 file(GLOB GLOG_LIBRARIES /usr/lib/x86_64-linux-gnu/libglog.so)
 set(GLOG_INCLUDE_DIRS /usr/include)
 #set(ZLIB_LIBRARIES /usr/local/lib/libz.so)
 set(PYTHON_INCLUDE_DIRS "/usr/include/python2.7")
 set(BREAK_PAD_LIBRARIES /usr/local/lib/libbreakpad_client.a)
+set(BOOST_IOSTREAMS_DIRS ${Boost_INCLUDE_DIRS}/boost/iostreams)
 
 link_directories(/usr/local/lib)
 
@@ -77,6 +79,7 @@ message("glog_include_dirs=${GLOG_INCLUDE_DIRS}")
 message("glog_libraries=${GLOG_LIBRARIES}")
 message("zlib_libraries=${ZLIB_LIBRARIES}")
 message("break_pad_libraries=${BREAK_PAD_LIBRARIES}")
+message("boost_iostreams_dirs=${BOOST_IOSTREAMS_DIRS}")
 
 include_directories(include /usr/local/include/yaml-cpp)
 include_directories(${GLOG_INCLUDE_DIRS})
@@ -84,6 +87,9 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 include_directories(include ${OpenCV_INCLUDE_DIRS})
 include_directories(include ${PYTHON_INCLUDE_DIRS})
 include_directories(include /usr/local/include/breakpad)
+include_directories(include ${BOOST_IOSTREAMS_DIRS})
+
+message("cmake_current_source_dir=${CMAKE_CURRENT_SOURCE_DIR}")
 
 file(GLOB HEADER_FILES_LEVEL_1 "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 file(GLOB SOURCE_FILES_LEVEL_1 "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
@@ -97,6 +103,14 @@ file(GLOB SOURCE_FILES_LEVEL_3 "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*/*.cpp")
 file(GLOB HEADER_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/include/*/*/*/*.h")
 file(GLOB SOURCE_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*/*/*.cpp")
 
+
+file(GLOB HEADER_CPP_FS "${CMAKE_CURRENT_SOURCE_DIR}/include/cppfs/*.h")
+file(GLOB SOURCE_CPP_FS "${CMAKE_CURRENT_SOURCE_DIR}/src/cppfs/*.cpp")
+file(GLOB HEADER_CPP_FS_POSIX "${CMAKE_CURRENT_SOURCE_DIR}/include/cppfs/posix/*.h")
+file(GLOB SOURCE_CPP_FS_POSIX "${CMAKE_CURRENT_SOURCE_DIR}/src/cppfs/posix/*.cpp")
+file(GLOB HEADER_CPP_FS_LINUX "${CMAKE_CURRENT_SOURCE_DIR}/include/cppfs/linux/*.h")
+file(GLOB SOURCE_CPP_FS_LINUX "${CMAKE_CURRENT_SOURCE_DIR}/src/cppfs/linux/*.cpp")
+
 add_executable(rec_app_node
         ${HEADER_FILES_LEVEL_1}
         ${SOURCE_FILES_LEVEL_1}
@@ -107,6 +121,18 @@ add_executable(rec_app_node
         ${HEADER_FILES_LEVEL_4}
         ${SOURCE_FILES_LEVEL_4}
         ${TEST_FILES}
+        include/cppfs/basen.hpp
+        )
+
+add_executable(dump_upload
+        dump/dump_upload.cpp
+        include/cppfs/basen.hpp
+        ${HEADER_CPP_FS}
+        ${SOURCE_CPP_FS}
+        ${HEADER_CPP_FS_POSIX}
+        ${SOURCE_CPP_FS_POSIX}
+        ${HEADER_CPP_FS_LINUX}
+        ${SOURCE_CPP_FS_LINUX}
         )
 
 
@@ -120,6 +146,11 @@ target_link_libraries(rec_app_node
         eventpp::eventpp
         sqlite_orm::sqlite_orm sqlite3
         ${BREAK_PAD_LIBRARIES}
+        ${Boost_LIBRARIES}
+        )
+
+target_link_libraries(dump_upload
+        ${catkin_LIBRARIES}
         )
 
 
@@ -131,6 +162,10 @@ install(TARGETS rec_app_node
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )
 
+install(TARGETS dump_upload
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        )
+
 install(DIRECTORY include/
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
         FILES_MATCHING PATTERN "*.h"
@@ -138,7 +173,10 @@ install(DIRECTORY include/
         )
 
 
-set(other_dir params)#params package.xml
+set(other_dir
+        params
+        scripts
+        )
 
 
 foreach (_dir ${other_dir})

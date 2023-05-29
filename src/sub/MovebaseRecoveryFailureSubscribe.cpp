@@ -11,7 +11,7 @@
 #include "sub/MoveBaseRecoveryFailureSubscribe.h"
 
 MoveBaseRecoveryFailureSubscribe::MoveBaseRecoveryFailureSubscribe(ros::NodeHandle handle) : m_handle(handle) {
-    m_sub_movebase_recovery_failure_ = handle.subscribe(MOVEBASERECOVERYFAILURE, 1,
+    m_sub_movebase_recovery_failure_ = handle.subscribe("/move_base/recovery_failure", 1,
                                                         &MoveBaseRecoveryFailureSubscribe::MoveBaseRecoveryFailureCallback,
                                                         this);
 }

@@ -5,9 +5,8 @@
 #ifndef APP_COMMUNICATION_MECHANISMMANAGER_H
 #define APP_COMMUNICATION_MECHANISMMANAGER_H
 
-
-#include "pub/PubInner.h"
 #include "model/WorkStatus.h"
+#include "leave/HotWindNote.h"
 
 class MechanismManager {
 public:
@@ -17,16 +16,22 @@ public:
     }
 
 public:
+
     void resetWorkStatus();
 
-    void controlWorkStatus(const WorkStatus &workStatus);
+    void resetBelowWorkStatus();
 
-    void forceControlWorkStatus(const WorkStatus &workStatus);
+    void controlWorkStatus(const WorkStatus &workStatus, bool knife);
+
+    void forceControlWorkStatus(const WorkStatus &workStatus, bool knife);
 
     void enterManualControl();
 
     void quitManualControl();
 
+    void openKnife();
+
+    void closeKnife();
 };
 
 

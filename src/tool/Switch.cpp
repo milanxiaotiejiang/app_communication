@@ -28,13 +28,10 @@ pid_t getProcessPidByName(const char *proc_name) {
 }
 
 
-int switch_ID(const std::string str) {
+int switch_ID(const std::string &str) {
 
     if (str == "get_device_status") {
         return GET_DEVICE_STATUS_;
-    }
-    if (str == "app_along_clean") {
-        return APP_ALONG_CLEAN_;
     }
     if (str == "save_map") {
         return SAVE_MAP_;
@@ -44,6 +41,12 @@ int switch_ID(const std::string str) {
     }
     if (str == "change_map") {
         return CHANGE_MAP_;
+    }
+    if (str == "modify_map_name") {
+        return MODIFY_MAP_NAME;
+    }
+    if (str == "delete_map") {
+        return DELETE_MAP;
     }
     if (str == "edit_map") {
         return EDIT_MAP_;
@@ -56,6 +59,9 @@ int switch_ID(const std::string str) {
     }
     if (str == "get_task_list") {
         return GET_TASK_LIST_;
+    }
+    if (str == "running_task") {
+        return RUNNING_TASK;
     }
     if (str == "app_spot") {
         return APP_SPOT_;
@@ -70,7 +76,6 @@ int switch_ID(const std::string str) {
         return CHANGE_WORK_STATUS_;
     }
     if (str == "change_aromatherapy_state") {
-        printf("change_aromatherapy_state!!!!!!!!!!!!!!!!!!!! \n");
         return CHANGE_AROM_STATUS_;
     }
     if (str == "continuity_task_list") {
@@ -84,9 +89,6 @@ int switch_ID(const std::string str) {
     }
     if (str == "get_polygon_task_list") {
         return GET_POLYGON_TASK_LIST_;
-    }
-    if (str == "open_self_cleaning") {
-        return OPEN_SELF_CLEANING_;
     }
     if (str == "teach_mode_start") {
         return TEACH_MODE_START_;
@@ -120,9 +122,6 @@ int switch_ID(const std::string str) {
     }
     if (str == "work_to_map_app") {
         return WORK_TO_MAP_APP_;
-    }
-    if (str == "work_to_grid_map_app") {
-        return WORK_TO_GRID_MAP_APP_;
     }
     if (str == "clean_history_list") {
         return CLEAN_HISTORY_REQUEST_;
@@ -166,18 +165,6 @@ int switch_ID(const std::string str) {
     if (str == "get_ros_version") {
         return GET_ROS_VERSION_;
     }
-    if (str == "player_recruit_voice") {
-        return PLAY_VOICE_;
-    }
-    if (str == "light_belt_mode") {
-        return LIGHT_BELT_MODE_;
-    }
-    if (str == "open_machine_drawer") {
-        return OPEN_MACHINE_DRAWER_;
-    }
-    if (str == "power_reduction_1") {
-        return SET_POWER_REDUCTION;
-    }
     if (str == "update_timer") {
         return UPD_TIMER_;
     }
@@ -190,9 +177,6 @@ int switch_ID(const std::string str) {
     }
     if (str == "set_timer") {
         return SET_TIMER_;
-    }
-    if (str == "work_to_grid_map_app") {
-        return WORK_TO_GRID_MAP_APP_;
     }
     if (str == "save_location") {
         return SAVE_LOCATION;
@@ -215,9 +199,6 @@ int switch_ID(const std::string str) {
     if (str == "main_combination_way") {
         return MAIN_COMBINATION_WAY;
     }
-    if (str == "get_material_status") {
-        return GET_MATERIAL_STATUS;
-    }
     if (str == "cancel_main_combination") {
         return CANCEL_MAIN_COMBINATION;
     }
@@ -232,6 +213,9 @@ int switch_ID(const std::string str) {
     }
     if (str == "knob_control") {
         return KNOB_CONTROL;
+    }
+    if (str == "collect_dust") {
+        return COLLECT_DUST;
     }
 
     if (str == "room_map_data") {
@@ -274,36 +258,7 @@ int switch_ID(const std::string str) {
     if (str == "manual_push_reset") {
         return MANUAL_PUSH_RESET;
     }
-    if (str == "manual_push_save") {
-        return MANUAL_PUSH_SAVE;
-    }
-    if (str == "get_full_cleaning_mode") {
-        return GET_FULL_CLEANING_MODE;
-    }
-    if (str == "set_full_cleaning_mode") {
-        return SET_FULL_CLEANING_MODE;
-    }
-    if (str == "get_full_cleaning_list") {
-        return GET_FULL_CLEAN_LIST;
-    }
-    if (str == "full_cleaning_add") {
-        return FULL_CLEANING_ADD;
-    }
-    if (str == "full_cleaning_update") {
-        return FULL_CLEANING_UPDATE;
-    }
-    if (str == "full_cleaning_delete") {
-        return FULL_CLEANING_DELETE;
-    }
-    if (str == "full_cleaning_detail") {
-        return FULL_CLEANING_DETAIL;
-    }
-    if (str == "full_cleaning_main") {
-        return FULL_CLEANING_MAIN;
-    }
-    if (str == "full_cleaning_main_cancel") {
-        return FULL_CLEANING_MAIN_CANCEL;
-    }
+
     if (str == "enter_manual_mode") {
         return ENTER_MANUAL_MODE;
     }
@@ -328,5 +283,143 @@ int switch_ID(const std::string str) {
         return REBOOT;
     }
 
+    if (str == "get_robot_params") {
+        return GET_ROBOT_PARAMS;
+    }
+    if (str == "set_robot_params") {
+        return SET_ROBOT_PARAMS;
+    }
+    if (str == "get_hot_wind_mode") {
+        return GET_HOT_WIND_MODE;
+    }
+    if (str == "set_hot_wind_mode") {
+        return SET_HOT_WIND_MODE;
+    }
+
+    if (str == "map_obstacles") {
+        return MAP_OBSTACLES;
+    }
+    if (str == "map_feasible_zone") {
+        return MAP_FEASIBLE_ZONE;
+    }
+    if (str == "map_apply_increase_area") {
+        return MAP_APPLY_INCREASE_AREA;
+    }
+
+    if (str == "set_explorer_energy") {
+        return SET_EXPLORER_ENERGY;
+    }
+    if (str == "get_explorer_energy") {
+        return GET_EXPLORER_ENERGY;
+    }
+    if (str == "automatic_oiling") {
+        return AUTOMATIC_OILING;
+    }
+
+    if (str == "add_task") {
+        return ADD_TASK;
+    }
+    if (str == "delete_task") {
+        return DELETE_TASK;
+    }
+    if (str == "list_task") {
+        return LIST_TASK;
+    }
+    if (str == "query_id_task") {
+        return QUERY_ID_TASK;
+    }
+    if (str == "build_principal_task") {
+        return BUILD_PRINCIPAL_TASK;
+    }
+    if (str == "cancel_principal_task") {
+        return CANCEL_PRINCIPAL_TASK;
+    }
+    if (str == "principal_task") {
+        return PRINCIPAL_TASK;
+    }
+
+    if (str == "clear_current_list_task") {
+        return CLEAR_CURRENT_LIST_TASK;
+    }
+
+    if (str == "modify_task_name") {
+        return MODIFY_TASK_NAME;
+    }
+    if (str == "modify_task_rate") {
+        return MODIFY_TASK_RATE;
+    }
+    if (str == "modify_task_work_status") {
+        return MODIFY_TASK_WORK_STATUS;
+    }
+    if (str == "modify_task_knife") {
+        return MODIFY_TASK_KNIFE;
+    }
+    if (str == "operate_add_zone") {
+        return OPERATE_ADD_ZONE;
+    }
+    if (str == "operate_delete_zone") {
+        return OPERATE_DELETE_ZONE;
+    }
+    if (str == "operate_modify_zone") {
+        return OPERATE_MODIFY_ZONE;
+    }
+    if (str == "modify_task_partition") {
+        return MODIFY_TASK_PARTITION;
+    }
+    if (str == "operate_add_subregion") {
+        return OPERATE_ADD_SUBREGION;
+    }
+    if (str == "operate_delete_subregion") {
+        return OPERATE_DELETE_SUBREGION;
+    }
+
+    if (str == "add_timer_task") {
+        return ADD_TIMER_TASK;
+    }
+    if (str == "delete_timer_task") {
+        return DELETE_TIMER_TASK;
+    }
+    if (str == "list_timer_task") {
+        return LIST_TIMER_TASK;
+    }
+    if (str == "modify_timer_task") {
+        return MODIFY_TIMER_TASK;
+    }
+    if (str == "modify_timer_name") {
+        return MODIFY_TIMER_NAME;
+    }
+
+    if (str == "exploration_task") {
+        return EXPLORATION_TASK;
+    }
+    if (str == "perform_task") {
+        return PERFORM_TASK;
+    }
+
+    if (str == "get_consumable") {
+        return GET_CONSUMABLE;
+    }
+    if (str == "reset_consumable") {
+        return RESET_CONSUMABLE;
+    }
+
+    if (str == "hot_wind_mode") {
+        return HOT_WIND_MODE;
+    }
+    if (str == "hot_wind_mode_status") {
+        return HOT_WIND_MODE_STATUS;
+    }
+    if (str == "maintenance_mode") {
+        return MAINTENANCE_MODE;
+    }
+    if (str == "maintenance_mode_status") {
+        return MAINTENANCE_MODE_STATUS;
+    }
+    if (str == "set_base_station") {
+        return SET_BASE_STATION;
+    }
+    if (str == "get_base_station") {
+        return GET_BASE_STATION;
+    }
     return -1;
 }

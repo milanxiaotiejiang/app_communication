@@ -28,5 +28,19 @@ public:
     PlanParam handler(string params) override;
 };
 
+class SetExplorerEnergyStrategy : public MessageStrategy<bool, bool> {
+public:
+    bool handler(bool params) override;
+};
+
+class GetExplorerEnergyStrategy : public MessageStrategy<string, bool> {
+public:
+    bool handler(string params) override;
+};
+
+class ExplorationTaskStrategy : public MessageStrategy<long, RoomCoverage> {
+public:
+    RoomCoverage handler(long params) override;
+};
 
 #endif //APP_COMMUNICATION_EXPLORATIONSTRATEGY_H

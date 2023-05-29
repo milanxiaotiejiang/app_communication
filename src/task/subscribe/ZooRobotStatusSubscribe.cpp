@@ -6,7 +6,7 @@
 #include "task/subscribe/zoo_inner_status.h"
 #include "task/subscribe/async_machine.h"
 #include "model/ShowWorkStatus.h"
-#include "model/VersionSubscribe.h"
+#include "net/base/VersionSubscribe.h"
 #include "manager/PublishOutManager.h"
 #include "task/manager/SwitchModePublish.h"
 #include "task/manager/NativeSystemManager.h"
@@ -18,9 +18,12 @@ const int KNOB_STATUS_VERSION = 1;
 
 ZooRobotStatusSubscribe::ZooRobotStatusSubscribe(ros::NodeHandle handle)
         : handle(handle) {
-    isFirstSwitchMode = true;
+//    ZooInnerStatus::instance().setNeedSleep(true);
     sub_robot_status_ = handle.subscribe("/robot_status_inner", 1, &ZooRobotStatusSubscribe::subscribeCallback, this);
     sub_motor_error_ = handle.subscribe("/mrrobot/push_error", 10, &ZooRobotStatusSubscribe::motorErrorCallback, this);
+    sub_hls_error_ = handle.subscribe("/mrrobot/hls_error", 10, &ZooRobotStatusSubscribe::hlsErrorCallback, this);
+    sub_wet_mop_error = handle.subscribe("/mrrobot/wet_mop_error", 10, &ZooRobotStatusSubscribe::wetMopErrorCallback,
+                                         this);
     sub_laser_error_ = handle.subscribe("/lidar/restart", 10, &ZooRobotStatusSubscribe::laserErrorCallback, this);
 }
 
@@ -76,26 +79,20 @@ void ZooRobotStatusSubscribe::subscribeCallback(const zoo_bringup::robot_status 
     //如果此时湿拖托头下放
     if (ZooInnerStatus::instance().getMopStatus() == 1) {
         //清水箱空或者污水箱满
-        int mode = 0;
-        if (clean_water_level == 0) {
-            mode += 1;
+        if (clean_water_level == 0 && dirty_water_level == 100) {
+            NativeSystemManager::instance().waterLevelToBackBase(loop::special_epoll::special_branch_sewage_water);
+        } else if (clean_water_level == 0) {
+            NativeSystemManager::instance().waterLevelToBackBase(loop::special_epoll::special_branch_water);
         } else if (dirty_water_level == 100) {
-            mode += 2;
-        }
-        if (mode > 0) {
-            NativeSystemManager::instance().waterLevelToBackBase(mode);
+            NativeSystemManager::instance().waterLevelToBackBase(loop::special_epoll::special_sewage_water);
         }
     }
 
     //如果此时开启了扫吸模式
     if (ZooInnerStatus::instance().getVacuumStatus() == 1) {
         //污水箱满
-        int mode = 0;
         if (dirty_water_level == 100) {
-            mode += 2;
-        }
-        if (mode > 0) {
-            NativeSystemManager::instance().waterLevelToBackBase(mode);
+            NativeSystemManager::instance().waterLevelToBackBase(loop::special_epoll::special_sewage_water);
         }
     }
 
@@ -121,26 +118,13 @@ void ZooRobotStatusSubscribe::subscribeCallback(const zoo_bringup::robot_status 
                                  ZooInnerStatus::instance().getIsCharging(),
                                  ZooInnerStatus::instance().getAromStatus());
     VersionSubscribe<ShowWorkStatus> statusResponse(1, status);
-    PublishOutManager::instance().getPubOut()->publishStatus(statusResponse);
+    PublishOutManager::instance().publishStatus(statusResponse);
 
-    isFirstSwitchMode = ZooInnerStatus::instance().getIsFirstSwitchMode();
 
-    if (isFirstSwitchMode && is_charging) {
+    if (ZooInnerStatus::instance().getNeedSleep() && is_charging) {
         SwitchModePublish::instance().publish();
-        ZooInnerStatus::instance().setIsFirstSwitchMode(false);
+        ZooInnerStatus::instance().setNeedSleep(false);
     }
-    isFirstSwitchMode = false;
-}
-
-void ZooRobotStatusSubscribe::pubMaterial() const {
-    MaterialDuration soft_brush(SOFT_BRUSH_EXPECTED_DURATION, 1000);
-    MaterialDuration carpet_brush(CARPET_BRUSH_EXPECTED_DURATION, 1001);
-    MaterialDuration push_brush(PUSH_BRUSH_EXPECTED_DURATION, 1002);
-    MaterialDuration fan_filter(FAN_FILTER_EXPECTED_DURATION, 1003);
-    MaterialStatus materialStatus(soft_brush, carpet_brush, push_brush, fan_filter);
-    //回复，带参数，包括分配的id
-    VersionSubscribe<MaterialStatus> materialResponse(MATERIAL_STATUS_VERSION, materialStatus);
-    PublishOutManager::instance().getPubOut()->publishMaterialStatus(materialResponse);
 }
 
 void ZooRobotStatusSubscribe::pubKnob(const zoo_bringup::robot_status &robot_status) const {
@@ -149,15 +133,25 @@ void ZooRobotStatusSubscribe::pubKnob(const zoo_bringup::robot_status &robot_sta
     KnobStatus knobStatus;
     knobStatus.setIsAvailable(knob_available);
     VersionSubscribe<KnobStatus> knobResponse(WORK_STATUS_VERSION, knobStatus);
-    PublishOutManager::instance().getPubOut()->publishKnob(knobResponse);
+    PublishOutManager::instance().publishKnob(knobResponse);
 }
 
 //电机堵转
-void ZooRobotStatusSubscribe::motorErrorCallback(const std_msgs::Int32ConstPtr &motor_error) {
-    NativeSystemManager::instance().motorErrorEvent(motor_error->data);
+void ZooRobotStatusSubscribe::motorErrorCallback(const std_msgs::Int32 &motor_error) {
+    NativeSystemManager::instance().motorErrorEvent(motor_error.data);
+}
+
+//湿拖堵转
+void ZooRobotStatusSubscribe::wetMopErrorCallback(const std_msgs::Int32 &motor_error) {
+    NativeSystemManager::instance().wetMopErrorEvent(motor_error.data);
+}
+
+//底盘电机失能
+void ZooRobotStatusSubscribe::hlsErrorCallback(const std_msgs::Int32 &hls_error) {
+    NativeSystemManager::instance().hlsErrorEvent(hls_error.data);
 }
 
 //雷达故障
-void ZooRobotStatusSubscribe::laserErrorCallback(const std_msgs::StringConstPtr &laser_error) {
-    NativeSystemManager::instance().laserErrorEvent(laser_error->data);
+void ZooRobotStatusSubscribe::laserErrorCallback(const std_msgs::String &laser_error) {
+    NativeSystemManager::instance().laserErrorEvent(laser_error.data);
 }

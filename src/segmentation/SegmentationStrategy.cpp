@@ -4,14 +4,12 @@
 
 #include "segmentation/SegmentationStrategy.h"
 #include "segmentation/SegmentationCenter.h"
+#include "db/task_data_base.h"
+#include "db/task_model.h"
 
 MapRoomVo RoomMapDataStrategy::handler(string params) {
-
     if (SegmentationCenter::instance().checkPartition()) {
-        cv::Mat segmented_map;
-        std::vector<Room> rooms;
-        SegmentationCenter::instance().storage2Memory(segmented_map, rooms);
-        return SegmentationCenter::instance().toVoRoom(segmented_map, rooms);
+        return SegmentationCenter::instance().resultMapRoomVo();
     } else {
         throw app::exception(make_error_code(error::room_no_partition));
     }
@@ -27,10 +25,10 @@ MapRoomVo RoomMergeStrategy::handler(RoomMergeTarget params) {
     int targetIndex, mergeIndex = -1;
     for (int i = 0; i < rooms.size(); ++i) {
         auto room = rooms[i];
-        if (room.getID() == targetId) {
+        if (room.getDbId() == targetId) {
             targetIndex = i;
         }
-        if (room.getID() == mergeId) {
+        if (room.getDbId() == mergeId) {
             mergeIndex = i;
         }
     }
@@ -41,7 +39,8 @@ MapRoomVo RoomMergeStrategy::handler(RoomMergeTarget params) {
     SegmentationCenter::instance().mergeRoom(segmented_map, rooms, targetIndex, mergeIndex);
 
     SegmentationCenter::instance().memory2Storage(segmented_map, rooms);
-    return SegmentationCenter::instance().toVoRoom(segmented_map, rooms);
+
+    return SegmentationCenter::instance().resultMapRoomVo();
 }
 
 MapRoomVo RoomSegmentationStrategy::handler(RoomSegmentationTarget params) {
@@ -60,7 +59,7 @@ MapRoomVo RoomSegmentationStrategy::handler(RoomSegmentationTarget params) {
         int targetIndex = -1;
         for (int i = 0; i < rooms.size(); ++i) {
             auto room = rooms[i];
-            if (room.getID() == targetId) {
+            if (room.getDbId() == targetId) {
                 targetIndex = i;
             }
         }
@@ -71,7 +70,8 @@ MapRoomVo RoomSegmentationStrategy::handler(RoomSegmentationTarget params) {
     }
 
     SegmentationCenter::instance().memory2Storage(segmented_map, rooms);
-    return SegmentationCenter::instance().toVoRoom(segmented_map, rooms);
+
+    return SegmentationCenter::instance().resultMapRoomVo();
 }
 
 void RoomResetStrategy::handler() {
@@ -92,5 +92,5 @@ MapRoomVo AutoSegmentationStrategy::handler(string params) {
 
     SegmentationCenter::instance().memory2Storage(segmented_map, rooms);
 
-    return SegmentationCenter::instance().toVoRoom(segmented_map, rooms);
+    return SegmentationCenter::instance().resultMapRoomVo();
 }

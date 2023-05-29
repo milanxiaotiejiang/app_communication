@@ -5,15 +5,16 @@
 #include "sub/json/TimerStrategy.h"
 #include "ros/package.h"
 #include "glog/logging.h"
-#include <model/Entrance.h>
+#include "db/path.h"
+#include "net/base/Entrance.h"
 
 
-string AddTimerStrategy::handler(TimerInfo params) {
+string SetTimerStrategy::handler(TimerInfo params) {
 
     string fileName;
     string sss;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_dir());
+    fileName.append("timer_info_json.txt");
     //设置清扫计时器
     //sh::File *fff = new sh::File(fileName);
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
@@ -58,7 +59,8 @@ string AddTimerStrategy::handler(TimerInfo params) {
                        params.getIsSkip(),
                        params.getEndYear(),
                        params.getEndMonth(),
-                       params.getEndDay());
+                       params.getEndDay(),
+                       false);
 
         timerInfoTask.push_back(tinf);
 
@@ -79,7 +81,7 @@ string AddTimerStrategy::handler(TimerInfo params) {
         js["timerid"] = params.getTimerId();
         ret.data.append(js.dump());
 
-        PublishOutManager::instance().getPubOut()->publishAppSchedule(ret);
+        PublishInnerManager::instance().publishAppSchedule(ret);
 
     } else {
         throw app::exception(make_error_code(error::open_file_timer_fail));
@@ -93,8 +95,8 @@ string AddTimerStrategy::handler(TimerInfo params) {
 string UpdateTimerStrategy::handler(TimerInfo params) {
     string fileName;
     string sss;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_dir());
+    fileName.append("timer_info_json.txt");
 
     // *fff = new sh::File(fileName);
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
@@ -126,6 +128,7 @@ string UpdateTimerStrategy::handler(TimerInfo params) {
                 timer_infos[i].setEndYear(params.getEndYear());
                 timer_infos[i].setEndMonth(params.getEndMonth());
                 timer_infos[i].setEndDay(params.getEndDay());
+                timer_infos[i].setOld(false);
                 //
                 break;
             }
@@ -148,7 +151,7 @@ string UpdateTimerStrategy::handler(TimerInfo params) {
         js["method"] = "upd";
         js["timerid"] = params.getTimerId();
         ret.data.append(js.dump());
-        PublishOutManager::instance().getPubOut()->publishAppSchedule(ret);
+        PublishInnerManager::instance().publishAppSchedule(ret);
 
 
     } else {
@@ -164,8 +167,8 @@ string UpdateTimerStrategy::handler(TimerInfo params) {
 vector<TimerInfo> GetTimerListStrategy::handler(string params) {
     string fileName;
     string sss;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_dir());
+    fileName.append("timer_info_json.txt");
 
     //sh::File *fff = new sh::File(fileName);
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
@@ -187,12 +190,12 @@ vector<TimerInfo> GetTimerListStrategy::handler(string params) {
     return timer_info;
 }
 
-string DeleteTimerStrategy::handler(string params) {
+string DelTimerStrategy::handler(string params) {
     //    使能/失能清扫计时器
     string fileName;
     string path;
-    fileName.append(ros::package::getPath("data_base"));
-    fileName.append("/config/timer_info_json.txt");
+    fileName.append(path::data_base_config_dir());
+    fileName.append("timer_info_json.txt");
     cout << "timer_infos 214 " << endl;
     //sh::File *fff = new sh::File(fileName);
     std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
@@ -238,7 +241,7 @@ string DeleteTimerStrategy::handler(string params) {
         cout << "280  " << js["timerid"] << endl;
         ret.data.append(js.dump());
 
-        PublishOutManager::instance().getPubOut()->publishAppSchedule(ret);
+        PublishInnerManager::instance().publishAppSchedule(ret);
 
         // return "";
         json jj;

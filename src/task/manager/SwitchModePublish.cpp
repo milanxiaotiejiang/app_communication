@@ -6,11 +6,10 @@
 #include <thread>
 #include "task/manager/SwitchModePublish.h"
 #include "glog/logging.h"
+#include "task/manager/NodeWorkModeManager.h"
 
 //0 建图 1 睡眠 //2 工作
 void SwitchModePublish::initialize(ros::NodeHandle handle) {
-    pub_node_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/switch_mode", 10);
-
     //开个线程lambda表达式
     std::thread postponePublish(
             [this]() {
@@ -26,9 +25,7 @@ void SwitchModePublish::initialize(ros::NodeHandle handle) {
                     if (!isReset) {
                         if (isPublish) {
                             LOG(INFO) << "发布睡眠模式 ...";
-                            std_msgs::Int32 result;
-                            result.data = 1;
-                            pub_node_mode_.publish(result);
+                            NodeWorkModeManager::instance().toSleep();
                             isPublish = false;
                         }
                     }
@@ -37,12 +34,6 @@ void SwitchModePublish::initialize(ros::NodeHandle handle) {
             }
     );
     postponePublish.detach();
-}
-
-void SwitchModePublish::mapping() {
-    std_msgs::Int32 result;
-    result.data = 0;
-    pub_node_mode_.publish(result);
 }
 
 void SwitchModePublish::publish() {

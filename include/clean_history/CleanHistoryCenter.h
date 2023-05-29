@@ -27,10 +27,10 @@ namespace clean_history_db {
         bool initialize();
 
         //下任务时新增一条历史
-        bool addCleanHistory(const Task &task);
+        bool addCleanHistory(const RealTask &task);
 
         //下任务失败结束该条历史
-        bool launchFailed(const Task &task, const app::exception &e);
+        bool launchFailed(const RealTask &task, const app::exception &e);
 
         //设置清洁模式
         void upDateByRealTask(const RealTask &real_task);
@@ -57,7 +57,9 @@ namespace clean_history_db {
         bool lowPowerBack();
 
         //水箱返回基站
-        bool equipmentErrorBack(SpecialInfo mode);
+        bool equipmentErrorBack(bool clean_water_level_check_failed_,
+                                bool dirty_water_level_check_failed_,
+                                bool motor_error_);
 
         //强制返回基站
         bool forceBack();
@@ -101,8 +103,12 @@ namespace clean_history_db {
 
         bool laserInterrupt();
 
+        void updateProperty(const WorkStatus& workStatus, long cleanTime);
+
         //错误完成历史
         bool errorComplete(int error_code, std::string error_string, std::string error_code2);
+
+        bool successComplete(int error_code, std::string error_string, std::string error_code2);
 
         std::tuple<int, std::string, std::string> generateErrorMessageFromLastFlow(int flow);
 

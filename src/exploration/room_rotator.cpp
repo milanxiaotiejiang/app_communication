@@ -105,13 +105,24 @@ void RoomRotator::transformPathBackToOriginalRotation(const std::vector<cv::Poin
 
 void RoomRotator::transformPointPathToPosePath(const std::vector<cv::Point2f> &point_path,
                                                std::vector<geometry_msgs::Pose2D> &pose_path) {
+    if (point_path.empty()) {
+        return;
+    }
+
     if (point_path.size() == 1) {
-        geometry_msgs::Pose2D current_pose;
-        current_pose.x = point_path[0].x;
-        current_pose.y = point_path[0].y;
-        current_pose.theta = 0.;
-        pose_path.push_back(current_pose);
+        geometry_msgs::Pose2D zero_pose;
+        zero_pose.x = point_path[0].x;
+        zero_pose.y = point_path[0].y;
+        zero_pose.theta = 0.;
+        pose_path.push_back(zero_pose);
     } else {
+
+        geometry_msgs::Pose2D zero_pose;
+        zero_pose.x = point_path[0].x;
+        zero_pose.y = point_path[0].y;
+        zero_pose.theta = 0.;
+        pose_path.push_back(zero_pose);
+
         for (size_t point_index = 1; point_index < point_path.size(); ++point_index) {
             const cv::Point2f &current_point = point_path[point_index];
 

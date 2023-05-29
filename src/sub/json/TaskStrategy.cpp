@@ -12,21 +12,28 @@
 #include "exploration/ExplorationCenter.h"
 #include "db/segmentation_data_base.h"
 #include "simulation.h"
-
-std::string Map_path =
-        ros::package::getPath("robot_slam") + "/maps/mymap.pgm";
-
+#include "db/SqliteDataBase.h"
+#include "tool/param_check.h"
 
 string ExecuteTaskStrategy::handler(Task task) {
     TaskCenter::instance().executeTask(task);
     return "";
 }
 
+string PerformTaskStrategy::handler(OnTask params) {
+    LOG(ERROR) << params;
+    checkRate(params.on_rate);
+    return TaskCenter::instance().performTask(params.task_id,
+                                              SqliteDataBase::TaskSourceFromString(params.on_source),
+                                              params.on_rate
+    );
+}
+
 vector<Task> GetTaskListStrategy::handler(string params) {
     std::vector<Task> task_list;
     for (const auto &item: ManualManager::instance().runTaskList()) {
         Task task(item.getId(), item.getMode(), item.getRate(), item.getWorkStatus(),
-                  CleanPolygon(), item.getZoned(), CleanContinuity(), TeachPathInfo(),
+                  CleanPolygon(), item.getZoned0(), CleanContinuity(), TeachPathInfo(),
                   item.getLaunchPeople(), item.getLaunchTime(), item.getTimeMode(), true);
         if (item.getMode() == 7) {
             task.setCombination(item.getCombination());
@@ -34,6 +41,25 @@ vector<Task> GetTaskListStrategy::handler(string params) {
         task_list.push_back(task);
     }
     return task_list;
+}
+
+RunTask RunningTaskStrategy::handler(string params) {
+    RunTask runTask("");
+    const RealTask &runningTask = ManualManager::instance().runningTask();
+    if (!runningTask.getId().empty()) {
+        runTask.taskId = runningTask.getId();
+        runTask.renew = runningTask.isRenew();
+        if (runningTask.isRenew()) {
+            runTask.newTaskId = runningTask.getTaskId();
+        } else {
+            if (runningTask.getMode() == 7) {
+                runTask.oldTaskId = runningTask.getCombination().getCombinationID();
+            }
+        }
+    } else {
+        throw app::exception(make_error_code(error::no_run_task));
+    }
+    return runTask;
 }
 
 vector<TaskUpgrade> GetTaskListStrategyV2::handler(string params) {
@@ -83,10 +109,11 @@ deque<PointProgressVo> GetFinishedPointStrategy::handler(string params) {
     //操作，获取当前任务状态
     deque<PointProgressVo> finished_point_list;
     for (const auto &point: ManualManager::instance().runTaskPoint()) {
-        PointProgressVo pointProgressVo(point.task_id, point.realPosition.x, point.realPosition.y,
+        PointProgressVo pointProgressVo(point.realPosition.x, point.realPosition.y,
                                         point.realProgress.currentStep, point.realProgress.totalStep,
                                         point.realProgress.currentFrequency, point.realProgress.totalFrequency,
-                                        point.work_status, point.mode, point.inClean);
+                                        point.work_status, point.mode, point.inClean,
+                                        point.taskId, point.renew, point.oldTaskId, point.newTaskId);
         finished_point_list.push_back(pointProgressVo);
     }
     return finished_point_list;
@@ -94,35 +121,37 @@ deque<PointProgressVo> GetFinishedPointStrategy::handler(string params) {
 
 Task GetFullPlanStrategy::handler(vector<int> params) {
 
-    std::vector<geometry_msgs::Pose2D> exploration_path;
-    std::vector<cv::Point> point_path;
-    const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
-    ExplorationCenter::instance().generatePlanningPath(baseMap, ExplorationModel::FULL,
-                                                       BOUSTROPHEDON_EXPLORER_MODE, false,
-                                                       cv::Point(0, 0),
-                                                       exploration_path, point_path);
+//    std::vector<geometry_msgs::Pose2D> exploration_path;
+//    std::vector<cv::Point> point_path;
+//    const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
+//    ExplorationCenter::instance().generatePlanningPath(baseMap, ExplorationModel::FULL,
+//                                                       BOUSTROPHEDON_EXPLORER_MODE, false,
+//                                                       cv::Point(0, 0),
+//                                                       exploration_path, point_path);
+//
+//    ExplorationCenter::instance().pathPublish(exploration_path);
+//    boost::uuids::uuid uuid = boost::uuids::random_generator()();
+//    string uuid_string = boost::uuids::to_string(uuid);
+//
+//    std::vector<PoseVo> poseList;
+//    std::vector<PointVo> pointList;
+//    for (const auto &item: exploration_path) {
+//        poseList.emplace_back(item.y, item.x, item.theta);
+//    }
+//    for (const auto &item: point_path) {
+//        pointList.emplace_back(item.x, item.y);
+//    }
+//
+//    auto coverage = RoomCoverage(uuid_string, pointList, poseList);
 
-    ExplorationCenter::instance().pathPublish(exploration_path);
-    boost::uuids::uuid uuid = boost::uuids::random_generator()();
-    string uuid_string = boost::uuids::to_string(uuid);
-
-    std::vector<PoseVo> poseList;
-    std::vector<PointVo> pointList;
-    for (const auto &item: exploration_path) {
-        poseList.emplace_back(item.y, item.x, item.theta);
-    }
-    for (const auto &item: point_path) {
-        pointList.emplace_back(item.x, item.y);
-    }
-
-    auto coverage = RoomCoverage(uuid_string, pointList, poseList);
+    auto coverage = ExplorationCenter::instance().obtainCoveragePath();
     ExplorationCenter::instance().cacheRoomCoverage(coverage);
 
 
-    Environment::instance().room_coverage_uuid = uuid_string;
+    Environment::instance().room_coverage_uuid = coverage.getCoverageId();
 
     std::vector<Point> full;
-    for (const auto &item: poseList) {
+    for (const auto &item: coverage.getPoseList()) {
         full.emplace_back(item.getX(), item.getY());
     }
     FullPath fullPath(full);

@@ -6,6 +6,7 @@
 #define APP_COMMUNICATION_CLEANHISTORYDATABASE_H
 
 #include "clean_history_model.h"
+#include "db/path.h"
 #include <vector>
 #include <ros/package.h>
 #include <ros/ros.h>
@@ -13,9 +14,7 @@
 
 namespace clean_history_db {
 
-    const std::string DATA_BASE_DIR = ros::package::getPath("data_base");
-    const std::string CLEAN_HISTORY_PATH = DATA_BASE_DIR + "/config/";
-    const std::string CLEAN_HISTORY_SQLITE_PATH = CLEAN_HISTORY_PATH + "cleanHistory.sqlite";
+    const std::string CLEAN_HISTORY_SQLITE_PATH = path::data_base_config_dir() + "cleanHistory.sqlite";
 
     using namespace sqlite_orm;
 
@@ -108,7 +107,7 @@ namespace clean_history_db {
 
         //获取task_id的清洁历史
         CleanHistory getCleanHistory(std::string task_id) {
-            return clean_history_storage_.get_all<CleanHistory>(where(c(&CleanHistory::task_id_) == task_id))[0];
+            return clean_history_storage_.get_all<CleanHistory>(where(c(&CleanHistory::task_id_) == std::move(task_id)))[0];
         }
 
         //获取所有未完成的历史

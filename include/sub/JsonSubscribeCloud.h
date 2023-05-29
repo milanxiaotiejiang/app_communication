@@ -9,7 +9,7 @@
 #define APP_COMMUNICATION_JsonSubscribeV3_H
 
 #include "boost/thread.hpp"
-#include <model/Entrance.h>
+#include "net/base/Entrance.h"
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 #include <sub/json/MessageContext.h>
@@ -17,8 +17,6 @@
 #include <tool/Switch.h>
 
 #include <nlohmann/json.hpp>
-#include <pub/PubInner.h>
-#include <pub/PubOut.h>
 
 #include "clean_msgs/cloud_control.h"
 #include "clean_msgs/robot_control.h"
@@ -32,8 +30,6 @@ class JsonSubscribeCloud {
 
 private:
     ros::NodeHandle handle;
-    PubInner pubInner;
-    PubOut pubOut;
     ros::Subscriber sub_json_;
     ros::ServiceServer service;
 
@@ -42,7 +38,7 @@ private:
     std::string m_response;
 
 public:
-    JsonSubscribeCloud(ros::NodeHandle handle, PubInner pubInner, PubOut pubOut);
+    JsonSubscribeCloud(ros::NodeHandle handle);
 
     virtual ~JsonSubscribeCloud();
 

@@ -5,7 +5,6 @@
 #ifndef APP_COMMUNICATION_NEAREST_NEIGHBOR_TSP_H
 #define APP_COMMUNICATION_NEAREST_NEIGHBOR_TSP_H
 
-
 #include "exploration/A_star_pathplanner.h"
 
 class NearestNeighborTSPSolver {

@@ -6,17 +6,30 @@
 #define APP_COMMUNICATION_NODEWORKMODEMANAGER_H
 
 #include <ros/ros.h>
+#include <condition_variable>
 
 enum WorkMode {
-    MAPPING,
+    UNKNOWN,
     SLEEPING,
-    WORKING
+    WORKING,
+    MAPPING
 };
+
+const int MAXIMUM_TIME_LIMIT_FOR_QUICK_EXIT = 20;
+const long MAXIMUM_LIMIT_TIME_OF_TIMEOUT = 25;
+const int MAXIMUM_NUMBER_OF_FORCED_ENTRY = 3;
 
 class NodeWorkModeManager {
 private:
-    ros::NodeHandle nodeHandle;
-    WorkMode workMode;
+    ros::Publisher pub_node_;
+
+    std::condition_variable cv;
+    std::mutex cv_mut;
+
+    WorkMode nowWorkMode();
+
+    bool asyncWorkMode(WorkMode mode);
+
 public:
     static auto &instance() {
         static NodeWorkModeManager obj;
@@ -25,9 +38,19 @@ public:
 
     void initialize(ros::NodeHandle handle);
 
-    WorkMode getWorkMode();
+    bool tryToWork();
 
-    void setWorkMode(int);
+    bool tryToMap();
+
+    void forceToWork();
+
+    void forceToMap();
+
+    void toSleep();
+
+    bool enterWorkMode(int enter);
+
+    bool forceEnterWorkMode(int enter);
 };
 
 

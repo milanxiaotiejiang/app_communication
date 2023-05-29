@@ -9,6 +9,8 @@
 #include "task/manager/MechanismManager.h"
 #include "task/manager/manual.h"
 #include "task/subscribe/zoo_inner_status.h"
+#include "leave/ParamManager.h"
+#include "db/segmentation_data_base.h"
 
 /**
  * @brief Get the Device Status Strategy::date Progressing object获取机器当前状态
@@ -20,12 +22,12 @@
 
 DeviceStatus GetDeviceStatusStrategy::handler(string method) {
     //追加几行，每当有连接时候获取下版本号
-    std_msgs::Int16 version;
+    std_msgs::Int32 version;
     version.data = 0;
-    PublishInnerManager::instance().getPubInner()->publishDSVersion(version);
-    std_msgs::Int16 version1;
+    PublishInnerManager::instance().publishDSVersion(version);
+    std_msgs::Int32 version1;
     version1.data = 1;
-    PublishInnerManager::instance().getPubInner()->publishDSVersion(version1);
+    PublishInnerManager::instance().publishDSVersion(version1);
 
     WorkStatus workStatus(ZooInnerStatus::instance().getSweepStatus(),
                           ZooInnerStatus::instance().getMopStatus(),
@@ -35,9 +37,8 @@ DeviceStatus GetDeviceStatusStrategy::handler(string method) {
                           0);
 
     //获取地图ID和地图名称
-    MapInfo map;
-    map.setMapId(1);
-    map.setMapName("11");
+    MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
+    MapInfo map(mapPo.id, mapPo.name);
 
     int machineCode = AsyncMachine::instance().getMachineCode();
     std::string machineMessage = AsyncMachine::instance().getMachineMessage(machineCode);
@@ -50,7 +51,14 @@ DeviceStatus GetDeviceStatusStrategy::handler(string method) {
 }
 
 DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
-
+    /*
+    int sweep_status{-1};//清扫
+    int mop_status{-1};//湿拖
+    int vacuum_status{-1};//尘吸
+    int push_status{-1};//尘推
+    int aromatherapy_status{-1};//香薰
+    int disinfect_status{-1};//消杀
+     */
     WorkStatus workStatus(ZooInnerStatus::instance().getSweepStatus(),
                           ZooInnerStatus::instance().getMopStatus(),
                           0,
@@ -58,9 +66,9 @@ DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
                           ZooInnerStatus::instance().getAromStatus(),
                           0);
 
-    WorkStatusUpgrade workStatusUpgrade(ZooInnerStatus::instance().getSweepStatus(),
-                                        ZooInnerStatus::instance().getMopStatus(),
+    WorkStatusUpgrade workStatusUpgrade(ZooInnerStatus::instance().getMopStatus(),
                                         0,
+                                        ZooInnerStatus::instance().getVacuumStatus(),
                                         ZooInnerStatus::instance().getPushStatus(),
                                         ZooInnerStatus::instance().getAromStatus());
 
@@ -74,10 +82,9 @@ DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
     //获取水箱状态
     bool t_water_box_status = false;
 
-    //获取地图ID和地图名称，假数据
-    MapInfo map;
-    map.setMapId(1);
-    map.setMapName("11");
+    //获取地图ID和地图名称
+    MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
+    MapInfo map(mapPo.id, mapPo.name);
 
     //获取work_status_code
     //int t_work_status_code = DeviceStatusManager::get_instance()->getWorkStatusCode();
@@ -109,46 +116,37 @@ DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
 }
 
 string ChangeWorkModeStrategy::handler(WorkStatus params) {
-    MechanismManager::instance().controlWorkStatus(params);
+    MechanismManager::instance().controlWorkStatus(params, false);
     return "";
 }
 
 string ChangeAromStatusStrategy::handler(bool params) {
-    std_msgs::Int16 arom_status;
-    arom_status.data = (int16_t) params;
-    PublishInnerManager::instance().getPubInner()->publishAromStatus(arom_status);
+    std_msgs::Int32 arom_status;
+    arom_status.data = params;
+    PublishInnerManager::instance().publishAromStatus(arom_status);
     return "";
 }
 
-string SelfCleanStrategy::handler(string params) {
-    //操作,发布指令，打开自清洁
-    std_msgs::Int16 clean_mode;
-    clean_mode.data = ((int16_t) 4);
-    PublishInnerManager::instance().getPubInner()->publishPushMode(clean_mode);
+int GetHotWindModeStrategy::handler(string params) {
+    return ParamManager::instance().getDry();
+}
+
+int SetHotWindModeStrategy::handler(int params) {
+    ParamManager::instance().setDry(params);
+    return ParamManager::instance().getDry();
+}
+
+void AutomaticOilingStrategy::handler() {
+    std_msgs::Int32 message;
+    message.data = 1;
+    PublishInnerManager::instance().publishOil(message);
+}
+
+string SetBaseStationStrategy::handler(bool params) {
+    ParamManager::instance().setBaseStation(params);
     return "";
 }
 
-string OpenMachineDrawerStrategy::handler(string params) {
-    //操作,发布指令，打开自清洁
-    std_msgs::Int16 drawer_cmd;
-    drawer_cmd.data = ((int16_t) 1);
-    PublishInnerManager::instance().getPubInner()->publishDrawerCmd(drawer_cmd);
-    return "";
-}
-
-string LightBeltModeStrategy::handler(int params) {
-    int16_t light_mode = (int16_t) params;
-    //操作,发布指令，打开自清洁
-    std_msgs::Int16 light_cmd;
-    light_cmd.data = ((int16_t) light_mode);
-    PublishInnerManager::instance().getPubInner()->publishLightCmd(light_cmd);
-    return "";
-}
-
-string PlayerRecruitVoiceStrategy::handler(int params) {
-    //操作,发布指令，播放音乐
-    std_msgs::Int32 player_cmd;
-    player_cmd.data = ((int32_t) 1);
-    PublishInnerManager::instance().getPubInner()->publishMusic(player_cmd);
-    return "";
+bool GetBaseStationStrategy::handler(string params) {
+    return ParamManager::instance().isBaseStation();
 }

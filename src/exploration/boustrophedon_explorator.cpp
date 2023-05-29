@@ -9,6 +9,7 @@
 #include "exploration/tsp/nearest_neighbor_TSP.h"
 #include "exploration/tsp/genetic_TSP.h"
 #include "exploration/tsp/tsp_solver_defines.h"
+#include "exploration/cv_extend.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 static bool DISPLAY_TRAJECTORY_RESULT = false;
@@ -27,8 +28,8 @@ static bool DISPLAY_TRAJECTORY_RESULT = false;
  * @param max_deviation_from_track 为避免轨道上的障碍物，最大允许偏离轨道两侧的理想距离
  */
 void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
-                                               const float map_resolution, const cv::Point& starting_position,
-                                               const cv::Point2d& map_origin, const double grid_spacing_in_pixel,
+                                               const float map_resolution, const cv::Point &starting_position,
+                                               const cv::Point2d &map_origin, const double grid_spacing_in_pixel,
                                                const double grid_obstacle_offset, const double path_eps,
                                                const double min_cell_area, const int max_deviation_from_track,
                                                int tsp_solver) {
@@ -83,6 +84,18 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         if (cv::pointPolygonTest(cell->getVertices(), rotated_starting_point, false) >= 0)
             start_cell_index = cell - cell_polygons.begin();
 
+    if (DISPLAY_TRAJECTORY) {
+        auto polygon_centers_map = rotated_room_map.clone();
+        for (int i = 0; i < polygon_centers.size(); i++) {
+            auto point = polygon_centers[i];
+            cv::putText(polygon_centers_map, std::to_string(i), point, cv::FONT_HERSHEY_TRIPLEX,
+                        0.8, cv::Scalar(128), 1, CV_AA);
+            cv::circle(polygon_centers_map, point, 3, cv::Scalar(160), CV_FILLED);
+        }
+        cv::imshow("polygon_centers_map", polygon_centers_map);
+        cv::waitKey();
+    }
+
     std::vector<int> optimal_order;
     // 确定单元格的最佳访问顺序
     if (tsp_solver == TSP_GENETIC) {
@@ -102,7 +115,7 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         // 算法原理：每次都取离当前位置最近的区域为下一个清扫区域，到达下一个区域后，再取最近的区域为下一个清扫区域，即遗传学TSP前半段
         LOG(INFO) << "NearestNeighborTSPSolver .. ";
         NearestNeighborTSPSolver neighbor_tsp_solver;
-        optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 0.25, 0.0,
+        optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 0.2, 0.0,
                                                             map_resolution, start_cell_index, 0);
         if (optimal_order.size() != polygon_centers.size()) {
             LOG(INFO)
@@ -112,6 +125,17 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         }
     }
 
+    if (DISPLAY_TRAJECTORY) {
+        auto polygon_centers_map2 = rotated_room_map.clone();
+        for (int i = 0; i < optimal_order.size(); i++) {
+            auto point = polygon_centers[optimal_order[i]];
+            cv::putText(polygon_centers_map2, std::to_string(i), point, cv::FONT_HERSHEY_TRIPLEX,
+                        0.8, cv::Scalar(128), 1, CV_AA);
+            cv::circle(polygon_centers_map2, point, 3, cv::Scalar(160), CV_FILLED);
+        }
+        cv::imshow("polygon_centers_map2", polygon_centers_map2);
+        cv::waitKey();
+    }
 
     LOG(INFO) << "Starting to get the paths for each cell, number of cells: " << (int) cell_polygons.size();
     LOG(INFO) << "Boustrophedon grid_spacing_as_int = " << grid_spacing_as_int;
@@ -399,6 +423,7 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
     cell.drawPolygon(cell_map, cv::Scalar(255));
 
     cv::Point cell_center = cell.getBoundingBoxCenter();
+
     cv::Mat R_cell;//
     cv::Rect cell_bbox;
     cv::Mat rotated_cell_map;//仿射变换后的分区片段图，位置为 y 轴方向为图像大小，x 轴中心点为图像的中心位置
@@ -408,8 +433,7 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
 
     cv::Mat inflated_room_map;//原始地图腐蚀之后的地图
     cv::Mat rotated_inflated_room_map;//仿射变换后的原始腐蚀图
-    cv::erode(room_map, inflated_room_map, cv::Mat(), cv::Point(-1, -1),
-              half_grid_spacing_as_int + grid_obstacle_offset);
+    explorationErode(room_map, inflated_room_map, half_grid_spacing_as_int + grid_obstacle_offset);
 
     cell_rotation.rotateRoom(inflated_room_map, rotated_inflated_room_map, R_cell, cell_bbox);
 
@@ -497,6 +521,7 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
     cv::Point cell_robot_pos;
     bool start = true;
     std::vector<cv::Point> current_fov_path;
+    bool first = true;
     if (start_from_upper_path) {
 
         for (BoustrophedonGrid::iterator line = grid_lines.begin(); line != grid_lines.end(); ++line) {
@@ -506,6 +531,10 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
                 else
                     cell_robot_pos = line->upper_line.back();
                 start = false;
+            }
+            if (first) {
+                first = false;
+                current_fov_path.push_back(cell_robot_pos);
             }
 
             if (start_from_left) {
@@ -543,6 +572,10 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
                 else
                     cell_robot_pos = line->upper_line.back();
                 start = false;
+            }
+            if (first) {
+                first = false;
+                current_fov_path.push_back(cell_robot_pos);
             }
 
             if (start_from_left) {

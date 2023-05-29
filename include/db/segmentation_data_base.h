@@ -12,18 +12,30 @@
 class SegmentationDataBase {
 private:
     MapPo mapPo;
-    Storage segmentationStorage = SqliteDataBase::initStorage();
+    MapStorage segmentationStorage = SqliteDataBase::initMapStorage();
 public:
     static auto &instance() {
         static SegmentationDataBase obj;
         return obj;
     }
 
-    bool loadMap();
+    void sync_schema();
+
+    bool loadMainMap();
 
     MapPo &getDbMap();
 
-    std::vector<RoomPo> selectByMapId(const std::string &mapId);
+    MapPo installMap(std::string name);
+
+    MapPo installDefaultMap();
+
+    std::vector<MapPo> loadAllMap();
+
+    void updateMapName(const std::string &map_id, const std::string &map_name);
+
+    RoomPo selectRoomById(long roomId);
+
+    std::vector<RoomPo> selectRoomByMapId(const std::string &mapId);
 
     void removeAllRoom(const std::string &mapId);
 
@@ -51,8 +63,11 @@ public:
                       int numberExtension,
                       int multipleContourSpacing,
                       int random_number_generation_ratio,
-                      int boundary_min_area
+                      int boundary_min_area,
+                      int version = 2
     );
+
+    void removePlanParam(const std::string &mapId);
 
     PlanPo getDbPlan(std::string map_id);
 };

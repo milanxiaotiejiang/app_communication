@@ -5,52 +5,110 @@
 #include "sub/json/MapStrategy.h"
 #include "segmentation/SegmentationCenter.h"
 #include "segmentation/map_attribute.h"
+#include "exploration/ExplorationCenter.h"
+#include "segmentation/map_modification.h"
+#include "db/segmentation_data_base.h"
+#include "leave/map_control.h"
+#include "leave/cartographer_node.h"
+#include "future/node/node_control.h"
+#include "task/manager/MechanismManager.h"
+#include "leave/HotWindNote.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
-    std_msgs::String map_save;
-    map_save.data.append("save_map");
-    for (int i = 0; i < 5; i++) {
-        PublishInnerManager::instance().getPubInner()->publishCommand(map_save);
-        ros::Duration(1).sleep();
+    // todo 此版本为单地图
+    if (MapAttribute::instance().saveMap()) {
+
+        SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id,
+                                                       params.getMapName());
+
+        MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
+        MapInfo param(mapPo.id, mapPo.name);
+
+        ExplorationCenter::instance().repaintCoveragePath(true);
+
+        return param;
+    } else {
+        throw app::exception(make_error_code(error::create_map_fail));
     }
 
-    SegmentationCenter::instance().resetSegmentation();
-
-    //回复，带参数，包括分配的id
-    MapInfo param(1, params.getMapName());
-
-    return param;
+//    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+//    MapControl::instance().backupAndRetrieve(oldMap.id);
+//    if (MapAttribute::instance().saveMap()) {
+//        const MapPo &newMap = SegmentationDataBase::instance().installMap(params.getMapName());
+//        SegmentationDataBase::instance().loadMainMap();
+//        MapControl::instance().backupProhibition(newMap.id, false);
+//        MapControl::instance().backupMap(newMap.id, false);
+//
+//        ExplorationCenter::instance().repaintCoveragePath(true);
+//
+//        MapInfo param(newMap.id, newMap.name);
+//        return param;
+//    } else {
+//        MapControl::instance().loadInformation(oldMap.id);
+//        throw app::exception(make_error_code(error::create_map_fail));
+//    }
 }
 
 vector<MapInfo> GetMultiMapsStrategy::handler(string params) {
-    string fileName;
-    string sss;
-    fileName.append(ros::package::getPath("app_communication"));
-    fileName.append("/config/map_info.txt");
-    // fileName.append("/home/admin1/test_ws/src/app_communication/config/map_info.txt");
-    //sh::File *fff = new sh::File(fileName);
-    std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
-    string base64;
-    if (fff->open(std::ios::in)) {
-        sss = fff->readAll();
-    } else {
-        cout << "fail to open file" << endl;
+    std::vector<MapInfo> mapInfos;
+    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
+    for (const auto &map: allMap) {
+        MapInfo mapInfo(map.id, map.name);
+        mapInfos.push_back(mapInfo);
     }
-    std_msgs::String result;
-    if (sss.length() > 0)//不为空
-    {
-        json jdecode = json::parse(sss);
-        std::vector<MapInfo> map_info = jdecode.get<std::vector<MapInfo>>();//数据内容，结构体格式
-
-        return map_info;
-    } else {
-        return std::vector<MapInfo>();
-    }
-
+    return mapInfos;
 }
 
-int ChangeMapStrategy::handler(string params) {
-    return 5;
+string ChangeMapStrategy::handler(string params) {
+    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+    if (oldMap.id == params) {
+        throw app::exception(make_error_code(error::create_map_fail));
+    }
+
+    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
+    bool isFind = false;
+    for (const auto &item: allMap) {
+        if (item.id == params) {
+            isFind = true;
+            break;
+        }
+    }
+    if (!isFind) {
+        throw app::exception(make_error_code(error::map_id_does_not_exist));
+    }
+    if (!MapControl::instance().checkMapInformation(params)) {
+        throw app::exception(make_error_code(error::map_id_does_not_exist));
+    }
+
+    MapControl::instance().backupAndRetrieve(oldMap.id);
+
+    MapControl::instance().loadInformation(params);
+    MapControl::instance().changeMapServer();
+    if (NodeControl::instance().isWork()) {
+//        CartographerPublisher::instance().publishStartCartoLocalization();
+        CartographerServiceClient::instance().callStartLocalization();
+    }
+    return "";
+}
+
+string ModifyMapNameStrategy::handler(MapInfo params) {
+    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
+    bool isFind = false;
+    for (const auto &item: allMap) {
+        if (item.id == params.getId()) {
+            isFind = true;
+            break;
+        }
+    }
+    if (!isFind) {
+        throw app::exception(make_error_code(error::map_id_does_not_exist));
+    }
+    SegmentationDataBase::instance().updateMapName(params.getId(), params.getMapName());
+    return "";
+}
+
+string DeleteMapStrategy::handler(string params) {
+
 }
 
 string EditMapStrategy::handler(vector<std::vector<float>> params) {
@@ -72,14 +130,25 @@ string EditMapStrategy::handler(vector<std::vector<float>> params) {
             point[j - 1] = params[i][j];//点位信息
         }
         if (set_prohibition(point, point_num)) {
-            ROS_INFO("set wall %d successfully", i);
+//            ROS_INFO("set wall %d successfully", i);
         } else {
             ROS_ERROR("Failed to set wall!");
         }
     }
+    //更新costmap
+    std::string local_costmap =
+            "rosparam load " + path::prohibition_areas_path() + " /move_base/local_costmap/costmap_prohibition_layer";
+    std::string global_costmap =
+            "rosparam load " + path::prohibition_areas_path() + " /move_base/global_costmap/costmap_prohibition_layer";
+    std::system(local_costmap.data());
+    std::system(global_costmap.data());
+    PublishInnerManager::instance().publishResetProhibition();
+
     MapAttribute::instance().resetProhibition();
     MapAttribute::instance().loadVirtualWall();
     MapAttribute::instance().loadPenaltyZone();
+    MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false);
+    ExplorationCenter::instance().repaintCoveragePath(false);
     return "";
 }
 
@@ -94,42 +163,69 @@ vector<std::vector<float>> GetEditMapStrategy::handler(string params) {
 }
 
 int ManualPushStartStrategy::handler(string params) {
+    LOG(INFO) << "MapStrategy manual_push_start ...";
 
-    std_msgs::Int8 map_start;
+    HotWindNoteSingleton::instance().closeHotWind();
+
+    std_msgs::Int32 map_start;
     map_start.data = 2;
-    for (int i = 0; i < 5; i++) {
-        PublishInnerManager::instance().getPubInner()->publishKnobTask(map_start);
-        ros::Duration(1).sleep();
-    }
-
+    PublishInnerManager::instance().publishKnobTask(map_start);
     return 5;
 }
 
 int ManualPushResetStrategy::handler(string params) {
-    std_msgs::Int8 map_start;
+    LOG(INFO) << "MapStrategy manual_push_reset ...";
+    std_msgs::Int32 map_start;
     map_start.data = 0;
-    for (int i = 0; i < 5; i++) {
-        PublishInnerManager::instance().getPubInner()->publishKnobTask(map_start);
-        ros::Duration(1).sleep();
-    }
+    PublishInnerManager::instance().publishKnobTask(map_start);
     return 5;
 }
 
-MapInfo ManualPushSaveStrategy::handler(MapInfo params) {
-    std_msgs::String map_save;
-    map_save.data.append("save_map");
-    for (int i = 0; i < 5; i++) {
-        PublishInnerManager::instance().getPubInner()->publishCommand(map_save);
-        ros::Duration(1).sleep();
-    }
-    MapInfo param(1, params.getMapName());
-    std_msgs::Int8 map_start;
-    map_start.data = 0;
-    for (int i = 0; i < 5; i++) {
-        PublishInnerManager::instance().getPubInner()->publishKnobTask(map_start);
-        ros::Duration(1).sleep();
+string MapObstaclesStrategy::handler(vector<vector<PointVo>> params) {
+    std::vector<std::vector<cv::Point>> points;
+
+    for (const auto &vector: params) {
+        std::vector<cv::Point> cvs;
+        for (const auto &pointVo: vector) {
+            cv::Point point(pointVo.getX(), pointVo.getY());
+            cvs.push_back(point);
+        }
+        points.push_back(cvs);
     }
 
-    return param;
+    MapModification mapModification;
+    mapModification.addObstacles(points);
+    MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+    MapControl::instance().changeMapServer();
+    ExplorationCenter::instance().repaintCoveragePath(false);
+    return "";
 }
 
+string MapFeasibleZoneStrategy::handler(vector<vector<PointVo>> params) {
+    std::vector<std::vector<cv::Point>> points;
+
+    for (const auto &vector: params) {
+        std::vector<cv::Point> cvs;
+        for (const auto &pointVo: vector) {
+            cv::Point point(pointVo.getX(), pointVo.getY());
+            cvs.push_back(point);
+        }
+        points.push_back(cvs);
+    }
+
+    MapModification mapModification;
+    mapModification.addFeasibleZone(points);
+    MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+    MapControl::instance().changeMapServer();
+    ExplorationCenter::instance().repaintCoveragePath(false);
+    return "";
+}
+
+string MapApplyIncreaseArea::handler(vector<int> params) {
+    MapModification mapModification;
+    mapModification.applyIncreaseArea(params);
+    MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+    MapControl::instance().changeMapServer();
+    ExplorationCenter::instance().repaintCoveragePath(false);
+    return "";
+}

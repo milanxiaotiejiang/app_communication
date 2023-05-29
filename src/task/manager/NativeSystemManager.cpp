@@ -9,26 +9,38 @@ void NativeSystemManager::urgencyStop(bool isUrgencyStop) {
 }
 
 void NativeSystemManager::lowBatteryToBackBase() {
-    asyncTaskCall->forceBackToBase(0);
+    asyncTaskCall->forceBackToBase(loop::special_epoll::special_low_battery);
 }
 
 void NativeSystemManager::urgencyStopAndCharge() {
     asyncTaskCall->urgencyStopAndCharge();
 }
 
-void NativeSystemManager::waterLevelToBackBase(int event) {
-    asyncTaskCall->forceBackToBase(event);
+void NativeSystemManager::waterLevelToBackBase(loop::special_epoll operation) {
+    asyncTaskCall->forceBackToBase(operation);
 }
 
 void NativeSystemManager::motorErrorEvent(int error_event) {
     if (error_event == 1) {
         asyncTaskCall->recordMotorError();
     } else {
-        asyncTaskCall->forceBackToBase(4);
+        asyncTaskCall->forceBackToBase(loop::special_epoll::special_dust_push_anomaly);
     }
 }
 
-void NativeSystemManager::laserErrorEvent(std::string error_event) {
+void NativeSystemManager::wetMopErrorEvent(int error_event) {
+    if (error_event == 1) {
+        asyncTaskCall->recordMopError();
+    }
+}
+
+void NativeSystemManager::hlsErrorEvent(int error_event) {
+    if (error_event > 0) {
+        asyncTaskCall->recordHlsError(error_event);
+    }
+}
+
+void NativeSystemManager::laserErrorEvent(const std::string &error_event) {
     if (error_event == "laser_scan_4016") {
         asyncTaskCall->executeUnrecoverableError();
     } else {

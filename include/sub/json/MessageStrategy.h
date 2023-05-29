@@ -12,12 +12,9 @@
 #include "string"
 #include <iostream>
 
-#include <pub/PubOut.h>
-#include <pub/PubInner.h>
-
-#include "model/BaseMethod.h"
-#include "model/BaseResult.h"
-#include "model/RequestModel.h"
+#include "net/base/BaseMethod.h"
+#include "net/base/BaseResult.h"
+#include "net/base/RequestModel.h"
 #include "BaseThrowable.h"
 
 #include "manager/PublishInnerManager.h"
@@ -29,6 +26,7 @@
 
 #include "tool/write_file.hpp"
 #include "yaml-cpp/yaml.h"
+#include "manager/cloud_robot_control.h"
 
 using json = nlohmann::json;
 using namespace std;
@@ -87,10 +85,10 @@ public:
                     "publish", "/response_json", error
             );
             json jsonResult = requestModel;
-            PublishOutManager::instance().getPubOut()->publishJson(jsonResult.dump());
+            PublishOutManager::instance().publishJson(jsonResult.dump());
         } else if (source == MessageSource::Cloud) {
             json bJson = error;
-            PublishOutManager::instance().getPubOut()->robot_result = bJson.dump();
+            CloudRobotControl::instance().saveInfo(bJson.dump());
         } else {
             LOG(ERROR) << "parseError source is : " << source << " , no find";
         }
@@ -103,12 +101,10 @@ public:
                     "publish", "/response_json", baseResult
             );
             json jsonResult = requestModel;
-            PublishOutManager::instance().getPubOut()->publishJson(jsonResult.dump());
+            PublishOutManager::instance().publishJson(jsonResult.dump());
         } else if (source == MessageSource::Cloud) {
             json bJson = baseResult;
-            if (bJson["params"].dump().length() > 2) {
-                PublishOutManager::instance().getPubOut()->robot_result = bJson.dump();
-            }
+            CloudRobotControl::instance().saveInfo(bJson.dump());
         } else {
             LOG(ERROR) << "parseError source is : " << source << " , no find";
         }
