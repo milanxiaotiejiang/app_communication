@@ -7,6 +7,8 @@
 #include "tool/regex_valid.h"
 #include "db/task_model.h"
 #include "db/segmentation_data_base.h"
+#include "db/task_data_base.h"
+#include "schedule/schedule_manager.h"
 
 void checkWorkStatus(const WorkStatus &workStatus) {
     if (workStatus.getSweepStatus() < -1 || workStatus.getSweepStatus() > 4) {
@@ -101,6 +103,37 @@ void checkSubregion(const std::vector<SubregionVo> &subregions) {
         }
         if (!sub_pass) {
             throw app::exception(make_error_code(error::invalid_subregions));
+        }
+    }
+}
+
+void checkSameTimer(const std::string &map_id, const std::string &timer_rule, int selfTimerId) {
+    std::string repair_timer_rule;
+    try {
+        repair_timer_rule = ScheduleManager::fix_cron_expression("0 " + timer_rule);
+    } catch (const cron::bad_cronexpr &ex) {
+        std::cerr << "Invalid cron expression: " << ex.what() << std::endl;
+        throw std::invalid_argument("Invalid timer_rule");
+    }
+
+    std::time_t endTime = std::time(nullptr) + 7 * 24 * 60 * 60;
+//    std::time_t endTime = std::numeric_limits<std::time_t>::max();
+
+    std::vector<std::time_t> originalPoints = ScheduleManager::cronTimePoints(repair_timer_rule, endTime);
+
+    auto timers = TaskDataBase::instance().loadTimerFoMap(map_id);
+    std::vector<std::chrono::system_clock::time_point> timePoints;
+    for (const auto &item: timers) {
+        if (item.getTimerId() == selfTimerId) {
+            continue;
+        }
+        LOG(INFO) << "checkSameTimer" <<
+                  "  originalPoints : " << timer_rule <<
+                  "  targetExpression : " << item.getTimerRule();
+        const std::string &targetExpression = ScheduleManager::fix_cron_expression("0 " + item.getTimerRule());
+        bool has = ScheduleManager::hasSameTimePoint(originalPoints, targetExpression, endTime);
+        if (has) {
+            throw std::invalid_argument("存在相同的时间点");
         }
     }
 }

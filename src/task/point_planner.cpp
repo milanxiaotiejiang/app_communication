@@ -8,7 +8,7 @@
 #include "task/point_routine.h"
 #include "simulation.h"
 
-void PointPlanner::cpToPath(const std::vector<RealPoint> &points, replan_msgs::ReplanGoal &goal_path) {
+void PointPlanner::cpToPath(const std::vector<RealPoint> &points, replan_msgs::ReplanGoal &goal_path, int mode) {
     LOG(WARNING) << "PointPlanner send to replan path size : " << points.size();
     nav_msgs::Path path;
     path.header.frame_id = "map";
@@ -27,6 +27,7 @@ void PointPlanner::cpToPath(const std::vector<RealPoint> &points, replan_msgs::R
         path.poses.push_back(pose);
     }
     goal_path.source_path = path;
+    goal_path.mode = mode;
 }
 
 void PointPlanner::activeCB() {
@@ -70,7 +71,8 @@ void PointPlanner::goToPath(const RealBlock &block) {
         throw app::exception(make_error_code(error::task_planner_failed_to_start));
     }
     replan_msgs::ReplanGoal path;
-    cpToPath(std::vector<RealPoint>{block.plannerPoints.begin() + block.already_step, block.plannerPoints.end()}, path);
+    cpToPath(std::vector<RealPoint>{block.plannerPoints.begin() + block.already_step, block.plannerPoints.end()},
+             path, replan_msgs::ReplanGoal::PATH);
     share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
 }
 
@@ -83,7 +85,7 @@ void PointPlanner::backBasePoint() {
     yawGoalTolerance.d(0.1);
     auto backBasePoint = createBackBasePoint();
     replan_msgs::ReplanGoal path;
-    cpToPath(std::vector<RealPoint>{backBasePoint}, path);
+    cpToPath(std::vector<RealPoint>{backBasePoint}, path, replan_msgs::ReplanGoal::POINT_MUST_ARRIVE);
     share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
 }
 
