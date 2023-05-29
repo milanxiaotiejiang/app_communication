@@ -77,3 +77,9 @@ fi
   echo "Updating 1.0.0"
   echo "Upgrading libcartographer.so"
   echo "123456" | sudo -S cp /home/admin1/AirCore/libcartographer.so /usr/local/lib/
+  echo "Upgrading cartographer_rplidar.lua"
+  rm /home/admin1/test_ws/install/share/robot_slam/params/cartographer_rplidar.lua
+  cp /home/admin1/AirCore/cartographer_rplidar.lua /home/admin1/test_ws/install/share/robot_slam/params/
+  echo "Upgrading cartographer_localization.lua"
+  rm /home/admin1/test_ws/install/share/robot_slam/params/cartographer_localization.lua
+  cp /home/admin1/AirCore/cartographer_localization.lua /home/admin1/test_ws/install/share/robot_slam/params/
