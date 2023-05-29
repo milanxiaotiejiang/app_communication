@@ -272,3 +272,51 @@ std::string ScheduleManager::fix_cron_expression(const std::string &cron_express
 
     return fixed_expression.str();
 }
+
+std::vector<std::time_t> ScheduleManager::cronTimePoints(const string &cron_expression, std::time_t endTime) {
+    std::vector<std::time_t> timePoints;
+    // 解析Cron规则
+    auto cron = cron::make_cron(cron_expression);
+    // 获取当前时间
+    auto now = std::chrono::system_clock::now();
+    // 计算满足规则的时间点
+//    while (true) {
+//        auto nextTime = cron::cron_next(cron, now);
+//        if (nextTime == now) {
+//            break;
+//        }
+//        std::time_t time = std::chrono::system_clock::to_time_t(nextTime);
+//        timePoints.push_back(time);
+//        now = nextTime;
+//    }
+    // 计算满足规则的时间点，但限制在endTime之前
+    while (true) {
+        auto nextTime = cron::cron_next(cron, now);
+        if (nextTime == now || std::chrono::system_clock::to_time_t(nextTime) > endTime) {
+            break;
+        }
+        std::time_t time = std::chrono::system_clock::to_time_t(nextTime);
+        timePoints.push_back(time);
+        now = nextTime;
+    }
+
+    return timePoints;
+}
+
+bool
+ScheduleManager::hasSameTimePoint(const std::vector<std::time_t> &originalPoints,
+                                  const std::string &targetExpression, std::time_t endTime) {
+    // 生成时间点列表
+    std::vector<std::time_t> targetPoints = cronTimePoints(targetExpression, endTime);
+
+    // 检查是否存在相同时间点
+    for (const auto &original: originalPoints) {
+        for (const auto &target: targetPoints) {
+            if (original == target) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
