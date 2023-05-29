@@ -20,6 +20,9 @@
 SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
     sub_node_control_ = handle.subscribe("/segmentation_task", 1, &SegmentationSubscribe::segmentationSubscribeCallback,
                                          this);
+    sub_order_control_ = handle.subscribe("/segmentation_order", 1,
+                                          &SegmentationSubscribe::segmentationOrderSubscribeCallback,
+                                          this);
 }
 
 void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 &flag_result) {
@@ -29,6 +32,19 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
     auto generateMat = SegmentationCenter::instance().generateMat();
 
     try {
+        TaskCenter::instance().performTask(flag, TaskSource::App, 2);
+    } catch (app::exception const &e) {
+        LOG(ERROR) << e.what();
+    } catch (const std::exception &e) {
+        LOG(ERROR) << e.what();
+    } catch (...) {
+        LOG(ERROR) << "MessageStrategy other start exception";
+    }
+}
+
+void SegmentationSubscribe::segmentationOrderSubscribeCallback(const std_msgs::Int32 &flag_result) {
+    auto flag = flag_result.data;
+    try {
         if (flag == 0) {
             ManualManager::instance().pause();
         } else if (flag == 1) {
@@ -37,8 +53,8 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
             ZooInnerStatus::instance().setUrgencyStopStatus(true);
         } else if (flag == 3) {
             ZooInnerStatus::instance().setUrgencyStopStatus(false);
-        } else {
-            TaskCenter::instance().performTask(flag, TaskSource::App, 2);
+        } else if (flag == 100) {
+            ManualManager::instance().backToBase(false);
         }
     } catch (app::exception const &e) {
         LOG(ERROR) << e.what();

@@ -11,8 +11,11 @@
 class SegmentationSubscribe {
 private:
     ros::Subscriber sub_node_control_;
+    ros::Subscriber sub_order_control_;
 
     void segmentationSubscribeCallback(const std_msgs::Int32 &flag);
+
+    void segmentationOrderSubscribeCallback(const std_msgs::Int32 &flag);
 
 public:
     SegmentationSubscribe(ros::NodeHandle handle);

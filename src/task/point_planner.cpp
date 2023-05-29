@@ -9,7 +9,7 @@
 #include "simulation.h"
 
 void PointPlanner::cpToPath(const std::vector<RealPoint> &points, replan_msgs::ReplanGoal &goal_path, int mode) {
-    LOG(WARNING) << "PointPlanner send to replan path size : " << points.size();
+    LOG(WARNING) << "PointPlanner send to replan path size : " << points.size() << "  , mode : " << mode;
     nav_msgs::Path path;
     path.header.frame_id = "map";
     path.header.stamp = ros::Time::now();
@@ -72,7 +72,7 @@ void PointPlanner::goToPath(const RealBlock &block) {
     }
     replan_msgs::ReplanGoal path;
     cpToPath(std::vector<RealPoint>{block.plannerPoints.begin() + block.already_step, block.plannerPoints.end()},
-             path, replan_msgs::ReplanGoal::PATH);
+             path, block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE);
     share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
 }
 
