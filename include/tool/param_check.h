@@ -27,6 +27,6 @@ void checkSubregion(const SubregionVo &subregion);
 
 void checkSubregion(const std::vector<SubregionVo> &subregions);
 
-void checkSameTimer(const std::string &map_id, const std::string &timer_rule);
+void checkSameTimer(const std::string &map_id, const std::string &timer_rule, int selfTimerId);
 
 #endif //APP_COMMUNICATION_PARAM_CHECK_H

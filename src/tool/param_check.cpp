@@ -107,7 +107,7 @@ void checkSubregion(const std::vector<SubregionVo> &subregions) {
     }
 }
 
-void checkSameTimer(const std::string &map_id, const std::string &timer_rule) {
+void checkSameTimer(const std::string &map_id, const std::string &timer_rule, int selfTimerId) {
     std::string repair_timer_rule;
     try {
         repair_timer_rule = ScheduleManager::fix_cron_expression("0 " + timer_rule);
@@ -124,6 +124,9 @@ void checkSameTimer(const std::string &map_id, const std::string &timer_rule) {
     auto timers = TaskDataBase::instance().loadTimerFoMap(map_id);
     std::vector<std::chrono::system_clock::time_point> timePoints;
     for (const auto &item: timers) {
+        if (item.getTimerId() == selfTimerId) {
+            continue;
+        }
         LOG(INFO) << "checkSameTimer" <<
                   "  originalPoints : " << timer_rule <<
                   "  targetExpression : " << item.getTimerRule();

@@ -53,7 +53,7 @@ long AddTimerTaskStrategy::handler(TimerVo params) {
 
     MapPo map = SegmentationDataBase::instance().getDbMap();
 
-    checkSameTimer(map.id, params.getTimerRule());
+    checkSameTimer(map.id, params.getTimerRule(), -1);
 
     long timer = TaskDataBase::instance().addTimer(map.id, params);
 
@@ -77,7 +77,7 @@ string ModifyTimerTaskStrategy::handler(TimerVo params) {
 
     checkName(params.getTimerName());
     checkRate(params.getRate());
-    checkSameTimer(map.id, params.getTimerRule());
+    checkSameTimer(map.id, params.getTimerRule(), params.getTimerId());
 
     TaskDataBase::instance().modifyTimer(map.id, params);
     ScheduleManagerSingleton::instance().trigger_task_update();
