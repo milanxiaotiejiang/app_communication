@@ -311,7 +311,7 @@ bool PointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
 //        LOG(INFO) << "point" << i << ": " << zoned[i].getX() << "  " << zoned[i].getY();
 //    }
 
-    float step = 0.2;
+    float step = 0.25;
     float x_length = pointDistance(zoned[0], zoned[1]);
     float y_length = pointDistance(zoned[0], zoned[3]);
     int x_size = ceil(x_length / step);
