@@ -73,18 +73,18 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//        generatePlanningPathFull(map, 1, exploration_path, point_path, complex_path);
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        generatePlanningPathFull(map, 1, exploration_path, point_path, complex_path);
     }
 
     //4
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        try {
-            const cv::Mat &map = SegmentationCenter::instance().generateMat();
-            infinitelyNearBoundary(map, exploration_path, point_path, complex_path);
-        } catch (...) {
-
-        }
+//        try {
+//            const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//            infinitelyNearBoundary(map, exploration_path, point_path, complex_path);
+//        } catch (...) {
+//
+//        }
     }
 
 //    pathPublish(exploration_path);
