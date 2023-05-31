@@ -34,6 +34,10 @@ void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &ex
 
         coverage_planner_done = false;
 
+        roomCoverage.setCoverageId("");
+        roomCoverage.setPointList(std::vector<PointVo>{});
+        roomCoverage.setPoseList(std::vector<PoseVo>{});
+
         std::vector<geometry_msgs::Pose2D> exploration_path;
         std::vector<cv::Point> point_path;
 
@@ -169,7 +173,7 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
 
 [[noreturn]] void SubregionPathGenerator::execute() {
     for (;;) {
-        std::unique_lock <std::mutex> lock(cv_mut);
+        std::unique_lock<std::mutex> lock(cv_mut);
         cv.wait(lock, [this]() {
             return coverage_obtain_path;
         });
@@ -177,11 +181,11 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
         coverage_planner_done = false;
 
         roomCoverage.setCoverageId("");
-        roomCoverage.setPointList(std::vector < PointVo > {});
-        roomCoverage.setPoseList(std::vector < PoseVo > {});
+        roomCoverage.setPointList(std::vector<PointVo>{});
+        roomCoverage.setPoseList(std::vector<PoseVo>{});
 
-        std::vector <geometry_msgs::Pose2D> exploration_path;
-        std::vector <cv::Point> point_path;
+        std::vector<geometry_msgs::Pose2D> exploration_path;
+        std::vector<cv::Point> point_path;
 
         try {
             realGenerator(exploration_path, point_path);
@@ -198,8 +202,8 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
             boost::uuids::uuid uuid = boost::uuids::random_generator()();
             std::string uuid_string = boost::uuids::to_string(uuid);
 
-            std::vector <PoseVo> poseList;
-            std::vector <PointVo> pointList;
+            std::vector<PoseVo> poseList;
+            std::vector<PointVo> pointList;
             for (const auto &item: exploration_path) {
                 poseList.emplace_back(item.y, item.x, item.theta);
             }
