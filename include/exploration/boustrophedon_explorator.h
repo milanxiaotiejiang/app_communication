@@ -149,6 +149,15 @@ protected:
                                   const double path_eps, const int max_deviation_from_track,
                                   const int grid_obstacle_offset = 0);
 
+    void computeRectangularAmbulatoryPlanePath(const cv::Mat &room_map, const float map_resolution,
+                                               const GeneralizedPolygon &cell,
+                                               std::vector<cv::Point2f> &fov_middlepoint_path,
+                                               std::vector<std::vector<cv::Point2f>> &complex_middle_path,
+                                               cv::Point &robot_pos,
+                                               const int grid_spacing_as_int, const int half_grid_spacing_as_int,
+                                               const double path_eps, const int max_deviation_from_track,
+                                               const int grid_obstacle_offset = 0);
+
     int mergeCells(cv::Mat &cell_map, cv::Mat &cell_map_labels, const double min_cell_area, const int min_cell_width);
 
     void mergeCellsSelection(cv::Mat &cell_map, cv::Mat &cell_map_labels,
