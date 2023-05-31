@@ -126,6 +126,24 @@ string ModifyTaskKnifeStrategy::handler(ModifyTaskKnife params) {
     return "";
 }
 
+TaskVo ModifyCompleteTaskStrategy::handler(TaskVo params) {
+    checkWorkStatus(params.getWorkStatus());
+    checkName(params.getName());
+    checkRate(params.getRate());
+    checkMode(params.getMode());
+    checkSource(params.getSource());
+
+    if (params.getMode() == static_cast<int>(TaskMode::Zoned)) {
+        checkZoned(params.getZones());
+    } else if (params.getMode() == static_cast<int>(TaskMode::Subregion)) {
+        checkSubregion(params.getSubregions());
+    }
+
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    return TaskDataBase::instance().modifyTask(params);
+}
+
+
 long OperateAddZoneStrategy::handler(ModifyTaskZone params) {
     checkZoned(params.zone);
     long zoneId = TaskDataBase::instance().operateAddZone(params.id, params.zone);

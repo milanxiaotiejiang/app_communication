@@ -10,6 +10,8 @@
 #include "vector"
 #include "exploration/voronoi/nanoflann.hpp"
 
+static bool DISPLAY_VORONOI_TRAJECTORY = false;
+
 struct Pos {
     int x_;
     int y_;
@@ -521,8 +523,7 @@ class VoronoiMap {
 
 public:
 
-    VoronoiMap(int8_t *occ, const int w, const int h, const int max_track_width,
-               const int merge_tracks = 2) : map_(w, h),
+    VoronoiMap(int8_t *occ, const int w, const int h, const int max_track_width) : map_(w, h),
                                              max_track_width_(max_track_width),
                                              wall_offset_(0) {
         T_WAVE wave;
@@ -540,7 +541,7 @@ public:
 
             }
 
-        while (wave.size() > 0) {
+        while (!wave.empty()) {
             int added = add(occ, w, h, wave.top()->pos_, wave);
 
             if (added == 0 && wave.top()->hops_ > 0 && wave.top()->dist2() >= max_track_width_ * max_track_width_ * 2) {
@@ -612,6 +613,12 @@ public:
         for (const auto &item: pts) {
             cv::circle(room_map, cv::Point(item.x_, item.y_), 1, cv::Scalar(200), CV_FILLED);
         }
+
+        if (DISPLAY_VORONOI_TRAJECTORY) {
+            cv::imshow("room_map", room_map);
+            cv::waitKey();
+        }
+
         std::sort(pts.begin(), pts.end(), CmpDist2Ref(Pos(start_x, start_y)));
 
         num = 0;

@@ -354,6 +354,9 @@ int switch_ID(const std::string &str) {
     if (str == "modify_task_knife") {
         return MODIFY_TASK_KNIFE;
     }
+    if (str == "modify_complete_task") {
+        return MODIFY_COMPLETE_TASK;
+    }
     if (str == "operate_add_zone") {
         return OPERATE_ADD_ZONE;
     }

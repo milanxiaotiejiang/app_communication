@@ -177,6 +177,9 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case MODIFY_TASK_KNIFE:
             messageStrategy = new ModifyTaskKnifeStrategy();
             break;
+        case MODIFY_COMPLETE_TASK:
+            messageStrategy = new ModifyCompleteTaskStrategy();
+            break;
         case OPERATE_ADD_ZONE:
             messageStrategy = new OperateAddZoneStrategy();
             break;

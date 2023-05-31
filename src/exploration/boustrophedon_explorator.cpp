@@ -739,10 +739,15 @@ void BoustrophedonExplorer::computeRectangularAmbulatoryPlanePath(const cv::Mat 
         for (int y = 0; y < rotated_inflated_cell_map.rows; y++)
             room_gridmap.data[y * rotated_inflated_cell_map.cols + x] = rotated_inflated_cell_map.at<int8_t>(y, x) ?
                                                                         0 : 100;
-    VoronoiMap vm(room_gridmap.data.data(), room_gridmap.info.width, room_gridmap.info.height, grid_spacing_as_int, 2);
-    std::vector<cv::Point> current_fov_path;
+    VoronoiMap vm(room_gridmap.data.data(), room_gridmap.info.width, room_gridmap.info.height, grid_spacing_as_int);
+    std::vector<cv::Point> voronoi_path;
     auto mat = rotated_inflated_cell_map.clone();
-    vm.generatePath(mat, current_fov_path, cv::Mat(), 1, 1);
+    vm.generatePath(mat, voronoi_path, cv::Mat(), 0, 0);
+
+    std::vector<cv::Point> list;
+    cv::approxPolyDP(voronoi_path, list, 1.0, false);
+    std::vector<cv::Point> current_fov_path;
+    splitPointsIfNeeded(list, current_fov_path, static_cast<int>(std::floor(path_eps)));
 
     cv::Point cell_robot_pos = current_fov_path[current_fov_path.size() - 1];
 
@@ -1076,4 +1081,42 @@ void BoustrophedonExplorer::downsamplePathReverse(const std::vector<cv::Point> &
         downsampled_path.push_back(original_path[0]);
         robot_pos = original_path[0];
     }
+}
+
+std::vector<cv::Point> BoustrophedonExplorer::splitPoints(const cv::Point &p1, const cv::Point &p2, double distance) {
+    std::vector<cv::Point> split;
+
+    double dx = p2.x - p1.x;
+    double dy = p2.y - p1.y;
+    double dist = std::sqrt(dx * dx + dy * dy);
+    int numPoints = std::ceil(dist / distance);
+
+    for (int i = 0; i <= numPoints; ++i) {
+        double t = static_cast<double>(i) / numPoints;
+        double x = p1.x + t * dx;
+        double y = p1.y + t * dy;
+        split.emplace_back(x, y);
+    }
+
+    return split;
+}
+
+void BoustrophedonExplorer::splitPointsIfNeeded(const std::vector<cv::Point> &ins, std::vector<cv::Point> &outs,
+                                                double distance) {
+    for (size_t i = 0; i < ins.size() - 1; ++i) {
+        const cv::Point &currentPoint = ins[i];
+        const cv::Point &nextPoint = ins[i + 1];
+
+        double dx = nextPoint.x - currentPoint.x;
+        double dy = nextPoint.y - currentPoint.y;
+        double dist = std::sqrt(dx * dx + dy * dy);
+
+        if (dist > distance) {
+            std::vector<cv::Point> interpolatedPoints = splitPoints(currentPoint, nextPoint, distance);
+            outs.insert(outs.end(), interpolatedPoints.begin(), interpolatedPoints.end());
+        } else {
+            outs.push_back(currentPoint);
+        }
+    }
+    outs.push_back(ins.back());
 }

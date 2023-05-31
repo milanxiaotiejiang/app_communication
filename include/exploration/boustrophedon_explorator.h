@@ -174,6 +174,10 @@ protected:
     void downsamplePathReverse(const std::vector<cv::Point> &original_path, std::vector<cv::Point> &downsampled_path,
                                cv::Point &robot_pos, const double path_eps);
 
+    std::vector<cv::Point> splitPoints(const cv::Point &p1, const cv::Point &p2, double distance);
+
+    void splitPointsIfNeeded(const std::vector<cv::Point> &ins, std::vector<cv::Point> &outs, double distance);
+
 public:
     void
     getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &path,

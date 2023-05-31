@@ -62,6 +62,8 @@ public:
 
     void modifyKnife(long taskId, bool knife);
 
+    TaskVo modifyTask(const TaskVo &taskVo);
+
     long operateAddZone(long taskId, const ZoneVo &zone);
 
     void operateDeleteZone(long taskId, const ZoneVo &zone);

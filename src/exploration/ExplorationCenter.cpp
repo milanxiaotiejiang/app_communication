@@ -270,31 +270,52 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
     if (exploration_path.size() < 3) {
         return;
     }
-    std::vector<geometry_msgs::Pose2D> optimize;
-    optimize.push_back(exploration_path[0]);
-    geometry_msgs::Pose2D last = exploration_path[0];
-    for (int i = 1; i < exploration_path.size() - 1; ++i) {
-        if (!conversion::one_line(last, exploration_path[i], exploration_path[i + 1])) {
-            if (distance) {
-                double point_sqrt = sqrt(pow(exploration_path[i].x - exploration_path[i + 1].x, 2) +
-                                         pow(exploration_path[i + 1].y - exploration_path[i].y, 2)
-                );
-                if (point_sqrt < 1.0) {
-                    last = exploration_path[i];
-                    optimize.push_back(exploration_path[i]);
-                }
-            } else {
-                last = exploration_path[i];
-                optimize.push_back(exploration_path[i]);
-            }
-        }
-    }
-    optimize.push_back(exploration_path[exploration_path.size() - 1]);
 
-    exploration_path.clear();
-    for (const auto &item: optimize) {
-        exploration_path.push_back(item);
+    double point_sqrt = 0;
+    for (int i = 0; i < exploration_path.size() - 1; ++i) {
+        point_sqrt = point_sqrt + sqrt(pow(exploration_path[i].x - exploration_path[i + 1].x, 2) +
+                                       pow(exploration_path[i + 1].y - exploration_path[i].y, 2)
+        );
     }
+    /*
+    * 记录
+    * 1. 回字形
+    * 1.1 全覆盖 0.367899 y
+    * 1.2 矩形 0.315423 y
+    * 2. 弓字形
+    * 2.1 全覆盖 0.38695 y
+    * 2.2 矩形 0.32775 y
+    * 3 沿边 0.337024 y
+    */
+    LOG(ERROR) << "平均路径长度 ： " << point_sqrt / exploration_path.size();
+
+    // The code commented out below has a bug
+//    std::vector<geometry_msgs::Pose2D> optimize;
+//    optimize.push_back(exploration_path[0]);
+//    geometry_msgs::Pose2D last = exploration_path[0];
+//    for (int i = 1; i < exploration_path.size() - 1; ++i) {
+//        if (!conversion::one_line(last, exploration_path[i], exploration_path[i + 1])) {
+//            if (distance) {
+//                double point_sqrt = sqrt(pow(exploration_path[i].x - exploration_path[i + 1].x, 2) +
+//                                         pow(exploration_path[i + 1].y - exploration_path[i].y, 2)
+//                );
+//                if (point_sqrt < 1.0) {
+//                    last = exploration_path[i];
+//                    optimize.push_back(exploration_path[i]);
+//                }
+//            } else {
+//                last = exploration_path[i];
+//                optimize.push_back(exploration_path[i]);
+//            }
+//        }
+//    }
+//    optimize.push_back(exploration_path[exploration_path.size() - 1]);
+//
+//    exploration_path.clear();
+//    for (const auto &item: optimize) {
+//        exploration_path.push_back(item);
+//    }
+
     LOG(INFO) << "exploration_path after point size : " << exploration_path.size();
 
     if (DISPLAY_TRAJECTORY)
@@ -310,7 +331,6 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
                                        "optimizePlanningPath " + std::to_string(i));
         }
     }
-
 
 //    std_msgs::Header header;
 //    header.stamp = ros::Time::now();

@@ -266,6 +266,97 @@ void TaskDataBase::modifyKnife(long taskId, bool knife) {
     }
 }
 
+TaskVo TaskDataBase::modifyTask(const TaskVo &taskVo) {
+    TaskPo originalTask = taskStorage.get<TaskPo>(taskVo.getId());
+    if (originalTask.mode == TaskMode::Zoned) {
+        auto zs = taskStorage.get_all<ZonePo>(where(c(&ZonePo::o_task_id) == originalTask.id));
+        for (const auto &z: zs) {
+            taskStorage.remove<ZonePo>(z.id);
+        }
+    } else if (originalTask.mode == TaskMode::Subregion) {
+        auto ss = taskStorage.get_all<SubregionPo>(where(c(&SubregionPo::o_task_id) == originalTask.id));
+        for (const auto &s: ss) {
+            taskStorage.remove<SubregionPo>(s.id);
+        }
+    }
+
+    TaskMode mode = SqliteDataBase::TaskModeFromInt(taskVo.getMode());
+
+    std::vector<std::string> zoneRanges;
+    std::vector<long> subs;
+    std::string subregion_range;
+
+    if (mode == TaskMode::Zoned) {
+        std::vector<ZoneVo> zones = taskVo.getZones();
+        for (const auto &zs: zones) {
+            std::string pointRange;
+            std::vector<PointVo> points = zs.getPoints();
+            for (int i = 0; i < points.size(); i++) {
+                auto point = points[i];
+                if (i == points.size() - 1) {
+                    pointRange.append(std::to_string(point.getX()) + "," + std::to_string(point.getY()));
+                } else {
+                    pointRange.append(std::to_string(point.getX()) + "," + std::to_string(point.getY()) + ",");
+                }
+            }
+            zoneRanges.push_back(pointRange);
+        }
+    } else if (mode == TaskMode::Subregion) {
+        std::vector<SubregionVo> subregions = taskVo.getSubregions();
+        // way 1
+        for (int i = 0; i < subregions.size(); i++) {
+            auto subregion = subregions[i];
+            if (i == subregions.size() - 1) {
+                subregion_range.append(std::to_string(subregion.getSubregionValue()));
+            } else {
+                subregion_range.append(std::to_string(subregion.getSubregionValue()) + ",");
+            }
+        }
+        // way 2
+        for (const auto &subregion: subregions) {
+            subs.push_back(subregion.getSubregionValue());
+        }
+    }
+
+    std::vector<ZonePo> z;
+    std::vector<SubregionPo> s;
+    TaskPo taskPo(originalTask.id,
+                  originalTask.o_map_id,
+                  taskVo.getName(),
+                  taskVo.getRate(),
+                  mode,
+                  taskVo.getWorkStatus().getSweepStatus(),
+                  taskVo.getWorkStatus().getMopStatus(),
+                  taskVo.getWorkStatus().getVacuumStatus(),
+                  taskVo.getWorkStatus().getPushStatus(),
+                  taskVo.getWorkStatus().getAromatherapyStatus(),
+                  taskVo.getWorkStatus().getDisinfectStatus(),
+                  taskVo.isPrincipal(),
+                  z,
+                  taskVo.isPartition(),
+                  subregion_range,
+                  s,
+                  taskVo.isKnife(),
+                  SqliteDataBase::TaskSourceFromString(taskVo.getSource()),
+                  taskVo.getLaunchPeople(),
+                  time_t(),
+                  std::time(nullptr),
+                  std::time(nullptr)
+    );
+
+    taskStorage.update(taskPo);
+    for (const auto &item: zoneRanges) {
+        ZonePo zonePo(0, originalTask.id, item);
+        taskStorage.insert(zonePo);
+    }
+    for (const auto &item: subs) {
+        SubregionPo subregionPo(0, originalTask.id, item);
+        taskStorage.insert(subregionPo);
+    }
+
+    return loadTaskFoId(originalTask.id);
+}
+
 long TaskDataBase::operateAddZone(long taskId, const ZoneVo &zone) {
     TaskPo task = taskStorage.get<TaskPo>(taskId);
     if (task.mode == TaskMode::Zoned) {
@@ -366,6 +457,10 @@ std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
         for (const auto &z: zs) {
             t.zones.push_back(z);
         }
+        auto ss = taskStorage.get_all<SubregionPo>(where(c(&SubregionPo::o_task_id) == t.id));
+        for (const auto &s: ss) {
+            t.subregions.push_back(s);
+        }
     }
 
     for (auto &t: taskPos) {
@@ -378,6 +473,10 @@ TaskVo TaskDataBase::loadTaskFoId(long taskId) {
     auto zs = taskStorage.get_all<ZonePo>(where(c(&ZonePo::o_task_id) == taskPo.id));
     for (const auto &z: zs) {
         taskPo.zones.push_back(z);
+    }
+    auto ss = taskStorage.get_all<SubregionPo>(where(c(&SubregionPo::o_task_id) == taskPo.id));
+    for (const auto &s: ss) {
+        taskPo.subregions.push_back(s);
     }
     return taskPo2Vo(taskPo);
 }

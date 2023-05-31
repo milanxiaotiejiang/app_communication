@@ -36,6 +36,11 @@ void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &ex
 
         coverage_planner_done = false;
 
+        roomCoverage.setCoverageId("");
+        roomCoverage.setPointList(std::vector<PointVo>{});
+        roomCoverage.setPoseList(std::vector<PoseVo>{});
+        roomCoverage.setComplexList(std::vector<std::vector<PoseVo> >{});
+
         std::vector<geometry_msgs::Pose2D> exploration_path;
         std::vector<cv::Point> point_path;
         std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
@@ -188,6 +193,11 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
         });
 
         coverage_planner_done = false;
+
+        roomCoverage.setCoverageId("");
+        roomCoverage.setPointList(std::vector<PointVo>{});
+        roomCoverage.setPoseList(std::vector<PoseVo>{});
+        roomCoverage.setComplexList(std::vector<std::vector<PoseVo> >{});
 
         std::vector<geometry_msgs::Pose2D> exploration_path;
         std::vector<cv::Point> point_path;
