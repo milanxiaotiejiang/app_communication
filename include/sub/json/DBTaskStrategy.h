@@ -88,6 +88,11 @@ public:
     string handler(ModifyTaskKnife params) override;
 };
 
+class ModifyCompleteTaskStrategy : public MessageStrategy<TaskVo, TaskVo> {
+public:
+    TaskVo handler(TaskVo params) override;
+};
+
 class OperateAddZoneStrategy : public MessageStrategy<ModifyTaskZone, long> {
 public:
     long handler(ModifyTaskZone params) override;
