@@ -2,9 +2,9 @@
 echo "Upgrade Aircore"
 version=$(rosparam get /ros_version)
 major=${version:0:5}
-old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9" "1.0.0")
+old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9" "1.0.0" "1.0.1" "1.0.2")
 version_index=0
-for i in 1 2 3 4 5 6
+for i in 1 2 3 4 5 6 7 8
 do
   echo "${old_version[$i]}"
   if [[ $major = ${old_version[$i]} ]]
@@ -74,6 +74,8 @@ then
   rm /home/admin1/test_ws/install/share/robot_slam/params/cartographer_rplidar.lua
   cp /home/admin1/AirCore/cartographer_rplidar.lua /home/admin1/test_ws/install/share/robot_slam/params/
 fi
+if [ $version_index -lt 6 ]
+then
   echo "Updating 1.0.0"
   echo "Upgrading libcartographer.so"
   echo "123456" | sudo -S cp /home/admin1/AirCore/libcartographer.so /usr/local/lib/
@@ -83,3 +85,22 @@ fi
   echo "Upgrading cartographer_localization.lua"
   rm /home/admin1/test_ws/install/share/robot_slam/params/cartographer_localization.lua
   cp /home/admin1/AirCore/cartographer_localization.lua /home/admin1/test_ws/install/share/robot_slam/params/
+fi
+  echo "Updating 1.0.1"
+  echo "Upgrading libcartographer.so"
+  echo "123456" | sudo -S cp /home/admin1/AirCore/libcartographer.so /usr/local/lib/
+  echo "Upgrading cartographer_rplidar.lua"
+  rm /home/admin1/test_ws/install/share/robot_slam/params/cartographer_rplidar.lua
+  cp /home/admin1/AirCore/cartographer_rplidar.lua /home/admin1/test_ws/install/share/robot_slam/params/
+  echo "Upgrading cartographer_localization.lua"
+  rm /home/admin1/test_ws/install/share/robot_slam/params/cartographer_localization.lua
+  cp /home/admin1/AirCore/cartographer_localization.lua /home/admin1/test_ws/install/share/robot_slam/params/
+  echo "Upgrading costmap_common_params_zoo"
+  rm /home/admin1/test_ws/install/share/robot_slam/params/costmap/costmap_common_params_zoo.yaml
+  cp /home/admin1/AirCore/costmap_common_params_zoo.yaml /home/admin1/test_ws/install/share/robot_slam/params/costmap/
+  echo "Upgrading global_costmap_params"
+  rm /home/admin1/test_ws/install/share/robot_slam/params/costmap/global_costmap_params.yaml
+  cp /home/admin1/AirCore/global_costmap_params.yaml /home/admin1/test_ws/install/share/robot_slam/params/costmap/
+  echo "Upgrading local_costmap_params"
+  rm /home/admin1/test_ws/install/share/robot_slam/params/costmap/local_costmap_params.yaml
+  cp /home/admin1/AirCore/local_costmap_params.yaml /home/admin1/test_ws/install/share/robot_slam/params/costmap/
