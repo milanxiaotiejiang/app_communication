@@ -15,6 +15,9 @@
 #include "leave/HotWindNote.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
+    if (!ZooInnerStatus::instance().getIsCharging()) {
+        throw app::exception(make_error_code(error::the_map_needs_to_be_saved_at_the_base_station_location));
+    }
     // todo 此版本为单地图
     if (MapAttribute::instance().saveMap()) {
 
@@ -165,11 +168,15 @@ vector<std::vector<float>> GetEditMapStrategy::handler(string params) {
 int ManualPushStartStrategy::handler(string params) {
     LOG(INFO) << "MapStrategy manual_push_start ...";
 
+    if (!ZooInnerStatus::instance().getIsCharging()) {
+        throw app::exception(make_error_code(error::map_creation_needs_to_start_at_the_base_station));
+    }
+
     HotWindNoteSingleton::instance().closeHotWind();
 
     std_msgs::Int32 map_start;
     map_start.data = 2;
-    PublishInnerManager::instance().publishKnobTask(map_start);
+    PublishInnerManager::instance().publishManualPush(map_start);
     return 5;
 }
 
@@ -177,7 +184,7 @@ int ManualPushResetStrategy::handler(string params) {
     LOG(INFO) << "MapStrategy manual_push_reset ...";
     std_msgs::Int32 map_start;
     map_start.data = 0;
-    PublishInnerManager::instance().publishKnobTask(map_start);
+    PublishInnerManager::instance().publishManualPush(map_start);
     return 5;
 }
 

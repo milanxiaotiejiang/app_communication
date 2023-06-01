@@ -128,7 +128,9 @@ namespace error {
         cannot_switch_to_the_current_map,
         map_id_does_not_exist,
         no_run_task,
-        dispatcher_maintenance_mode
+        dispatcher_maintenance_mode,
+        map_creation_needs_to_start_at_the_base_station,
+        the_map_needs_to_be_saved_at_the_base_station_location
     };// enum value
 
     class category : public std::error_category {
@@ -365,6 +367,10 @@ namespace error {
                     return "no run task";
                 case error::dispatcher_maintenance_mode:
                     return "维护模式不能启动任务";
+                case error::map_creation_needs_to_start_at_the_base_station:
+                    return "请在基站创建地图";
+                case error::the_map_needs_to_be_saved_at_the_base_station_location:
+                    return "地图保存需要在基站位置";
                 default:
                     return "Unknown";
             }

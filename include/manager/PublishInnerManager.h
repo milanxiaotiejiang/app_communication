@@ -33,7 +33,7 @@ private:
     pub_ds_version,     //下位机版本
     pub_reset_prohibition,//禁行区
     pub_knob_available,  //
-    pub_knob_task,//
+    pub_manual_push,//
     pub_shutdown,//
     pub_reboot,//
     pub_oil,//
@@ -79,7 +79,7 @@ public:
 
     void publishKnobAvailable(const std_msgs::Bool &message) const;
 
-    void publishKnobTask(const std_msgs::Int32 &message) const;
+    void publishManualPush(const std_msgs::Int32 &message) const;
 
     void publishShutDown(const std_msgs::Int32 &message) const;
 

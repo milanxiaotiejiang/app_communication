@@ -19,7 +19,7 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_otalow = handle.advertise<std_msgs::String>("/ota_low", 10);
     pub_ds_version = handle.advertise<std_msgs::Int32>("/dasheng/version", 1);
     pub_knob_available = handle.advertise<std_msgs::Bool>("/knob/available", 1);
-    pub_knob_task = handle.advertise<std_msgs::Int32>("/manual_push", 1);
+    pub_manual_push = handle.advertise<std_msgs::Int32>("/manual_push", 1);
     pub_reboot = handle.advertise<std_msgs::Int32>("/reboot_flag", 1);
     pub_shutdown = handle.advertise<std_msgs::Int32>("/shutdown_flag", 1);
     pub_oil = handle.advertise<std_msgs::Int32>("/mrrobot/pop_sweep_oil", 1);
@@ -92,8 +92,8 @@ void PublishInnerManager::publishKnobAvailable(const std_msgs::Bool &message) co
     pub_knob_available.publish(message);
 }
 
-void PublishInnerManager::publishKnobTask(const std_msgs::Int32 &message) const {
-    pub_knob_task.publish(message);
+void PublishInnerManager::publishManualPush(const std_msgs::Int32 &message) const {
+    pub_manual_push.publish(message);
 }
 
 void PublishInnerManager::publishShutDown(const std_msgs::Int32 &message) const {
