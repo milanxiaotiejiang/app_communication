@@ -22,12 +22,12 @@ string RobotForceEnterModeStrategy::handler(int params) {
 }
 
 string RobotPreparetoWorkStrategy::handler(string params) {
-    if (NodeControl::instance().isWork()) {
-        return "";
-    }
-    if (!NodeWorkModeManager::instance().tryToWork()) {
-        throw app::exception(make_error_code(error::mode_switching_is_not_supported));
-    }
+//    if (NodeControl::instance().isWork()) {
+//        return "";
+//    }
+//    if (!NodeWorkModeManager::instance().tryToWork()) {
+//        throw app::exception(make_error_code(error::mode_switching_is_not_supported));
+//    }
     return "";
 }
 
