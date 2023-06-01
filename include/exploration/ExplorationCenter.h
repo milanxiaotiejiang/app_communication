@@ -120,6 +120,8 @@ public:
 
     void pathPublish(const std::vector<geometry_msgs::Pose2D> &exploration_path) const;
 
+    void pathPublish(const std::vector<std::vector<geometry_msgs::Pose2D>> &exploration_path) const;
+
     void cacheRoomCoverage(const RoomCoverage &coverage);
 
     RoomCoverage findRoomCoverage(const std::string &coverageId, bool latest);

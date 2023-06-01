@@ -73,8 +73,8 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        generatePlanningPathFull(map, 1, exploration_path, point_path, complex_path);
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        generatePlanningPathFull(map, 1, exploration_path, point_path, complex_path);
     }
 
     //4
@@ -272,10 +272,12 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
     }
 
     double point_sqrt = 0;
-    for (int i = 0; i < exploration_path.size() - 1; ++i) {
-        point_sqrt = point_sqrt + sqrt(pow(exploration_path[i].x - exploration_path[i + 1].x, 2) +
-                                       pow(exploration_path[i + 1].y - exploration_path[i].y, 2)
-        );
+    for (const auto &complex: complex_path) {
+        for (int i = 0; i < complex.size() - 1; ++i) {
+            point_sqrt = point_sqrt + sqrt(pow(exploration_path[i].x - exploration_path[i + 1].x, 2) +
+                                           pow(exploration_path[i + 1].y - exploration_path[i].y, 2)
+            );
+        }
     }
     /*
     * 记录
@@ -283,11 +285,11 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
     * 1.1 全覆盖 0.367899 y
     * 1.2 矩形 0.315423 y
     * 2. 弓字形
-    * 2.1 全覆盖 0.38695 y
+    * 2.1 全覆盖 0.351049 y
     * 2.2 矩形 0.32775 y
     * 3 沿边 0.337024 y
     */
-    LOG(ERROR) << "平均路径长度 ： " << point_sqrt / exploration_path.size();
+    LOG(INFO) << "平均路径长度 ： " << point_sqrt / exploration_path.size();
 
     // The code commented out below has a bug
 //    std::vector<geometry_msgs::Pose2D> optimize;
@@ -326,10 +328,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
         planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT) {
-        for (int i = 0; i < complex_path.size(); i++) {
-            planning_pose_path_display(room_map, map_origin, complex_path[i], 3,
-                                       "optimizePlanningPath " + std::to_string(i));
-        }
+        planning_pose_path_display(room_map, map_origin, complex_path, 3, "optimizePlanningPath ");
     }
 
 //    std_msgs::Header header;
@@ -702,6 +701,12 @@ void ExplorationCenter::pathPublish(const std::vector<geometry_msgs::Pose2D> &ex
     coverage_path.header.stamp = ros::Time::now();
     coverage_path.poses = exploration_path_pose_stamped;
     path_pub_.publish(coverage_path);
+}
+
+void ExplorationCenter::pathPublish(const std::vector<std::vector<geometry_msgs::Pose2D>> &exploration_path) const {
+    for (const auto &item: exploration_path) {
+        pathPublish(item);
+    }
 }
 
 bool ExplorationCenter::baseStationAvailable(cv::Mat &room_map, const cv::Point &point) {

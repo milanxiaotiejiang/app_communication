@@ -134,6 +134,18 @@ void CoveragePathGenerator::publish() const {
         pose2D.theta = item.getTheta();
         exploration_path.push_back(pose2D);
     }
+//    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
+//    std::vector<geometry_msgs::Pose2D> complex_exploration_path;
+//    for (const auto &complex: roomCoverage.getComplexList()) {
+//        for (const auto &item: complex) {
+//            geometry_msgs::Pose2D pose2D;
+//            pose2D.x = item.getY();
+//            pose2D.y = item.getX();
+//            pose2D.theta = item.getTheta();
+//            complex_exploration_path.push_back(pose2D);
+//        }
+//        complex_path.push_back(complex_exploration_path);
+//    }
     ExplorationCenter::instance().pathPublish(exploration_path);
 }
 
@@ -266,6 +278,18 @@ void SubregionPathGenerator::publish() const {
         pose2D.theta = item.getTheta();
         exploration_path.push_back(pose2D);
     }
+//    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
+//    std::vector<geometry_msgs::Pose2D> complex_exploration_path;
+//    for (const auto &complex: roomCoverage.getComplexList()) {
+//        for (const auto &item: complex) {
+//            geometry_msgs::Pose2D pose2D;
+//            pose2D.x = item.getY();
+//            pose2D.y = item.getX();
+//            pose2D.theta = item.getTheta();
+//            complex_exploration_path.push_back(pose2D);
+//        }
+//        complex_path.push_back(complex_exploration_path);
+//    }
     ExplorationCenter::instance().pathPublish(exploration_path);
 }
 

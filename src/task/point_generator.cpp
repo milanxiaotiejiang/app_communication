@@ -675,6 +675,18 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
             pose.theta = item.getTheta();
             exploration_path.push_back(pose);
         }
+//        std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
+//        std::vector<geometry_msgs::Pose2D> complex_exploration_path;
+//        for (const auto &complex: complexPoseList) {
+//            for (const auto &item: complex) {
+//                geometry_msgs::Pose2D pose2D;
+//                pose2D.x = item.getY();
+//                pose2D.y = item.getX();
+//                pose2D.theta = item.getTheta();
+//                complex_exploration_path.push_back(pose2D);
+//            }
+//            complex_path.push_back(complex_exploration_path);
+//        }
         explorationCenter.pathPublish(exploration_path);
 
         std::vector<RealBlock> blocks;

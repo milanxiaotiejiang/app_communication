@@ -11,6 +11,55 @@
 #include <boost/uuid/uuid_io.hpp>
 
 void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origin,
+                                const std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path,
+                                float resize,
+                                const std::string &winname) {
+    LOG(INFO) << "压缩比例 ： " << resize;
+    if (complex_path.empty()) {
+        return;
+    }
+    const cv::Point &startPoint = MapAttribute::instance().getRobotPositionPoint(map);
+
+    int cols = map.cols;
+    int rows = map.rows;
+
+    cv::Mat fov_path_map = map.clone();
+    cv::resize(fov_path_map, fov_path_map, cv::Size(), resize, resize, cv::INTER_LINEAR);
+
+    for (const auto &exploration_path: complex_path) {
+        for (size_t step = 1; step < exploration_path.size(); ++step) {
+            if (!exploration_path.empty())
+                cv::circle(fov_path_map,
+                           resize * cv::Point(
+                                   cols - (exploration_path[0].x - map_origin.x) / map_resolution_from_subscription + 1,
+                                   rows - (exploration_path[0].y - map_origin.y) / map_resolution_from_subscription + 1
+                           ), 3, cv::Scalar(150), CV_FILLED);
+            for (size_t i = 1; i <= step; ++i) {
+                cv::Point p1(cols - (exploration_path[i - 1].x - map_origin.x) / map_resolution_from_subscription + 1,
+                             rows - (exploration_path[i - 1].y - map_origin.y) / map_resolution_from_subscription + 1);
+                cv::Point p2(cols - (exploration_path[i].x - map_origin.x) / map_resolution_from_subscription,
+                             rows - (exploration_path[i].y - map_origin.y) / map_resolution_from_subscription);
+                cv::circle(fov_path_map, resize * p2, 3, cv::Scalar(200), CV_FILLED);
+                cv::line(fov_path_map, resize * p1, resize * p2, cv::Scalar(150), 1);
+//                cv::Point p3(p2.x + 5 * cos(exploration_path[i].theta), p2.y + 5 * sin(exploration_path[i].theta));
+//                if (i == step) {
+//                    cv::circle(fov_path_map, resize * p2, 2, cv::Scalar(80), CV_FILLED);
+//                    cv::line(fov_path_map, resize * p1, resize * p2, cv::Scalar(150), 1);
+//                    cv::line(fov_path_map, resize * p2, resize * p3, cv::Scalar(50), 1);
+//                }
+            }
+
+            cv::circle(fov_path_map, resize * startPoint, 3, cv::Scalar(160), CV_FILLED);
+
+            cv::imshow(winname, fov_path_map);
+            cv::waitKey();
+        }
+    }
+    cv::imshow(winname, fov_path_map);
+    cv::waitKey();
+}
+
+void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origin,
                                 std::vector<geometry_msgs::Pose2D> exploration_path,
                                 float resize, const std::string &winname) {
     LOG(INFO) << "压缩比例 ： " << resize;
