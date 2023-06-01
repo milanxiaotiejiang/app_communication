@@ -26,7 +26,8 @@ private:
 
     std::shared_ptr<ReplanAction> share_replan;
 
-    static void cpToPath(const std::vector<RealPoint> &points, replan_msgs::ReplanGoal &goal_path, int mode);
+    static void cpToPath(const std::vector<RealPoint> &points, replan_msgs::ReplanGoal &goal_path,
+                         int mode, bool border_track);
 
     static void activeCB();
 

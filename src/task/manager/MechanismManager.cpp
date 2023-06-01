@@ -159,13 +159,13 @@ void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus, bool
 void MechanismManager::enterManualControl() {
     std_msgs::Int32 map_start;
     map_start.data = 2;
-    PublishInnerManager::instance().publishKnobTask(map_start);
+    PublishInnerManager::instance().publishManualPush(map_start);
 }
 
 void MechanismManager::quitManualControl() {
     std_msgs::Int32 map_start;
     map_start.data = 0;
-    PublishInnerManager::instance().publishKnobTask(map_start);
+    PublishInnerManager::instance().publishManualPush(map_start);
 }
 
 void MechanismManager::openKnife() {

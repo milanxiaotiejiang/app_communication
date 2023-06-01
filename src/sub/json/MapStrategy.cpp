@@ -169,7 +169,7 @@ int ManualPushStartStrategy::handler(string params) {
 
     std_msgs::Int32 map_start;
     map_start.data = 2;
-    PublishInnerManager::instance().publishKnobTask(map_start);
+    PublishInnerManager::instance().publishManualPush(map_start);
     return 5;
 }
 
@@ -177,7 +177,7 @@ int ManualPushResetStrategy::handler(string params) {
     LOG(INFO) << "MapStrategy manual_push_reset ...";
     std_msgs::Int32 map_start;
     map_start.data = 0;
-    PublishInnerManager::instance().publishKnobTask(map_start);
+    PublishInnerManager::instance().publishManualPush(map_start);
     return 5;
 }
 
