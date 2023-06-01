@@ -34,11 +34,32 @@ bool is_utf8(const std::string &string) {
     return bytes_in_char == 0;
 }
 
+
+int gbk_strlen(const char *str) {
+    const char *p = str;        //p用于后面遍历
+
+    while (*p)                    //若是结束符0，则结束循环
+    {
+        if (*p < 0 && (*(p + 1) < 0 || *(p + 1) < 63))            //中文汉字情况
+        {
+            str++;                //str移动一位，p移动移动2位，因此长度加1
+            p += 2;
+        } else {
+            p++;                //str不动，p移动一位，长度加1
+        }
+    }
+    return p - str;                //返回地址之差
+}
+
 bool is_valid_name(const std::string &str) {
 //    std::regex pattern(R"([ )"); // 匹配3-30个中文、英文字母、数字、下划线
 //    return std::regex_match(str, pattern);
 //    std::regex pattern(R"([\w\xE4\xB8\x80-\xE9\xBE\xA5]{3,20})"); // 匹配3-20个中文、英文字母、数字、下划线
-    std::regex pattern("^[\u4e00-\u9fa5_a-zA-Z0-9]{1,30}$", std::regex_constants::icase);
+    if (gbk_strlen(str.data()) < 1 || gbk_strlen(str.data()) > 30) {
+        return false;
+    }
+    std::regex pattern("^[\u4e00-\u9fa5_a-zA-Z0-9]+$", std::regex_constants::icase);
+//    std::regex pattern("^[\u4e00-\u9fa5_a-zA-Z0-9]{1,30}$", std::regex_constants::icase);
     return std::regex_match(str, pattern);
 }
 
@@ -53,7 +74,7 @@ bool is_valid_crontab(const std::string &expression) {
     }
 }
 
-//TEST_CASE() {
+TEST_CASE() {
 //    std::cout << "name " << is_valid_name("sdfgdfg") << std::endl; // 输出 true
 //    std::cout << "name " << is_valid_name("sdfgDFg") << std::endl; // 输出 true
 //    std::cout << "name " << is_valid_name("划区任务0001") << std::endl; // 输出 true
@@ -61,7 +82,16 @@ bool is_valid_crontab(const std::string &expression) {
 //    std::cout << "name " << is_valid_name("任务1") << std::endl; // 输出 true
 //    std::cout << "name " << is_valid_name("任务A") << std::endl; // 输出 true
 //    std::cout << "name " << is_valid_name("任务b") << std::endl; // 输出 true
-//}
+//    std::cout << "name " << is_valid_name("b") << std::endl; // 输出 true
+    std::cout << "name " << is_valid_name("123456789132456789123456789123456789") << std::endl; // 输出 true
+    std::cout << "name " << is_valid_name("匹配3-30个中文、英文字母、数字、下划线") << std::endl; // 输出 true
+    std::cout << "name " << is_valid_name("匹配330个中文英文字母数字下划线") << std::endl; // 输出 true
+//    std::cout << "name " << is_valid_name("数") << std::endl; // 输出 true
+//    std::cout << "name " << is_valid_name("字") << std::endl; // 输出 true
+//    std::cout << "name " << is_valid_name("下") << std::endl; // 输出 true
+//    std::cout << "name " << is_valid_name("划") << std::endl; // 输出 true
+//    std::cout << "name " << is_valid_name("线") << std::endl; // 输出 true
+}
 //TEST_CASE() {
 //    std::string expression = "0 */5 * * * *";
 //    std::cout << is_valid_crontab(expression) << std::endl; // 输出 true
