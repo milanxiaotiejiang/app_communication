@@ -75,6 +75,24 @@ void PointPlanner::goToPath(const RealBlock &block) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::task_planner_failed_to_start));
     }
+    bool isLine = SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line;
+    ros::NodeHandle nh;
+    if (isLine) {
+        globalInflationRadius.d(0.3);
+        localInflationRadius.d(0.3);
+        nh.setParam("/move_base/global_costmap/inflation_layer/inscribed_radius", 0.25);
+        nh.setParam("/move_base/local_costmap/inflation_layer/inscribed_radius", 0.25);
+        nh.setParam("/default_inscribed_radius", 0.25);
+        nh.setParam("/default_inflation_radius", 0.3);
+    } else {
+        globalInflationRadius.d(0.5);
+        localInflationRadius.d(0.5);
+        nh.setParam("/move_base/global_costmap/inflation_layer/inscribed_radius", 0.3);
+        nh.setParam("/move_base/local_costmap/inflation_layer/inscribed_radius", 0.3);
+        nh.setParam("/default_inscribed_radius", 0.3);
+        nh.setParam("/default_inflation_radius", 0.5);
+    }
+
     replan_msgs::ReplanGoal path;
     cpToPath(std::vector<RealPoint>{block.plannerPoints.begin() + block.already_step, block.plannerPoints.end()},
              path,
