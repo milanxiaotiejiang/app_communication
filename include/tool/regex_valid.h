@@ -9,6 +9,10 @@
 #include <regex>
 #include <catch2/catch.hpp>
 
+size_t utf8_charsize(unsigned char c);
+
+size_t utf8_strlen(const char *str);
+
 int gbk_strlen(const char *str);
 
 bool is_valid_name(const std::string &str);
