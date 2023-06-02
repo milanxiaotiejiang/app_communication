@@ -35,7 +35,7 @@ bool AsyncTaskRecord::isReturningBase(event::flow flow) {
 }
 
 bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend) {
-    LOG(INFO) << "AsyncTaskRecord : lastEmergencyStop : " << lastEmergencyStop();
+//    LOG(INFO) << "AsyncTaskRecord : lastEmergencyStop : " << lastEmergencyStop();
     if (isManualMode()) {
         return false;
     }
@@ -67,7 +67,7 @@ bool AsyncTaskRecord::isRegularTask(event::flow flow) {
 
 bool AsyncTaskRecord::isManualTask(const RealTask &realTask) {
     if (realTask.isRenew()) {
-        const std::string &source = realTask.getSource();
+        const std::string &source = realTask.getOnSource();
         TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
         if (taskSource == TaskSource::App || taskSource == TaskSource::Pad) {
             return true;

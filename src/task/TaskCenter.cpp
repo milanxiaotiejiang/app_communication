@@ -38,10 +38,9 @@
 #include "leave/MaintenanceMode.h"
 
 std::string TaskCenter::preTask(const RealTask &task) {
-    LOG(INFO) << "preTask ------------------" << task.getRate();
     //拦截手动下发的任务且前期出站后期进站
     if (task.isRenew()) {
-        const std::string &source = task.getSource();
+        const std::string &source = task.getOnSource();
         TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
         if (taskSource == TaskSource::App || taskSource == TaskSource::Pad) {
             if (!asyncTaskCall->canIssuedTask(task)) {
@@ -185,14 +184,11 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
 
     if (!Environment::instance().isRealEnvironment) {
         std::thread moveBaseThread([]() {
-            sleep(10);
+            sleep(5);
             NodeControl::instance().emulate();
             int last_machine_code = 10006;
             while (1) {
                 sleep(1);
-//                LOG(ERROR) << "isSleep : " << NodeControl::instance().isSleep()
-//                           << " isWork : " << NodeControl::instance().isWork()
-//                           << " isMap : " << NodeControl::instance().isMap();
                 NativeSystemManager::instance().urgencyStop(ZooInnerStatus::instance().getUrgencyStopStatus());
                 long current_execute_time = clean_history_db::CleanHistoryCenter::instance().getCurrentCleanTime();
                 WorkStatus workStatus(0, 0, 0, 0, 0, 0);
