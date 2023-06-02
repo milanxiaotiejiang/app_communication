@@ -38,7 +38,11 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
                 backBaseRetryCount++;
                 setFlow(event::flow::try_move_base_point_again);
             } else {
-                setFlow(event::flow::software_interrupt_task);
+//                setFlow(event::flow::software_interrupt_task);
+                LOG(INFO) << "HeadTailPointCall : 多次返回摆渡点失败， 直接记为“任务执行完成且返回了基站点”， " <<
+                          "backBaseRetryCount : " << backBaseRetryCount <<
+                          "rechargeRetryCount : " << rechargeRetryCount << " ...";
+                setFlow(event::flow::flowing_water_execution_completed);
             }
         }
     } else if (point.id == FLOW_IN_STATION) {
@@ -49,10 +53,7 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
                 rechargeRetryCount++;
                 setFlow(event::flow::try_recharging_again);
             } else {
-//                setFlow(event::flow::software_interrupt_task);
-                LOG(INFO) << "HeadTailPointCall : 多次返回摆渡点失败， 直接记为“任务执行完成且返回了基站点”， rechargeRetryCount : "
-                          << rechargeRetryCount << " ...";
-                setFlow(event::flow::flowing_water_execution_completed);
+                setFlow(event::flow::software_interrupt_task);
             }
         }
     } else if (point.id == FLOW_CLOSE_MECHANISM) {
