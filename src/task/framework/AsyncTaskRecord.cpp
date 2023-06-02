@@ -67,7 +67,7 @@ bool AsyncTaskRecord::isRegularTask(event::flow flow) {
 
 bool AsyncTaskRecord::isManualTask(const RealTask &realTask) {
     if (realTask.isRenew()) {
-        const std::string &source = realTask.getSource();
+        const std::string &source = realTask.getOnSource();
         TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
         if (taskSource == TaskSource::App || taskSource == TaskSource::Pad) {
             return true;

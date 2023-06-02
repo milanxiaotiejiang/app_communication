@@ -139,6 +139,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
 
         block.timeout = timeout_accumulation;
         block.totalStep = point_accumulation;
+        block.plannerPoints = plannerPoints;
     }
 
     realTask.setTotalStep(point_accumulation);
