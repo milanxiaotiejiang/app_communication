@@ -31,12 +31,12 @@ void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origi
             if (!exploration_path.empty())
                 cv::circle(fov_path_map,
                            resize * cv::Point(
-                                   cols - (exploration_path[0].x - map_origin.x) / map_resolution_from_subscription + 1,
-                                   rows - (exploration_path[0].y - map_origin.y) / map_resolution_from_subscription + 1
+                                   cols - (exploration_path[0].x - map_origin.x) / map_resolution_from_subscription,
+                                   rows - (exploration_path[0].y - map_origin.y) / map_resolution_from_subscription
                            ), 3, cv::Scalar(150), CV_FILLED);
             for (size_t i = 1; i <= step; ++i) {
-                cv::Point p1(cols - (exploration_path[i - 1].x - map_origin.x) / map_resolution_from_subscription + 1,
-                             rows - (exploration_path[i - 1].y - map_origin.y) / map_resolution_from_subscription + 1);
+                cv::Point p1(cols - (exploration_path[i - 1].x - map_origin.x) / map_resolution_from_subscription,
+                             rows - (exploration_path[i - 1].y - map_origin.y) / map_resolution_from_subscription);
                 cv::Point p2(cols - (exploration_path[i].x - map_origin.x) / map_resolution_from_subscription,
                              rows - (exploration_path[i].y - map_origin.y) / map_resolution_from_subscription);
                 cv::circle(fov_path_map, resize * p2, 3, cv::Scalar(200), CV_FILLED);

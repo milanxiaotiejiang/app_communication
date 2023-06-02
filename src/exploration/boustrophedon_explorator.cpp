@@ -147,14 +147,14 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
     std::vector<cv::Point2f> fov_middlepoint_path;
     std::vector<std::vector<cv::Point2f>> complex_middle_path;
     for (size_t cell = 0; cell < cell_polygons.size(); ++cell) {
-        computeBoustrophedonPath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
-                                 fov_middlepoint_path, complex_middle_path,
-                                 robot_pos, grid_spacing_as_int, half_grid_spacing_as_int, path_eps,
-                                 max_deviation_from_track, grid_obstacle_offset / map_resolution);
-//        computeRectangularAmbulatoryPlanePath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
-//                                              fov_middlepoint_path, complex_middle_path,
-//                                              robot_pos, grid_spacing_as_int, half_grid_spacing_as_int, path_eps,
-//                                              max_deviation_from_track, grid_obstacle_offset / map_resolution);
+//        computeBoustrophedonPath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
+//                                 fov_middlepoint_path, complex_middle_path,
+//                                 robot_pos, grid_spacing_as_int, half_grid_spacing_as_int, path_eps,
+//                                 max_deviation_from_track, grid_obstacle_offset / map_resolution);
+        computeRectangularAmbulatoryPlanePath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
+                                              fov_middlepoint_path, complex_middle_path,
+                                              robot_pos, grid_spacing_as_int, half_grid_spacing_as_int, path_eps,
+                                              max_deviation_from_track, grid_obstacle_offset / map_resolution);
     }
 
     if (fov_middlepoint_path.empty()) {
