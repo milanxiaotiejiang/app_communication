@@ -73,18 +73,18 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//        generatePlanningPathFull(map, 1, exploration_path, point_path, complex_path);
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        generatePlanningPathFull(map, 1, exploration_path, point_path, complex_path);
     }
 
     //4
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        try {
-            const cv::Mat &map = SegmentationCenter::instance().generateMat();
-            infinitelyNearBoundary(map, exploration_path, point_path, complex_path);
-        } catch (...) {
-
-        }
+//        try {
+//            const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//            infinitelyNearBoundary(map, exploration_path, point_path, complex_path);
+//        } catch (...) {
+//
+//        }
     }
 
 //    pathPublish(exploration_path);
@@ -732,19 +732,53 @@ bool ExplorationCenter::baseStationAvailable(cv::Mat &room_map, const cv::Point 
 cv::Mat ExplorationCenter::findClosestPointRoom(cv::Mat &room_map, const cv::Point &point, double min_cell_area) {
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(room_map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-    cv::Mat image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
-    double distance = -100000;
-    for (int i = 0; i < contours.size(); ++i) {
-        std::vector<cv::Point> contour = contours[i];
-        if (contour.size() < min_cell_area / 3) {
-            continue;
-        }
+
+    std::vector<double> distances;
+    std::vector<int> areas;
+    for (auto &contour: contours) {
         double d = cv::pointPolygonTest(contour, point, true);
-        if (d > distance) {
-            distance = d;
-            cv::drawContours(image, contours, i, cv::Scalar(255), CV_FILLED);
+        distances.push_back(d);
+        areas.push_back(contour.size());
+    }
+    double max_distance = -100000;
+    int distance_index = 0;
+    for (int i = 0; i < distances.size(); i++) {
+        if (distances[i] > max_distance) {
+            max_distance = distances[i];
+            distance_index = i;
         }
     }
+    int max_area = 0;
+    int area_index = 0;
+    for (int i = 0; i < areas.size(); i++) {
+        if (areas[i] < min_cell_area / 3) {
+            continue;
+        }
+        if (areas[i] > max_area) {
+            max_area = areas[i];
+            area_index = i;
+        }
+    }
+
+    LOG(INFO) << "find map info : max_distance : " << max_distance
+              << "   distance_index : " << distance_index
+              << "   max_area : " << max_area
+              << "   area_index : " << area_index << " ... ";
+
+    cv::Mat image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
+    if (area_index == distance_index) {
+        cv::drawContours(image, contours, area_index, cv::Scalar(255), CV_FILLED);
+    } else {
+        double sumNum = accumulate(distances.begin(), distances.end(), 0.0);
+        double mean = sumNum / distances.size(); //均值
+        for (int i = 0; i < distances.size(); i++) {
+            if (distances[i] > mean) {
+                cv::drawContours(image, contours, i, cv::Scalar(255), CV_FILLED);
+            }
+        }
+        cv::drawContours(image, contours, area_index, cv::Scalar(255), CV_FILLED);
+    }
+
     cv::Mat result;
     cv::bitwise_and(room_map, image, result);
     return result;
