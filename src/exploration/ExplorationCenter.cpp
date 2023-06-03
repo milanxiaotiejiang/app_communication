@@ -26,7 +26,7 @@
 #include "exploration/cv_extend.h"
 
 static bool DISPLAY_TRAJECTORY = false;
-static bool DISPLAY_TRAJECTORY_EFFECT = false;
+static bool DISPLAY_TRAJECTORY_EFFECT = true;
 
 void ExplorationCenter::initialize(ros::NodeHandle handle) {
     ros::Time::init();
@@ -79,12 +79,12 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //4
     if (DISPLAY_TRAJECTORY_EFFECT) {
-//        try {
-//            const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//            infinitelyNearBoundary(map, exploration_path, point_path, complex_path);
-//        } catch (...) {
-//
-//        }
+        try {
+            const cv::Mat &map = SegmentationCenter::instance().generateMat();
+            infinitelyNearBoundary(map, exploration_path, point_path, complex_path);
+        } catch (...) {
+
+        }
     }
 
 //    pathPublish(exploration_path);

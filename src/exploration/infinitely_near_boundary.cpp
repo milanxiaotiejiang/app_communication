@@ -15,7 +15,7 @@
 #define random(a, b) (rand() % (b - a) + a)
 
 static bool DISPLAY_TRAJECTORY = false;
-static bool BOUNDARY_DISTANCE = false;
+static bool BOUNDARY_DISTANCE = true;
 
 void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
                                                 const cv::Mat &room_map,
@@ -78,15 +78,41 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
     std::vector<std::vector<cv::Point2f>> middle_complex_path;
     for (int r = 0; r < number_extension; ++r) {
 
-        int scale_in_pixel = (int) std::floor(half_grid_spacing_as_int +//机器人半径
+        int scale_in_pixel = (int) std::floor(0 +//机器人半径
                                               distance_from_obstacles +//与障碍物的间距
                                               grid_spacing_in_pixel * r +//多轮廓
                                               multiple_contour_spacing * r);
         LOG(INFO) << "(infinitely near boundary) 边界距离 scale_in_pixel: " << scale_in_pixel << " px";
-
+        scale_in_pixel = 6;
         auto borderMat = room_map.clone();
-//        explorationErode(borderMat, borderMat, cv::MORPH_RECT, scale_in_pixel);
-        cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(-1, -1), scale_in_pixel);
+        cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(-1, -1), half_grid_spacing_as_int);
+        explorationErode(borderMat, borderMat, cv::MORPH_RECT, scale_in_pixel);
+
+        /**
+         * scale_in_pixel = 11 explorationErode
+         * 边界 总个数 1784 总距离 18518.1 最大 58 最小 0.707107 均值 10.3801 方差 154.311 标准差 12.4222
+         * 抽希 总个数 147 总距离 1372.59 最大 42.638 最小 0.707107 均值 9.33733 方差 98.6442 标准差 9.93198
+         * 插值 总个数 370 总距离 3666.13 最大 57 最小 0.707107 均值 9.90847 方差 134.437 标准差 11.5947
+         *
+         * scale_in_pixel = 7 cv::erode
+         * 边界 总个数 1697 总距离 19690.2 最大 60 最小 7 均值 11.6029 方差 125.632 标准差 11.2086
+         * 抽希 总个数 77 总距离 821.2 最大 59.0762 最小 7 均值 10.6649 方差 61.6034 标准差 7.84878
+         * 插值 总个数 329 总距离 3746.03 最大 59.8 最小 6.25 均值 11.3861 方差 112.936 标准差 10.6272
+         *
+         * scale_in_pixel = 10 explorationErode + cv::erode
+         * 边界 总个数 1672 总距离 19349.1 最大 60 最小 7 均值 11.5724 方差 127.082 标准差 11.2731
+         * 抽希 总个数 84 总距离 822.846 最大 37.4433 最小 7 均值 9.79578 方差 29.3224 标准差 5.41502
+         * 插值 总个数 328 总距离 3632.92 最大 59 最小 6.24826 均值 11.076 方差 102.98 标准差 10.1479
+         *
+         * scale_in_pixel = 6 cv::erode + explorationErode
+         * 边界 总个数 1453 总距离 7766.57 最大 14.3178 最小 4.94975 均值 5.3452 方差 1.55 标准差 1.24499
+         * 抽希 总个数 84 总距离 510.6 最大 14.3178 最小 4.94975 均值 6.07857 方差 3.87836 标准差 1.96935
+         * 插值 总个数 299 总距离 1628.89 最大 14.3178 最小 4.11765 均值 5.4478 方差 1.96793 标准差 1.40283
+         * scale_in_pixel = 6 cv::erode + explorationErode
+         * 边界 总个数 1775 总距离 19586.1 最大 59 最小 4.94975 均值 11.0344 方差 149 标准差 12.2066
+         * 抽希 总个数 109 总距离 1149.81 最大 51.0882 最小 4.94975 均值 10.5487 方差 91.5779 标准差 9.56963
+         * 插值 总个数 361 总距离 3892.98 最大 58.7778 最小 4.11765 均值 10.7839 方差 134.246 标准差 11.5865
+         */
 
         /*
          * scale_in_pixel = 10
