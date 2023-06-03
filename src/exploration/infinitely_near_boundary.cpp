@@ -15,6 +15,7 @@
 #define random(a, b) (rand() % (b - a) + a)
 
 static bool DISPLAY_TRAJECTORY = false;
+static bool BOUNDARY_DISTANCE = false;
 
 void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
                                                 const cv::Mat &room_map,
@@ -84,7 +85,56 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
         LOG(INFO) << "(infinitely near boundary) 边界距离 scale_in_pixel: " << scale_in_pixel << " px";
 
         auto borderMat = room_map.clone();
-        explorationErode(borderMat, borderMat, scale_in_pixel);
+//        explorationErode(borderMat, borderMat, cv::MORPH_RECT, scale_in_pixel);
+        cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(-1, -1), scale_in_pixel);
+
+        /*
+         * scale_in_pixel = 10
+         *
+         * cv::MORPH_CROSS
+         * 边界 总个数 1785 总距离 17852.4 最大 58 最小 0.707107 均值 10.0014 方差 159.011 标准差 12.61
+         * 抽希 总个数 134 总距离 1237.76 最大 57.8705 最小 0.707107 均值 9.23702 方差 113.043 标准差 10.6322
+         * 插值 总个数 369 总距离 3570.34 最大 57.875 最小 0.707107 均值 9.67571 方差 147.697 标准差 12.1531
+         *
+         * cv::MORPH_RECT
+         * 边界 总个数 1786 总距离 18530.1 最大 58 最小 4 均值 10.3752 方差 157.484 标准差 12.5493
+         * 抽希 总个数 88 总距离 906.92 最大 57.3149 最小 4 均值 10.3059 方差 107.152 标准差 10.3514
+         * 插值 总个数 356 总距离 3654.44 最大 57.9 最小 3.125 均值 10.2653 方差 144.905 标准差 12.0377
+         *
+         * erode scale_in_pixel
+         * 边界 总个数 1666 总距离 27822.8 最大 63 最小 10 均值 16.7004 方差 140.377 标准差 11.8481
+         * 抽希 总个数 84 总距离 1342.47 最大 58.4637 最小 10 均值 15.9818 方差 94.4449 标准差 9.71828
+         * 插值 总个数 332 总距离 5442.86 最大 62.8 最小 9.25 均值 16.3942 方差 130.379 标准差 11.4184
+         *
+         * erode std::floor(scale_in_pixel / 2) = 5
+         * 边界 总个数 1530 总距离 8390.66 最大 14.8661 最小 5 均值 5.48409 方差 1.8715 标准差 1.36803
+         * 抽希 总个数 78 总距离 507.963 最大 14.8661 最小 5 均值 6.51235 方差 3.83287 标准差 1.95777
+         * 插值 总个数 314 总距离 1786.97 最大 14.8661 最小 4.12311 均值 5.69097 方差 2.75298 标准差 1.65921
+         */
+
+        /*
+         * scale_in_pixel = 5
+         *
+         * cv::MORPH_CROSS
+         * 边界 总个数 1546 总距离 3317.26 平均 2.14571 最大 11.1803 最小 0.707107 均值 2.14571 方差 1.20512 标准差 1.09778
+         * 抽希 总个数 102 总距离 275.846 平均 2.70437 最大 11.0454 最小 0.707107 均值 2.70437 方差 5.07852 标准差 2.25356
+         * 插值 总个数 323 总距离 685.791 平均 2.12319 最大 11.0454 最小 0.707107 均值 2.12319 方差 1.83732 标准差 1.35548
+         *
+         * cv::MORPH_RECT
+         * 边界 总个数 1574 总距离 3646.8 最大 11.4018 最小 2 均值 2.3169 方差 1.47919 标准差 1.21622
+         * 抽希 总个数 88 总距离 272.055 最大 11.4018 最小 2 均值 3.09153 方差 4.5788 标准差 2.13981
+         * 插值 总个数 318 总距离 798.793 最大 11.4018 最小 1.125 均值 2.51193 方差 2.53355 标准差 1.59171
+         *
+         * erode scale_in_pixel
+         * 边界 总个数 1530 总距离 8390.66 最大 14.8661 最小 5 均值 5.48409 方差 1.8715 标准差 1.36803
+         * 抽希 总个数 78 总距离 507.963 最大 14.8661 最小 5 均值 6.51235 方差 3.83287 标准差 1.95777
+         * 插值 总个数 314 总距离 1786.97 最大 14.8661 最小 4.12311 均值 5.69097 方差 2.75298 标准差 1.65921
+         *
+         * erode std::floor(scale_in_pixel / 2) = 2
+         * 边界 总个数 1583 总距离 3449.4 最大 11.4018 最小 2 均值 2.17903 方差 0.699719 标准差 0.836492
+         * 抽希 总个数 93 总距离 253.536 最大 11.4018 最小 2 均值 2.72619 方差 2.23453 标准差 1.49484
+         * 插值 总个数 324 总距离 732.183 最大 11.4018 最小 1.10526 均值 2.25982 方差 1.30407 标准差 1.14196
+         */
 
         if (DISPLAY_TRAJECTORY) {
             cv::imshow("m " + std::to_string(r) + " " + std::to_string(scale_in_pixel), borderMat);
@@ -162,13 +212,18 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
 
     int path_eps_distance = static_cast<int>(std::floor(path_eps));
     for (auto &middle_complex: middle_complex_path) {
+        boundary_distance(original_map, middle_complex, "边界");
+
         // OpenCv
-        std::vector<cv::Point> list;
-        cv::approxPolyDP(middle_complex, list, 1.0, false);
+        std::vector<cv::Point2f> list;
+        cv::approxPolyDP(middle_complex, list, 1, false);
+        boundary_distance(original_map, list, "抽希");
+
         std::vector<Point2D> points;
         for (const auto &item: list) {
             points.emplace_back(item.x, item.y);
         }
+
         // 自实现
 //        std::list<Point2D> line;
 //        for (const auto &point: middle_complex) {
@@ -181,6 +236,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
 //        std::vector<Point2D> points(list.begin(), list.end());
 
         const std::vector<Point2D> &neededPoints = splitPointsIfNeeded(points, path_eps_distance);
+        boundary_distance(original_map, neededPoints, "插值");
 
         std::vector<geometry_msgs::Pose2D> complex_poses = transformPointPathToPosePath(neededPoints);
 
@@ -206,6 +262,73 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
         complex_pose_path.push_back(complex_pose);
     }
 
+}
+
+void
+InfinitelyNearBoundary::boundary_distance(const cv::Mat &original_map, const std::vector<cv::Point2f> &points,
+                                          const std::string &name) const {
+    if (!BOUNDARY_DISTANCE)
+        return;
+
+    auto display_map = original_map.clone();
+    std::vector<std::vector<cv::Point>> borderContours;
+    cv::findContours(display_map, borderContours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+    std::vector<std::vector<cv::Point>> maxContours;
+    size_t area = 0;
+    for (const auto &item: borderContours) {
+        if (item.size() > area) {
+            area = item.size();
+            maxContours.clear();
+            maxContours.push_back(item);
+        }
+    }
+    double distance = 0;
+    double max = 0;
+    double min = 100;
+    std::vector<double> vecNums;
+    for (const auto &item: points) {
+        auto pointPolygonTest = cv::pointPolygonTest(maxContours[0], item, true);
+//        LOG(ERROR) << "pointPolygonTest : " << pointPolygonTest;
+        distance = distance + pointPolygonTest;
+        if (pointPolygonTest > max) {
+            max = pointPolygonTest;
+        }
+        if (pointPolygonTest < min) {
+            min = pointPolygonTest;
+        }
+        vecNums.push_back(pointPolygonTest);
+    }
+    double sumNum = accumulate(vecNums.begin(), vecNums.end(), 0.0);
+    double mean = sumNum / vecNums.size(); //均值
+    double accum = 0.0;
+    for_each(vecNums.begin(), vecNums.end(), [&](const double d) {
+        accum += (d - mean) * (d - mean);
+    });
+    double variance = accum / vecNums.size(); //方差
+    double stdev = sqrt(variance); //标准差
+
+    LOG(ERROR) << name
+               << " 总个数 " << points.size()
+               << " 总距离 " << distance
+               << " 最大 " << max
+               << " 最小 " << min
+               << " 均值 " << mean
+               << " 方差 " << variance
+               << " 标准差 " << stdev;
+//    cv::Mat d_map = cv::Mat::zeros(original_map.rows, original_map.cols, CV_8UC1);
+//    cv::drawContours(d_map, maxContours, -1, cv::Scalar(255), 1);
+//    cv::imshow("1", d_map);
+//    cv::waitKey();
+}
+
+void
+InfinitelyNearBoundary::boundary_distance(const cv::Mat &original_map, const std::vector<Point2D> &points,
+                                          const std::string &name) const {
+    std::vector<cv::Point2f> displays;
+    for (const auto &item: points) {
+        displays.emplace_back(item.x, item.y);
+    }
+    boundary_distance(original_map, displays, name);
 }
 
 std::vector<geometry_msgs::Pose2D>

@@ -477,7 +477,7 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
 
     cv::Mat inflated_room_map;//原始地图腐蚀之后的地图
     cv::Mat rotated_inflated_room_map;//仿射变换后的原始腐蚀图
-    explorationErode(room_map, inflated_room_map, half_grid_spacing_as_int + grid_obstacle_offset);
+    explorationErode(room_map, inflated_room_map, cv::MORPH_CROSS, half_grid_spacing_as_int + grid_obstacle_offset);
 
     cell_rotation.rotateRoom(inflated_room_map, rotated_inflated_room_map, R_cell, cell_bbox);
 
@@ -712,7 +712,7 @@ void BoustrophedonExplorer::computeRectangularAmbulatoryPlanePath(const cv::Mat 
 
     cv::Mat inflated_room_map;//原始地图腐蚀之后的地图
     cv::Mat rotated_inflated_room_map;//仿射变换后的原始腐蚀图
-    explorationErode(room_map, inflated_room_map, half_grid_spacing_as_int + grid_obstacle_offset);
+    explorationErode(room_map, inflated_room_map, cv::MORPH_CROSS, half_grid_spacing_as_int + grid_obstacle_offset);
 
     cell_rotation.rotateRoom(inflated_room_map, rotated_inflated_room_map, R_cell, cell_bbox);
 

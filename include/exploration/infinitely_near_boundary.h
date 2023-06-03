@@ -36,6 +36,12 @@ public:
                             const int random_number_generation_ratio,
                             const int boundary_min_area,
                             const double path_eps);
+
+    void boundary_distance(const cv::Mat &original_map, const std::vector<cv::Point2f> &points,
+                           const std::string &name) const;
+
+    void
+    boundary_distance(const cv::Mat &original_map, const std::vector<Point2D> &points, const std::string &name) const;
 };
 
 

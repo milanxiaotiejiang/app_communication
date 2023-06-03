@@ -73,8 +73,8 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        generatePlanningPathFull(map, 1, exploration_path, point_path, complex_path);
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        generatePlanningPathFull(map, 1, exploration_path, point_path, complex_path);
     }
 
     //4
@@ -194,7 +194,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
                     << "RoomExplorationServer::exploreRoom: Warning: Obstacles around the base station.";
             throw app::exception(make_error_code(error::exploration_obstacles_around_the_base_station));
         }
-        explorationErode(map, map, map_prohibition_expand_size_);
+        explorationErode(map, map, cv::MORPH_CROSS, map_prohibition_expand_size_);
 
         morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
     } else if (model == ExplorationModel::SUB) {
@@ -885,14 +885,14 @@ cv::Mat ExplorationCenter::loadGenerateMap(int grid_spacing_in_pixel) {
     cv::Mat andMat;
     cv::bitwise_and(generate_map, prohibition_image, andMat);
     cv::bitwise_xor(generate_map, andMat, generate_map);
-    explorationErode(generate_map, generate_map, grid_spacing_in_pixel);
+    explorationErode(generate_map, generate_map, cv::MORPH_CROSS, grid_spacing_in_pixel);
 
     return generate_map;
 }
 
 bool ExplorationCenter::detectionTooSmallRoom(const cv::Mat &map, int iterations) const {
     cv::Mat compute_map = map.clone();
-    explorationErode(compute_map, compute_map, iterations);
+    explorationErode(compute_map, compute_map, cv::MORPH_CROSS, iterations);
 
     int count = 0;
     for (int v = 0; v < compute_map.rows; ++v) {
