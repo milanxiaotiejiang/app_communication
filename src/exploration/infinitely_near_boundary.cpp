@@ -15,7 +15,7 @@
 #define random(a, b) (rand() % (b - a) + a)
 
 static bool DISPLAY_TRAJECTORY = false;
-static bool BOUNDARY_DISTANCE = true;
+static bool BOUNDARY_DISTANCE = false;
 
 void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
                                                 const cv::Mat &room_map,
@@ -78,42 +78,91 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
     std::vector<std::vector<cv::Point2f>> middle_complex_path;
     for (int r = 0; r < number_extension; ++r) {
 
+        // step 1 方差最大，均值8.x可达到50的方差
+//        int scale_in_pixel = (int) std::floor(half_grid_spacing_as_int +//机器人半径
+//                                              distance_from_obstacles +//与障碍物的间距
+//                                              grid_spacing_in_pixel * r +//多轮廓
+//                                              multiple_contour_spacing * r);
+//        auto borderMat = room_map.clone();
+//        explorationErode(borderMat, borderMat, cv::MORPH_CROSS, scale_in_pixel);
+        // step 2 方差应为最小，均值8.x的方差可减少到不到30，但是distance_from_obstacles的变换区间最小，只有0-2
+//        int scale_in_pixel = (int) std::floor(half_grid_spacing_as_int +//机器人半径
+//                                              distance_from_obstacles +//与障碍物的间距
+//                                              grid_spacing_in_pixel * r +//多轮廓
+//                                              multiple_contour_spacing * r);
+//        auto borderMat = room_map.clone();
+//        cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(-1, -1), scale_in_pixel);
+        // step 3
         int scale_in_pixel = (int) std::floor(0 +//机器人半径
                                               distance_from_obstacles +//与障碍物的间距
                                               grid_spacing_in_pixel * r +//多轮廓
                                               multiple_contour_spacing * r);
-        LOG(INFO) << "(infinitely near boundary) 边界距离 scale_in_pixel: " << scale_in_pixel << " px";
-        scale_in_pixel = 6;
         auto borderMat = room_map.clone();
-        cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(-1, -1), half_grid_spacing_as_int);
-        explorationErode(borderMat, borderMat, cv::MORPH_RECT, scale_in_pixel);
+        explorationErode(borderMat, borderMat, cv::MORPH_RECT, half_grid_spacing_as_int);
+        cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(-1, -1), scale_in_pixel);
+        // step 4
+//        int scale_in_pixel = (int) std::floor(0 +//机器人半径
+//                                              distance_from_obstacles +//与障碍物的间距
+//                                              grid_spacing_in_pixel * r +//多轮廓
+//                                              multiple_contour_spacing * r);
+//        auto borderMat = room_map.clone();
+//        cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(-1, -1), half_grid_spacing_as_int);
+//        explorationErode(borderMat, borderMat, cv::MORPH_RECT, scale_in_pixel);
+
+        LOG(INFO) << "(infinitely near boundary) 边界距离 scale_in_pixel: " << (half_grid_spacing_as_int + scale_in_pixel)
+                  << " px";
+
+        //下列分别测试四种 step，采用 step3 为主
 
         /**
-         * scale_in_pixel = 11 explorationErode
-         * 边界 总个数 1784 总距离 18518.1 最大 58 最小 0.707107 均值 10.3801 方差 154.311 标准差 12.4222
-         * 抽希 总个数 147 总距离 1372.59 最大 42.638 最小 0.707107 均值 9.33733 方差 98.6442 标准差 9.93198
-         * 插值 总个数 370 总距离 3666.13 最大 57 最小 0.707107 均值 9.90847 方差 134.437 标准差 11.5947
+         * step 1  distance_from_obstacles = 8 explorationErode
+         * 边界 总个数 1346 总距离 11134.2 最大 35.0571 最小 0.707107 均值 8.27208 方差 47.5207 标准差 6.89352
+         * 抽希 总个数 140 总距离 1239.17 最大 33 最小 0.707107 均值 8.85121 方差 65.8489 标准差 8.11473
+         * 插值 总个数 326 总距离 2731.32 最大 35.0571 最小 0.707107 均值 8.37829 方差 53.2001 标准差 7.29384
          *
-         * scale_in_pixel = 7 cv::erode
-         * 边界 总个数 1697 总距离 19690.2 最大 60 最小 7 均值 11.6029 方差 125.632 标准差 11.2086
-         * 抽希 总个数 77 总距离 821.2 最大 59.0762 最小 7 均值 10.6649 方差 61.6034 标准差 7.84878
-         * 插值 总个数 329 总距离 3746.03 最大 59.8 最小 6.25 均值 11.3861 方差 112.936 标准差 10.6272
+         * step 2  distance_from_obstacles = 2 cv::erode
+         * 边界 总个数 1443 总距离 11859.5 最大 35.0571 最小 5 均值 8.21862 方差 31.6296 标准差 5.62402
+         * 抽希 总个数 136 总距离 1186.46 最大 28.0713 最小 5 均值 8.72398 方差 27.6568 标准差 5.25898
+         * 插值 总个数 337 总距离 2824.26 最大 31.8084 最小 4.21637 均值 8.38059 方差 29.9615 标准差 5.47371
          *
-         * scale_in_pixel = 10 explorationErode + cv::erode
-         * 边界 总个数 1672 总距离 19349.1 最大 60 最小 7 均值 11.5724 方差 127.082 标准差 11.2731
-         * 抽希 总个数 84 总距离 822.846 最大 37.4433 最小 7 均值 9.79578 方差 29.3224 标准差 5.41502
-         * 插值 总个数 328 总距离 3632.92 最大 59 最小 6.24826 均值 11.076 方差 102.98 标准差 10.1479
+         * step 3  distance_from_obstacles = 3 explorationErode + cv::erode
+         * 边界 总个数 1592 总距离 11614.6 最大 35.0143 最小 4 均值 7.2956 方差 31.8549 标准差 5.64402
+         * 抽希 总个数 160 总距离 1217.29 最大 26.8701 最小 4 均值 7.60807 方差 26.6954 标准差 5.16676
+         * 插值 总个数 387 总距离 2842.77 最大 31.6189 最小 3 均值 7.34566 方差 29.1599 标准差 5.39999
+         * step 3  distance_from_obstacles = 4 explorationErode + cv::erode
+         * 边界 总个数 1443 总距离 11859.5 最大 35.0571 最小 5 均值 8.21862 方差 31.6296 标准差 5.62402
+         * 抽希 总个数 136 总距离 1186.46 最大 28.0713 最小 5 均值 8.72398 方差 27.6568 标准差 5.25898
+         * 插值 总个数 337 总距离 2824.26 最大 31.8084 最小 4.21637 均值 8.38059 方差 29.9615 标准差 5.47371
          *
-         * scale_in_pixel = 6 cv::erode + explorationErode
-         * 边界 总个数 1453 总距离 7766.57 最大 14.3178 最小 4.94975 均值 5.3452 方差 1.55 标准差 1.24499
-         * 抽希 总个数 84 总距离 510.6 最大 14.3178 最小 4.94975 均值 6.07857 方差 3.87836 标准差 1.96935
-         * 插值 总个数 299 总距离 1628.89 最大 14.3178 最小 4.11765 均值 5.4478 方差 1.96793 标准差 1.40283
-         * scale_in_pixel = 6 cv::erode + explorationErode
-         * 边界 总个数 1775 总距离 19586.1 最大 59 最小 4.94975 均值 11.0344 方差 149 标准差 12.2066
-         * 抽希 总个数 109 总距离 1149.81 最大 51.0882 最小 4.94975 均值 10.5487 方差 91.5779 标准差 9.56963
-         * 插值 总个数 361 总距离 3892.98 最大 58.7778 最小 4.11765 均值 10.7839 方差 134.246 标准差 11.5865
+         * step 4  distance_from_obstacles = 5 cv::erode + explorationErode + MORPH_CROSS
+         * 边界 总个数 1420 总距离 12434.3 最大 35.0571 最小 4.94975 均值 8.75656 方差 44.5342 标准差 6.6734
+         * 抽希 总个数 148 总距离 1363.26 最大 33 最小 4.94975 均值 9.2112 方差 42.6706 标准差 6.53227
+         * 插值 总个数 352 总距离 3167.41 最大 33 最小 4.21637 均值 8.99833 方差 45.1578 标准差 6.71995
+         * step 4  distance_from_obstacles = 4 cv::erode + explorationErode + MORPH_CROSS
+         * 边界 总个数 1437 总距离 11923.1 最大 35.0143 最小 4 均值 8.29723 方差 45.6431 标准差 6.75597
+         * 抽希 总个数 149 总距离 1303.01 最大 32 最小 4 均值 8.74505 方差 43.7154 标准差 6.61176
+         * 插值 总个数 356 总距离 2992.14 最大 32.1267 最小 3.34994 均值 8.40489 方差 43.5039 标准差 6.59575
+         * step 4  distance_from_obstacles = 3 cv::erode + explorationErode + MORPH_CROSS
+         * 边界 总个数 1426 总距离 10023.3 最大 35.0143 最小 4 均值 7.02898 方差 33.0637 标准差 5.7501
+         * 抽希 总个数 150 总距离 1155.43 最大 26.163 最小 4 均值 7.70289 方差 31.9121 标准差 5.64908
+         * 插值 总个数 350 总距离 2513.13 最大 31.6189 最小 3.33334 均值 7.18038 方差 31.2051 标准差 5.58615
+         *
+         * step 4  distance_from_obstacles = 5 cv::erode + explorationErode + MORPH_RECT
+         * 边界 总个数 1432 总距离 13060.6 最大 35.0571 最小 5 均值 9.12051 方差 45.4789 标准差 6.74381
+         * 抽希 总个数 98 总距离 780.743 最大 33 最小 5 均值 7.96676 方差 30.0511 标准差 5.48189
+         * 插值 总个数 310 总距离 2712.43 最大 33 最小 4 均值 8.74976 方差 41.8465 标准差 6.46889
+         * step 4  distance_from_obstacles = 4 cv::erode + explorationErode + MORPH_RECT
+         * 边界 总个数 1461 总距离 12434.3 最大 35.0143 最小 4 均值 8.51078 方差 45.9715 标准差 6.78023
+         * 抽希 总个数 110 总距离 848.693 最大 32 最小 4 均值 7.71539 方差 30.3183 标准差 5.5062
+         * 插值 总个数 322 总距离 2647.03 最大 32.1267 最小 3.5 均值 8.22059 方差 40.7023 标准差 6.37984
+         * step 4  distance_from_obstacles = 3 cv::erode + explorationErode + MORPH_RECT
+         * 边界 总个数 1451 总距离 10420.5 最大 35.0143 最小 4 均值 7.18163 方差 33.0117 标准差 5.74558
+         * 抽希 总个数 140 总距离 1081.78 最大 26.8701 最小 4 均值 7.72698 方差 28.8617 标准差 5.37231
+         * 插值 总个数 349 总距离 2557.1 最大 31.6189 最小 3.48008 均值 7.32694 方差 30.8252 标准差 5.55204
          */
 
+        //以下为仿真数据，主要测试 cv::erode 与 explorationErode，MORPH_RECT 与 MORPH_CROSS 对规划的影响
+        //得出结论，cv::erode + MORPH_RECT 方式较好，但 cv::erode 粒度较大
         /*
          * scale_in_pixel = 10
          *
@@ -169,6 +218,22 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
 
         std::vector<std::vector<cv::Point>> borderContours;
         cv::findContours(borderMat, borderContours, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+
+        if (DISPLAY_TRAJECTORY) {
+            auto show_map = original_map.clone();
+            cv::resize(show_map, show_map, cv::Size(), 1, 1, cv::INTER_LINEAR);
+            std::vector<std::vector<cv::Point>> showBorderContours;
+            for (const auto &contours: borderContours) {
+                std::vector<cv::Point> resizeContours;
+                for (const auto &item: contours) {
+                    resizeContours.push_back(item * 1);
+                }
+                showBorderContours.push_back(resizeContours);
+            }
+            cv::drawContours(show_map, showBorderContours, -1, cv::Scalar(128), 1);
+            cv::imshow("原图绘制边界线", show_map);
+            cv::waitKey();
+        }
 
         for (const auto &borderContour: borderContours) {
 
@@ -242,7 +307,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
 
         // OpenCv
         std::vector<cv::Point2f> list;
-        cv::approxPolyDP(middle_complex, list, 1, false);
+        cv::approxPolyDP(middle_complex, list, 0.5, false);
         boundary_distance(original_map, list, "抽希");
 
         std::vector<Point2D> points;
