@@ -14,6 +14,7 @@ const std::string APP_JSON = "/app_json";
 const std::string APP_COMMUNICATION = "/app_communication";
 
 const std::string MAP_APP = "/map_app";
+const std::string GZIP_MAP_APP = "/gzip_map_app";
 const std::string ODOM_APP = "/odom_app";
 const std::string ROBOT_STATUS = "/robot_status";
 const std::string NOTICE_APP = "/notice_app";
@@ -57,6 +58,8 @@ public:
     static void sendData(const std::string &data);
 
     static void setMapApp(const nav_msgs::OccupancyGrid &occupancyGrid);
+
+    static void setMapApp2(const nav_msgs::OccupancyGrid &occupancyGrid);
 
     static void setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr);
 

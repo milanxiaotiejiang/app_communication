@@ -6,6 +6,14 @@
 #include "task/status/state_machine.h"
 #include <geometry_msgs/Pose2D.h>
 
+void PointRoutine::pointActive() {
+
+}
+
+void PointRoutine::pointFeedback(geometry_msgs::Pose2D pose) {
+    asyncTaskCall->executePointFeedback(pose);
+}
+
 void PointRoutine::pointDone(const actionlib::SimpleClientGoalState &state) {
     event::error status = event::error::SUCCEEDED;
     if (state == actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED) {
@@ -25,14 +33,5 @@ void PointRoutine::pointDone(const actionlib::SimpleClientGoalState &state) {
     } else if (state == actionlib::SimpleClientGoalState::StateEnum::LOST) {
         status = event::error::LOST;
     }
-
     asyncTaskCall->executeOnNext(status);
-}
-
-void PointRoutine::pointActive() {
-
-}
-
-void PointRoutine::pointFeedback(geometry_msgs::Pose2D pose) {
-    asyncTaskCall->executePointFeedback(pose);
 }

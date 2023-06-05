@@ -443,7 +443,6 @@ void AsyncTaskCall::callPointComplete(const std::function<void()> &f) {
     f();
 }
 
-
 void AsyncTaskCall::callManualCleanStart() {
     HotWindNoteSingleton::instance().closeHotWind();
     if (!isWaitTask(currentFlow())) {
@@ -577,7 +576,6 @@ void AsyncTaskCall::cancelTaskAndBack() {
             PointPlanner::instance().cancelGoal();
             async::TimerCall::instance().baseLoop()->cancelAny();
             waitTaskQueue.clear();
-
             plannerQueue.clear();
             setFlow(event::flow::flowing_water_production);
             recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);

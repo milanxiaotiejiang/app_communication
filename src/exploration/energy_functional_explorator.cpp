@@ -50,6 +50,7 @@ double EnergyFunctionalExplorator::E(const EnergyExploratorNode &location,
 
 void
 EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
+                                               std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
                                                const float map_resolution, const cv::Point starting_position,
                                                const cv::Point2d map_origin, const double grid_spacing_in_pixel) {
 
@@ -83,7 +84,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
     }
 
     cv::Mat inflated_rotated_room_map;
-    explorationErode(rotated_room_map, inflated_rotated_room_map, half_grid_spacing_as_int);
+    explorationErode(rotated_room_map, inflated_rotated_room_map, cv::MORPH_CROSS, half_grid_spacing_as_int);
     if (DISPLAY_TRAJECTORY) {
         cv::imshow("inflated_rotated_room_map", inflated_rotated_room_map);
         cv::waitKey();
@@ -218,7 +219,6 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
         }
     }
 
-    int count = 0;
     do {
         std::vector<EnergyExploratorNode *> not_visited_neighbors;
         for (std::vector<EnergyExploratorNode *>::iterator neighbor = last_node->neighbors_.begin();
@@ -260,10 +260,6 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
         next_node->visited_ = true;
 
         last_node = next_node;
-        if (count % 200 == 0) {
-            sleep(1);
-        }
-        count++;
     } while (true);
 
     std::vector<geometry_msgs::Pose2D> fov_poses;
@@ -277,4 +273,5 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
         current_pose.theta = pose->theta;
         pose_path.push_back(current_pose);
     }
+    complex_pose_path.push_back(pose_path);
 }

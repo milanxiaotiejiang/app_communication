@@ -11,6 +11,10 @@
 #include <geometry_msgs/Pose2D.h>
 
 void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origin,
+                                const std::vector<std::vector<geometry_msgs::Pose2D>>& complex_path,
+                                float resize, const std::string &winname);
+
+void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origin,
                                 std::vector<geometry_msgs::Pose2D> exploration_path,
                                 float resize, const std::string &winname);
 

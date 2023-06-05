@@ -792,4 +792,63 @@ public:
 
 };
 
+
+class GRosMap {
+private:
+    std::string data;
+    RosHeader header;
+    RosInfo info;
+public:
+    GRosMap() = default;
+
+    GRosMap(const std::string &data, const RosHeader &header, const RosInfo &info) : data(data), header(header),
+                                                                                     info(info) {}
+
+    virtual ~GRosMap() = default;
+
+    const string &getData() const {
+        return data;
+    }
+
+    void setData(const string &data) {
+        GRosMap::data = data;
+    }
+
+    const RosHeader &getHeader() const {
+        return header;
+    }
+
+    void setHeader(const RosHeader &header) {
+        GRosMap::header = header;
+    }
+
+    const RosInfo &getInfo() const {
+        return info;
+    }
+
+    void setInfo(const RosInfo &info) {
+        GRosMap::info = info;
+    }
+
+    friend ostream &operator<<(ostream &os, const GRosMap &map) {
+        os << "data: " << map.data.size() << " header: " << map.header << " info: " << map.info;
+        return os;
+    }
+
+    friend void to_json(json &j, const GRosMap &model) {
+        j = json{
+                {"data",   model.data},
+                {"header", model.header},
+                {"info",   model.info}
+        };
+    }
+
+    friend void from_json(const json &j, GRosMap &model) {
+        j.at("data").get_to(model.data);
+        j.at("header").get_to(model.header);
+        j.at("info").get_to(model.info);
+    }
+
+};
+
 #endif //APP_COMMUNICATION_ROSBASIC_H

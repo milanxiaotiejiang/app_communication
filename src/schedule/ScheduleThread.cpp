@@ -17,6 +17,7 @@
 #include "exploration/ExplorationCenter.h"
 #include "db/segmentation_data_base.h"
 #include "simulation.h"
+#include "exploration/path_exploration_preview_task.h"
 
 ScheduleThread::ScheduleThread(ros::NodeHandle handle) : handle(handle) {
     sub_json_ = handle.subscribe("/app_schedule", 1, &ScheduleThread::subscribeCallback, this);
@@ -95,38 +96,33 @@ void execTask(TimerInfo &tsk) {
 
             std::vector<geometry_msgs::Pose2D> exploration_path;
             std::vector<cv::Point> point_path;
+            std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
             const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
             ExplorationCenter::instance().generatePlanningPathFull(baseMap,
                                                                    BOUSTROPHEDON_EXPLORER_MODE,
                                                                    exploration_path,
-                                                                   point_path
+                                                                   point_path,
+                                                                   complex_path
             );
 
             ExplorationCenter::instance().pathPublish(exploration_path);
             boost::uuids::uuid uuid = boost::uuids::random_generator()();
             string uuid_string = boost::uuids::to_string(uuid);
 
-            std::vector<PoseVo> poseList;
-            std::vector<PointVo> pointList;
-            for (const auto &item: exploration_path) {
-                poseList.emplace_back(item.y, item.x, item.theta);
-            }
-            for (const auto &item: point_path) {
-                pointList.emplace_back(item.x, item.y);
-            }
-
-            auto coverage = RoomCoverage(uuid_string, pointList, poseList);
-            ExplorationCenter::instance().cacheRoomCoverage(coverage);
+            RoomCoverage roomCoverage;
+            TaskExploration::planningPath2RoomCoverage(roomCoverage, exploration_path, point_path, complex_path);
+            roomCoverage.setCoverageId(uuid_string);
+            ExplorationCenter::instance().cacheRoomCoverage(roomCoverage);
 
 
             Environment::instance().room_coverage_uuid = uuid_string;
 
 
-            if (!poseList.empty()) {
+            if (!roomCoverage.getPoseList().empty()) {
                 std_msgs::String result;
 
                 std::vector<Point> full;
-                for (const auto &item: poseList) {
+                for (const auto &item: roomCoverage.getPoseList()) {
                     full.emplace_back(item.getX(), item.getY());
                 }
                 FullPath fullPath(full);

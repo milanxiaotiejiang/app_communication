@@ -10,6 +10,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <ostream>
 
 class PointProgressVo {
 private:
@@ -82,6 +83,18 @@ public:
         j.at("renew").get_to(vo.renew);
         j.at("old_task_id").get_to(vo.oldTaskId);
         j.at("new_task_id").get_to(vo.newTaskId);
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const PointProgressVo &vo) {
+        os << " currentStep: " << vo.currentStep
+           << " totalStep: " << vo.totalStep
+           << " currentFrequency: " << vo.currentFrequency
+           << " totalFrequency: " << vo.totalFrequency
+           << " is_cleaning: " << vo.is_cleaning
+           << " taskId: " << vo.taskId
+           << " renew: " << vo.renew
+           << " x: " << vo.x << " y: " << vo.y;
+        return os;
     }
 };
 

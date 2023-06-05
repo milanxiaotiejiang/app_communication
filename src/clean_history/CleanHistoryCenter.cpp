@@ -36,8 +36,8 @@ namespace clean_history_db {
     }
 
     bool CleanHistoryCenter::addCleanHistory(const RealTask &task) {
-        std::cout << "add clean history" << std::endl;
-        std::cout << "task id " << task.getId() << std::endl;
+//        std::cout << "add clean history" << std::endl;
+//        std::cout << "task id " << task.getId() << std::endl;
         std::unique_lock<std::mutex> lock(history_update_mutex_);
         long launch_time;//记录时间
         time_t timep;

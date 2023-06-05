@@ -6,6 +6,7 @@
 #include "exploration/exploration_generate.h"
 #include "exploration/ExplorationCenter.h"
 #include "segmentation/SegmentationCenter.h"
+#include "exploration/path_exploration_preview_task.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -19,10 +20,11 @@ CoveragePathGenerator::CoveragePathGenerator() {
 }
 
 void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                          std::vector<cv::Point> &point_path) {
+                                          std::vector<cv::Point> &point_path,
+                                          std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
     ExplorationCenter::instance().generatePlanningPathFull(baseMap, BOUSTROPHEDON_EXPLORER_MODE,
-                                                           exploration_path, point_path);
+                                                           exploration_path, point_path, complex_path);
 }
 
 [[noreturn]] void CoveragePathGenerator::execute() {
@@ -37,12 +39,14 @@ void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &ex
         roomCoverage.setCoverageId("");
         roomCoverage.setPointList(std::vector<PointVo>{});
         roomCoverage.setPoseList(std::vector<PoseVo>{});
+        roomCoverage.setComplexList(std::vector<std::vector<PoseVo> >{});
 
         std::vector<geometry_msgs::Pose2D> exploration_path;
         std::vector<cv::Point> point_path;
+        std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
 
         try {
-            realGenerator(exploration_path, point_path);
+            realGenerator(exploration_path, point_path, complex_path);
             ExplorationCenter::instance().pathPublish(exploration_path);
         } catch (app::exception const &e) {
             LOG(ERROR) << "CoveragePathGenerator app::exception : " << e.what();
@@ -56,16 +60,7 @@ void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &ex
             boost::uuids::uuid uuid = boost::uuids::random_generator()();
             std::string uuid_string = boost::uuids::to_string(uuid);
 
-            std::vector<PoseVo> poseList;
-            std::vector<PointVo> pointList;
-            for (const auto &item: exploration_path) {
-                poseList.emplace_back(item.y, item.x, item.theta);
-            }
-            for (const auto &item: point_path) {
-                pointList.emplace_back(item.x, item.y);
-            }
-            roomCoverage.setPointList(pointList);
-            roomCoverage.setPoseList(poseList);
+            TaskExploration::planningPath2RoomCoverage(roomCoverage, exploration_path, point_path, complex_path);
             roomCoverage.setCoverageId(uuid_string);
 
             if (coverage_need_again) {
@@ -121,6 +116,18 @@ void CoveragePathGenerator::publish() const {
         pose2D.theta = item.getTheta();
         exploration_path.push_back(pose2D);
     }
+//    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
+//    std::vector<geometry_msgs::Pose2D> complex_exploration_path;
+//    for (const auto &complex: roomCoverage.getComplexList()) {
+//        for (const auto &item: complex) {
+//            geometry_msgs::Pose2D pose2D;
+//            pose2D.x = item.getY();
+//            pose2D.y = item.getX();
+//            pose2D.theta = item.getTheta();
+//            complex_exploration_path.push_back(pose2D);
+//        }
+//        complex_path.push_back(complex_exploration_path);
+//    }
     ExplorationCenter::instance().pathPublish(exploration_path);
 }
 
@@ -161,14 +168,15 @@ SubregionPathGenerator::SubregionPathGenerator() {
 }
 
 void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                           std::vector<cv::Point> &point_path) {
+                                           std::vector<cv::Point> &point_path,
+                                           std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
     cv::Mat segmented_map;
     std::vector<Room> rooms;
     SegmentationCenter::instance().storage2Memory(segmented_map, rooms);
     ExplorationCenter::instance().generatePlanningSegmentationPath(baseMap, segmented_map, rooms,
                                                                    BOUSTROPHEDON_EXPLORER_MODE,
-                                                                   exploration_path, point_path);
+                                                                   exploration_path, point_path, complex_path);
 }
 
 [[noreturn]] void SubregionPathGenerator::execute() {
@@ -183,12 +191,14 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
         roomCoverage.setCoverageId("");
         roomCoverage.setPointList(std::vector<PointVo>{});
         roomCoverage.setPoseList(std::vector<PoseVo>{});
+        roomCoverage.setComplexList(std::vector<std::vector<PoseVo> >{});
 
         std::vector<geometry_msgs::Pose2D> exploration_path;
         std::vector<cv::Point> point_path;
+        std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
 
         try {
-            realGenerator(exploration_path, point_path);
+            realGenerator(exploration_path, point_path, complex_path);
             ExplorationCenter::instance().pathPublish(exploration_path);
         } catch (app::exception const &e) {
             LOG(ERROR) << "SubregionPathGenerator app::exception : " << e.what();
@@ -202,16 +212,7 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
             boost::uuids::uuid uuid = boost::uuids::random_generator()();
             std::string uuid_string = boost::uuids::to_string(uuid);
 
-            std::vector<PoseVo> poseList;
-            std::vector<PointVo> pointList;
-            for (const auto &item: exploration_path) {
-                poseList.emplace_back(item.y, item.x, item.theta);
-            }
-            for (const auto &item: point_path) {
-                pointList.emplace_back(item.x, item.y);
-            }
-            roomCoverage.setPointList(pointList);
-            roomCoverage.setPoseList(poseList);
+            TaskExploration::planningPath2RoomCoverage(roomCoverage, exploration_path, point_path, complex_path);
             roomCoverage.setCoverageId(uuid_string);
 
             if (coverage_need_again) {
@@ -259,6 +260,18 @@ void SubregionPathGenerator::publish() const {
         pose2D.theta = item.getTheta();
         exploration_path.push_back(pose2D);
     }
+//    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
+//    std::vector<geometry_msgs::Pose2D> complex_exploration_path;
+//    for (const auto &complex: roomCoverage.getComplexList()) {
+//        for (const auto &item: complex) {
+//            geometry_msgs::Pose2D pose2D;
+//            pose2D.x = item.getY();
+//            pose2D.y = item.getX();
+//            pose2D.theta = item.getTheta();
+//            complex_exploration_path.push_back(pose2D);
+//        }
+//        complex_path.push_back(complex_exploration_path);
+//    }
     ExplorationCenter::instance().pathPublish(exploration_path);
 }
 

@@ -122,6 +122,8 @@ add_executable(rec_app_node
         ${SOURCE_FILES_LEVEL_4}
         ${TEST_FILES}
         include/cppfs/basen.hpp
+        include/exploration/voronoi/voronoi.hpp
+        include/exploration/voronoi/nanoflann.hpp
         )
 
 add_executable(dump_upload

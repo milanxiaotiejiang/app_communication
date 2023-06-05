@@ -1,4 +1,4 @@
-ros_version: 1.0.1.6_630
+ros_version: 1.0.2.0_630
 machine_version: 630
 base_exist: true
 face_recognition: false

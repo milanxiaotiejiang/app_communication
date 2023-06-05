@@ -53,6 +53,7 @@ public:
     EnergyFunctionalExplorator();
 
     void getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &path,
+                            std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
                             const float map_resolution,
                             const cv::Point starting_position, const cv::Point2d map_origin,
                             const double grid_spacing_in_pixel);
