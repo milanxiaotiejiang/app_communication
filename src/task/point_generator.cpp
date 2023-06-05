@@ -23,6 +23,8 @@
 #include "geometry_msgs/Polygon.h"
 #include "task/point_planner.h"
 
+#include "simulation.h"
+
 RealBlock PointGenerator::buildBlock(int id, const RealTask &task) {
     RealBlock block;
     block.id = id;

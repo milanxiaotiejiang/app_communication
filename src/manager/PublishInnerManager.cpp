@@ -3,6 +3,7 @@
 //
 
 #include "manager/PublishInnerManager.h"
+#include "db/path.h"
 
 void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_push_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/push_mode_control", 1);
@@ -83,6 +84,13 @@ void PublishInnerManager::publishDSVersion(const std_msgs::Int32 &message) const
 }
 
 void PublishInnerManager::publishResetProhibition() {
+    //更新costmap
+    std::string local_costmap =
+            "rosparam load " + path::prohibition_areas_path() + " /move_base/local_costmap/costmap_prohibition_layer";
+    std::string global_costmap =
+            "rosparam load " + path::prohibition_areas_path() + " /move_base/global_costmap/costmap_prohibition_layer";
+    std::system(local_costmap.data());
+    std::system(global_costmap.data());
     std_msgs::Int32 data;
     data.data = 1;
     pub_reset_prohibition.publish(data);

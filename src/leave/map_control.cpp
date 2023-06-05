@@ -93,11 +93,11 @@ bool MapControl::backupProhibition(const string &map_id, bool retrieve) {
 
     cppfs::FileHandle npa = cppfs::fs::open(path::prohibition_areas_path());
     if (npa.exists()) {
-        npa.copy(dir);
         if (retrieve) {
 //            npa.remove();
             reset_prohibition();
         }
+        npa.copy(dir);
     }
 
     return true;

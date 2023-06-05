@@ -12,6 +12,8 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "simulation.h"
+
 CoveragePathGenerator::CoveragePathGenerator() {
     CoveragePathGenerator::make_thread(run, this);
     coverage_planner_done = false;
@@ -23,7 +25,7 @@ void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &ex
                                           std::vector<cv::Point> &point_path,
                                           std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
-    ExplorationCenter::instance().generatePlanningPathFull(baseMap, BOUSTROPHEDON_EXPLORER_MODE,
+    ExplorationCenter::instance().generatePlanningPathFull(baseMap, Environment::instance().explorer_mode,
                                                            exploration_path, point_path, complex_path);
 }
 
@@ -175,7 +177,7 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
     std::vector<Room> rooms;
     SegmentationCenter::instance().storage2Memory(segmented_map, rooms);
     ExplorationCenter::instance().generatePlanningSegmentationPath(baseMap, segmented_map, rooms,
-                                                                   BOUSTROPHEDON_EXPLORER_MODE,
+                                                                   Environment::instance().explorer_mode,
                                                                    exploration_path, point_path, complex_path);
 }
 

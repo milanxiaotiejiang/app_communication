@@ -99,7 +99,7 @@ void execTask(TimerInfo &tsk) {
             std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
             const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
             ExplorationCenter::instance().generatePlanningPathFull(baseMap,
-                                                                   BOUSTROPHEDON_EXPLORER_MODE,
+                                                                   Environment::instance().explorer_mode,
                                                                    exploration_path,
                                                                    point_path,
                                                                    complex_path
