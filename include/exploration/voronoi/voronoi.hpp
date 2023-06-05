@@ -615,7 +615,7 @@ public:
         }
 
         if (DISPLAY_VORONOI_TRAJECTORY) {
-            cv::imshow("room_map", room_map);
+            cv::imshow("voronoi_path", room_map);
             cv::waitKey();
         }
 
