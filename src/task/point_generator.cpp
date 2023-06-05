@@ -20,6 +20,8 @@
 #include "task/model/CombinationPoseVo.h"
 #include "exploration/path_exploration_preview_task.h"
 
+#include "simulation.h"
+
 RealPoint PointGenerator::buildPoint(int id, const RealTask &task) {
     RealPoint point;
     point.id = id;
@@ -237,7 +239,7 @@ std::vector<RealPoint> RectanglePointGenerator::taskGeneratePointList(RealTask &
     std::vector<geometry_msgs::Pose2D> exploration_path;
     std::vector<cv::Point> point_path;
     std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
-    ExplorationCenter::instance().generatePlanningPathRect(zoned_image, BOUSTROPHEDON_EXPLORER_MODE,
+    ExplorationCenter::instance().generatePlanningPathRect(zoned_image, Environment::instance().explorer_mode,
                                                            exploration_path, point_path, complex_path);
 
     ExplorationCenter::instance().pathPublish(exploration_path);

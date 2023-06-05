@@ -15,6 +15,8 @@
 #include "segmentation/SegmentationCenter.h"
 #include "exploration/ExplorationCenter.h"
 
+#include "simulation.h"
+
 void TaskExploration::task2RealTask(const Task &task, RealTask &realTask) {
     realTask.setRenew(false);
 
@@ -87,7 +89,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             std::vector<cv::Point> sub_point_path;
             std::vector<std::vector<geometry_msgs::Pose2D>> sub_complex_path;
             try {
-                explorationCenter.generatePlanningPathRect(zoned_image, BOUSTROPHEDON_EXPLORER_MODE,
+                explorationCenter.generatePlanningPathRect(zoned_image, Environment::instance().explorer_mode,
                                                            sub_exploration_path, sub_point_path, sub_complex_path);
 
             } catch (app::exception const &e) {
@@ -183,7 +185,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
 
             const cv::Mat &oneMap = segmentationCenter.choiceOneRoom(segmented_map, rooms,
                                                                      subregion.getSubregionValue());
-            explorationCenter.generatePlanningPathSub(oneMap, BOUSTROPHEDON_EXPLORER_MODE,
+            explorationCenter.generatePlanningPathSub(oneMap, Environment::instance().explorer_mode,
                                                       sub_exploration_path, sub_point_path, sub_complex_path);
 
             for (const auto &item: sub_exploration_path) {

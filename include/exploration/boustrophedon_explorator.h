@@ -187,7 +187,7 @@ public:
                        const double grid_spacing_in_pixel,
                        const double grid_obstacle_offset, const double path_eps,
                        const double min_cell_area, const int max_deviation_from_track,
-                       int tsp_solver);
+                       int tsp_solver, int explorer_mode);
 };
 
 #endif //APP_COMMUNICATION_BOUSTROPHEDON_EXPLORATOR_H

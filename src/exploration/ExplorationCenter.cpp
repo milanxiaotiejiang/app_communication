@@ -236,14 +236,15 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
     int start_time = ros::Time::now().sec;
 
-    if (!ParamManager::instance().getEnergy() && explorer_mode == BOUSTROPHEDON_EXPLORER_MODE) {
+    if (explorer_mode == BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE ||
+        explorer_mode == BOUSTROPHEDON_RETROFLEX_EXPLORER_MODE) {
         BoustrophedonExplorer boustrophedon_explorer;
         boustrophedon_explorer.getExplorationPath(latelyMap, exploration_path, complex_path,
                                                   map_resolution_from_subscription, robotPosition, map_origin,
                                                   grid_spacing_in_pixel, grid_obstacle_offset_,
                                                   path_eps_, min_cell_area_, max_deviation_from_track_,
-                                                  TSP_NEAREST_NEIGHBOR);
-    } else {
+                                                  TSP_NEAREST_NEIGHBOR, explorer_mode);
+    } else if (explorer_mode == ENERGY_FUNCTIONAL_EXPLORER_MODE) {
         EnergyFunctionalExplorator energy_functional_explorer;
         energy_functional_explorer.getExplorationPath(latelyMap, exploration_path, complex_path,
                                                       map_resolution_from_subscription,

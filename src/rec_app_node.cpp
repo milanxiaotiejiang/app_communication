@@ -331,6 +331,9 @@ void initNodeParams(const ros::NodeHandle &nh) {
     bool direct_start_move_base;
     nh.param<bool>("direct_start_move_base", direct_start_move_base, false); //direct_start_move_base
     Environment::instance().direct_start_move_base = direct_start_move_base;
+    int explorer_mode;
+    nh.param<int>("explorer_mode", explorer_mode, 2);
+    Environment::instance().explorer_mode = explorer_mode;
 
     LOG(INFO) << "core version : " << ros_version;
 }
