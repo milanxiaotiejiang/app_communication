@@ -270,7 +270,7 @@ namespace clean_history_db {
         history.aromatherapy_status_ = real_task.getWorkStatus().getAromatherapyStatus();
         history.disinfect_status_ = real_task.getWorkStatus().getDisinfectStatus();
         //更新遍数和点数
-        if (!real_task.getPlanPoints().empty()) {
+        if (!real_task.getPlanBlocks().empty()) {
             history.total_step_ = real_task.getTotalStep();
             history.total_frequency_ = real_task.getTotalFrequency();
         }

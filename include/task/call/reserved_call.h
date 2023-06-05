@@ -23,11 +23,11 @@ protected:
 
     void handleExecuteTask(const RealTask &task) override;
 
-    void handleFlowBlock(const RealBlock &point) override;
+    void handleFlowBlock(const RealBlock &block) override;
 
-    void processControl(const RealBlock &point) override;
+    void processControl(const RealBlock &block) override;
 
-    void softwareInterruptTask(const RealBlock &point) override;
+    void softwareInterruptTask(const RealBlock &block) override;
 
     void forceInterruptTask(event::SB sb) override;
 
@@ -35,7 +35,7 @@ protected:
 
     void garbage(event::SB sb) override;
 
-    void handlePlannerBlock(const RealBlock &point) override;
+    void handlePlannerBlock(const RealBlock &block) override;
 
 public:
 

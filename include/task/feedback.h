@@ -53,7 +53,7 @@ public:
 
     void execute() override;
 
-    void triggerStart(std::string taskId, const std::vector<RealBlock> &points);
+    void triggerStart(std::string taskId, const std::vector<RealBlock> &blocks);
 
     void triggerEnd();
 

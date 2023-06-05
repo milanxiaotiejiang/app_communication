@@ -88,8 +88,8 @@ bool AsyncTaskRecord::isPlannerEmpty(event::flow flow) {
     return flow == event::flow::flowing_water_production && plannerQueue.empty();
 }
 
-void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealBlock &realPoint) {
-    TaskStack stack(event_flow, realPoint);
+void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealBlock &realBlock) {
+    TaskStack stack(event_flow, realBlock);
     stopStack.push_back(stack);
     if (stopStack.size() > MAX_RECORD_TASK_STACK_SIZE) {
         stopStack.pop_front();

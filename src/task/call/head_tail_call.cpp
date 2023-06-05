@@ -247,9 +247,9 @@ void HeadTailPointCall::callGoFirstPoint(RealBlock block) {
             });
 }
 
-void HeadTailPointCall::exchangeFrontPoint(const RealBlock &point) {
+void HeadTailPointCall::exchangeFrontPoint(const RealBlock &block) {
     plannerQueue.pop_front();
-    plannerQueue.push_front(point);
+    plannerQueue.push_front(block);
 }
 
 bool HeadTailPointCall::canIssuedTask(const RealTask &task) {

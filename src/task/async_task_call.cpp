@@ -214,7 +214,7 @@ void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
 
     //清扫队列中的正常点全部加入
     plannerQueue.clear();
-    for (const auto &block: planPoints()) {
+    for (const auto &block: planBlocks()) {
         plannerQueue.push_back(block);
     }
 
@@ -502,7 +502,7 @@ void AsyncTaskCall::callSelfCleanClose() {
 void AsyncTaskCall::callSubsequentMode(int mode) {
     LOG(INFO) << "AsyncTaskCall : 处理 mode " << mode << " ...";
 
-    if (mode == 6 && realPoints().size() == planPoints().size() &&
+    if (mode == 6 && realPoints().size() == planBlocks().size() &&
         Environment::instance().update_map) {
         LOG(INFO) << "AsyncTaskCall : 全覆盖清洁后需要更新地图信息 ...";
         CartographerPublisher::instance().publishUpdateMap();
@@ -563,7 +563,7 @@ void AsyncTaskCall::callResume() {
         } else {
             notify_one([this, &lastStack]() {
                 setFlow(lastStack.flow);
-                pushBlock(lastStack.suspendPoint);
+                pushBlock(lastStack.suspendBlock);
             });
         }
     }

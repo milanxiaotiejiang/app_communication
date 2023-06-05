@@ -57,11 +57,11 @@ protected:
     }
 
     std::vector<RealBlock> realPoints() const {
-        return runTask.getRealPoints();
+        return runTask.getRealBlocks();
     }
 
-    std::vector<RealBlock> planPoints() const {
-        return runTask.getPlanPoints();
+    std::vector<RealBlock> planBlocks() const {
+        return runTask.getPlanBlocks();
     }
 
     bool isWaitTask(event::flow flow);
@@ -84,7 +84,7 @@ protected:
 
     bool isPlannerEmpty(event::flow flow);
 
-    void recordEmergencyStop(event::flow event_flow, const RealBlock &realPoint);
+    void recordEmergencyStop(event::flow event_flow, const RealBlock &realBlock);
 
     bool recoverableEmergencyStop();
 

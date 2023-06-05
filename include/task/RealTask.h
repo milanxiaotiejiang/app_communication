@@ -238,24 +238,24 @@ public:
         RealTask::totalFrequency = totalFrequency;
     }
 
-    const vector<RealBlock> &getPlanPoints() const {
+    const vector<RealBlock> &getPlanBlocks() const {
         return planBlocks;
     }
 
-    void setPlanPoints(const vector<RealBlock> &planPoints) {
-        RealTask::planBlocks = planPoints;
+    void setPlanPoints(const vector<RealBlock> &planBlocks) {
+        RealTask::planBlocks = planBlocks;
     }
 
-    const vector<RealBlock> &getRealPoints() const {
+    const vector<RealBlock> &getRealBlocks() const {
         return realBlocks;
     }
 
-    void setRealPoints(const vector<RealBlock> &realPoints) {
-        RealTask::realBlocks = realPoints;
+    void setRealPoints(const vector<RealBlock> &realBlocks) {
+        RealTask::realBlocks = realBlocks;
     }
 
-    void assignmentPoint(RealBlock &block, int pointId) const {
-        block.id = pointId;
+    void assignmentPoint(RealBlock &block, int blockId) const {
+        block.id = blockId;
         if (isRenew()) {
             block.newTaskId = getTaskId();
         } else {

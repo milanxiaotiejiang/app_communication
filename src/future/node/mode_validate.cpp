@@ -110,6 +110,7 @@ bool ModeValidate::validateMoveBase(int open) {
 bool ModeValidate::validateMoveBaseAvailable() {
     LOG(INFO) << "ModeValidate  MoveBase 服务可用校验 ------------------------------ ";
     bool replanServer = PointPlanner::instance().waitForReplanServer();
+    LOG(INFO) << "ModeValidate  MoveBase 服务可用校验结果 " << replanServer;
     return replanServer;
 
     // 测试线程终端的代码
