@@ -25,7 +25,7 @@ void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &ex
                                           std::vector<cv::Point> &point_path,
                                           std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
-    ExplorationCenter::instance().generatePlanningPathFull(baseMap, Environment::instance().explorer_mode,
+    ExplorationCenter::instance().generatePlanningPathFull(baseMap, Environment::instance().explorer_mode, true,
                                                            exploration_path, point_path, complex_path);
 }
 
@@ -177,7 +177,7 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
     std::vector<Room> rooms;
     SegmentationCenter::instance().storage2Memory(segmented_map, rooms);
     ExplorationCenter::instance().generatePlanningSegmentationPath(baseMap, segmented_map, rooms,
-                                                                   Environment::instance().explorer_mode,
+                                                                   Environment::instance().explorer_mode, true,
                                                                    exploration_path, point_path, complex_path);
 }
 

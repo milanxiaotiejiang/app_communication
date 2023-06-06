@@ -16,10 +16,14 @@ private:
     int map_id;
     std::string id;//real id
     std::string map_name;
+    bool reset;
+    double score;
 public:
     MapInfo();
 
     MapInfo(const std::string &id, const std::string &mapName);
+
+    MapInfo(const std::string &id, const std::string &mapName, double score);
 
     virtual ~MapInfo();
 
@@ -35,11 +39,21 @@ public:
 
     void setMapName(const std::string &mapName);
 
+    bool isReset() const;
+
+    void setReset(bool reset);
+
+    double getScore() const;
+
+    void setScore(double score);
+
     friend void to_json(json &j, const MapInfo &b) {
         j = json{
                 {"id",       b.id},
                 {"map_id",   b.map_id},
                 {"map_name", b.map_name},
+                {"reset",    b.reset},
+                {"score",    b.score},
         };
     }
 
@@ -49,6 +63,14 @@ public:
         }
         j.at("map_id").get_to(b.map_id);
         j.at("map_name").get_to(b.map_name);
+        if (j.contains("reset")) {
+            j.at("reset").get_to(b.reset);
+        } else {
+            b.reset = false;
+        }
+        if (j.contains("score")) {
+            j.at("score").get_to(b.score);
+        }
     }
 };
 

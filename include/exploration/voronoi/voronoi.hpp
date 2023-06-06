@@ -524,8 +524,8 @@ class VoronoiMap {
 public:
 
     VoronoiMap(int8_t *occ, const int w, const int h, const int max_track_width) : map_(w, h),
-                                             max_track_width_(max_track_width),
-                                             wall_offset_(0) {
+                                                                                   max_track_width_(max_track_width),
+                                                                                   wall_offset_(0) {
         T_WAVE wave;
 
         if (max_track_width_ % 2 == 1) --max_track_width_;
