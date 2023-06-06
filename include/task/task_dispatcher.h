@@ -10,6 +10,7 @@
 #include "BaseThrowable.h"
 #include "task/async_task_call.h"
 #include "db/SqliteDataBase.h"
+#include "future/BlockingCollection.h"
 
 /**
  * 任务分发
@@ -17,6 +18,8 @@
 class TaskDispatcher {
 private:
     AsyncTaskCall *asyncTaskCall;
+    std::thread plan_transfer_thread;
+    code_machina::BlockingCollection<RealTask> transferCollection;
 
     static std::shared_ptr<PointGenerator> pointGeneratorFactory(const RealTask &realTask) {
         if (realTask.isRenew()) {
@@ -35,7 +38,11 @@ private:
         throw app::exception(make_error_code(error::task_mode_no_find));
     }
 
+    void plan_transfer_thread_func();
+
 public:
+    TaskDispatcher();
+
     static auto &instance() {
         static TaskDispatcher obj;
         return obj;
@@ -43,6 +50,7 @@ public:
 
     void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
         TaskDispatcher::asyncTaskCall = asyncTaskCall;
+        plan_transfer_thread.detach();
     }
 
     void dispatcherTask(RealTask &realTask);

@@ -14,7 +14,6 @@
 
 #include "segmentation/SegmentationCenter.h"
 #include "exploration/ExplorationCenter.h"
-
 #include "simulation.h"
 
 void TaskExploration::task2RealTask(const Task &task, RealTask &realTask) {
@@ -89,7 +88,10 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             std::vector<cv::Point> sub_point_path;
             std::vector<std::vector<geometry_msgs::Pose2D>> sub_complex_path;
             try {
-                explorationCenter.generatePlanningPathRect(zoned_image, Environment::instance().explorer_mode,
+                explorationCenter.generatePlanningPathRect(zoned_image,
+                                                           task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
+                                                                               : Environment::instance().explorer_mode,
+                                                           !task.isVerifyMode(),
                                                            sub_exploration_path, sub_point_path, sub_complex_path);
 
             } catch (app::exception const &e) {
@@ -185,7 +187,10 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
 
             const cv::Mat &oneMap = segmentationCenter.choiceOneRoom(segmented_map, rooms,
                                                                      subregion.getSubregionValue());
-            explorationCenter.generatePlanningPathSub(oneMap, Environment::instance().explorer_mode,
+            explorationCenter.generatePlanningPathSub(oneMap,
+                                                      task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
+                                                                          : Environment::instance().explorer_mode,
+                                                      !task.isVerifyMode(),
                                                       sub_exploration_path, sub_point_path, sub_complex_path);
 
             for (const auto &item: sub_exploration_path) {
@@ -200,7 +205,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
         }
 
     } else if (mode == TaskMode::Line) {
-        explorationCenter.infinitelyNearBoundary(baseMap, exploration_path, point_path, complex_path);
+        explorationCenter.infinitelyNearBoundary(baseMap, true, exploration_path, point_path, complex_path);
     }
 
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -210,7 +215,8 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
     if (preLoaded) {
 
     } else {
-        explorationCenter.pathPublish(exploration_path);
+        if (!task.isVerifyMode())
+            explorationCenter.pathPublish(exploration_path);
 
         TaskExploration::planningPath2RoomCoverage(coverage, exploration_path, point_path, complex_path);
     }

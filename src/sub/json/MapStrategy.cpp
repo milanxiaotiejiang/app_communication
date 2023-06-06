@@ -16,6 +16,7 @@
 #include "db/task_data_base.h"
 #include <cppfs/fs.h>
 #include <cppfs/FileHandle.h>
+#include "exploration/tcr.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
     if (!ZooInnerStatus::instance().getIsCharging()) {
@@ -27,21 +28,26 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
         SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id,
                                                        params.getMapName());
 
-        SegmentationDataBase::instance().removeAllRoom(SegmentationDataBase::instance().getDbMap().id);
-        TaskDataBase::instance().deleteTaskFoMap(SegmentationDataBase::instance().getDbMap().id);
-        MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true);
-        PublishInnerManager::instance().publishResetProhibition();
-        cppfs::FileHandle file_timer_info_json = cppfs::fs::open(path::data_base_config_dir() + "timer_info_json.txt");
-        file_timer_info_json.remove();
-        cppfs::FileHandle file_view_part_principal_json = cppfs::fs::open(
-                path::data_base_config_dir() + "view_part_principal_json.txt");
-        file_view_part_principal_json.remove();
-        cppfs::FileHandle file_combination_list_principal_json_work = cppfs::fs::open(
-                path::data_base_config_dir() + "combination_list_principal_json_work.txt");
-        file_combination_list_principal_json_work.remove();
+        if (params.isReset()) {
+            SegmentationDataBase::instance().removeAllRoom(SegmentationDataBase::instance().getDbMap().id);
+            TaskDataBase::instance().deleteTaskFoMap(SegmentationDataBase::instance().getDbMap().id);
+            MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true);
+            PublishInnerManager::instance().publishResetProhibition();
+            cppfs::FileHandle file_timer_info_json = cppfs::fs::open(
+                    path::data_base_config_dir() + "timer_info_json.txt");
+            file_timer_info_json.remove();
+            cppfs::FileHandle file_view_part_principal_json = cppfs::fs::open(
+                    path::data_base_config_dir() + "view_part_principal_json.txt");
+            file_view_part_principal_json.remove();
+            cppfs::FileHandle file_combination_list_principal_json_work = cppfs::fs::open(
+                    path::data_base_config_dir() + "combination_list_principal_json_work.txt");
+            file_combination_list_principal_json_work.remove();
+        }
+
+        double proportion = tcr::coverageProportion();
 
         MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
-        MapInfo param(mapPo.id, mapPo.name);
+        MapInfo param(mapPo.id, mapPo.name, proportion);
 
         ExplorationCenter::instance().repaintCoveragePath(true);
 

@@ -19,9 +19,9 @@ public:
     static RoomCoverage explorationPlanningPath(const RealTask &task);
 
     static void planningPath2RoomCoverage(RoomCoverage &roomCoverage,
-                                                  const std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                                  const std::vector<cv::Point> &point_path,
-                                                  const std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
+                                          const std::vector<geometry_msgs::Pose2D> &exploration_path,
+                                          const std::vector<cv::Point> &point_path,
+                                          const std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 };
 
 
