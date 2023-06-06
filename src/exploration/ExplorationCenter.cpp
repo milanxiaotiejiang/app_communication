@@ -24,6 +24,7 @@
 #include "leave/ParamManager.h"
 #include "leave/map_control.h"
 #include "exploration/cv_extend.h"
+#include "exploration/tcr.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 static bool DISPLAY_TRAJECTORY_EFFECT = false;
@@ -86,6 +87,11 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 //        } catch (...) {
 //
 //        }
+    }
+
+    //5
+    if (DISPLAY_TRAJECTORY_EFFECT) {
+//        tcr::coverageProportion();
     }
 
 //    pathPublish(exploration_path);
@@ -360,7 +366,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
         planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT) {
-        planning_pose_path_display(room_map, map_origin, complex_path, 3, "optimizePlanningPath ");
+        planning_pose_path_display(room_map, map_origin, complex_path, 0.9, "optimizePlanningPath ");
     }
 
 //    std_msgs::Header header;

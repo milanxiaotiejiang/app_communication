@@ -53,7 +53,7 @@ void AsyncTaskCall::handleManualOperation() {
             cancelTaskAndBack();
             break;
         case loop::manual_epoll::manual_task_over:
-            LOG(INFO) << "AsyncTaskCall : 有 App 或 Pad 下发任务，停止当前任务 ...";
+            LOG(INFO) << "AsyncTaskCall : 有 App 或 Pad 或 Cloud 下发任务，停止当前任务 ...";
             PointPlanner::instance().cancelGoal();
             async::TimerCall::instance().baseLoop()->cancelAny();
             goodGame(event::GG::gg_task_over);
@@ -629,6 +629,9 @@ void AsyncTaskCall::executeOneTask(const RealTask &task) {
     }
     if (isUrgencyStop()) {
         throw app::exception(make_error_code(error::machine_is_in_emergency_stop_command_not_supported));
+    }
+    if (task.isVerifyMode()) {
+        return;
     }
     notify_one([this, &task]() {
         pushTask(task);
