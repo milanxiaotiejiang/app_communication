@@ -12,9 +12,9 @@
 class TaskStack {
 public:
     event::flow flow;
-    RealBlock suspendPoint;
+    RealBlock suspendBlock;
 
-    TaskStack(event::flow flow, const RealBlock &suspendPoint);
+    TaskStack(event::flow flow, const RealBlock &suspendBlock);
 
     friend std::ostream &operator<<(std::ostream &os, const TaskStack &stack);
 };

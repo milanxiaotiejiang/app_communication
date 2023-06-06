@@ -112,37 +112,37 @@ void ReservedCall::handleStop() {
 }
 
 void ReservedCall::handleExecuteTask(const RealTask &task) {
-    fbPtr->triggerStart(task.getId(), task.getPlanPoints());
+    fbPtr->triggerStart(task.getId(), task.getPlanBlocks());
     InternalEventPubManager::get_instance()->taskStart(task.getId());
     CleanHistoryCenter::instance().executeTask(task);
     AsyncTaskCall::handleExecuteTask(task);
 }
 
-void ReservedCall::handleFlowBlock(const RealBlock &point) {
-    if (point.id == FLOW_SEIZE_SEAT) {
+void ReservedCall::handleFlowBlock(const RealBlock &block) {
+    if (block.id == FLOW_SEIZE_SEAT) {
         setFlow(event::flow::out_base_station);
-    } else if (point.id == FLOW_OUT_STATION) {
-        CleanHistoryCenter::instance().setOutStation(point.arrive ? SUCCEED : FAIL);
-    } else if (point.id == FLOW_END_SLEEP) {
-        CleanHistoryCenter::instance().setEndSleep(point.arrive ? SUCCEED : FAIL);
-    } else if (point.id == FLOW_IN_BASE_POINT) {
+    } else if (block.id == FLOW_OUT_STATION) {
+        CleanHistoryCenter::instance().setOutStation(block.arrive ? SUCCEED : FAIL);
+    } else if (block.id == FLOW_END_SLEEP) {
+        CleanHistoryCenter::instance().setEndSleep(block.arrive ? SUCCEED : FAIL);
+    } else if (block.id == FLOW_IN_BASE_POINT) {
         CleanHistoryCenter::instance().setBackBasePointArrived(
-                point.arrive ? SUCCEED :
+                block.arrive ? SUCCEED :
                 (backBaseRetryCount < MAX_BASE_POINT_RETRY_COUNT ? (int) backBaseRetryCount : FAIL));
-    } else if (point.id == FLOW_IN_STATION) {
+    } else if (block.id == FLOW_IN_STATION) {
         CleanHistoryCenter::instance().setStationArrived(
-                point.arrive ? SUCCEED :
+                block.arrive ? SUCCEED :
                 (rechargeRetryCount < MAX_RECHARGE_RETRY_COUNT) ? (int) rechargeRetryCount : FAIL);
-    } else if (point.id == FLOW_CLOSE_MECHANISM) {
-        CleanHistoryCenter::instance().setCloseMechanism(point.arrive ? SUCCEED : FAIL);
-    } else if (point.id == FLOW_OPEN_MECHANISM) {
-        CleanHistoryCenter::instance().setOpenMechanism(point.arrive ? SUCCEED : FAIL);
+    } else if (block.id == FLOW_CLOSE_MECHANISM) {
+        CleanHistoryCenter::instance().setCloseMechanism(block.arrive ? SUCCEED : FAIL);
+    } else if (block.id == FLOW_OPEN_MECHANISM) {
+        CleanHistoryCenter::instance().setOpenMechanism(block.arrive ? SUCCEED : FAIL);
     }
-    HeadTailPointCall::handleFlowBlock(point);
+    HeadTailPointCall::handleFlowBlock(block);
 }
 
-void ReservedCall::processControl(const RealBlock &point) {
-    HeadTailPointCall::processControl(point);
+void ReservedCall::processControl(const RealBlock &block) {
+    HeadTailPointCall::processControl(block);
 }
 
 void ReservedCall::handlePlannerBlock(const RealBlock &block) {
@@ -182,8 +182,8 @@ void ReservedCall::forceInterruptTask(event::SB sb) {
     garbage(sb);
 }
 
-void ReservedCall::softwareInterruptTask(const RealBlock &point) {
-    auto error_pair = generateErrorByRealPoint(point.id);
+void ReservedCall::softwareInterruptTask(const RealBlock &block) {
+    auto error_pair = generateErrorByRealPoint(block.id);
     CleanHistoryCenter::instance().errorComplete(
             std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair)
     );

@@ -27,14 +27,6 @@ private:
     DR globalInflationRadius = DR("/move_base/global_costmap/inflation_layer", "inflation_radius");
     DR localInflationRadius = DR("/move_base/local_costmap/inflation_layer", "inflation_radius");
 
-    void setInscribedRadius(double inscribed_radius) {
-        ros::NodeHandle nh;
-        nh.setParam("/move_base/global_costmap/inflation_layer/inscribed_radius",
-                    inscribed_radius);
-        nh.setParam("/move_base/local_costmap/inflation_layer/inscribed_radius",
-                    inscribed_radius);
-    }
-
     std::shared_ptr<ReplanAction> share_replan;
 
     static void cpToPath(const std::vector<RealPoint> &points, replan_msgs::ReplanGoal &goal_path,

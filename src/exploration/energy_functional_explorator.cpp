@@ -84,7 +84,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
     }
 
     cv::Mat inflated_rotated_room_map;
-    explorationErode(rotated_room_map, inflated_rotated_room_map, half_grid_spacing_as_int);
+    explorationErode(rotated_room_map, inflated_rotated_room_map, cv::MORPH_CROSS, half_grid_spacing_as_int);
     if (DISPLAY_TRAJECTORY) {
         cv::imshow("inflated_rotated_room_map", inflated_rotated_room_map);
         cv::waitKey();

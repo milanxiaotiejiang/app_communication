@@ -23,6 +23,8 @@
 #include "geometry_msgs/Polygon.h"
 #include "task/point_planner.h"
 
+#include "simulation.h"
+
 RealBlock PointGenerator::buildBlock(int id, const RealTask &task) {
     RealBlock block;
     block.id = id;
@@ -139,6 +141,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
 
         block.timeout = timeout_accumulation;
         block.totalStep = point_accumulation;
+        block.plannerPoints = plannerPoints;
     }
 
     realTask.setTotalStep(point_accumulation);

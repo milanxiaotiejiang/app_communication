@@ -13,6 +13,9 @@
 #include "future/node/node_control.h"
 #include "task/manager/MechanismManager.h"
 #include "leave/HotWindNote.h"
+#include "db/task_data_base.h"
+#include <cppfs/fs.h>
+#include <cppfs/FileHandle.h>
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
     if (!ZooInnerStatus::instance().getIsCharging()) {
@@ -23,6 +26,19 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
 
         SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id,
                                                        params.getMapName());
+
+        SegmentationDataBase::instance().removeAllRoom(SegmentationDataBase::instance().getDbMap().id);
+        TaskDataBase::instance().deleteTaskFoMap(SegmentationDataBase::instance().getDbMap().id);
+        MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true);
+        PublishInnerManager::instance().publishResetProhibition();
+        cppfs::FileHandle file_timer_info_json = cppfs::fs::open(path::data_base_config_dir() + "timer_info_json.txt");
+        file_timer_info_json.remove();
+        cppfs::FileHandle file_view_part_principal_json = cppfs::fs::open(
+                path::data_base_config_dir() + "view_part_principal_json.txt");
+        file_view_part_principal_json.remove();
+        cppfs::FileHandle file_combination_list_principal_json_work = cppfs::fs::open(
+                path::data_base_config_dir() + "combination_list_principal_json_work.txt");
+        file_combination_list_principal_json_work.remove();
 
         MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
         MapInfo param(mapPo.id, mapPo.name);
@@ -138,13 +154,6 @@ string EditMapStrategy::handler(vector<std::vector<float>> params) {
             ROS_ERROR("Failed to set wall!");
         }
     }
-    //更新costmap
-    std::string local_costmap =
-            "rosparam load " + path::prohibition_areas_path() + " /move_base/local_costmap/costmap_prohibition_layer";
-    std::string global_costmap =
-            "rosparam load " + path::prohibition_areas_path() + " /move_base/global_costmap/costmap_prohibition_layer";
-    std::system(local_costmap.data());
-    std::system(global_costmap.data());
     PublishInnerManager::instance().publishResetProhibition();
 
     MapAttribute::instance().resetProhibition();

@@ -1,3 +1,7 @@
+//
+// Created by lijiang on 2021/12/18.
+//
+
 #include "sub/json/ModeStrategy.h"
 #include "task/subscribe/async_machine.h"
 #include "task/manager/manual.h"
@@ -28,6 +32,9 @@ string RobotPreparetoWorkStrategy::handler(string params) {
 //    if (!NodeWorkModeManager::instance().tryToWork()) {
 //        throw app::exception(make_error_code(error::mode_switching_is_not_supported));
 //    }
+
+    NodeWorkModeManager::instance().toSleep();
+
     return "";
 }
 

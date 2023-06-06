@@ -30,7 +30,7 @@ bool SegmentationCenter::detectionTooSmallRoom(const cv::Mat &segmented_map, Roo
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
     int map_prohibition_expand_size_ = (int) std::floor(grid_spacing_in_pixel);
 
-    explorationErode(zero_map, compute_map, map_prohibition_expand_size_);
+    explorationErode(zero_map, compute_map, cv::MORPH_CROSS, map_prohibition_expand_size_);
 
     cv::Mat room_map_int(room_map.rows, room_map.cols, CV_32SC1);
     for (int v = 0; v < compute_map.rows; ++v) {

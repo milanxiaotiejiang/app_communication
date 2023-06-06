@@ -38,7 +38,11 @@ void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
                 backBaseRetryCount++;
                 setFlow(event::flow::try_move_base_point_again);
             } else {
-                setFlow(event::flow::software_interrupt_task);
+//                setFlow(event::flow::software_interrupt_task);
+                LOG(INFO) << "HeadTailPointCall : 多次返回摆渡点失败， 直接记为“任务执行完成且返回了基站点”， " <<
+                          "backBaseRetryCount : " << backBaseRetryCount <<
+                          "rechargeRetryCount : " << rechargeRetryCount << " ...";
+                setFlow(event::flow::flowing_water_execution_completed);
             }
         }
     } else if (block.id == FLOW_IN_STATION) {
@@ -243,9 +247,9 @@ void HeadTailPointCall::callGoFirstPoint(RealBlock block) {
             });
 }
 
-void HeadTailPointCall::exchangeFrontPoint(const RealBlock &point) {
+void HeadTailPointCall::exchangeFrontPoint(const RealBlock &block) {
     plannerQueue.pop_front();
-    plannerQueue.push_front(point);
+    plannerQueue.push_front(block);
 }
 
 bool HeadTailPointCall::canIssuedTask(const RealTask &task) {

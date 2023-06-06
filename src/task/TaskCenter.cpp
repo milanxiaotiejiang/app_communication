@@ -40,7 +40,7 @@
 std::string TaskCenter::preTask(const RealTask &task) {
     //拦截手动下发的任务且前期出站后期进站
     if (task.isRenew()) {
-        const std::string &source = task.getSource();
+        const std::string &source = task.getOnSource();
         TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
         if (taskSource == TaskSource::App || taskSource == TaskSource::Pad) {
             if (!asyncTaskCall->canIssuedTask(task)) {

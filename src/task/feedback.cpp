@@ -151,7 +151,7 @@ cv::Point TaskFeedback::poseTransferPoint(float x, float y) {
     return point;
 }
 
-void TaskFeedback::triggerStart(std::string taskId, const std::vector<RealBlock> &points) {
+void TaskFeedback::triggerStart(std::string taskId, const std::vector<RealBlock> &blocks) {
 //    {
 //        std::unique_lock<std::mutex> lock(cv_mut);
 //        TaskFeedback::run_task_id = taskId;
