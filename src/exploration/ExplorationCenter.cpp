@@ -360,7 +360,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
         planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT) {
-        planning_pose_path_display(room_map, map_origin, complex_path, 0.3, "optimizePlanningPath ");
+        planning_pose_path_display(room_map, map_origin, complex_path, 3, "optimizePlanningPath ");
     }
 
 //    std_msgs::Header header;

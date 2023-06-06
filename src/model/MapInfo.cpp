@@ -35,3 +35,19 @@ const std::string &MapInfo::getId() const {
 void MapInfo::setId(const std::string &id) {
     MapInfo::id = id;
 }
+
+bool MapInfo::isReset() const {
+    return reset;
+}
+
+void MapInfo::setReset(bool reset) {
+    MapInfo::reset = reset;
+}
+
+float MapInfo::getScore() const {
+    return score;
+}
+
+void MapInfo::setScore(float score) {
+    MapInfo::score = score;
+}
