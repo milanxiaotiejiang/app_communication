@@ -69,11 +69,12 @@ bool AsyncTaskRecord::isManualTask(const RealTask &realTask) {
     if (realTask.isRenew()) {
         const std::string &source = realTask.getOnSource();
         TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
-        if (taskSource == TaskSource::App || taskSource == TaskSource::Pad) {
+        if (taskSource == TaskSource::App || taskSource == TaskSource::Pad || taskSource == TaskSource::Cloud) {
             return true;
         }
     } else {
-        if (realTask.getLaunchPeople() == "App" || realTask.getLaunchPeople() == "Pad") {
+        if (realTask.getLaunchPeople() == "App" || realTask.getLaunchPeople() == "Pad" ||
+            realTask.getLaunchPeople() == "Cloud") {
             return true;
         }
     }

@@ -24,6 +24,7 @@
 #include "leave/ParamManager.h"
 #include "leave/map_control.h"
 #include "exploration/cv_extend.h"
+#include "exploration/tcr.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 static bool DISPLAY_TRAJECTORY_EFFECT = false;
@@ -86,6 +87,11 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 //        } catch (...) {
 //
 //        }
+    }
+
+    //5
+    if (DISPLAY_TRAJECTORY_EFFECT) {
+//        tcr::coverageProportion();
     }
 
 //    pathPublish(exploration_path);

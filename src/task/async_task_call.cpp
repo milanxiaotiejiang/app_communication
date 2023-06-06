@@ -642,6 +642,9 @@ void AsyncTaskCall::executeOneTask(const RealTask &task) {
     if (isUrgencyStop()) {
         throw app::exception(make_error_code(error::machine_is_in_emergency_stop_command_not_supported));
     }
+    if (task.isVerifyMode()) {
+        return;
+    }
     notify_one([this, &task]() {
         pushTask(task);
     });

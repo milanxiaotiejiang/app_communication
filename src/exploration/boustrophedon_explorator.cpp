@@ -430,14 +430,14 @@ void BoustrophedonExplorer::computeCellDecomposition(const cv::Mat &room_map, co
     const int number_of_cells = mergeCells(cell_map, cell_map_labels, min_cell_area, min_cell_width);
 
 
-    std::vector<std::vector<cv::Point> > cells;
+    std::vector<std::vector<cv::Point>> cells;
     for (int i = 1; i <= number_of_cells; ++i) {
         cv::Mat cell_copy(cell_map_labels == i);
         if (DISPLAY_TRAJECTORY) {
             cv::imshow("cell_copy", cell_copy);
             cv::waitKey();
         }
-        std::vector<std::vector<cv::Point> > cellsi;
+        std::vector<std::vector<cv::Point>> cellsi;
         // 只检测最外层轮廓   压缩水平方向、垂直方向和对角线方向的像素，只保留该方向的终点坐标
         cv::findContours(cell_copy, cellsi, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
         cells.insert(cells.end(), cellsi.begin(), cellsi.end());
@@ -914,6 +914,17 @@ int BoustrophedonExplorer::mergeCells(cv::Mat &cell_map, cv::Mat &cell_map_label
         cv::waitKey();
     }
 
+    if (DISPLAY_TRAJECTORY) {
+        cv::Mat orMat = cv::Mat::zeros(cell_map.rows, cell_map.cols, CV_8UC1);
+        for (const auto &item: cell_index_mapping) {
+            int first = item.first;
+            cv::Mat cell_copy(cell_map_labels == first);
+            cv::bitwise_or(orMat, cell_copy, orMat);
+            cv::imshow("cell_copy", orMat);
+            cv::waitKey();
+        }
+    }
+
     int new_cell_label = 1;
     for (std::map<int, boost::shared_ptr<BoustrophedonCell> >::iterator itc = cell_index_mapping.begin();
          itc != cell_index_mapping.end(); ++itc, ++new_cell_label)
@@ -962,6 +973,13 @@ void BoustrophedonExplorer::mergeCellsSelection(cv::Mat &cell_map, cv::Mat &cell
             area_sorted_neighbors.insert(std::pair<double, boost::shared_ptr<BoustrophedonCell> >((*itn)->area_, *itn));
 
         BoustrophedonCell &large_cell = *(area_sorted_neighbors.begin()->second);
+
+        if (DISPLAY_TRAJECTORY) {
+            LOG(INFO) << "small_cell  small_area : " << it->first
+                      << "   small_box_width : " << it->second->bounding_box_.width
+                      << "   small_box_height : " << it->second->bounding_box_.height
+                      << "   large_cell  large_area : " << large_cell.area_;
+        }
 
         //合并单元格
         mergeTwoCells(cell_map, cell_map_labels, small_cell, large_cell, cell_index_mapping);
@@ -1022,6 +1040,21 @@ void BoustrophedonExplorer::mergeTwoCells(cv::Mat &cell_map, cv::Mat &cell_map_l
                 major_cell.area_ += 1;
             }
 
+    if (DISPLAY_TRAJECTORY) {
+        auto show_map = cell_map.clone();
+        for (int v = 0; v < cell_map_labels.rows; ++v)
+            for (int u = 0; u < cell_map_labels.cols; ++u)
+                if (cell_map_labels.at<int>(v, u) == minor_cell.label_)
+                    show_map.at<unsigned char>(v, u) = 100;
+        for (int v = 0; v < cell_map_labels.rows; ++v)
+            for (int u = 0; u < cell_map_labels.cols; ++u)
+                if (cell_map_labels.at<int>(v, u) == major_cell.label_)
+                    show_map.at<unsigned char>(v, u) = 200;
+        cv::resize(show_map, show_map, cv::Size(), 0.8, 0.8, cv::INTER_LINEAR);
+        cv::imshow("cell_copy", show_map);
+        cv::waitKey();
+    }
+
     //更新 cell_map_labels 中的标签
     for (int v = 0; v < cell_map_labels.rows; ++v)
         for (int u = 0; u < cell_map_labels.cols; ++u)
@@ -1052,6 +1085,29 @@ void BoustrophedonExplorer::mergeTwoCells(cv::Mat &cell_map, cv::Mat &cell_map_l
                 (*itn)->label_ = major_cell.label_;
                 break;
             }
+
+    for (const auto &cell: cell_index_mapping) {
+        int cell_id = cell.first;
+        BoustrophedonCell::BoustrophedonCellSet &neighbors = cell.second->neighbors_;
+        for (BoustrophedonCell::BoustrophedonCellSetIterator it = neighbors.begin(); it != neighbors.end();) {
+            if ((*it)->label_ == cell_id) {
+                neighbors.erase(it++);
+            } else {
+                it++;
+            }
+        }
+    }
+
+    // check
+//    for (const auto &cell: cell_index_mapping) {
+//        int cell_id = cell.first;
+//        BoustrophedonCell::BoustrophedonCellSet &neighbors = cell.second->neighbors_;
+//        for (const auto &n: neighbors) {
+//            if (n->label_ == cell_id) {
+//                LOG(ERROR) << "检查邻居是否存在自己，这里 cell_id 为 " << cell_id << " 出现邻居存在自己的情况 ... ";
+//            }
+//        }
+//    }
 }
 
 /**

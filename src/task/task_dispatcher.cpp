@@ -87,6 +87,9 @@ void TaskDispatcher::dispatcherTask(RealTask &realTask) {
     }
 
     LOG(INFO) << " 验证覆盖点位个数为 : " << coverage.getPoseList().size() << " , 此任务验证可以通过 ... ";
+
+    asyncTaskCall->executeOneTask(realTask);
+
     realTask.setVerifyMode(false);
     transferCollection.add(realTask);
 }
@@ -96,21 +99,27 @@ void TaskDispatcher::plan_transfer_thread_func() {
         RealTask realTask;
         auto status = transferCollection.take(realTask);
         if (status == code_machina::BlockingCollectionStatus::Ok) {
-
-            //生成对应该任务的点列
-            const auto pointGeneratorPtr = pointGeneratorFactory(realTask);
-            const auto pointList = pointGeneratorPtr->taskGeneratePointList(realTask);
-            if (pointList.empty()) {
-                LOG(ERROR) << " 牛耕田法规划的点位个数为空 ... ";
-                return;
+            try {
+                //生成对应该任务的点列
+                const auto pointGeneratorPtr = pointGeneratorFactory(realTask);
+                const auto pointList = pointGeneratorPtr->taskGeneratePointList(realTask);
+                if (pointList.empty()) {
+                    LOG(ERROR) << " 牛耕田法规划的点位个数为空 ... ";
+                    return;
+                }
+                //点列赋值给realTask
+                realTask.setPlanPoints(pointList);
+                //清洁记录更新
+                clean_history_db::CleanHistoryCenter::instance().upDateByRealTask(realTask);
+                //开始执行realTask
+                asyncTaskCall->executeOneTask(realTask);
+            } catch (app::exception const &e) {
+                LOG(ERROR) << e.what();
+            } catch (const std::exception &e) {
+                LOG(ERROR) << e.what();
+            } catch (...) {
+                LOG(ERROR) << "MessageStrategy other start exception";
             }
-            //点列赋值给realTask
-            realTask.setPlanPoints(pointList);
-            //清洁记录更新
-            clean_history_db::CleanHistoryCenter::instance().upDateByRealTask(realTask);
-            //开始执行realTask
-            asyncTaskCall->executeOneTask(realTask);
-
         }
     }
 }

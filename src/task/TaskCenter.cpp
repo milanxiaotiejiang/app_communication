@@ -42,14 +42,14 @@ std::string TaskCenter::preTask(const RealTask &task) {
     if (task.isRenew()) {
         const std::string &source = task.getOnSource();
         TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
-        if (taskSource == TaskSource::App || taskSource == TaskSource::Pad) {
+        if (taskSource == TaskSource::App || taskSource == TaskSource::Pad || taskSource == TaskSource::Cloud) {
             if (!asyncTaskCall->canIssuedTask(task)) {
                 throw app::exception(make_error_code(error::the_current_task_is_not_completed));
             }
         }
     } else {
         const std::string &launchPeople = task.getLaunchPeople();
-        if (launchPeople == "App" || launchPeople == "Pad") {
+        if (launchPeople == "App" || launchPeople == "Pad" || launchPeople == "Cloud") {
             if (!asyncTaskCall->canIssuedTask(task)) {
                 throw app::exception(make_error_code(error::the_current_task_is_not_completed));
             }
