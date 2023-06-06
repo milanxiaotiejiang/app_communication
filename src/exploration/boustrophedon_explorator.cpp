@@ -746,12 +746,28 @@ void BoustrophedonExplorer::computeRectangularAmbulatoryPlanePath(const cv::Mat 
     VoronoiMap vm(room_gridmap.data.data(), room_gridmap.info.width, room_gridmap.info.height, grid_spacing_as_int);
     std::vector<cv::Point> voronoi_path;
     auto mat = rotated_inflated_cell_map.clone();
-    vm.generatePath(mat, voronoi_path, cv::Mat(), 0, 0);
+    int start_x = half_grid_spacing_as_int, start_y = half_grid_spacing_as_int;
+    bool find;
+    for (int y = half_grid_spacing_as_int; y < mat.rows; y = y + half_grid_spacing_as_int) {
+        for (int x = half_grid_spacing_as_int; x < mat.cols; x = x + half_grid_spacing_as_int) {
+            if (mat.at<unsigned char>(y, x) == 255) {
+                start_x = x;
+                start_y = y;
+                find = true;
+                if (find)
+                    break;
+            }
+        }
+        if (find)
+            break;
+    }
+    LOG(INFO) << "地图 " << mat.cols << "x" << mat.rows << ", 起始点为 (" << start_x << ", " << start_y << ")";
+    vm.generatePath(mat, voronoi_path, cv::Mat(), start_x, start_y);
 
     std::vector<cv::Point> list;
-    cv::approxPolyDP(voronoi_path, list, 1.0, false);
+    cv::approxPolyDP(voronoi_path, list, 0.5, false);
     std::vector<cv::Point> current_fov_path;
-    splitPointsIfNeeded(list, current_fov_path, static_cast<int>(std::floor(path_eps)));
+    splitPointsIfNeeded(voronoi_path, current_fov_path, static_cast<int>(std::floor(path_eps)));
 
     cv::Point cell_robot_pos = current_fov_path[current_fov_path.size() - 1];
 

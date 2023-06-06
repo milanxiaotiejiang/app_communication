@@ -239,7 +239,10 @@ std::vector<RealPoint> RectanglePointGenerator::taskGeneratePointList(RealTask &
     std::vector<geometry_msgs::Pose2D> exploration_path;
     std::vector<cv::Point> point_path;
     std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
-    ExplorationCenter::instance().generatePlanningPathRect(zoned_image, Environment::instance().explorer_mode,
+    ExplorationCenter::instance().generatePlanningPathRect(zoned_image,
+                                                           task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
+                                                                               : Environment::instance().explorer_mode,
+                                                           true,
                                                            exploration_path, point_path, complex_path);
 
     ExplorationCenter::instance().pathPublish(exploration_path);
@@ -420,7 +423,7 @@ std::vector<RealPoint> FullPointGenerator::taskGeneratePointList(RealTask &task)
     std::vector<RealPoint> taskPointList;
     auto taskId = task.getId();
     auto roomCoverage = ExplorationCenter::instance().findRoomCoverage(taskId, true);
-    auto poseList = roomCoverage.getPoseList();
+    const auto &poseList = roomCoverage.getPoseList();
     std::vector<RealPoint> realPoints;
     pose2RealPoint(task, poseList, realPoints);
     return realPoints;

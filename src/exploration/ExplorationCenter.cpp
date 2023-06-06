@@ -74,7 +74,8 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
         const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        generatePlanningPathFull(map, 1, exploration_path, point_path, complex_path);
+        generatePlanningPathFull(map, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
+                                 exploration_path, point_path, complex_path);
     }
 
     //4
@@ -126,7 +127,7 @@ RoomCoverage ExplorationCenter::obtainSubregionPath() {
 }
 
 void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, ExplorationModel model, int explorer_mode,
-                                             bool ordain_start, const cv::Point &start_position,
+                                             bool ordain_start, const cv::Point &start_position, bool addProhibition,
                                              std::vector<geometry_msgs::Pose2D> &exploration_path,
                                              std::vector<cv::Point> &point_path,
                                              std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
@@ -143,13 +144,17 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
         }
     }
 
-    //禁区虚拟墙
-    cv::Mat prohibition_image = prohibitionMat(map);
-    cv::Mat andMat;
-    cv::bitwise_and(map, prohibition_image, andMat);
-    cv::bitwise_xor(map, andMat, map);
+    if (addProhibition) {
+        //禁区虚拟墙
+        cv::Mat prohibition_image = prohibitionMat(map);
+        cv::Mat andMat;
+        cv::bitwise_and(map, prohibition_image, andMat);
+        cv::bitwise_xor(map, andMat, map);
+    }
 
 
+    LOG(INFO) << "generatePlanningPath function explorer_mode : " << explorer_mode
+              << ", addProhibition : " << addProhibition;
     LOG(INFO) << "map-size: " << map.rows << "x" << map.cols;
     LOG(INFO) << "map-resolution: " << map_resolution_from_subscription << " m/cell";
     LOG(INFO) << "map-origin: " << map_origin << " m";
@@ -271,6 +276,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
     if (exploration_path.size() < 3) {
         return;
     }
+
     std::vector<geometry_msgs::Pose2D> optimize;
     optimize.push_back(exploration_path[0]);
     geometry_msgs::Pose2D last = exploration_path[0];
@@ -296,7 +302,6 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
     for (const auto &item: optimize) {
         exploration_path.push_back(item);
     }
-
 
     double point_sqrt = 0;
     for (const auto &complex: complex_path) {
@@ -355,7 +360,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
         planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT) {
-        planning_pose_path_display(room_map, map_origin, complex_path, 3, "optimizePlanningPath ");
+        planning_pose_path_display(room_map, map_origin, complex_path, 0.3, "optimizePlanningPath ");
     }
 
 //    std_msgs::Header header;
@@ -391,7 +396,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
 
 }
 
-void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
+void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, bool addProhibition,
                                                std::vector<geometry_msgs::Pose2D> &pose_path,
                                                std::vector<cv::Point> &point_path,
                                                std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
@@ -409,11 +414,13 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
     cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
     const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
 
-    //禁区虚拟墙
-    cv::Mat prohibition_image = prohibitionMat(map);
-    cv::Mat andMat;
-    cv::bitwise_and(map, prohibition_image, andMat);
-    cv::bitwise_xor(map, andMat, map);
+    if (addProhibition) {
+        //禁区虚拟墙
+        cv::Mat prohibition_image = prohibitionMat(map);
+        cv::Mat andMat;
+        cv::bitwise_and(map, prohibition_image, andMat);
+        cv::bitwise_xor(map, andMat, map);
+    }
 
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
     double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
@@ -497,7 +504,7 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map,
 
 }
 
-void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int explorer_mode,
+void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int explorer_mode, bool addProhibition,
                                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
                                                  std::vector<cv::Point> &point_path,
                                                  std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
@@ -517,6 +524,7 @@ void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int ex
                          explorer_mode,
                          false,
                          cv::Point(0, 0),
+                         addProhibition,
                          exploration_path,
                          point_path,
                          complex_path
@@ -527,7 +535,7 @@ void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int ex
     LOG(INFO) << "------------------------- end generatePlanningPathRect -------------------------";
 }
 
-void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, int explorer_mode,
+void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, int explorer_mode, bool addProhibition,
                                                 std::vector<geometry_msgs::Pose2D> &exploration_path,
                                                 std::vector<cv::Point> &point_path,
                                                 std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
@@ -547,6 +555,7 @@ void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, int exp
                          explorer_mode,
                          false,
                          cv::Point(0, 0),
+                         addProhibition,
                          exploration_path,
                          point_path,
                          complex_path
@@ -557,7 +566,7 @@ void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, int exp
     LOG(INFO) << "------------------------- end generatePlanningPathSub -------------------------";
 }
 
-void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int explorer_mode,
+void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int explorer_mode, bool addProhibition,
                                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
                                                  std::vector<cv::Point> &point_path,
                                                  std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
@@ -577,6 +586,7 @@ void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int ex
                          explorer_mode,
                          false,
                          cv::Point(0, 0),
+                         addProhibition,
                          exploration_path,
                          point_path,
                          complex_path
@@ -589,6 +599,7 @@ void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int ex
 
 void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map, cv::Mat segmented_map,
                                                          std::vector<Room> rooms, int explorer_mode,
+                                                         bool addProhibition,
                                                          std::vector<geometry_msgs::Pose2D> &exploration_path,
                                                          std::vector<cv::Point> &point_path,
                                                          std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
@@ -659,6 +670,7 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
                                                                ExplorationModel::SUB,
                                                                explorer_mode,
                                                                i != 0, start_position,
+                                                               addProhibition,
                                                                child_exploration_path,
                                                                child_point_path,
                                                                complex_path

@@ -50,6 +50,8 @@ private:
     std::vector<RealPoint> planPoints;
     std::vector<RealPoint> realPoints;
 
+    bool verify_mode = false;
+
 public:
     RealTask() = default;
 
@@ -251,6 +253,14 @@ public:
 
     void setRealPoints(const vector<RealPoint> &realPoints) {
         RealTask::realPoints = realPoints;
+    }
+
+    bool isVerifyMode() const {
+        return verify_mode;
+    }
+
+    void setVerifyMode(bool verifyMode) {
+        verify_mode = verifyMode;
     }
 
     void assignmentPoint(RealPoint &realPoint, int pointId) const {

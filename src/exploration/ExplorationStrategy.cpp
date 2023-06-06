@@ -16,6 +16,8 @@
 #include "exploration/path_exploration_preview_task.h"
 #include "task/TaskCenter.h"
 
+#include "simulation.h"
+
 const int DATA_MODE_GEOMETRY_POSE = 1;
 const int DATA_MODE_OPEN_CV_POINT = 2;
 
@@ -40,18 +42,20 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
 
         if (targetId == -1) {
             if (rooms.empty()) {
-                explorationCenter.generatePlanningPathFull(baseMap, explorerMode, exploration_path, point_path,
-                                                           complex_path);
+                explorationCenter.generatePlanningPathFull(baseMap, explorerMode, true,
+                                                           exploration_path, point_path, complex_path);
             } else {
-                explorationCenter.generatePlanningSegmentationPath(baseMap, segmented_map, rooms, explorerMode,
+                explorationCenter.generatePlanningSegmentationPath(baseMap, segmented_map, rooms, explorerMode, true,
                                                                    exploration_path, point_path, complex_path);
             }
         } else {
             const cv::Mat &oneMap = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, targetId);
-            explorationCenter.generatePlanningPathSub(oneMap, explorerMode, exploration_path, point_path, complex_path);
+            explorationCenter.generatePlanningPathSub(oneMap, explorerMode, true,
+                                                      exploration_path, point_path, complex_path);
         }
     } else {
-        explorationCenter.generatePlanningPathFull(baseMap, explorerMode, exploration_path, point_path, complex_path);
+        explorationCenter.generatePlanningPathFull(baseMap, explorerMode, true,
+                                                   exploration_path, point_path, complex_path);
     }
 
     explorationCenter.pathPublish(exploration_path);

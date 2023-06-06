@@ -476,7 +476,12 @@ void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
         std::cout << "月: " << 1 + ltm->tm_mon << std::endl;
         std::cout << "日: " << ltm->tm_mday << std::endl;
         std::cout << "时间: " << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << endl;
-        if (ParamManager::instance().getDry() == 0 && ltm->tm_hour >= 7) {
+        if (ParamManager::instance().getDry() == 0) {
+            return;
+        }
+        // 0-7 点执行
+        if (ltm->tm_hour < 0 + Environment::instance().dry_accumulation
+            || ltm->tm_hour > 8 + Environment::instance().dry_accumulation) {
             return;
         }
         HotWindNoteSingleton::instance().openHotWind();

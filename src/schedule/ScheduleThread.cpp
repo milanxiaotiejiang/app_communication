@@ -100,6 +100,7 @@ void execTask(TimerInfo &tsk) {
             const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
             ExplorationCenter::instance().generatePlanningPathFull(baseMap,
                                                                    Environment::instance().explorer_mode,
+                                                                   true,
                                                                    exploration_path,
                                                                    point_path,
                                                                    complex_path

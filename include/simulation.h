@@ -23,6 +23,7 @@ public:
     bool update_map;
     bool direct_start_move_base;
     int explorer_mode = 2;
+    int dry_accumulation = 0;
 
     static bool will() {
         return (rand() % 10) > 5;

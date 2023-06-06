@@ -1,11 +1,17 @@
 #include "rec_app.h"
 #include "simulation.h"
 #include "manager/UpgradeManager.h"
+#include "time.h"
 
 /**
  * https://github.com/fnc12/sqlite_orm
  * https://github.com/cginternals/cppfs
  */
+
+/**
+ * 健康管理——尘推滚刷 50
+ */
+
 /**
  * 单元测试示例代码
  */
@@ -52,6 +58,9 @@ int main(int argc, char **argv) {
     UdpManager::instance().start();
 
     ros::NodeHandle handle;
+
+    initNodeParams(handle);
+
     PublishInnerManager::instance().initialize(handle);
     PublishOutManager::instance().initialize(handle);
 
@@ -79,9 +88,6 @@ int main(int argc, char **argv) {
 
     SelfCheckSubscribe selfCheckSubscribe(handle);
     MoveBaseRecoveryFailureSubscribe moveBaseRecoveryFailureSubscribe(handle);
-
-    ros::NodeHandle nh;
-    initNodeParams(nh);
 
     WsServerManager::instance().startWebSocket();
     AiServerManager::instance().startWebSocket();
@@ -334,6 +340,9 @@ void initNodeParams(const ros::NodeHandle &nh) {
     int explorer_mode;
     nh.param<int>("explorer_mode", explorer_mode, 2);
     Environment::instance().explorer_mode = explorer_mode;
+    int dry_accumulation;
+    nh.param<int>("dry_accumulation", dry_accumulation, 0);
+    Environment::instance().dry_accumulation = dry_accumulation;
 
     LOG(INFO) << "core version : " << ros_version;
 }
