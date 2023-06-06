@@ -17,11 +17,13 @@ private:
     std::string id;//real id
     std::string map_name;
     bool reset;
-    float score;
+    double score;
 public:
     MapInfo();
 
     MapInfo(const std::string &id, const std::string &mapName);
+
+    MapInfo(const std::string &id, const std::string &mapName, double score);
 
     virtual ~MapInfo();
 
@@ -41,9 +43,9 @@ public:
 
     void setReset(bool reset);
 
-    float getScore() const;
+    double getScore() const;
 
-    void setScore(float score);
+    void setScore(double score);
 
     friend void to_json(json &j, const MapInfo &b) {
         j = json{

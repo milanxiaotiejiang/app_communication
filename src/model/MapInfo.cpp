@@ -8,6 +8,9 @@ MapInfo::MapInfo() {}
 
 MapInfo::MapInfo(const std::string &id, const std::string &mapName) : id(id), map_name(mapName) {}
 
+MapInfo::MapInfo(const std::string &id, const std::string &mapName, double score) : id(id), map_name(mapName),
+                                                                                    score(score) {}
+
 MapInfo::~MapInfo() {
 
 }
@@ -44,10 +47,10 @@ void MapInfo::setReset(bool reset) {
     MapInfo::reset = reset;
 }
 
-float MapInfo::getScore() const {
+double MapInfo::getScore() const {
     return score;
 }
 
-void MapInfo::setScore(float score) {
+void MapInfo::setScore(double score) {
     MapInfo::score = score;
 }

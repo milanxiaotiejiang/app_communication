@@ -16,6 +16,7 @@
 #include "db/task_data_base.h"
 #include <cppfs/fs.h>
 #include <cppfs/FileHandle.h>
+#include "exploration/tcr.h"
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
     if (!ZooInnerStatus::instance().getIsCharging()) {
@@ -43,8 +44,10 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
             file_combination_list_principal_json_work.remove();
         }
 
+        double proportion = tcr::coverageProportion();
+
         MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
-        MapInfo param(mapPo.id, mapPo.name);
+        MapInfo param(mapPo.id, mapPo.name, proportion);
 
         ExplorationCenter::instance().repaintCoveragePath(true);
 
