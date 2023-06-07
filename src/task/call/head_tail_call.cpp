@@ -185,7 +185,7 @@ void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, bool knife, 
 
     MechanismManager::instance().controlWorkStatus(status, knife);
     if (!Environment::instance().isRealEnvironment) {
-        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this]() {
+        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(10), [this]() {
             LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
             notify_one([this]() {
                 pushPoint(flowOpenMechanismPoint);

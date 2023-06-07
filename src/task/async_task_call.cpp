@@ -507,6 +507,10 @@ void AsyncTaskCall::callSubsequentMode(int mode) {
 
 void AsyncTaskCall::callUrgencyStop() {
     if (!isPause()) {
+        if (isPreCompleted(event_flow)) {
+            LOG(INFO) << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
+            event_flow = event::flow::cleaning_mechanism_ready;
+        }
         if (isContinueWork(event_flow, true)) {
             LOG(INFO) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
             LOG(INFO) << "AsyncTaskCall : event_flow : " << event_flow << "   " << recoverableEmergencyStop();
@@ -516,6 +520,9 @@ void AsyncTaskCall::callUrgencyStop() {
                 callCancelBackStation();
                 rechargeRetryCount = 0;
                 recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
+            }
+            if (isMechanismReady(event_flow)) {
+                recordEmergencyStop(event::flow::cleaning_mechanism_ready, flowOpenMechanismPoint);
             }
             callPause();
         }

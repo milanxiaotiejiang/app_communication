@@ -19,6 +19,14 @@ bool AsyncTaskRecord::isPreparation(event::flow flow) {
            flow == event::flow::preliminary_preparation_completed;
 }
 
+bool AsyncTaskRecord::isPreCompleted(event::flow flow) {
+    return flow == event::flow::preliminary_preparation_completed;
+}
+
+bool AsyncTaskRecord::isMechanismReady(event::flow flow) {
+    return flow == event::flow::cleaning_mechanism_ready;
+}
+
 bool AsyncTaskRecord::isFlowingWater(event::flow flow) {
     return flow == event::flow::cleaning_mechanism_ready ||
            flow == event::flow::ensure_move_to_start_point ||

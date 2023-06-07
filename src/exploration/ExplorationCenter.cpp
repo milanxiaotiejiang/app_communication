@@ -101,12 +101,7 @@ void ExplorationCenter::uninstall() {
     delete poseSubscribe;
 }
 
-void ExplorationCenter::repaintCoveragePath(bool isMapChange) {
-    if (isMapChange) {
-        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
-        MapAttribute::instance().loadStation();
-        SegmentationCenter::instance().resetSegmentation();
-    }
+void ExplorationCenter::repaintCoveragePath() {
     coveragePathGenerator.repaintCoveragePath();
     repaintSubregionPath();
 }
@@ -120,7 +115,7 @@ RoomCoverage ExplorationCenter::obtainCoveragePath() {
     auto overtime = map.rows * map.cols / 20;
     const RoomCoverage &coverage = coveragePathGenerator.obtainCoveragePath(overtime);
     if (coverage.getPointList().empty() && coverage.getPoseList().empty()) {
-        repaintCoveragePath(false);
+        repaintCoveragePath();
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
     return coverage;
@@ -366,7 +361,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
         planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT) {
-        planning_pose_path_display(room_map, map_origin, complex_path, 0.9, "optimizePlanningPath ");
+        planning_pose_path_display(room_map, map_origin, complex_path, 3, "optimizePlanningPath ");
     }
 
 //    std_msgs::Header header;

@@ -11,6 +11,9 @@
 #include "back_charge_msgs/ready_check.h"
 #include "back_charge_msgs/start_localization.h"
 #include "back_charge_msgs/stop_localization.h"
+#include "db/segmentation_data_base.h"
+#include "segmentation/SegmentationCenter.h"
+#include "leave/map_control.h"
 
 void CartographerPublisher::initialize(ros::NodeHandle handle) {
     save_map = handle.advertise<std_msgs::Int32>("/save_map", 1);
@@ -98,7 +101,10 @@ void CartographerSubscribe::initialize(ros::NodeHandle handle) {
 
 void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_result) {
     if (carto_result.data == 1) {
-        ExplorationCenter::instance().repaintCoveragePath(true);
+        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+        MapAttribute::instance().loadStation();
+        SegmentationCenter::instance().resetSegmentation();
+        ExplorationCenter::instance().repaintCoveragePath();
         CartographerSubscribe::instance().coverResult();
     }
 }

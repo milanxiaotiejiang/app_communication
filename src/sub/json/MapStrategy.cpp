@@ -44,12 +44,16 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
             file_combination_list_principal_json_work.remove();
         }
 
+        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+        MapAttribute::instance().loadStation();
+        SegmentationCenter::instance().resetSegmentation();
+
         double proportion = tcr::coverageProportion();
 
         MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
         MapInfo param(mapPo.id, mapPo.name, proportion);
 
-        ExplorationCenter::instance().repaintCoveragePath(true);
+        ExplorationCenter::instance().repaintCoveragePath();
 
         return param;
     } else {
@@ -166,7 +170,7 @@ string EditMapStrategy::handler(vector<std::vector<float>> params) {
     MapAttribute::instance().loadVirtualWall();
     MapAttribute::instance().loadPenaltyZone();
     MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false);
-    ExplorationCenter::instance().repaintCoveragePath(false);
+    ExplorationCenter::instance().repaintCoveragePath();
     return "";
 }
 
@@ -219,7 +223,7 @@ string MapObstaclesStrategy::handler(vector<vector<PointVo>> params) {
     mapModification.addObstacles(points);
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
-    ExplorationCenter::instance().repaintCoveragePath(false);
+    ExplorationCenter::instance().repaintCoveragePath();
     return "";
 }
 
@@ -239,7 +243,7 @@ string MapFeasibleZoneStrategy::handler(vector<vector<PointVo>> params) {
     mapModification.addFeasibleZone(points);
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
-    ExplorationCenter::instance().repaintCoveragePath(false);
+    ExplorationCenter::instance().repaintCoveragePath();
     return "";
 }
 
@@ -248,6 +252,6 @@ string MapApplyIncreaseArea::handler(vector<int> params) {
     mapModification.applyIncreaseArea(params);
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
-    ExplorationCenter::instance().repaintCoveragePath(false);
+    ExplorationCenter::instance().repaintCoveragePath();
     return "";
 }
