@@ -101,12 +101,7 @@ void ExplorationCenter::uninstall() {
     delete poseSubscribe;
 }
 
-void ExplorationCenter::repaintCoveragePath(bool isMapChange) {
-    if (isMapChange) {
-        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
-        MapAttribute::instance().loadStation();
-        SegmentationCenter::instance().resetSegmentation();
-    }
+void ExplorationCenter::repaintCoveragePath() {
     coveragePathGenerator.repaintCoveragePath();
     repaintSubregionPath();
 }
@@ -120,7 +115,7 @@ RoomCoverage ExplorationCenter::obtainCoveragePath() {
     auto overtime = map.rows * map.cols / 20;
     const RoomCoverage &coverage = coveragePathGenerator.obtainCoveragePath(overtime);
     if (coverage.getPointList().empty() && coverage.getPoseList().empty()) {
-        repaintCoveragePath(false);
+        repaintCoveragePath();
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
     return coverage;
