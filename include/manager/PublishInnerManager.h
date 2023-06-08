@@ -14,6 +14,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int8.h>
+#include <ai_msgs/MultiRectangles.h>
 
 class PublishInnerManager {
 private:
@@ -40,7 +41,9 @@ private:
     pub_knife,//
     acceptAppSchedule,//
     pub_collect_dust,//
-    pub_maintenance_mode;
+    pub_maintenance_mode,//
+    pub_detection;
+
 public:
     static auto &instance() {
         static PublishInnerManager obj;
@@ -94,6 +97,8 @@ public:
     void publishCollectDust() const;
 
     void publishMaintenanceMode(const std_msgs::Int32 &message) const;
+
+    void pubDetection(const ai_msgs::MultiRectangles &message);
 };
 
 #endif //APP_COMMUNICATION_PUBLISHINNERMANAGER_H

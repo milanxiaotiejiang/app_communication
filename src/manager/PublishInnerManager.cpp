@@ -29,6 +29,7 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     acceptAppSchedule = handle.advertise<std_msgs::String>("/app_schedule", 1);
     pub_collect_dust = handle.advertise<std_msgs::Int32>("/collect_dust", 1);
     pub_maintenance_mode = handle.advertise<std_msgs::Int32>("/maintenance_mode", 1);
+    pub_detection = handle.advertise<ai_msgs::MultiRectangles>("/detection_results", 1);
 }
 
 void PublishInnerManager::publishPushMode(const std_msgs::Int32 &message) const {
@@ -132,4 +133,8 @@ void PublishInnerManager::publishCollectDust() const {
 
 void PublishInnerManager::publishMaintenanceMode(const std_msgs::Int32 &message) const {
     pub_maintenance_mode.publish(message);
+}
+
+void PublishInnerManager::pubDetection(const ai_msgs::MultiRectangles &message) {
+    pub_detection.publish(message);
 }

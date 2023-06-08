@@ -53,6 +53,7 @@ find_package(catkin REQUIRED COMPONENTS
         eigen_conversions
         replan_msgs
         back_charge_msgs
+        ai_msgs
         )
 
 catkin_package(
