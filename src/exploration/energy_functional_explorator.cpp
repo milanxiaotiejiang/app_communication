@@ -10,6 +10,8 @@
 
 static bool DISPLAY_TRAJECTORY = false;
 
+#define APPROX_EPSILON_ENERGY_FUNCTIONAL 1
+
 EnergyFunctionalExplorator::EnergyFunctionalExplorator() {
 
 }
@@ -48,11 +50,51 @@ double EnergyFunctionalExplorator::E(const EnergyExploratorNode &location,
     return energy_functional;
 }
 
+std::vector<cv::Point>
+EnergyFunctionalExplorator::splitPoints(const cv::Point &p1, const cv::Point &p2, double distance) {
+    std::vector<cv::Point> split;
+
+    double dx = p2.x - p1.x;
+    double dy = p2.y - p1.y;
+    double dist = std::sqrt(dx * dx + dy * dy);
+    int numPoints = std::ceil(dist / distance);
+
+    for (int i = 0; i <= numPoints; ++i) {
+        double t = static_cast<double>(i) / numPoints;
+        double x = p1.x + t * dx;
+        double y = p1.y + t * dy;
+        split.emplace_back(x, y);
+    }
+
+    return split;
+}
+
+void EnergyFunctionalExplorator::splitPointsIfNeeded(const std::vector<cv::Point> &ins, std::vector<cv::Point> &outs,
+                                                     double distance) {
+    for (size_t i = 0; i < ins.size() - 1; ++i) {
+        const cv::Point &currentPoint = ins[i];
+        const cv::Point &nextPoint = ins[i + 1];
+
+        double dx = nextPoint.x - currentPoint.x;
+        double dy = nextPoint.y - currentPoint.y;
+        double dist = std::sqrt(dx * dx + dy * dy);
+
+        if (dist > distance) {
+            std::vector<cv::Point> interpolatedPoints = splitPoints(currentPoint, nextPoint, distance);
+            outs.insert(outs.end(), interpolatedPoints.begin(), interpolatedPoints.end());
+        } else {
+            outs.push_back(currentPoint);
+        }
+    }
+    outs.push_back(ins.back());
+}
+
 void
 EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
                                                std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
-                                               const float map_resolution, const cv::Point starting_position,
-                                               const cv::Point2d map_origin, const double grid_spacing_in_pixel) {
+                                               const float map_resolution, const cv::Point &starting_position,
+                                               const cv::Point2d &map_origin, const double grid_spacing_in_pixel,
+                                               const double path_eps, bool interpolation_operation) {
 
     LOG(INFO) << "Planning the boustrophedon path trough the room.";
 
@@ -262,9 +304,22 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
         last_node = next_node;
     } while (true);
 
-    std::vector<geometry_msgs::Pose2D> fov_poses;
+    std::vector<cv::Point> approx_list;
+    cv::approxPolyDP(fov_coverage_path, approx_list, APPROX_EPSILON_ENERGY_FUNCTIONAL, false);
 
-    room_rotation.transformPathBackToOriginalRotation(fov_coverage_path, fov_poses, R);
+    std::vector<cv::Point> split_list;
+    if (interpolation_operation) {
+        splitPointsIfNeeded(approx_list, split_list, static_cast<int>(std::floor(path_eps)));
+    } else {
+        split_list.insert(split_list.end(), approx_list.begin(), approx_list.end());
+    }
+
+    std::vector<cv::Point2f> fov_middlepoint_path_part;
+    for (std::vector<cv::Point>::iterator point = split_list.begin(); point != split_list.end(); ++point)
+        fov_middlepoint_path_part.push_back(cv::Point2f(point->x, point->y));
+
+    std::vector<geometry_msgs::Pose2D> fov_poses;
+    room_rotation.transformPathBackToOriginalRotation(fov_middlepoint_path_part, fov_poses, R);
 
     for (std::vector<geometry_msgs::Pose2D>::iterator pose = fov_poses.begin(); pose != fov_poses.end(); ++pose) {
         geometry_msgs::Pose2D current_pose;

@@ -58,6 +58,12 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case SAVE_MAP_:
             messageStrategy = new SaveMapStrategy();
             break;
+        case START_MAP:
+            messageStrategy = new StartMapStrategy();
+            break;
+        case END_MAP:
+            messageStrategy = new EndMapStrategy();
+            break;
         case GET_MULTI_MAPS_:
             messageStrategy = new GetMultiMapsStrategy();
             break;
@@ -322,6 +328,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case DELETE_TASK:
             messageStrategy = new DeleteTaskStrategy();
             break;
+        case DELETE_MULTIPLE_TASK:
+            messageStrategy = new DeleteMultipleTaskStrategy();
+            break;
         case LIST_TASK:
             messageStrategy = new ListTaskStrategy();
             break;
@@ -382,6 +391,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case DELETE_TIMER_TASK:
             messageStrategy = new DeleteTimerTaskStrategy();
+            break;
+        case DELETE_MULTIPLE_TIMER_TASK:
+            messageStrategy = new DeleteMultipleTimerTaskStrategy();
             break;
         case LIST_TIMER_TASK:
             messageStrategy = new ListTimerTaskStrategy();

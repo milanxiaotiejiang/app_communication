@@ -11,6 +11,66 @@
 
 using json = nlohmann::json;
 
+class MapParam {
+private:
+    bool save;
+    bool reset;
+public:
+    MapParam();
+
+    MapParam(bool save, bool reset);
+
+    bool isSave() const;
+
+    void setSave(bool save);
+
+    bool isReset() const;
+
+    void setReset(bool reset);
+
+    friend void to_json(json &j, const MapParam &b) {
+        j = json{
+                {"save",  b.save},
+                {"reset", b.reset},
+        };
+    }
+
+    friend void from_json(const json &j, MapParam &b) {
+        j.at("save").get_to(b.save);
+        j.at("reset").get_to(b.reset);
+    }
+};
+
+class MapScore {
+private:
+    std::string id;//real id
+    double score;
+public:
+    MapScore();
+
+    MapScore(const std::string &id, double score);
+
+    const std::string &getId() const;
+
+    void setId(const std::string &id);
+
+    double getScore() const;
+
+    void setScore(double score);
+
+    friend void to_json(json &j, const MapScore &b) {
+        j = json{
+                {"id",    b.id},
+                {"score", b.score},
+        };
+    }
+
+    friend void from_json(const json &j, MapScore &b) {
+        j.at("id").get_to(b.id);
+        j.at("score").get_to(b.score);
+    }
+};
+
 class MapInfo {
 private:
     int map_id;

@@ -74,16 +74,16 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        generatePlanningPathFull(map, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
-                                 exploration_path, point_path, complex_path);
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        generatePlanningPathFull(map, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
+//                                 exploration_path, point_path, complex_path);
     }
 
     //4
     if (DISPLAY_TRAJECTORY_EFFECT) {
 //        try {
 //            const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//            infinitelyNearBoundary(map, exploration_path, point_path, complex_path);
+//            infinitelyNearBoundary(map, true, exploration_path, point_path, complex_path);
 //        } catch (...) {
 //
 //        }
@@ -201,16 +201,12 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
             throw app::exception(make_error_code(error::exploration_obstacles_around_the_base_station));
         }
         explorationErode(map, map, cv::MORPH_CROSS, map_prohibition_expand_size_);
-
-        morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
     } else if (model == ExplorationModel::SUB) {
         cv::Mat generate_map = loadGenerateMap((int) std::floor(grid_spacing_in_pixel));
         cv::Mat temp;
         cv::bitwise_xor(map, generate_map, temp);
         cv::bitwise_and(map, temp, temp);
         cv::bitwise_xor(map, temp, map);
-
-        morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
     } else if (model == ExplorationModel::RECT) {
         cv::Mat generate_map = loadGenerateMap((int) std::floor(grid_spacing_in_pixel));
         min_cell_area_ = 0;
@@ -218,7 +214,15 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
         cv::bitwise_xor(map, generate_map, temp);
         cv::bitwise_and(map, temp, temp);
         cv::bitwise_xor(map, temp, map);
+
+        cv::dilate(map, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size * 2);
+
+        cv::Mat dst;
+        cv::resize(map, dst, cv::Size(), 2.0, 2.0, CV_INTER_LINEAR);
+        cv::GaussianBlur(dst, dst, cv::Size(5, 5), 0, 0);
+        cv::resize(dst, map, map.size(), 0, 0, CV_INTER_LINEAR);
     }
+    morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
 
     drawBaseStation(map, stationPoint, grid_spacing_in_pixel + plan.range_near_base_station, cv::Scalar(0));
     findBaseNearReachable(map, robotPosition, (int) (grid_spacing_in_pixel * 2 + plan.range_near_base_station));
@@ -249,12 +253,13 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
                                                   map_resolution_from_subscription, robotPosition, map_origin,
                                                   grid_spacing_in_pixel, grid_obstacle_offset_,
                                                   path_eps_, min_cell_area_, max_deviation_from_track_,
-                                                  TSP_NEAREST_NEIGHBOR, explorer_mode);
+                                                  TSP_NEAREST_NEIGHBOR, explorer_mode, INTERPOLATION_OPERATION);
     } else if (explorer_mode == ENERGY_FUNCTIONAL_EXPLORER_MODE) {
         EnergyFunctionalExplorator energy_functional_explorer;
         energy_functional_explorer.getExplorationPath(latelyMap, exploration_path, complex_path,
                                                       map_resolution_from_subscription,
-                                                      robotPosition, map_origin, grid_spacing_in_pixel);
+                                                      robotPosition, map_origin, grid_spacing_in_pixel,
+                                                      path_eps_, INTERPOLATION_OPERATION);
     }
 
 
@@ -465,7 +470,8 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, bool add
                                               multiple_contour_spacing,
                                               random_number_generation_ratio,
                                               boundary_min_area,
-                                              path_eps_
+                                              path_eps_,
+                                              INTERPOLATION_OPERATION
     );
 
     int end_time = ros::Time::now().sec;

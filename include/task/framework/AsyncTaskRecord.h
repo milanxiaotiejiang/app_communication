@@ -70,6 +70,10 @@ protected:
 
     bool isPreparation(event::flow flow);
 
+    bool isPreCompleted(event::flow flow);
+
+    bool isMechanismReady(event::flow flow);
+
     bool isFlowingWater(event::flow flow);
 
     bool isReturningBase(event::flow flow);

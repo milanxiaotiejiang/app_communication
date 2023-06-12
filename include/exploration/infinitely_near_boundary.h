@@ -16,7 +16,7 @@ private:
 
     std::vector<Point2D> splitPoints(const Point2D &p1, const Point2D &p2, double distance);
 
-    std::vector<Point2D> splitPointsIfNeeded(const std::vector<Point2D> &points, double distance);
+    void splitPointsIfNeeded(const std::vector<Point2D> &points, std::vector<Point2D> &results, double distance);
 
     std::vector<geometry_msgs::Pose2D> transformPointPathToPosePath(const std::vector<Point2D> &point_path);
 
@@ -35,7 +35,8 @@ public:
                             const int multiple_contour_spacing,
                             const int random_number_generation_ratio,
                             const int boundary_min_area,
-                            const double path_eps);
+                            const double path_eps,
+                            bool interpolation_operation);
 
     void boundary_distance(const cv::Mat &original_map, const std::vector<cv::Point2f> &points,
                            const std::string &name) const;

@@ -17,6 +17,95 @@
 #include <cppfs/fs.h>
 #include <cppfs/FileHandle.h>
 #include "exploration/tcr.h"
+#include "task/manager/manual.h"
+#include "task/manager/NodeWorkModeManager.h"
+
+string StartMapStrategy::handler(string params) {
+    if (!ZooInnerStatus::instance().getIsCharging()) {
+        throw app::exception(make_error_code(error::Please_ensure_to_start_end_the_mapping_at_the_base_station));
+    }
+    if (ManualManager::instance().taskRunning()) {
+        throw app::exception(make_error_code(error::current_in_task));
+    }
+    if (!NodeWorkModeManager::instance().enterWorkMode(0)) {
+        throw app::exception(make_error_code(error::mode_switching_is_not_supported));
+    }
+
+    HotWindNoteSingleton::instance().closeHotWind();
+
+    std_msgs::Int32 map_start;
+    map_start.data = 2;
+    PublishInnerManager::instance().publishManualPush(map_start);
+
+    return "";
+}
+
+MapScore EndMapStrategy::handler(MapParam params) {
+    // 根据电量判断是否在基站，不在基站不处理开始/结束建图
+    if (!ZooInnerStatus::instance().getIsCharging()) {
+        throw app::exception(make_error_code(error::the_map_needs_to_be_saved_at_the_base_station_location));
+    }
+    // 电机失能
+    std_msgs::Int32 map_start;
+    map_start.data = 0;
+    PublishInnerManager::instance().publishManualPush(map_start);
+    // 最终结果，包含建图地图评分
+    MapScore mapScore;
+
+    if (params.isSave()) {
+        //关键 保存地图
+        if (!MapAttribute::instance().saveMap()) {
+            throw app::exception(make_error_code(error::create_map_fail));
+        }
+        // 更新本地内存中数据，单地图其实没必要更新
+        SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id, "default");
+        //是否重置禁行区、任务等
+        if (params.isReset()) {
+            // 在此地图下，移除分区、与分区关联的任务
+            SegmentationDataBase::instance().removeAllRoom(SegmentationDataBase::instance().getDbMap().id);
+            // 在此地图下，移除所有任务，包含定时任务
+            TaskDataBase::instance().deleteTaskFoMap(SegmentationDataBase::instance().getDbMap().id);
+            // 在此地图下，重置禁行区域，并备份
+            MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true);
+            // 删除掉早期过期文件信息
+            removeAncientNeeds();
+        }
+        // 备份地图相关文件，不删除
+        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+        // 删除多个分区的相关信息
+        SegmentationCenter::instance().resetSegmentation();
+        // 重新加载基站信息
+        MapAttribute::instance().loadStation();
+        // 使用全覆盖算法快速验证地图质量
+        double proportion = tcr::coverageProportion();
+        // 设置返回的结果
+        mapScore.setId(SegmentationDataBase::instance().getDbMap().id);
+        mapScore.setScore(proportion);
+        // 发布给 move_base 最新的禁行区域
+        PublishInnerManager::instance().publishResetProhibition();
+        // 重新规划牛耕田算法的全覆盖
+        ExplorationCenter::instance().repaintCoveragePath();
+    } else {
+        // 本地的文件未变，重新更新地图信息
+        MapControl::instance().changeMapServer();
+    }
+
+    NodeWorkModeManager::instance().toSleep();
+
+    return mapScore;
+}
+
+void EndMapStrategy::removeAncientNeeds() const {
+    cppfs::FileHandle file_timer_info_json = cppfs::fs::open(
+            path::data_base_config_dir() + "timer_info_json.txt");
+    file_timer_info_json.remove();
+    cppfs::FileHandle file_view_part_principal_json = cppfs::fs::open(
+            path::data_base_config_dir() + "view_part_principal_json.txt");
+    file_view_part_principal_json.remove();
+    cppfs::FileHandle file_combination_list_principal_json_work = cppfs::fs::open(
+            path::data_base_config_dir() + "combination_list_principal_json_work.txt");
+    file_combination_list_principal_json_work.remove();
+}
 
 MapInfo SaveMapStrategy::handler(MapInfo params) {
     if (!ZooInnerStatus::instance().getIsCharging()) {

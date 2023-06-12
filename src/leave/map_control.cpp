@@ -86,6 +86,12 @@ bool MapControl::backupAndRetrieve(const string &map_id) {
     return true;
 }
 
+/**
+ * 将正在使用的禁行区文件拷贝到备份文件夹
+ * @param map_id
+ * @param retrieve 是否重置禁行区，为 true 即重置两部分的禁行区文件
+ * @return
+ */
 bool MapControl::backupProhibition(const string &map_id, bool retrieve) {
     cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + map_id + path::separator());
     if (!dir.isDirectory())
@@ -103,6 +109,12 @@ bool MapControl::backupProhibition(const string &map_id, bool retrieve) {
     return true;
 }
 
+/**
+ * 将 maps 下的四个文件备份
+ * @param map_id
+ * @param retrieve 是否删除 maps 下文件，为 true 表示删除
+ * @return
+ */
 bool MapControl::backupMap(const string &map_id, bool retrieve) {
     cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + map_id + path::separator());
     if (!dir.isDirectory())

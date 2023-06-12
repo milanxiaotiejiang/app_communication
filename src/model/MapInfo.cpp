@@ -54,3 +54,44 @@ double MapInfo::getScore() const {
 void MapInfo::setScore(double score) {
     MapInfo::score = score;
 }
+
+MapParam::MapParam() {}
+
+MapParam::MapParam(bool save, bool reset) : save(save), reset(reset) {}
+
+bool MapParam::isSave() const {
+    return save;
+}
+
+void MapParam::setSave(bool save) {
+    MapParam::save = save;
+}
+
+bool MapParam::isReset() const {
+    return reset;
+}
+
+void MapParam::setReset(bool reset) {
+    MapParam::reset = reset;
+}
+
+
+MapScore::MapScore() {}
+
+MapScore::MapScore(const std::string &id, double score) : id(id), score(score) {}
+
+const std::string &MapScore::getId() const {
+    return id;
+}
+
+void MapScore::setId(const std::string &id) {
+    MapScore::id = id;
+}
+
+double MapScore::getScore() const {
+    return score;
+}
+
+void MapScore::setScore(double score) {
+    MapScore::score = score;
+}

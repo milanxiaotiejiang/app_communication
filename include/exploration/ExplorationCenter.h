@@ -14,11 +14,13 @@
 #include "exploration_generate.h"
 #include "future/thread_pool.h"
 
-#define  EXPLORATION_THREAD_POOL_MAX_NUM 1
+#define EXPLORATION_THREAD_POOL_MAX_NUM 1
 
 const int ENERGY_FUNCTIONAL_EXPLORER_MODE = 1;
 const int BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE = 2;
 const int BOUSTROPHEDON_RETROFLEX_EXPLORER_MODE = 3;
+
+#define INTERPOLATION_OPERATION false
 
 enum ExplorationModel {
     FULL,
@@ -95,27 +97,40 @@ public:
 
     RoomCoverage obtainSubregionPath();
 
-    void infinitelyNearBoundary(const cv::Mat &room_map, bool addProhibition,
-                                std::vector<geometry_msgs::Pose2D> &pose_path, std::vector<cv::Point> &point_path,
+    void infinitelyNearBoundary(const cv::Mat &room_map,
+                                bool addProhibition,
+                                std::vector<geometry_msgs::Pose2D> &pose_path,
+                                std::vector<cv::Point> &point_path,
                                 std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
-    void generatePlanningPathRect(const cv::Mat &room_map, int explorer_mode, bool addProhibition,
-                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                  std::vector<cv::Point> &point_path,
-                                  std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
+    void
+    generatePlanningPathRect(const cv::Mat &room_map,
+                             int explorer_mode,
+                             bool addProhibition,
+                             std::vector<geometry_msgs::Pose2D> &exploration_path,
+                             std::vector<cv::Point> &point_path,
+                             std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
-    void generatePlanningPathSub(const cv::Mat &room_map, int explorer_mode, bool addProhibition,
-                                 std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                 std::vector<cv::Point> &point_path,
-                                 std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
+    void
+    generatePlanningPathSub(const cv::Mat &room_map,
+                            int explorer_mode,
+                            bool addProhibition,
+                            std::vector<geometry_msgs::Pose2D> &exploration_path,
+                            std::vector<cv::Point> &point_path,
+                            std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
-    void generatePlanningPathFull(const cv::Mat &room_map, int explorer_mode, bool addProhibition,
-                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                  std::vector<cv::Point> &point_path,
-                                  std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
+    void
+    generatePlanningPathFull(const cv::Mat &room_map,
+                             int explorer_mode,
+                             bool addProhibition,
+                             std::vector<geometry_msgs::Pose2D> &exploration_path,
+                             std::vector<cv::Point> &point_path,
+                             std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
-    void generatePlanningSegmentationPath(const cv::Mat &room_map, cv::Mat segmented_map, std::vector<Room> rooms,
-                                          int explorer_mode, bool addProhibition,
+    void generatePlanningSegmentationPath(const cv::Mat &room_map,
+                                          cv::Mat segmented_map, std::vector<Room> rooms,
+                                          int explorer_mode,
+                                          bool addProhibition,
                                           std::vector<geometry_msgs::Pose2D> &exploration_path,
                                           std::vector<cv::Point> &point_path,
                                           std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
