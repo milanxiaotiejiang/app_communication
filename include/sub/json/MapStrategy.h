@@ -21,6 +21,18 @@
 using json = nlohmann::json;
 using namespace std;
 
+class StartMapStrategy : public MessageStrategy<string, string> {
+public:
+    string handler(string params) override;
+};
+
+class EndMapStrategy : public MessageStrategy<MapParam, MapScore> {
+public:
+    MapScore handler(MapParam params) override;
+
+    void removeAncientNeeds() const;
+};
+
 class SaveMapStrategy : public MessageStrategy<MapInfo, MapInfo> {
 public:
     MapInfo handler(MapInfo params) override;

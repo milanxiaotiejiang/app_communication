@@ -207,6 +207,11 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
                                              ZooInnerStatus::instance().getAromStatus());
                 VersionSubscribe<ShowWorkStatus> statusResponse(1, status);
                 PublishOutManager::instance().publishStatus(statusResponse);
+
+                if (ZooInnerStatus::instance().getNeedSleep() && ZooInnerStatus::instance().getIsCharging()) {
+                    SwitchModePublish::instance().publish();
+                    ZooInnerStatus::instance().setNeedSleep(false);
+                }
             }
         });
         moveBaseThread.detach();

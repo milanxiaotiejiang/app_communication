@@ -32,6 +32,13 @@ string DeleteTaskStrategy::handler(long params) {
     return "";
 }
 
+string DeleteMultipleTaskStrategy::handler(std::vector<long> params) {
+    for (const auto &item: params) {
+        TaskDataBase::instance().deleteTaskFoId(item);
+    }
+    return "";
+}
+
 vector<TaskVo> ListTaskStrategy::handler(string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTaskFoMap(map.id);
@@ -63,6 +70,14 @@ long AddTimerTaskStrategy::handler(TimerVo params) {
 
 string DeleteTimerTaskStrategy::handler(long params) {
     TaskDataBase::instance().deleteTimerForId(params);
+    ScheduleManagerSingleton::instance().trigger_task_update();
+    return "";
+}
+
+string DeleteMultipleTimerTaskStrategy::handler(std::vector<long> params) {
+    for (const auto &item: params) {
+        TaskDataBase::instance().deleteTimerForId(item);
+    }
     ScheduleManagerSingleton::instance().trigger_task_update();
     return "";
 }

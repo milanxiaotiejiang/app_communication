@@ -9,6 +9,8 @@
 enum MESSAGE_ID {
     GET_DEVICE_STATUS_ = 0, //获取机器状态
     SAVE_MAP_,              //保存地图
+    START_MAP,              //保存地图
+    END_MAP,              //保存地图
     GET_MULTI_MAPS_,        //获取地图列表
     CHANGE_MAP_,            //切换地图
     MODIFY_MAP_NAME,        //修改地图名称
@@ -128,6 +130,7 @@ enum MESSAGE_ID {
 
     ADD_TASK,
     DELETE_TASK,
+    DELETE_MULTIPLE_TASK,
     LIST_TASK,
     QUERY_ID_TASK,
 
@@ -151,6 +154,7 @@ enum MESSAGE_ID {
 
     ADD_TIMER_TASK,
     DELETE_TIMER_TASK,
+    DELETE_MULTIPLE_TIMER_TASK,
     LIST_TIMER_TASK,
     MODIFY_TIMER_TASK,
     MODIFY_TIMER_NAME,

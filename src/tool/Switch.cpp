@@ -36,6 +36,12 @@ int switch_ID(const std::string &str) {
     if (str == "save_map") {
         return SAVE_MAP_;
     }
+    if (str == "start_map") {
+        return START_MAP;
+    }
+    if (str == "end_map") {
+        return END_MAP;
+    }
     if (str == "get_multi_maps") {
         return GET_MULTI_MAPS_;
     }
@@ -322,6 +328,9 @@ int switch_ID(const std::string &str) {
     if (str == "delete_task") {
         return DELETE_TASK;
     }
+    if (str == "delete_multiple_task") {
+        return DELETE_MULTIPLE_TASK;
+    }
     if (str == "list_task") {
         return LIST_TASK;
     }
@@ -381,6 +390,9 @@ int switch_ID(const std::string &str) {
     }
     if (str == "delete_timer_task") {
         return DELETE_TIMER_TASK;
+    }
+    if (str == "delete_multiple_timer_task") {
+        return DELETE_MULTIPLE_TIMER_TASK;
     }
     if (str == "list_timer_task") {
         return LIST_TIMER_TASK;

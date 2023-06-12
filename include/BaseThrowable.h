@@ -130,7 +130,8 @@ namespace error {
         no_run_task,
         dispatcher_maintenance_mode,
         map_creation_needs_to_start_at_the_base_station,
-        the_map_needs_to_be_saved_at_the_base_station_location
+        the_map_needs_to_be_saved_at_the_base_station_location,
+        Please_ensure_to_start_end_the_mapping_at_the_base_station
     };// enum value
 
     class category : public std::error_category {
@@ -371,6 +372,8 @@ namespace error {
                     return "请在基站创建地图";
                 case error::the_map_needs_to_be_saved_at_the_base_station_location:
                     return "地图保存需要在基站位置";
+                case error::Please_ensure_to_start_end_the_mapping_at_the_base_station:
+                    return "开始 / 结束建图请保证在基站";
                 default:
                     return "Unknown";
             }
