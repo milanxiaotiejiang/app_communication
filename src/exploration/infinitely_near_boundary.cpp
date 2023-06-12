@@ -14,6 +14,8 @@
 
 #define random(a, b) (rand() % (b - a) + a)
 
+#define APPROX_EPSILON_INFINITELY 0.5
+
 static bool DISPLAY_TRAJECTORY = false;
 static bool BOUNDARY_DISTANCE = false;
 
@@ -31,7 +33,8 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
                                                 const int multiple_contour_spacing,
                                                 const int random_number_generation_ratio,
                                                 const int boundary_min_area,
-                                                const double path_eps) {
+                                                const double path_eps,
+                                                bool interpolation_operation) {
 
     double grid_spacing_in_meter = robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution;
@@ -307,7 +310,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
 
         // OpenCv
         std::vector<cv::Point2f> list;
-        cv::approxPolyDP(middle_complex, list, 0.5, false);
+        cv::approxPolyDP(middle_complex, list, APPROX_EPSILON_INFINITELY, false);
         boundary_distance(original_map, list, "抽希");
 
         std::vector<Point2D> points;
@@ -326,8 +329,13 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
 //
 //        std::vector<Point2D> points(list.begin(), list.end());
 
-        const std::vector<Point2D> &neededPoints = splitPointsIfNeeded(points, path_eps_distance);
-        boundary_distance(original_map, neededPoints, "插值");
+        std::vector<Point2D> neededPoints;
+        if (interpolation_operation) {
+            splitPointsIfNeeded(points, neededPoints, path_eps_distance);
+            boundary_distance(original_map, neededPoints, "插值");
+        } else {
+            neededPoints.insert(neededPoints.end(), points.begin(), points.end());
+        }
 
         std::vector<geometry_msgs::Pose2D> complex_poses = transformPointPathToPosePath(neededPoints);
 
@@ -479,8 +487,10 @@ std::vector<Point2D> InfinitelyNearBoundary::splitPoints(const Point2D &p1, cons
     return split;
 }
 
-std::vector<Point2D> InfinitelyNearBoundary::splitPointsIfNeeded(const std::vector<Point2D> &points, double distance) {
-    std::vector<Point2D> results;
+void InfinitelyNearBoundary::splitPointsIfNeeded(const std::vector<Point2D> &points,
+                                                 std::vector<Point2D>& results,
+                                                 double distance) {
+
 
     for (size_t i = 0; i < points.size() - 1; ++i) {
         const Point2D &currentPoint = points[i];
@@ -500,5 +510,4 @@ std::vector<Point2D> InfinitelyNearBoundary::splitPointsIfNeeded(const std::vect
 
     results.push_back(points.back());
 
-    return results;
 }

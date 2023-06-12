@@ -17,6 +17,8 @@
 static bool DISPLAY_TRAJECTORY = false;
 static bool DISPLAY_TRAJECTORY_RESULT = false;
 
+#define APPROX_EPSILON_BOUSTROPHEDON 1
+
 /**
  *
  * @param room_map
@@ -36,7 +38,7 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
                                                const cv::Point2d &map_origin, const double grid_spacing_in_pixel,
                                                const double grid_obstacle_offset, const double path_eps,
                                                const double min_cell_area, const int max_deviation_from_track,
-                                               int tsp_solver, int explorer_mode) {
+                                               int tsp_solver, int explorer_mode, bool interpolation_operation) {
 
     LOG(INFO) << "Planning the boustrophedon path trough the room.";
 
@@ -152,12 +154,14 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
             computeBoustrophedonPath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
                                      fov_middlepoint_path, complex_middle_path,
                                      robot_pos, grid_spacing_as_int, half_grid_spacing_as_int, path_eps,
-                                     max_deviation_from_track, grid_obstacle_offset / map_resolution);
+                                     max_deviation_from_track, grid_obstacle_offset / map_resolution,
+                                     interpolation_operation);
         } else if (explorer_mode == BOUSTROPHEDON_RETROFLEX_EXPLORER_MODE) {
             computeRectangularAmbulatoryPlanePath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
                                                   fov_middlepoint_path, complex_middle_path,
                                                   robot_pos, grid_spacing_as_int, half_grid_spacing_as_int, path_eps,
-                                                  max_deviation_from_track, grid_obstacle_offset / map_resolution);
+                                                  max_deviation_from_track, grid_obstacle_offset / map_resolution,
+                                                  interpolation_operation);
         }
     }
 
@@ -463,7 +467,7 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
                                                      cv::Point &robot_pos,//当前点，在每一次执行完都会修改该点数据
                                                      const int grid_spacing_as_int, const int half_grid_spacing_as_int,
                                                      const double path_eps, const int max_deviation_from_track,
-                                                     const int grid_obstacle_offset) {
+                                                     const int grid_obstacle_offset, bool interpolation_operation) {
 
     //cv::Mat &room_map 地图原始数据
 
@@ -666,8 +670,18 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
         cv::waitKey();
     }
 
+    std::vector<cv::Point> approx_list;
+    cv::approxPolyDP(current_fov_path, approx_list, APPROX_EPSILON_BOUSTROPHEDON, false);
+
+    std::vector<cv::Point> split_list;
+    if (interpolation_operation) {
+        splitPointsIfNeeded(approx_list, split_list, static_cast<int>(std::floor(path_eps)));
+    } else {
+        split_list.insert(split_list.end(), approx_list.begin(), approx_list.end());
+    }
+
     std::vector<cv::Point2f> fov_middlepoint_path_part;
-    for (std::vector<cv::Point>::iterator point = current_fov_path.begin(); point != current_fov_path.end(); ++point)
+    for (std::vector<cv::Point>::iterator point = split_list.begin(); point != split_list.end(); ++point)
         fov_middlepoint_path_part.push_back(cv::Point2f(point->x, point->y));
     cv::transform(fov_middlepoint_path_part, fov_middlepoint_path_part, R_cell_inv);
 
@@ -701,7 +715,8 @@ void BoustrophedonExplorer::computeRectangularAmbulatoryPlanePath(const cv::Mat 
                                                                   const int half_grid_spacing_as_int,
                                                                   const double path_eps,
                                                                   const int max_deviation_from_track,
-                                                                  const int grid_obstacle_offset) {
+                                                                  const int grid_obstacle_offset,
+                                                                  bool interpolation_operation) {
     cv::Mat cell_map;//分区后的片段图，位置为 y 轴方向为图像大小，x 轴方向为在原图中大小
     cell.drawPolygon(cell_map, cv::Scalar(255));
 
@@ -764,12 +779,17 @@ void BoustrophedonExplorer::computeRectangularAmbulatoryPlanePath(const cv::Mat 
     LOG(INFO) << "地图 " << mat.cols << "x" << mat.rows << ", 起始点为 (" << start_x << ", " << start_y << ")";
     vm.generatePath(mat, voronoi_path, cv::Mat(), start_x, start_y);
 
-    std::vector<cv::Point> list;
-    cv::approxPolyDP(voronoi_path, list, 0.5, false);
-    std::vector<cv::Point> current_fov_path;
-    splitPointsIfNeeded(voronoi_path, current_fov_path, static_cast<int>(std::floor(path_eps)));
+    std::vector<cv::Point> approx_list;
+    cv::approxPolyDP(voronoi_path, approx_list, APPROX_EPSILON_BOUSTROPHEDON, false);
 
-    cv::Point cell_robot_pos = current_fov_path[current_fov_path.size() - 1];
+    std::vector<cv::Point> split_list;
+    if (interpolation_operation) {
+        splitPointsIfNeeded(approx_list, split_list, static_cast<int>(std::floor(path_eps)));
+    } else {
+        split_list.insert(split_list.end(), approx_list.begin(), approx_list.end());
+    }
+
+    cv::Point cell_robot_pos = split_list[split_list.size() - 1];
 
 
     // 通过腐蚀+边界查找实现回字形规划路径
@@ -802,7 +822,7 @@ void BoustrophedonExplorer::computeRectangularAmbulatoryPlanePath(const cv::Mat 
 //    }
 
     std::vector<cv::Point2f> fov_middlepoint_path_part;
-    for (std::vector<cv::Point>::iterator point = current_fov_path.begin(); point != current_fov_path.end(); ++point)
+    for (std::vector<cv::Point>::iterator point = split_list.begin(); point != split_list.end(); ++point)
         fov_middlepoint_path_part.push_back(cv::Point2f(point->x, point->y));
     cv::transform(fov_middlepoint_path_part, fov_middlepoint_path_part, R_cell_inv);
 

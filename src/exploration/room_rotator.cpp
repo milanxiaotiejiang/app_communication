@@ -5,12 +5,21 @@
 #include "exploration/room_rotator.h"
 #include "glog/logging.h"
 #include "exploration/histogram.h"
+#include "exploration/cv_extend.h"
 
 static bool DISPLAY_ROOM_ROTATOR = false;
 
 void RoomRotator::rotateRoom(const cv::Mat &room_map, cv::Mat &rotated_room_map, const cv::Mat &R,
                              const cv::Rect &bounding_rect) {
     cv::warpAffine(room_map, rotated_room_map, R, bounding_rect.size(), cv::INTER_AREA);
+
+//    cv::Mat dst;
+//    cv::pyrDown(rotated_room_map, dst, cv::Size(rotated_room_map.cols / 2, rotated_room_map.rows / 2));
+//    cv::pyrUp(dst, rotated_room_map, rotated_room_map.size());
+//    cv::resize(rotated_room_map, dst, cv::Size(), 2.0, 2.0, CV_INTER_LINEAR);
+//    cv::GaussianBlur(dst, dst, cv::Size(3, 3), 0, 0);
+//    cv::resize(dst, rotated_room_map, rotated_room_map.size(), 2.0, 2.0, CV_INTER_LINEAR);
+
     cv::threshold(rotated_room_map, rotated_room_map, 127, 255, CV_THRESH_BINARY);
 }
 
