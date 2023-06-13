@@ -130,7 +130,7 @@ public:
                                        make_column("multiple_contour", &PlanPo::multiple_contour_spacing),
                                        make_column("random_ratio", &PlanPo::random_number_generation_ratio),
                                        make_column("boundary_min_area", &PlanPo::boundary_min_area),
-                                       make_column("version", &PlanPo::version, default_value(1))
+                                       make_column("version", &PlanPo::version, default_value(CURRENT_PLAN_VERSION))
                             )
         );
 
@@ -222,7 +222,9 @@ public:
                                                    default_value(0L)),
                                        make_column("disinfect_use", &Consumable::disinfect_use,
                                                    default_value(0L)
-                                       )
+                                       ),
+                                       make_column("version", &Consumable::version,
+                                                   default_value(CURRENT_CONSUMABLE_VERSION))
                             )
         );
     }
