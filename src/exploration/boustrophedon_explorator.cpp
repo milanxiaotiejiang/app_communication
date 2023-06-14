@@ -149,7 +149,9 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
 
     std::vector<cv::Point2f> fov_middlepoint_path;
     std::vector<std::vector<cv::Point2f>> complex_middle_path;
+    std::cout << "planned speed " << cell_polygons.size() << " " << std::flush;
     for (size_t cell = 0; cell < cell_polygons.size(); ++cell) {
+        std::cout << "." << std::flush;
         if (explorer_mode == BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE) {
             computeBoustrophedonPath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
                                      fov_middlepoint_path, complex_middle_path,
@@ -164,6 +166,7 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
                                                   interpolation_operation);
         }
     }
+    std::cout << std::endl;
 
     if (fov_middlepoint_path.empty()) {
         LOG(ERROR) << "Warning: there are no accessible points in this room.";

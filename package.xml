@@ -29,6 +29,8 @@
     <build_depend>roslib</build_depend>
     <build_depend>zoo_bringup</build_depend>
     <build_depend>clean_msgs</build_depend>
+    <build_depend>back_charge_msgs</build_depend>
+    <build_depend>ai_msgs</build_depend>
 
     <build_export_depend>message_generation</build_export_depend>
     <build_export_depend>roscpp</build_export_depend>
@@ -42,6 +44,8 @@
     <build_export_depend>core_move</build_export_depend>
     <build_export_depend>nav_msgs</build_export_depend>
     <build_export_depend>zoo_bringup</build_export_depend>
+    <build_export_depend>back_charge_msgs</build_export_depend>
+    <build_export_depend>ai_msgs</build_export_depend>
 
     <exec_depend>message_runtime</exec_depend>
     <exec_depend>roscpp</exec_depend>
@@ -57,6 +61,8 @@
     <exec_depend>roslib</exec_depend>
     <exec_depend>zoo_bringup</exec_depend>
     <exec_depend>clean_msgs</exec_depend>
+    <exec_depend>back_charge_msgs</exec_depend>
+    <exec_depend>ai_msgs</exec_depend>
 
     <!-- The export tag contains other, unspecified, tags -->
     <export>
