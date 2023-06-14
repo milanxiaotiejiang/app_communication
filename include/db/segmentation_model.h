@@ -108,6 +108,9 @@ max_area_for_merging: 12.5              #应与其周围房间合并的房间的
     const int random_number_generation_ratio_ = 100;
     const int boundary_min_area_ = 1;
  */
+
+const int CURRENT_PLAN_VERSION = 3;
+
 class PlanPo {
 public:
     std::string map_id;

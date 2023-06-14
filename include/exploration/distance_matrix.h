@@ -45,12 +45,13 @@ public:
         cv::Mat downsampled_map;
         path_planner.downsampleMap(original_map, downsampled_map, downsampling_factor, robot_radius, map_resolution);
 
-        if (points.size() > 500)
-            std::cout
-                    << "0         10        20        30        40        50        60        70        80        90        100"
-                    << std::endl;
+//        if (points.size() > 500)
+//            std::cout
+//                    << "0         10        20        30        40        50        60        70        80        90        100"
+//                    << std::endl;
+        std::cout << "matrix speed " << points.size() << " " << std::flush;
         for (int i = 0; i < points.size(); i++) {
-            if (points.size() > 500 && i % (std::max(1, (int) points.size() / 100)) == 0)
+//            if (points.size() > 500 && i % (std::max(1, (int) points.size() / 100)) == 0)
                 std::cout << "." << std::flush;
             for (int j = 0; j < points.size(); j++) {
                 if (j != i) {
