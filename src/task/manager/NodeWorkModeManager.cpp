@@ -227,6 +227,70 @@ void NodeWorkModeManager::forceToMap() {
     }
 }
 
+bool NodeWorkModeManager::tryToSleep() {
+    std::unique_lock<std::mutex> lock(cv_mut);
+
+    if (nowWorkMode() == WorkMode::SLEEPING) {
+        LOG(INFO) << "NodeWorkModeManager 已经为 sleep 模式，无需再次进入 ... ";
+        return true;
+    }
+    if (nowWorkMode() == WorkMode::MAPPING || nowWorkMode() == WorkMode::WORKING) {
+        asyncWorkMode(WorkMode::SLEEPING);
+
+        std::condition_variable wait_cv;
+        std::mutex wait_mutex;
+
+        NodeControl::instance().asyncOn([this, &wait_cv]() {
+            int counter = 0;
+            while (counter < MAXIMUM_TIME_LIMIT_FOR_QUICK_EXIT) {
+                sleep(1);
+                counter++;
+                int work_mode = -1;
+                if (nowWorkMode() == WorkMode::MAPPING) {
+                    work_mode = 0;
+                } else if (nowWorkMode() == WorkMode::WORKING) {
+                    work_mode = 2;
+                }
+                ros::param::get("/node_controller/work_mode", work_mode);
+                if (work_mode == 1) {
+                    LOG(INFO) << "NodeWorkModeManager 检测到已经切换为 sleep 模式了 ... ";
+                    counter = MAXIMUM_TIME_LIMIT_FOR_QUICK_EXIT;
+                    wait_cv.notify_one();
+                }
+            }
+        });
+
+        std::unique_lock<std::mutex> lck(wait_mutex);
+        if (wait_cv.wait_for(lck,
+                             std::chrono::seconds(MAXIMUM_LIMIT_TIME_OF_TIMEOUT)
+        ) == std::cv_status::timeout) {
+            LOG(INFO) << "NodeWorkModeManager 切换 sleep 模式超时，进入再次确认 ... ";
+            int work_mode = -1;
+            if (nowWorkMode() == WorkMode::MAPPING) {
+                work_mode = 0;
+            } else if (nowWorkMode() == WorkMode::WORKING) {
+                work_mode = 2;
+            }
+            ros::param::get("/node_controller/work_mode", work_mode);
+            return work_mode == 1;
+        }
+        return true;
+    }
+    return false;
+
+
+    bool end_loop = false;
+    while (!end_loop) {
+        bool start_finish = false;
+        ros::param::get("/node_controller/start_finish", start_finish);
+        if (start_finish)
+            end_loop = true;
+        sleep(1);
+    }
+
+    return false;
+}
+
 void NodeWorkModeManager::toSleep() {
     asyncWorkMode(WorkMode::SLEEPING);
 }
