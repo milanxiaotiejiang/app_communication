@@ -50,18 +50,17 @@ MapScore EndMapStrategy::handler(MapParam params) {
             throw app::exception(make_error_code(error::quit_map_needs_to_be_saved_at_the_base_station_location));
         }
     }
-    if (Variable::get_instance()->getMapApp().info.width *
-        Variable::get_instance()->getMapApp().info.height < 6000) {//41*118
-        throw app::exception(make_error_code(error::area_too_small));
-    }
     // 电机失能
     std_msgs::Int32 map_start;
     map_start.data = 0;
     PublishInnerManager::instance().publishManualPush(map_start);
     // 最终结果，包含建图地图评分
     MapScore mapScore;
-
     if (params.isSave()) {
+        if (Variable::get_instance()->getMapApp().info.width *
+            Variable::get_instance()->getMapApp().info.height < 6000) {//41*118
+            throw app::exception(make_error_code(error::area_too_small));
+        }
         //关键 保存地图
         if (!MapAttribute::instance().saveMap()) {
             bool isToSleep = NodeWorkModeManager::instance().tryToSleep();
