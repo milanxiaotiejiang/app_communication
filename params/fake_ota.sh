@@ -103,7 +103,7 @@ function update_cartographer_launch
 {
   echo "Upgrading cartographer.launch"
   rm $carto_launch_dir/cartographer.launch
-  cp $carto_launch_dir/cartographer.launch $carto_launch_dir
+  cp $carto_source_dir/cartographer.launch $carto_launch_dir
 }
 
 #env
