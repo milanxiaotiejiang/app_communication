@@ -88,7 +88,7 @@ void TaskDispatcher::dispatcherTask(RealTask &realTask) {
 
     LOG(INFO) << " 验证覆盖点位个数为 : " << coverage.getPoseList().size() << " , 此任务验证可以通过 ... ";
 
-    asyncTaskCall->executeOneTask(realTask);
+//    asyncTaskCall->executeOneTask(realTask);
 
     realTask.setVerifyMode(false);
     transferCollection.add(realTask);
