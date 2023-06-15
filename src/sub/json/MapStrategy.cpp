@@ -19,10 +19,11 @@
 #include "exploration/tcr.h"
 #include "task/manager/manual.h"
 #include "task/manager/NodeWorkModeManager.h"
+#include "tool/Variable.h"
 
 string StartMapStrategy::handler(string params) {
     if (!ZooInnerStatus::instance().getIsCharging()) {
-        throw app::exception(make_error_code(error::Please_ensure_to_start_end_the_mapping_at_the_base_station));
+        throw app::exception(make_error_code(error::please_ensure_to_start_end_the_mapping_at_the_base_station));
     }
     if (ManualManager::instance().taskRunning()) {
         throw app::exception(make_error_code(error::current_in_task));
@@ -43,7 +44,11 @@ string StartMapStrategy::handler(string params) {
 MapScore EndMapStrategy::handler(MapParam params) {
     // 根据电量判断是否在基站，不在基站不处理开始/结束建图
     if (!ZooInnerStatus::instance().getIsCharging()) {
-        throw app::exception(make_error_code(error::the_map_needs_to_be_saved_at_the_base_station_location));
+        if (params.isSave()) {
+            throw app::exception(make_error_code(error::the_map_needs_to_be_saved_at_the_base_station_location));
+        } else {
+            throw app::exception(make_error_code(error::quit_map_needs_to_be_saved_at_the_base_station_location));
+        }
     }
     // 电机失能
     std_msgs::Int32 map_start;
@@ -51,11 +56,21 @@ MapScore EndMapStrategy::handler(MapParam params) {
     PublishInnerManager::instance().publishManualPush(map_start);
     // 最终结果，包含建图地图评分
     MapScore mapScore;
-
     if (params.isSave()) {
+        if (Variable::get_instance()->getMapApp().info.width *
+            Variable::get_instance()->getMapApp().info.height < 6000) {//41*118
+            throw app::exception(make_error_code(error::area_too_small));
+        }
         //关键 保存地图
         if (!MapAttribute::instance().saveMap()) {
-            throw app::exception(make_error_code(error::create_map_fail));
+            bool isToSleep = NodeWorkModeManager::instance().tryToSleep();
+            MapControl::instance().loadInformation(SegmentationDataBase::instance().getDbMap().id);
+            MapControl::instance().changeMapServer();
+            if (isToSleep) {
+                throw app::exception(make_error_code(error::create_map_fail));
+            } else {
+                throw app::exception(make_error_code(error::create_map_fail_to_sleep));
+            }
         }
         // 更新本地内存中数据，单地图其实没必要更新
         SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id, "default");

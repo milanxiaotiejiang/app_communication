@@ -109,6 +109,7 @@ namespace error {
         failed_to_parse_fall_prevention_related_files,
         mode_switching_is_not_supported,
         create_map_fail,
+        create_map_fail_to_sleep,
         the_main_task_is_not_set,
         invalid_sweep_status,
         invalid_mop_status,
@@ -131,7 +132,9 @@ namespace error {
         dispatcher_maintenance_mode,
         map_creation_needs_to_start_at_the_base_station,
         the_map_needs_to_be_saved_at_the_base_station_location,
-        Please_ensure_to_start_end_the_mapping_at_the_base_station
+        quit_map_needs_to_be_saved_at_the_base_station_location,
+        please_ensure_to_start_end_the_mapping_at_the_base_station,
+        area_too_small
     };// enum value
 
     class category : public std::error_category {
@@ -328,6 +331,8 @@ namespace error {
                     return "暂不支持模式切换，请稍后调用";
                 case error::create_map_fail:
                     return "保存地图失败，请稍后调用";
+                case error::create_map_fail_to_sleep:
+                    return "保存地图失败，请重新启动";
                 case error::the_main_task_is_not_set:
                     return "The main task is not set";
                 case error::invalid_sweep_status:
@@ -372,8 +377,12 @@ namespace error {
                     return "请在基站创建地图";
                 case error::the_map_needs_to_be_saved_at_the_base_station_location:
                     return "地图保存需要在基站位置";
-                case error::Please_ensure_to_start_end_the_mapping_at_the_base_station:
+                case error::quit_map_needs_to_be_saved_at_the_base_station_location:
+                    return "请在基站位置退出建图模式";
+                case error::please_ensure_to_start_end_the_mapping_at_the_base_station:
                     return "开始 / 结束建图请保证在基站";
+                case error::area_too_small:
+                    return "建图面积过小，请重新保存";
                 default:
                     return "Unknown";
             }
