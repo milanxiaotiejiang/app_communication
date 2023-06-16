@@ -235,6 +235,7 @@ then
   update_costmap_common_params_zoo
   update_global_costmap_params
   update_local_costmap_params
+fi
 
   echo "Updating 2.0.0"
   update_costmap_common_params_zoo
@@ -243,7 +244,6 @@ then
   update_global_planner_params
   update_move_base_params
   update_move_base_launch_include
-fi
 
   echo "Updating 2.0.2"
   update_cartographer_rplidar
