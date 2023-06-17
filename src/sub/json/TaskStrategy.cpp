@@ -116,19 +116,32 @@ deque<PointProgressVo> GetFinishedPointStrategy::handler(string params) {
         if (plannerPoints.empty()) {
             continue;
         }
-        int current_step = block.already_step + block.timely_step;
-        if (current_step > plannerPoints.size()) {
-            continue;
+        if (block.arrive) {
+            for (const auto &point: plannerPoints) {
+                PointProgressVo pointProgressVo(
+                        point.realPosition.x, point.realPosition.y,
+                        point.currentStep, block.totalStep,
+                        block.currentFrequency, block.totalFrequency,
+                        block.work_status, block.mode, block.inClean,
+                        block.taskId, block.renew, block.oldTaskId, block.newTaskId);
+                finished_point_list.push_back(pointProgressVo);
+            }
+        } else {
+            int current_step = block.already_step + block.timely_step;
+            if (current_step > plannerPoints.size()) {
+                continue;
+            }
+            for (int i = 0; i < current_step; i++) {
+                auto point = plannerPoints[i];
+                PointProgressVo pointProgressVo(
+                        point.realPosition.x, point.realPosition.y,
+                        point.currentStep, block.totalStep,
+                        block.currentFrequency, block.totalFrequency,
+                        block.work_status, block.mode, block.inClean,
+                        block.taskId, block.renew, block.oldTaskId, block.newTaskId);
+                finished_point_list.push_back(pointProgressVo);
+            }
         }
-        auto point = plannerPoints[current_step];
-
-        PointProgressVo pointProgressVo(
-                point.realPosition.x, point.realPosition.y,
-                point.id, block.totalStep,
-                block.currentFrequency, block.totalFrequency,
-                block.work_status, block.mode, block.inClean,
-                block.taskId, block.renew, block.oldTaskId, block.newTaskId);
-        finished_point_list.push_back(pointProgressVo);
     }
     return finished_point_list;
 }

@@ -275,14 +275,16 @@ public:
 
     void changeArrivalStatus(const RealBlock &block) {
         bool isContains;
-        for (auto realPoint: realBlocks) {
-            if (realPoint.id == block.id) {
+        for (auto &realBlock: realBlocks) {
+            if (realBlock.id == block.id) {
+                realBlock.timely_step = block.timely_step;
+                realBlock.already_step = block.already_step;
                 isContains = true;
-                if (realPoint.arrive) {
+                if (realBlock.arrive) {
                     break;
                 } else {
                     if (block.arrive) {
-                        realPoint.arrive = block.arrive;
+                        realBlock.arrive = block.arrive;
                     }
                 }
             }

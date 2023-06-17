@@ -36,13 +36,15 @@ protected:
     static void combinationPose2RealPoint(RealTask realTask, std::vector<CombinationPoseVo> poseList,
                                           std::vector<RealBlock> &realPointList);
 
-    static bool generateRecPointListForViewPart(std::vector<Point> zoned,
-                                                std::vector<PoseVo> &pointList);
-
-    static void generateChildPointFlow(const std::vector<PoseVo> &points, std::vector<PoseVo> &cpList, float resolution_);
 
 public:
     virtual std::vector<RealBlock> taskGeneratePointList(RealTask &task) = 0;
+
+    static bool generateRecPointListForViewPart(std::vector<Point> zoned,
+                                                std::vector<PoseVo> &pointList);
+
+    static void
+    generateChildPointFlow(const std::vector<PoseVo> &points, std::vector<PoseVo> &cpList, float resolution_);
 
 };
 

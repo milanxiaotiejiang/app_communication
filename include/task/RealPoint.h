@@ -77,6 +77,8 @@ public:
 
     RealPoint() = default;
 
+    int currentStep{0};
+
 //    friend std::ostream &operator<<(std::ostream &os, const RealPoint &point) {
 //        os << "id: " << point.id << " blockId: " << point.blockId << " realProgress: " << point.realProgress;
 //        return os;

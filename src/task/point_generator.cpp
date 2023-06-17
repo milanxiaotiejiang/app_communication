@@ -113,9 +113,12 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
     for (auto &block: wholeBlockList) {
         block.id = block_accumulation;
 
+        int step_accumulation = 0;
         for (auto &point: block.plannerPoints) {
+            step_accumulation++;
             point.id = point_accumulation;
             point.blockId = block_accumulation;
+            point.currentStep = step_accumulation;
             point_accumulation++;
         }
         block_accumulation++;

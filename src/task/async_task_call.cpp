@@ -405,7 +405,7 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
 
     PointProgressVo pointProgressVo(
             point.realPosition.x, point.realPosition.y,
-            point.id, block.totalStep,
+            point.currentStep, block.totalStep,
             block.currentFrequency, block.totalFrequency,
             block.work_status, block.mode, block.inClean,
             block.taskId, block.renew, block.oldTaskId, block.newTaskId);

@@ -17,6 +17,8 @@
 #include "task/TaskCenter.h"
 
 #include "simulation.h"
+#include "task/task_dispatcher.h"
+#include "geometry_msgs/Polygon.h"
 
 const int DATA_MODE_GEOMETRY_POSE = 1;
 const int DATA_MODE_OPEN_CV_POINT = 2;
@@ -138,14 +140,80 @@ bool GetExplorerEnergyStrategy::handler(string params) {
 }
 
 RoomCoverage ExplorationTaskStrategy::handler(long params) {
-    const TaskVo &task = TaskDataBase::instance().loadTaskFoId(params);
-    RealTask realTask;
-    TaskExploration::task2RealTask(task, realTask);
-    auto coverage = TaskExploration::explorationPlanningPath(realTask);
+    const TaskVo &taskPo = TaskDataBase::instance().loadTaskFoId(params);
+    RealTask task;
+    TaskExploration::task2RealTask(taskPo, task);
+
+    std::vector<PoseVo> poses;
+
+    TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
+
+    if (mode == TaskMode::Zoned) {
+        geometry_msgs::Pose map_origin_pose = MapAttribute::instance().getMapOriginPose();
+        ExplorationCenter &explorationCenter = ExplorationCenter::instance();
+        SegmentationCenter &segmentationCenter = SegmentationCenter::instance();
+        const cv::Mat &room_map = segmentationCenter.generateMat();
+        double rows = room_map.rows * map_resolution_from_subscription;
+        double cols = room_map.cols * map_resolution_from_subscription;
+
+        std::vector<PoseVo> poseList;
+        std::vector<std::vector<PoseVo>> complexPoseList;
+
+        std::vector<ZoneVo> zones = task.getZoned();
+        for (const auto &zone: zones) {
+
+            std::vector<PointVo> points = zone.getPoints();
+            std::vector<Point> trs;
+            geometry_msgs::Polygon polygon;
+            for (const auto &point: points) {
+                Point p;
+                double x = point.getX() * map_resolution_from_subscription;
+                double y = point.getY() * map_resolution_from_subscription;
+                p.setY(cols - x + map_origin_pose.position.x);
+                p.setX(rows - y + map_origin_pose.position.y);
+                trs.push_back(p);
+
+                geometry_msgs::Point32 point32;
+                point32.x = p.getY();
+                point32.y = p.getX();
+                polygon.points.push_back(point32);
+            }
+
+            std::vector<PoseVo> zonePoseList;
+            PointGenerator::generateRecPointListForViewPart(trs, zonePoseList);
+
+            std::vector<PoseVo> subPoseList;
+            PointGenerator::generateChildPointFlow(zonePoseList, subPoseList, 0.2);
+
+            for (const auto &item: subPoseList) {
+                poseList.push_back(item);
+            }
+
+            complexPoseList.push_back(subPoseList);
+        }
+
+        for (const auto &complex: complexPoseList) {
+            for (const auto &item: complex) {
+                poses.push_back(item);
+            }
+        }
+
+    } else {
+        auto coverage = TaskExploration::explorationPlanningPath(task);
+
+        std::vector<std::vector<PoseVo>> complexList = coverage.getComplexList();
+
+        for (const auto &complex: complexList) {
+            for (const auto &item: complex) {
+                poses.push_back(item);
+            }
+        }
+
+    }
 
     RoomCoverage result;
-    result.setCoverageId(coverage.getCoverageId());
-    result.setPoseList(coverage.getPoseList());
-    result.setPointList(coverage.getPointList());
+    result.setCoverageId("");
+    result.setPoseList(poses);
+//    result.setPointList(coverage.getPointList());
     return result;
 }
