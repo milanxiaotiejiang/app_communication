@@ -334,7 +334,7 @@ namespace error {
                 case error::create_map_fail_to_sleep:
                     return "保存地图失败，请重新启动";
                 case error::the_main_task_is_not_set:
-                    return "The main task is not set";
+                    return "默认任务尚未设置";
                 case error::invalid_sweep_status:
                     return "Invalid sweep_status";
                 case error::invalid_mop_status:
