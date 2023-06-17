@@ -479,24 +479,26 @@ void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
         return;
     }
     if (status.getMopStatus() > 0) {
+        LOG(INFO) << "Dry: " << ParamManager::instance().getDry();
         if (ParamManager::instance().getDry() == -1) {
             return;
         }
         time_t now = time(0);
         tm *ltm = localtime(&now);
-        std::cout << "年: " << 1900 + ltm->tm_year << std::endl;
-        std::cout << "月: " << 1 + ltm->tm_mon << std::endl;
-        std::cout << "日: " << ltm->tm_mday << std::endl;
-        std::cout << "时间: " << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << endl;
+        LOG(INFO) << "年: " << 1900 + ltm->tm_year;
+        LOG(INFO) << "月: " << 1 + ltm->tm_mon;
+        LOG(INFO) << "日: " << ltm->tm_mday;
+        LOG(INFO) << "时间: " << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec;
+        LOG(INFO) << "dry_accumulation: " << Environment::instance().dry_accumulation;
         if (ParamManager::instance().getDry() == 0) {
-            return;
+            // 0-7 点执行
+            if (ltm->tm_hour >= 0 + Environment::instance().dry_accumulation
+                && ltm->tm_hour < 7 + Environment::instance().dry_accumulation) {
+                HotWindNoteSingleton::instance().openHotWind();
+            }
+        } else if (ParamManager::instance().getDry() == 1) {
+            HotWindNoteSingleton::instance().openHotWind();
         }
-        // 0-7 点执行
-        if (ltm->tm_hour < 0 + Environment::instance().dry_accumulation
-            || ltm->tm_hour > 8 + Environment::instance().dry_accumulation) {
-            return;
-        }
-        HotWindNoteSingleton::instance().openHotWind();
     }
 }
 
