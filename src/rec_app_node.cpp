@@ -30,7 +30,7 @@ FullCleanManager *FullCleanManager::m_instance_ptr = nullptr;
 internal_event::InternalEventPubManager *internal_event::InternalEventPubManager::instance_ = nullptr;
 
 ScheduleThread *sThd = nullptr;
-#include "time.h"
+
 int main(int argc, char **argv) {
 
     current_program_string = argv[0];
@@ -39,13 +39,6 @@ int main(int argc, char **argv) {
     initLog(argv);
     initDump();
     initTest(argc, argv);
-
-    std::time_t now1 = std::time(0);
-    tm *ltm = localtime(&now1);
-    LOG(INFO) << "年: " << 1900 + ltm->tm_year;
-    LOG(INFO) << "月: " << 1 + ltm->tm_mon;
-    LOG(INFO) << "日: " << ltm->tm_mday;
-    LOG(INFO) << "时间: " << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec;
 
     //初始化ros节点
     ros::init(argc, argv, "rec_app_node");
