@@ -18,6 +18,7 @@
 #include "manager/PublishInnerManager.h"
 #include "leave/cartographer_node.h"
 #include "leave/HotWindNote.h"
+#include "exploration/ExplorationCenter.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -222,6 +223,8 @@ void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
     backBaseRetryCount = 0;
     rechargeRetryCount = 0;
 
+    finishedPoints.clear();
+
     HotWindNoteSingleton::instance().closeHotWind();
 
     //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
@@ -381,6 +384,8 @@ void AsyncTaskCall::reset() {
     flowInStationPoint.arrive = false;
 
     isCarpetAndPack = false;
+
+    finishedPoints.clear();
 }
 
 void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
@@ -412,8 +417,22 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
             point.currentStep, block.totalStep,
             block.currentFrequency, block.totalFrequency,
             block.work_status, block.mode, block.inClean,
-            taskId, block.renew, block.oldTaskId, block.newTaskId);
-    LOG(INFO) << pointProgressVo;
+            taskId, block.renew, block.oldTaskId, block.newTaskId,
+            (double((double) point.id / block.totalStep))
+    );
+
+    LOG(INFO) << pointProgressVo << " " << finishedPoints.size();
+    finishedPoints.push_back(pointProgressVo);
+
+//    std::vector<geometry_msgs::Pose2D> exploration_path;
+//    for (const auto &item: finishedPoints) {
+//        geometry_msgs::Pose2D pose;
+//        pose.x = item.getY();
+//        pose.y = item.getX();
+//        exploration_path.push_back(pose);
+//    }
+//    ExplorationCenter::instance().pathPublish(exploration_path);
+
     PointProgressPublish::instance().publishProgressPoint(pointProgressVo);
 
     runTask.changeArrivalStatus(block);
@@ -1015,10 +1034,10 @@ std::vector<RealTask> AsyncTaskCall::runTaskList() {
     return result;
 }
 
-std::vector<RealBlock> AsyncTaskCall::runTaskBlock() {
-    std::vector<RealBlock> result;
+std::vector<PointProgressVo> AsyncTaskCall::runTaskPointList() {
+    std::vector<PointProgressVo> result;
     if (isFlowingWater(event_flow)) {
-        for (const auto &item: realPoints()) {
+        for (const auto &item: finishedPoints) {
             result.push_back(item);
         }
     }

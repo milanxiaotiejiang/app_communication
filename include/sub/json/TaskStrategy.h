@@ -73,9 +73,9 @@ public:
     VersionInfo handler(string params) override;
 };
 
-class GetFinishedPointStrategy : public MessageStrategy<string, deque<PointProgressVo>> {
+class GetFinishedPointStrategy : public MessageStrategy<string, std::vector<PointProgressVo>> {
 public:
-    deque<PointProgressVo> handler(string params) override;
+    std::vector<PointProgressVo> handler(string params) override;
 };
 
 class GetFullPlanStrategy : public MessageStrategy<vector<int>, Task> {

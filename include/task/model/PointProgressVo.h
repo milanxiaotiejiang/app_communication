@@ -31,12 +31,15 @@ private:
     std::string oldTaskId;//旧任务，有值就是CombinationID，没值就是全覆盖
     long newTaskId{0};//新任务，可从数据库查找到的
 
+    double value;
+
 public:
     PointProgressVo() = default;
 
     PointProgressVo(float x, float y, int currentStep, int totalStep, int currentFrequency,
                     int totalFrequency, const WorkStatus &workStatus, int mode, bool isCleaning,
-                    const std::string &taskId, bool renew, const std::string &oldTaskId, long newTaskId) :
+                    const std::string &taskId, bool renew, const std::string &oldTaskId, long newTaskId,
+                    double value) :
             id(boost::uuids::to_string(boost::uuids::random_generator()())),
             x(x), y(y),
             currentStep(currentStep), totalStep(totalStep),
@@ -47,7 +50,8 @@ public:
             taskId(taskId),
             renew(renew),
             oldTaskId(oldTaskId),
-            newTaskId(newTaskId) {}
+            newTaskId(newTaskId),
+            value(value) {}
 
     friend void to_json(json &j, const PointProgressVo &vo) {
         j = json{
@@ -64,7 +68,8 @@ public:
                 {"task_id",          vo.taskId},
                 {"renew",            vo.renew},
                 {"old_task_id",      vo.oldTaskId},
-                {"new_task_id",      vo.newTaskId}
+                {"new_task_id",      vo.newTaskId},
+                {"value",            vo.value},
         };
     }
 
@@ -83,6 +88,7 @@ public:
         j.at("renew").get_to(vo.renew);
         j.at("old_task_id").get_to(vo.oldTaskId);
         j.at("new_task_id").get_to(vo.newTaskId);
+        j.at("value").get_to(vo.value);
     }
 
     friend std::ostream &operator<<(std::ostream &os, const PointProgressVo &vo) {
@@ -93,8 +99,17 @@ public:
            << " is_cleaning: " << vo.is_cleaning
            << " taskId: " << vo.taskId
            << " renew: " << vo.renew
-           << " x: " << vo.x << " y: " << vo.y;
+           << " x: " << vo.x << " y: " << vo.y
+           << " value: " << vo.value;
         return os;
+    }
+
+    float getX() const {
+        return x;
+    }
+
+    float getY() const {
+        return y;
     }
 };
 

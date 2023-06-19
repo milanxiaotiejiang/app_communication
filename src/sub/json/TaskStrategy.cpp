@@ -105,45 +105,45 @@ VersionInfo GetRosVersionStrategy::handler(string params) {
     return into;
 }
 
-deque<PointProgressVo> GetFinishedPointStrategy::handler(string params) {
-    //操作，获取当前任务状态
-    deque<PointProgressVo> finished_point_list;
-    for (const auto &block: ManualManager::instance().runTaskBlock()) {
-        if (block.id < 0) {
-            continue;
-        }
-        auto plannerPoints = block.plannerPoints;
-        if (plannerPoints.empty()) {
-            continue;
-        }
-        if (block.arrive) {
-            for (const auto &point: plannerPoints) {
-                PointProgressVo pointProgressVo(
-                        point.realPosition.x, point.realPosition.y,
-                        point.currentStep, block.totalStep,
-                        block.currentFrequency, block.totalFrequency,
-                        block.work_status, block.mode, block.inClean,
-                        block.taskId, block.renew, block.oldTaskId, block.newTaskId);
-                finished_point_list.push_back(pointProgressVo);
-            }
-        } else {
-            int current_step = block.already_step + block.timely_step;
-            if (current_step > plannerPoints.size()) {
-                continue;
-            }
-            for (int i = 0; i < current_step; i++) {
-                auto point = plannerPoints[i];
-                PointProgressVo pointProgressVo(
-                        point.realPosition.x, point.realPosition.y,
-                        point.currentStep, block.totalStep,
-                        block.currentFrequency, block.totalFrequency,
-                        block.work_status, block.mode, block.inClean,
-                        block.taskId, block.renew, block.oldTaskId, block.newTaskId);
-                finished_point_list.push_back(pointProgressVo);
-            }
-        }
-    }
-    return finished_point_list;
+std::vector<PointProgressVo> GetFinishedPointStrategy::handler(string params) {
+//    //操作，获取当前任务状态
+//    deque<PointProgressVo> finished_point_list;
+//    for (const auto &block: ManualManager::instance().runTaskPointList()) {
+//        if (block.id < 0) {
+//            continue;
+//        }
+//        auto plannerPoints = block.plannerPoints;
+//        if (plannerPoints.empty()) {
+//            continue;
+//        }
+//        if (block.arrive) {
+//            for (const auto &point: plannerPoints) {
+//                PointProgressVo pointProgressVo(
+//                        point.realPosition.x, point.realPosition.y,
+//                        point.currentStep, block.totalStep,
+//                        block.currentFrequency, block.totalFrequency,
+//                        block.work_status, block.mode, block.inClean,
+//                        block.taskId, block.renew, block.oldTaskId, block.newTaskId);
+//                finished_point_list.push_back(pointProgressVo);
+//            }
+//        } else {
+//            int current_step = block.already_step + block.timely_step;
+//            if (current_step > plannerPoints.size()) {
+//                continue;
+//            }
+//            for (int i = 0; i < current_step; i++) {
+//                auto point = plannerPoints[i];
+//                PointProgressVo pointProgressVo(
+//                        point.realPosition.x, point.realPosition.y,
+//                        point.currentStep, block.totalStep,
+//                        block.currentFrequency, block.totalFrequency,
+//                        block.work_status, block.mode, block.inClean,
+//                        block.taskId, block.renew, block.oldTaskId, block.newTaskId);
+//                finished_point_list.push_back(pointProgressVo);
+//            }
+//        }
+//    }
+    return ManualManager::instance().runTaskPointList();
 }
 
 Task GetFullPlanStrategy::handler(vector<int> params) {

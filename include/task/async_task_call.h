@@ -12,6 +12,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "task/status/state_machine.h"
 #include "task/subscribe/async_machine.h"
+#include "task/model/PointProgressVo.h"
 
 const int MAX_FIRST_RETRY_COUNT = 2;
 const int MAX_BASE_POINT_RETRY_COUNT = 3;
@@ -42,6 +43,8 @@ protected:
     }
 
     atomic<bool> isCarpetAndPack;
+
+    std::deque<PointProgressVo> finishedPoints;
 
 protected:
 
@@ -165,7 +168,7 @@ public:
 
     std::vector<RealTask> runTaskList();
 
-    std::vector<RealBlock> runTaskBlock();
+    std::vector<PointProgressVo> runTaskPointList();
 
 };
 
