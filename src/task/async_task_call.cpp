@@ -393,6 +393,10 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
     if (block.id < 0) {
         return;
     }
+    if (block.taskId.empty()) {
+        return;
+    }
+    std::string taskId = block.taskId;
     auto plannerPoints = block.plannerPoints;
     if (plannerPoints.empty()) {
         return;
@@ -408,7 +412,7 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
             point.currentStep, block.totalStep,
             block.currentFrequency, block.totalFrequency,
             block.work_status, block.mode, block.inClean,
-            block.taskId, block.renew, block.oldTaskId, block.newTaskId);
+            taskId, block.renew, block.oldTaskId, block.newTaskId);
     LOG(INFO) << pointProgressVo;
     PointProgressPublish::instance().publishProgressPoint(pointProgressVo);
 
