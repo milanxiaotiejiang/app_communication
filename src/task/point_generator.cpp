@@ -54,8 +54,38 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
                                             std::vector<RealBlock> &blockList) {
     auto originPose = MapAttribute::instance().getMapOriginPose();
 
-    std::vector<std::vector<PoseVo>> complexAngleList;
+    int numSplits = 500;
+
+    int total = 0;
     for (const auto &complex: complexList) {
+        int size = complex.size();
+        total = total + size;
+    }
+
+    std::vector<std::vector<PoseVo>> splitVectors;
+    for (const auto &vec: complexList) {
+        int numSubVec = (vec.size() + numSplits - 1) / numSplits;
+
+        int remainder = vec.size() % numSubVec;
+        int sizePerSubVec = vec.size() / numSubVec;
+        int startIdx = 0;
+
+        for (int i = 0; i < numSubVec; ++i) {
+            int endIdx = startIdx + sizePerSubVec + (i < remainder ? 1 : 0);
+            std::vector<PoseVo> subVec(vec.begin() + startIdx, vec.begin() + endIdx);
+            splitVectors.push_back(subVec);
+            startIdx = endIdx;
+        }
+    }
+
+    int total1 = 0;
+    for (const auto &item: splitVectors) {
+        int size = item.size();
+        total1 = total1 + size;
+    }
+
+    std::vector<std::vector<PoseVo>> complexAngleList;
+    for (const auto &complex: splitVectors) {
         std::vector<PoseVo> poseList = recalculateAngle(originPose, complex);
         complexAngleList.push_back(poseList);
     }
