@@ -1,4 +1,4 @@
-ros_version: 1.0.2.2_630
+ros_version: 1.0.2.3_630
 machine_version: 630
 base_exist: true
 face_recognition: false
@@ -6,7 +6,7 @@ has_knob: false
 has_voice: false
 self_check_version: 1
 update_map: false
-OR_percent_1: 15
+OR_percent_1: 20
 OR_percent_2: 4
 direct_start_move_base: true
 explorer_mode: 2
