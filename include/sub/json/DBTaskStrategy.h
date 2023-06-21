@@ -78,6 +78,21 @@ public:
     TaskVo handler(string params) override;
 };
 
+class BuildRainSnowTaskStrategy : public MessageStrategy<long, TaskVo> {
+public:
+    TaskVo handler(long params) override;
+};
+
+class CancelRainSnowTaskStrategy : public MessageStrategy<long, TaskVo> {
+public:
+    TaskVo handler(long params) override;
+};
+
+class RainSnowTaskStrategy : public MessageStrategy<string, TaskVo> {
+public:
+    TaskVo handler(string params) override;
+};
+
 class ModifyTaskNameStrategy : public MessageStrategy<ModifyTaskName, string> {
 public:
     string handler(ModifyTaskName params) override;

@@ -54,8 +54,6 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
                                             std::vector<RealBlock> &blockList) {
     auto originPose = MapAttribute::instance().getMapOriginPose();
 
-    int numSplits = 500;
-
     int total = 0;
     for (const auto &complex: complexList) {
         int size = complex.size();
@@ -64,7 +62,8 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
 
     std::vector<std::vector<PoseVo>> splitVectors;
     for (const auto &vec: complexList) {
-        int numSubVec = (vec.size() + numSplits - 1) / numSplits;
+        int numSubVec = (vec.size() + Environment::instance().complex_path_num_splits - 1) /
+                        Environment::instance().complex_path_num_splits;
 
         int remainder = vec.size() % numSubVec;
         int sizePerSubVec = vec.size() / numSubVec;

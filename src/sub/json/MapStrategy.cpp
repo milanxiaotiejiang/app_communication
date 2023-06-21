@@ -20,8 +20,12 @@
 #include "task/manager/manual.h"
 #include "task/manager/NodeWorkModeManager.h"
 #include "tool/Variable.h"
+#include "leave/ParamManager.h"
 
 string StartMapStrategy::handler(string params) {
+    if (ParamManager::instance().getRainSnow()) {
+        throw app::exception(make_error_code(error::please_exit_the_rain_and_snow_mode_first));
+    }
     if (!ZooInnerStatus::instance().getIsCharging()) {
         throw app::exception(make_error_code(error::please_ensure_to_start_end_the_mapping_at_the_base_station));
     }

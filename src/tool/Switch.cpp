@@ -301,6 +301,12 @@ int switch_ID(const std::string &str) {
     if (str == "set_hot_wind_mode") {
         return SET_HOT_WIND_MODE;
     }
+    if (str == "get_rain_snow") {
+        return GET_RAIN_SNOW;
+    }
+    if (str == "set_rain_snow") {
+        return SET_RAIN_SNOW;
+    }
 
     if (str == "map_obstacles") {
         return MAP_OBSTACLES;
@@ -345,6 +351,13 @@ int switch_ID(const std::string &str) {
     }
     if (str == "principal_task") {
         return PRINCIPAL_TASK;
+    }
+
+    if (str == "build_rain_snow_task") {
+        return BUILD_RAIN_SNOW_TASK;
+    }
+    if (str == "cancel_rain_snow_task") {
+        return CANCEL_RAIN_SNOW_TASK;
     }
 
     if (str == "clear_current_list_task") {

@@ -1,9 +1,3 @@
-//
-// Created by lijiang on 2021/12/18.
-//
-// Modified by liquan on 2022/4/18
-
-// Modified by siyu.zhu on 2022/05/26.
 
 #include "sub/json/DeviceStrategy.h"
 #include "task/manager/MechanismManager.h"
@@ -11,6 +5,7 @@
 #include "task/subscribe/zoo_inner_status.h"
 #include "leave/ParamManager.h"
 #include "db/segmentation_data_base.h"
+#include "db/task_data_base.h"
 
 /**
  * @brief Get the Device Status Strategy::date Progressing object获取机器当前状态
@@ -149,4 +144,21 @@ string SetBaseStationStrategy::handler(bool params) {
 
 bool GetBaseStationStrategy::handler(string params) {
     return ParamManager::instance().isBaseStation();
+}
+
+string SetRainSnowStrategy::handler(bool params) {
+    if (params) {
+        //开启“雨雪天模式”时：如果没有雨雪天任务，不可切换；如果有雨雪天任务，允许切换；
+        MapPo map = SegmentationDataBase::instance().getDbMap();
+        const TaskVo &rainSnowTask = TaskDataBase::instance().loadRainSnowTask(map.id);
+        if (rainSnowTask.getId() == -1) {
+            throw app::exception(make_error_code(error::the_rain_snow_task_is_not_set));
+        }
+    }
+    ParamManager::instance().setRainSnow(params);
+    return "";
+}
+
+bool GetRainSnowStrategy::handler(string params) {
+    return ParamManager::instance().getRainSnow();
 }

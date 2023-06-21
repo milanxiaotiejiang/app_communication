@@ -161,7 +161,8 @@ public:
                                        make_column("update_time", &TaskPo::update_time,
                                                    default_value(std::time(nullptr))),
                                        make_column("create_time", &TaskPo::create_time,
-                                                   default_value(std::time(nullptr)))
+                                                   default_value(std::time(nullptr))),
+                                       make_column("rain_snow", &TaskPo::rain_snow, default_value(false))
                             ),
                             make_table("zone",
                                        make_column("id", &ZonePo::id, primary_key(), autoincrement()),

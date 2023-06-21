@@ -37,6 +37,10 @@
 #include "task/manager/MechanismManager.h"
 #include "leave/MaintenanceMode.h"
 
+#include "leave/ParamManager.h"
+#include "db/task_data_base.h"
+#include "db/segmentation_data_base.h"
+
 std::string TaskCenter::preTask(const RealTask &task) {
     //拦截手动下发的任务且前期出站后期进站
     if (task.isRenew()) {
@@ -239,7 +243,18 @@ void TaskCenter::executeTask(const Task &task) {
 }
 
 std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int on_rate) {
-    auto task = TaskDataBase::instance().loadTaskFoId(taskId);
+    long perform_task_id = taskId;
+    //雨雪天模式
+    if (ParamManager::instance().getRainSnow()) {
+        MapPo map = SegmentationDataBase::instance().getDbMap();
+        const TaskVo &rainSnowTask = TaskDataBase::instance().loadRainSnowTask(map.id);
+        if (rainSnowTask.getId() == -1) {
+            throw app::exception(make_error_code(error::the_rain_snow_task_is_not_set));
+        }
+        perform_task_id = rainSnowTask.getId();
+    }
+
+    auto task = TaskDataBase::instance().loadTaskFoId(perform_task_id);
     RealTask realTask;
     realTask.setRate(task.getRate() * on_rate);
     realTask.setOnSource(SqliteDataBase::SourceToString(on_source));

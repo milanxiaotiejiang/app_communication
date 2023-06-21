@@ -67,4 +67,14 @@ public:
     bool handler(string params) override;
 };
 
+class SetRainSnowStrategy : public MessageStrategy<bool, string> {
+public:
+    string handler(bool params) override;
+};
+
+class GetRainSnowStrategy : public MessageStrategy<string, bool> {
+public:
+    bool handler(string params) override;
+};
+
 #endif//APP_COMMUNICATION_DEVICESTRATEGY_H

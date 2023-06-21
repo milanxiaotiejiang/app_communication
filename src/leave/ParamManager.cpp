@@ -51,6 +51,8 @@ void ParamManager::loadDefaultParam() {
         node["energy"] = false;
         //txt to sql
         node["txt_upgrade"] = false;
+        //雨雪天
+        node["rain_snow"] = false;
         std::ofstream ofstream(app_param_path);
         ofstream << node;
         ofstream.close();
@@ -172,6 +174,30 @@ void ParamManager::setTxtUpgrade(bool txt_upgrade) {
     }
     YAML::Node node = YAML::LoadFile(app_param_path);
     node["txt_upgrade"] = txt_upgrade;
+    std::ofstream ofstream(app_param_path);
+    ofstream << node;
+    ofstream.close();
+}
+
+bool ParamManager::getRainSnow() {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    auto childNode = node["rain_snow"];
+    if (childNode.IsDefined() && childNode.IsScalar()) {
+        return childNode.as<bool>();
+    }
+    setRainSnow(false);
+    return getRainSnow();
+}
+
+void ParamManager::setRainSnow(bool rain_snow) {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    node["rain_snow"] = rain_snow;
     std::ofstream ofstream(app_param_path);
     ofstream << node;
     ofstream.close();

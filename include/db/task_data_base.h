@@ -54,6 +54,8 @@ public:
     //改
     TaskVo modifyPrincipalTask(std::string mapId, long taskId, bool principal);
 
+    TaskVo modifyRainSnowTask(std::string mapId, long taskId, bool rainSnow);
+
     void modifyName(long taskId, std::string name);
 
     void modifyRate(long taskId, int rate);
@@ -86,6 +88,8 @@ public:
     TaskVo loadTaskFoId(long taskId);
 
     TaskVo loadPrincipalTask(const std::string &mapId);
+
+    TaskVo loadRainSnowTask(const std::string &mapId);
 
     std::vector<TimerVo> loadTimerFoMap(const std::string &mapId);
 

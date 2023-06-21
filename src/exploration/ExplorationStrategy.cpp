@@ -140,7 +140,18 @@ bool GetExplorerEnergyStrategy::handler(string params) {
 }
 
 RoomCoverage ExplorationTaskStrategy::handler(long params) {
-    const TaskVo &taskPo = TaskDataBase::instance().loadTaskFoId(params);
+    long perform_task_id = params;
+    //雨雪天模式
+    if (ParamManager::instance().getRainSnow()) {
+        MapPo map = SegmentationDataBase::instance().getDbMap();
+        const TaskVo &rainSnowTask = TaskDataBase::instance().loadRainSnowTask(map.id);
+        if (rainSnowTask.getId() == -1) {
+            throw app::exception(make_error_code(error::the_rain_snow_task_is_not_set));
+        }
+        perform_task_id = rainSnowTask.getId();
+    }
+
+    const TaskVo &taskPo = TaskDataBase::instance().loadTaskFoId(perform_task_id);
     RealTask task;
     TaskExploration::task2RealTask(taskPo, task);
 

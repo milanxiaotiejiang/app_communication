@@ -34,6 +34,10 @@ public:
 
     void setTxtUpgrade(bool txt_upgrade);
 
+    bool getRainSnow();
+
+    void setRainSnow(bool rain_snow);
+
     bool isBaseStation();
 
     void setBaseStation(bool has);

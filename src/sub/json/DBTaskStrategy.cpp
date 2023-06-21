@@ -9,6 +9,7 @@
 #include "tool/regex_valid.h"
 #include "tool/param_check.h"
 #include "schedule/schedule_manager_singleton.h"
+#include "leave/ParamManager.h"
 
 long AddTaskStrategy::handler(TaskVo params) {
     checkWorkStatus(params.getWorkStatus());
@@ -28,11 +29,31 @@ long AddTaskStrategy::handler(TaskVo params) {
 }
 
 string DeleteTaskStrategy::handler(long params) {
+    if (ParamManager::instance().getRainSnow()) {
+        MapPo map = SegmentationDataBase::instance().getDbMap();
+        const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params);
+        //开启“雨雪天模式”后，已勾选的雨雪天任务不能取消勾选或删除任务。
+        if (taskVo.isRainSnow()) {
+            throw app::exception(make_error_code(
+                    error::the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled));
+        }
+    }
     TaskDataBase::instance().deleteTaskFoId(params);
     return "";
 }
 
 string DeleteMultipleTaskStrategy::handler(std::vector<long> params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    if (ParamManager::instance().getRainSnow()) {
+        for (const auto &item: params) {
+            const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(item);
+            //开启“雨雪天模式”后，已勾选的雨雪天任务不能取消勾选或删除任务。
+            if (taskVo.isRainSnow()) {
+                throw app::exception(make_error_code(
+                        error::the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled));
+            }
+        }
+    }
     for (const auto &item: params) {
         TaskDataBase::instance().deleteTaskFoId(item);
     }
@@ -114,6 +135,40 @@ TaskVo PrincipalTaskStrategy::handler(string params) {
     const TaskVo &vo = TaskDataBase::instance().loadPrincipalTask(map.id);
     if (vo.getId() == -1) {
         throw app::exception(make_error_code(error::the_main_task_is_not_set));
+    }
+    return vo;
+}
+
+TaskVo BuildRainSnowTaskStrategy::handler(long params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params);
+    if (SqliteDataBase::TaskModeFromInt(taskVo.getMode()) != TaskMode::Zoned) {
+        throw app::exception(make_error_code(error::non_zoning_tasks_cannot_be_set_as_rainy_and_snowy_tasks));
+    }
+    return TaskDataBase::instance().modifyRainSnowTask(map.id, params, true);
+}
+
+TaskVo CancelRainSnowTaskStrategy::handler(long params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params);
+    if (ParamManager::instance().getRainSnow()) {
+        //开启“雨雪天模式”后，已勾选的雨雪天任务不能取消勾选或删除任务。
+        if (taskVo.isRainSnow()) {
+            throw app::exception(make_error_code(
+                    error::the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled));
+        }
+    }
+    if (SqliteDataBase::TaskModeFromInt(taskVo.getMode()) != TaskMode::Zoned) {
+        throw app::exception(make_error_code(error::non_zoning_tasks_cannot_be_set_as_rainy_and_snowy_tasks));
+    }
+    return TaskDataBase::instance().modifyRainSnowTask(map.id, params, false);
+}
+
+TaskVo RainSnowTaskStrategy::handler(string params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    const TaskVo &vo = TaskDataBase::instance().loadRainSnowTask(map.id);
+    if (vo.getId() == -1) {
+        throw app::exception(make_error_code(error::the_rain_snow_task_is_not_set));
     }
     return vo;
 }

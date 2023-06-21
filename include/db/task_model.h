@@ -33,7 +33,7 @@ struct TaskPo {
            int vacuum, int push, int aromatherapy, int disinfect, bool principal, const std::vector<ZonePo> &zones,
            bool partition, const std::string &subregionRange, const std::vector<SubregionPo> &subregions,
            bool knife, TaskSource source, const std::string &launchPeople, long launchTime, time_t updateTime,
-           time_t createTime);
+           time_t createTime, bool rain_snow);
 
     long id;
     std::string o_map_id;
@@ -62,6 +62,8 @@ struct TaskPo {
 
     time_t update_time;
     time_t create_time;
+
+    bool rain_snow;
 };
 
 struct ZonePo {

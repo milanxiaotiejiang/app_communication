@@ -134,7 +134,11 @@ namespace error {
         the_map_needs_to_be_saved_at_the_base_station_location,
         quit_map_needs_to_be_saved_at_the_base_station_location,
         please_ensure_to_start_end_the_mapping_at_the_base_station,
-        area_too_small
+        area_too_small,
+        non_zoning_tasks_cannot_be_set_as_rainy_and_snowy_tasks,
+        the_rain_snow_task_is_not_set,
+        the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled,
+        please_exit_the_rain_and_snow_mode_first
     };// enum value
 
     class category : public std::error_category {
@@ -383,6 +387,14 @@ namespace error {
                     return "开始 / 结束建图请保证在基站";
                 case error::area_too_small:
                     return "建图面积过小，请重新保存";
+                case error::non_zoning_tasks_cannot_be_set_as_rainy_and_snowy_tasks:
+                    return "非划区任务不能设置为雨雪天任务";
+                case error::the_rain_snow_task_is_not_set:
+                    return "雨雪天任务没有设置，请在任务管理中设置雨雪天任务";
+                case error::the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled:
+                    return "雨雪天模式已开启，不能删除或取消此任务";
+                case error::please_exit_the_rain_and_snow_mode_first:
+                    return "请先退出雨雪天模式";
                 default:
                     return "Unknown";
             }

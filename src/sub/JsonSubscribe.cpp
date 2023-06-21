@@ -301,6 +301,12 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case SET_HOT_WIND_MODE:
             messageStrategy = new SetHotWindModeStrategy();
             break;
+        case GET_RAIN_SNOW:
+            messageStrategy = new GetRainSnowStrategy();
+            break;
+        case SET_RAIN_SNOW:
+            messageStrategy = new SetRainSnowStrategy();
+            break;
 
         case MAP_OBSTACLES:
             messageStrategy = new MapObstaclesStrategy();
@@ -346,6 +352,16 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case PRINCIPAL_TASK:
             messageStrategy = new PrincipalTaskStrategy();
+            break;
+
+        case BUILD_RAIN_SNOW_TASK:
+            messageStrategy = new BuildRainSnowTaskStrategy();
+            break;
+        case CANCEL_RAIN_SNOW_TASK:
+            messageStrategy = new CancelRainSnowTaskStrategy();
+            break;
+        case RAIN_SNOW_TASK:
+            messageStrategy = new RainSnowTaskStrategy();
             break;
 
         case CLEAR_CURRENT_LIST_TASK:

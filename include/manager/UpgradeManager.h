@@ -55,7 +55,7 @@ public:
             if (item.getCombinationType() == 1) {
                 TaskVo taskVo(-1, map.id, item.getName(), item.getRate(),
                               SqliteDataBase::ModeToInt(TaskMode::Cover), item.isPrincipal(),
-                              false, false, SqliteDataBase::SourceToString(TaskSource::App), "", 0, 0, 0);
+                              false, false, SqliteDataBase::SourceToString(TaskSource::App), "", 0, 0, 0, false);
 
                 taskVo.setWorkStatus(item.getWorkStatus());
                 long taskId = TaskDataBase::instance().addTask(map.id, taskVo);
@@ -86,7 +86,8 @@ public:
 
                         TaskVo taskVo(-1, map.id, combination_detail_temp.getName(), combination_detail_temp.getRate(),
                                       SqliteDataBase::ModeToInt(TaskMode::Zoned), combination_detail_temp.isPrincipal(),
-                                      false, false, SqliteDataBase::SourceToString(TaskSource::App), "", 0, 0, 0);
+                                      false, false, SqliteDataBase::SourceToString(TaskSource::App), "", 0, 0, 0,
+                                      false);
                         std::vector<ZoneVo> zones;
                         const vector<ViewPart> &partList = combination_detail_temp.getViewPartList();
                         for (const auto &part: partList) {
