@@ -113,7 +113,9 @@ void PublishInnerManager::publishReboot(const std_msgs::Int32 &message) const {
     pub_reboot.publish(message);
 }
 
-void PublishInnerManager::publishOil(const std_msgs::Int32 &message) const {
+void PublishInnerManager::publishOil() const {
+    std_msgs::Int32 message;
+    message.data = 1;
     pub_oil.publish(message);
 }
 

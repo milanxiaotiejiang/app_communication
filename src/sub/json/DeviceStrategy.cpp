@@ -132,9 +132,7 @@ int SetHotWindModeStrategy::handler(int params) {
 }
 
 void AutomaticOilingStrategy::handler() {
-    std_msgs::Int32 message;
-    message.data = 1;
-    PublishInnerManager::instance().publishOil(message);
+    PublishInnerManager::instance().publishOil();
 }
 
 string SetBaseStationStrategy::handler(bool params) {

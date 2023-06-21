@@ -83,6 +83,7 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "leave/ParamManager.h"
+#include "leave/auto_maintenance_mode.h"
 #include "db/task_data_base.h"
 #include "cppfs/fs.h"
 #include "cppfs/FileHandle.h"

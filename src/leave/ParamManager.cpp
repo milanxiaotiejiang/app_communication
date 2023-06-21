@@ -279,7 +279,7 @@ long ParamManager::getMaintenanceStartTime() {
     YAML::Node node = YAML::LoadFile(app_param_path);
     auto childNode = node["maintenance_start_time"];
     if (childNode.IsDefined() && childNode.IsScalar()) {
-        return childNode.as<bool>();
+        return childNode.as<long>();
     }
     setMaintenanceStartTime(0);
     return getMaintenanceStartTime();

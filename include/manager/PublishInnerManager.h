@@ -88,7 +88,7 @@ public:
 
     void publishReboot(const std_msgs::Int32 &message) const;
 
-    void publishOil(const std_msgs::Int32 &message) const;
+    void publishOil() const;
 
     void pubKnife(const std_msgs::Int32 &message) const;
 
