@@ -337,6 +337,9 @@ void initNodeParams(const ros::NodeHandle &nh) {
     int dry_accumulation;
     nh.param<int>("dry_accumulation", dry_accumulation, 0);
     Environment::instance().dry_accumulation = dry_accumulation;
+    int complex_path_num_splits;
+    nh.param<int>("complex_path_num_splits", complex_path_num_splits, 1000);
+    Environment::instance().complex_path_num_splits = complex_path_num_splits;
 
     LOG(INFO) << "core version : " << ros_version;
 }

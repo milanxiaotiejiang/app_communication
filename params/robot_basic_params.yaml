@@ -1,4 +1,4 @@
-ros_version: 2.0.2.5_630
+ros_version: 2.0.2.6_630
 machine_version: 630
 base_exist: true
 face_recognition: false
@@ -11,3 +11,4 @@ OR_percent_2: 4
 direct_start_move_base: true
 explorer_mode: 2
 dry_accumulation: 0
+complex_path_num_splits: 1000
