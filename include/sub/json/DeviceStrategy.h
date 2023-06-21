@@ -77,4 +77,34 @@ public:
     bool handler(string params) override;
 };
 
+class SetCollectDustStrategy : public MessageStrategy<bool, string> {
+public:
+    string handler(bool params) override;
+};
+
+class GetCollectDustStrategy : public MessageStrategy<string, bool> {
+public:
+    bool handler(string params) override;
+};
+
+class SetAutoOilStrategy : public MessageStrategy<bool, string> {
+public:
+    string handler(bool params) override;
+};
+
+class GetAutoOilStrategy : public MessageStrategy<string, bool> {
+public:
+    bool handler(string params) override;
+};
+
+class SetMaintenanceStartTimeStrategy : public MessageStrategy<long, string> {
+public:
+    string handler(long params) override;
+};
+
+class GetMaintenanceStartTimeStrategy : public MessageStrategy<string, long> {
+public:
+    long handler(string params) override;
+};
+
 #endif//APP_COMMUNICATION_DEVICESTRATEGY_H

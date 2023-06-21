@@ -36,6 +36,7 @@
 #include "exploration/path_exploration_preview_task.h"
 #include "task/manager/MechanismManager.h"
 #include "leave/MaintenanceMode.h"
+#include "leave/auto_maintenance_mode.h"
 
 #include "leave/ParamManager.h"
 #include "db/task_data_base.h"
@@ -105,6 +106,11 @@ std::string TaskCenter::proTask(const RealTask &task) {
     auto RSOC = ZooInnerStatus::instance().getRsoc();
     if (RSOC < LOW_RSOC) {
         throw app::exception(make_error_code(error::dispatcher_task_low_rsoc));
+    }
+
+    if (AutoMaintenanceModeManager::instance().isMaintenanceMode()) {
+        throw app::exception(
+                make_error_code(error::during_the_automatic_maintenance_period_the_task_cannot_be_started));
     }
 
     //没有传感器数据的情况下，不能够分发任务

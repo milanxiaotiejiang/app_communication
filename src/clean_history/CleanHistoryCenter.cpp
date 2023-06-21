@@ -250,6 +250,8 @@ namespace clean_history_db {
                 return make_tuple(3181, "污水箱满，任务无法启动", "CCR_181");
             case error::dispatcher_maintenance_mode:
                 return make_tuple(3182, "维护模式不能启动任务", "CCR_182");
+            case error::during_the_automatic_maintenance_period_the_task_cannot_be_started:
+                return make_tuple(3182, "自动维护时段内，任务无法启动", "CCR_183");
             default:
                 std::string base_string = "CCR_";
                 std::string ex_string = to_string(100 + e.code().value());

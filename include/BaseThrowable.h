@@ -138,7 +138,8 @@ namespace error {
         non_zoning_tasks_cannot_be_set_as_rainy_and_snowy_tasks,
         the_rain_snow_task_is_not_set,
         the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled,
-        please_exit_the_rain_and_snow_mode_first
+        please_exit_the_rain_and_snow_mode_first,
+        during_the_automatic_maintenance_period_the_task_cannot_be_started
     };// enum value
 
     class category : public std::error_category {
@@ -395,6 +396,8 @@ namespace error {
                     return "雨雪天模式已开启，不能删除或取消此任务";
                 case error::please_exit_the_rain_and_snow_mode_first:
                     return "请先退出雨雪天模式";
+                case error::during_the_automatic_maintenance_period_the_task_cannot_be_started:
+                    return "自动维护时段内，任务无法启动";
                 default:
                     return "Unknown";
             }

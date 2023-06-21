@@ -41,6 +41,18 @@ public:
     bool isBaseStation();
 
     void setBaseStation(bool has);
+
+    bool getCollectDust();
+
+    void setCollectDust(bool collect_dust);
+
+    bool getAutoOil();
+
+    void setAutoOil(bool auto_oil);
+
+    long getMaintenanceStartTime();
+
+    void setMaintenanceStartTime(long maintenance_start_time);
 };
 
 

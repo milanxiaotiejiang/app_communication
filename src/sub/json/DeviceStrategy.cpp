@@ -162,3 +162,30 @@ string SetRainSnowStrategy::handler(bool params) {
 bool GetRainSnowStrategy::handler(string params) {
     return ParamManager::instance().getRainSnow();
 }
+
+string SetCollectDustStrategy::handler(bool params) {
+    ParamManager::instance().setCollectDust(params);
+    return "";
+}
+
+bool GetCollectDustStrategy::handler(string params) {
+    return ParamManager::instance().getCollectDust();
+}
+
+string SetAutoOilStrategy::handler(bool params) {
+    ParamManager::instance().setAutoOil(params);
+    return "";
+}
+
+bool GetAutoOilStrategy::handler(string params) {
+    return ParamManager::instance().getAutoOil();
+}
+
+string SetMaintenanceStartTimeStrategy::handler(long params) {
+    ParamManager::instance().setMaintenanceStartTime(params);
+    return "";
+}
+
+long GetMaintenanceStartTimeStrategy::handler(string params) {
+    return ParamManager::instance().getMaintenanceStartTime();
+}

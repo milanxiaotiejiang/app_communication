@@ -308,6 +308,25 @@ int switch_ID(const std::string &str) {
         return SET_RAIN_SNOW;
     }
 
+    if (str == "get_collect_dust") {
+        return GET_COLLECT_DUST;
+    }
+    if (str == "set_collect_dust") {
+        return SET_COLLECT_DUST;
+    }
+    if (str == "get_auto_oil") {
+        return GET_AUTO_OIL;
+    }
+    if (str == "set_auto_oil") {
+        return SET_AUTO_OIL;
+    }
+    if (str == "get_maintenance_start_time") {
+        return GET_MAINTENANCE_START_TIME;
+    }
+    if (str == "set_maintenance_start_time") {
+        return SET_MAINTENANCE_START_TIME;
+    }
+
     if (str == "map_obstacles") {
         return MAP_OBSTACLES;
     }
@@ -358,6 +377,9 @@ int switch_ID(const std::string &str) {
     }
     if (str == "cancel_rain_snow_task") {
         return CANCEL_RAIN_SNOW_TASK;
+    }
+    if (str == "rain_snow_task") {
+        return RAIN_SNOW_TASK;
     }
 
     if (str == "clear_current_list_task") {

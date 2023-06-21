@@ -148,6 +148,10 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     if (addProhibition) {
         //禁区虚拟墙
         cv::Mat prohibition_image = prohibitionMat(map);
+        if (DISPLAY_TRAJECTORY_EFFECT) {
+            cv::imshow("prohibition_image", prohibition_image);
+            cv::waitKey();
+        }
         cv::Mat andMat;
         cv::bitwise_and(map, prohibition_image, andMat);
         cv::bitwise_xor(map, andMat, map);
@@ -340,7 +344,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
         planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT) {
-        planning_pose_path_display(room_map, map_origin, complex_path, 3, "optimizePlanningPath ");
+        planning_pose_path_display(room_map, map_origin, complex_path, 1, "optimizePlanningPath ");
     }
 
 //    std_msgs::Header header;

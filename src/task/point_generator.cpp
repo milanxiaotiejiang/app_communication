@@ -54,12 +54,6 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
                                             std::vector<RealBlock> &blockList) {
     auto originPose = MapAttribute::instance().getMapOriginPose();
 
-    int total = 0;
-    for (const auto &complex: complexList) {
-        int size = complex.size();
-        total = total + size;
-    }
-
     std::vector<std::vector<PoseVo>> splitVectors;
     for (const auto &vec: complexList) {
         int numSubVec = (vec.size() + Environment::instance().complex_path_num_splits - 1) /
@@ -75,12 +69,6 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
             splitVectors.push_back(subVec);
             startIdx = endIdx;
         }
-    }
-
-    int total1 = 0;
-    for (const auto &item: splitVectors) {
-        int size = item.size();
-        total1 = total1 + size;
     }
 
     std::vector<std::vector<PoseVo>> complexAngleList;
@@ -162,7 +150,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
             currentPose.x = pose.realPosition.x;
             currentPose.y = pose.realPosition.y;
             currentPose.z = pose.realPosition.z;
-            long timeout = conversion::cal_distance(lastPose, currentPose) * 20 + 5;//掉头5s
+            long timeout = conversion::cal_distance(lastPose, currentPose) * 20 + 6;//掉头5s
             pose.timeout = timeout;
             timeout_accumulation += timeout;
 

@@ -53,6 +53,12 @@ void ParamManager::loadDefaultParam() {
         node["txt_upgrade"] = false;
         //雨雪天
         node["rain_snow"] = false;
+        //二次集尘
+        node["collect_dust"] = false;
+        //自动喷油
+        node["auto_oil"] = false;
+        //维护时间
+        node["maintenance_start_time"] = 0;
         std::ofstream ofstream(app_param_path);
         ofstream << node;
         ofstream.close();
@@ -214,6 +220,78 @@ void ParamManager::setBaseStation(bool has) {
     YAML::Node node = YAML::LoadFile(app_communication_param_path);
     node["base_exist"] = has;
     std::ofstream ofstream(app_communication_param_path);
+    ofstream << node;
+    ofstream.close();
+}
+
+bool ParamManager::getCollectDust() {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    auto childNode = node["collect_dust"];
+    if (childNode.IsDefined() && childNode.IsScalar()) {
+        return childNode.as<bool>();
+    }
+    setCollectDust(false);
+    return getCollectDust();
+}
+
+void ParamManager::setCollectDust(bool collect_dust) {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    node["collect_dust"] = collect_dust;
+    std::ofstream ofstream(app_param_path);
+    ofstream << node;
+    ofstream.close();
+}
+
+bool ParamManager::getAutoOil() {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    auto childNode = node["auto_oil"];
+    if (childNode.IsDefined() && childNode.IsScalar()) {
+        return childNode.as<bool>();
+    }
+    setAutoOil(false);
+    return getAutoOil();
+}
+
+void ParamManager::setAutoOil(bool auto_oil) {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    node["auto_oil"] = auto_oil;
+    std::ofstream ofstream(app_param_path);
+    ofstream << node;
+    ofstream.close();
+}
+
+long ParamManager::getMaintenanceStartTime() {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    auto childNode = node["maintenance_start_time"];
+    if (childNode.IsDefined() && childNode.IsScalar()) {
+        return childNode.as<bool>();
+    }
+    setMaintenanceStartTime(0);
+    return getMaintenanceStartTime();
+}
+
+void ParamManager::setMaintenanceStartTime(long maintenance_start_time) {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    node["maintenance_start_time"] = maintenance_start_time;
+    std::ofstream ofstream(app_param_path);
     ofstream << node;
     ofstream.close();
 }
