@@ -4,7 +4,7 @@
 
 #include "sub/json/TimerStrategy.h"
 #include "ros/package.h"
-#include "glog/logging.h"
+#include "simulation.h"
 #include "db/path.h"
 #include "net/base/Entrance.h"
 

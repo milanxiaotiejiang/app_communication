@@ -7,7 +7,7 @@
 #include "leave/ParamManager.h"
 #include "time.h"
 #include "chrono"
-#include "glog/logging.h"
+#include "simulation.h"
 #include "schedule/schedule_manager.h"
 #include "simulation.h"
 #include "manager/PublishInnerManager.h"

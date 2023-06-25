@@ -3,7 +3,7 @@
 //
 
 #include "future/node/node_observer_mode.h"
-#include "glog/logging.h"
+#include "simulation.h"
 #include "future/node/node_control.h"
 
 AbnormalObserver::AbnormalObserver(NodeSubject *nodeSubject) : nodeSubject(nodeSubject) {}

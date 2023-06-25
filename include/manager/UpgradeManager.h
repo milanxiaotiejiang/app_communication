@@ -5,7 +5,7 @@
 #ifndef APP_COMMUNICATION_UPGRADEMANAGER_H
 #define APP_COMMUNICATION_UPGRADEMANAGER_H
 
-#include "glog/logging.h"
+#include "simulation.h"
 #include "db/segmentation_data_base.h"
 #include "model/TimerInfo.h"
 #include <cppfs/fs.h>

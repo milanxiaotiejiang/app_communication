@@ -8,6 +8,7 @@
 #include "manager/PublishInnerManager.h"
 #include "BaseThrowable.h"
 #include "leave/cartographer_node.h"
+#include "simulation.h"
 
 /**
  * map_origin_pose.position (0,0) 为显示地图的左下角，即 starting_position_pose.x 越大，机器人越靠右；starting_position_pose.y 越大，机器人越考上
@@ -24,7 +25,8 @@ cv::Point MapAttribute::getRobotPositionPoint(const cv::Mat &room_map) const {
             cols - (starting_position_pose.y - map_origin_pose.position.x) / map_resolution_from_subscription;
     starting_position.y =
             rows - (starting_position_pose.x - map_origin_pose.position.y) / map_resolution_from_subscription;
-    LOG(INFO) << "current robot position (" << starting_position.x << ", " << starting_position.y << ")";
+    LOG_IF(INFO, DEBUG_SEGMENTATION)
+    << "current robot position (" << starting_position.x << ", " << starting_position.y << ")";
     return starting_position;
 }
 

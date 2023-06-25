@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 
     //初始化ros节点
     ros::init(argc, argv, "rec_app_node");
-    LOG(INFO) << sys_gettid() << " start to listening!";
+    LOG_IF(INFO, DEBUG_FIRING) << "启动 rec_app_node " << sys_gettid() << " start to listening!";
 
     //新清洁历史
     clean_history_db::CleanHistoryCenter::instance().initialize();
@@ -284,7 +284,7 @@ static bool filterCallback(void *context) {
 void initDump() {
     std::string dumpDirStr = string(getenv_rec("HOME")) + "/app_dump";
 
-    LOG(INFO) << "dumpDirStr  " << dumpDirStr;
+    LOG(INFO) << "dumpDirStr " << dumpDirStr;
     mkdir(dumpDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
     google_breakpad::MinidumpDescriptor descriptor(dumpDirStr);
     exceptionHandler = new google_breakpad::ExceptionHandler(descriptor,//minidump文件写入的目录

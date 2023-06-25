@@ -3,7 +3,7 @@
 //
 
 #include "future/timer.h"
-#include "glog/logging.h"
+#include "simulation.h"
 
 namespace async {
     namespace internal {

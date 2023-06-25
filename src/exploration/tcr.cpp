@@ -8,13 +8,14 @@
 #include "exploration/ExplorationCenter.h"
 #include "db/segmentation_data_base.h"
 
+#include "simulation.h"
 
 double tcr::coverageProportion() {
     try {
         auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
         double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//网格正方形的边长
         double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
-        LOG(INFO) << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
         int spacing_half = (int) std::floor(0.5 * grid_spacing_in_pixel);
 
         const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
@@ -60,7 +61,7 @@ double tcr::coverageProportion() {
         }
 
         double proportion = (plan_px * 1.0 / area_px);
-        LOG(INFO) << "### area_px : " << area_px
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "### area_px : " << area_px
                   << " , plan_px = " << plan_px
                   << " , 规划面积/建图面积 = " << proportion;
         return proportion;

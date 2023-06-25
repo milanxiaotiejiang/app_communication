@@ -3,7 +3,7 @@
 //
 
 #include "future/node/once_confirm.h"
-#include "glog/logging.h"
+#include "simulation.h"
 #include "future/node/node_control.h"
 #include "simulation.h"
 

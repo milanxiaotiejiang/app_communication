@@ -10,11 +10,13 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "simulation.h"
+
 void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origin,
                                 const std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path,
                                 float resize,
                                 const std::string &winname) {
-    LOG(INFO) << "压缩比例 ： " << resize;
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "压缩比例 ： " << resize;
     if (complex_path.empty()) {
         return;
     }
@@ -62,7 +64,7 @@ void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origi
 void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origin,
                                 std::vector<geometry_msgs::Pose2D> exploration_path,
                                 float resize, const std::string &winname) {
-    LOG(INFO) << "压缩比例 ： " << resize;
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "压缩比例 ： " << resize;
     if (exploration_path.empty()) {
         return;
     }
@@ -113,7 +115,7 @@ void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origi
 
 void planning_point_path_display(const cv::Mat &map, std::vector<cv::Point> point_path, float resize,
                                  const std::string &winname) {
-    LOG(INFO) << "压缩比例 ： " << resize;
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "压缩比例 ： " << resize;
     if (point_path.empty()) {
         return;
     }

@@ -32,7 +32,7 @@
 #include <prohibition.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_listener.h>
-#include "glog/logging.h"
+#include "simulation.h"
 #include <chrono>
 #include "model/UpgradeModel.h"
 #include "task/model/PointProgressVo.h"

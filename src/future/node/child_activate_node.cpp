@@ -3,7 +3,6 @@
 //
 
 #include "future/node/child_activate_node.h"
-#include "glog/logging.h"
 #include "future/node/node_control.h"
 #include "simulation.h"
 

@@ -4,7 +4,7 @@
 
 #include <list>
 #include "future/node/activate_node.h"
-#include "glog/logging.h"
+#include "simulation.h"
 
 ActivateNode::ActivateNode(int seconds) : seconds(seconds) {}
 

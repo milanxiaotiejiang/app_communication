@@ -4,9 +4,9 @@
 
 #include "exploration/energy_functional_explorator.h"
 #include "exploration/room_rotator.h"
-#include "glog/logging.h"
 #include "exploration/grid.h"
 #include "exploration/cv_extend.h"
+#include "simulation.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 
@@ -96,7 +96,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
                                                const cv::Point2d &map_origin, const double grid_spacing_in_pixel,
                                                const double path_eps, bool interpolation_operation) {
 
-    LOG(INFO) << "Planning the boustrophedon path trough the room.";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "Planning the boustrophedon path trough the room.";
 
     const int grid_spacing_as_int = (int) std::floor(grid_spacing_in_pixel);
     const int half_grid_spacing_as_int = (int) std::floor(0.5 * grid_spacing_in_pixel);
@@ -156,7 +156,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
 
         nodes.push_back(current_row);
     }
-    LOG(INFO) << "found " << number_of_nodes << " nodes";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "found " << number_of_nodes << " nodes";
 
 
     EnergyExploratorNode *first_accessible_node = 0;
@@ -187,7 +187,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
         }
     }
 
-    LOG(INFO) << "found neighbors, corners: " << corner_nodes.size();
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "found neighbors, corners: " << corner_nodes.size();
     if (first_accessible_node == 0) {
         LOG(ERROR) << "Warning: there are no accessible points in this room.";
         return;
@@ -231,7 +231,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
             min_distance = current_distance;
         }
     }
-    LOG(INFO) << "start node: " << start_node->center_;
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "start node: " << start_node->center_;
 
     std::vector<cv::Point2f> fov_coverage_path;
     fov_coverage_path.push_back(cv::Point2f(start_node->center_.x, start_node->center_.y));

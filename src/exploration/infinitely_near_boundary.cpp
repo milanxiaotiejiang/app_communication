@@ -5,12 +5,12 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include "exploration/infinitely_near_boundary.h"
-#include "glog/logging.h"
 #include "exploration/line.h"
 #include "exploration/A_star_pathplanner.h"
 #include "exploration/cv_extend.h"
 #include "exploration/douglas/DouglasPeucker.h"
 #include "exploration/douglas/Point2D.h"
+#include "simulation.h"
 
 #define random(a, b) (rand() % (b - a) + a)
 
@@ -55,7 +55,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
     int origin_y = reachablePoint.y;
 
     if (principle_map.at<unsigned char>(reachablePoint.y, reachablePoint.x) != 255) {
-        LOG(INFO) << "InfinitelyNearBoundary : Find available points near the base station";
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "InfinitelyNearBoundary : Find available points near the base station";
 
         for (int row = -num_it; row <= num_it; row++) {
 
@@ -72,7 +72,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
         }
 
     } else {
-        LOG(INFO) << "InfinitelyNearBoundary : The location of the base station can ensure the arrival ...";
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "InfinitelyNearBoundary : The location of the base station can ensure the arrival ...";
     }
 
     if (principle_map.at<unsigned char>(reachablePoint.y, reachablePoint.x) != 255)
@@ -112,7 +112,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
 //        cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(-1, -1), half_grid_spacing_as_int);
 //        explorationErode(borderMat, borderMat, cv::MORPH_RECT, scale_in_pixel);
 
-        LOG(INFO) << "(infinitely near boundary) 边界距离 scale_in_pixel: " << (half_grid_spacing_as_int + scale_in_pixel)
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "(infinitely near boundary) 边界距离 scale_in_pixel: " << (half_grid_spacing_as_int + scale_in_pixel)
                   << " px";
 
         //下列分别测试四种 step，采用 step3 为主
@@ -259,7 +259,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
                         area_px++;
             auto area = area_px * map_resolution * map_resolution;
             if (area < boundary_min_area) {
-//                LOG(INFO) << "InfinitelyNearBoundary : Discard small obstacles , area =" << area << " ...";
+//                LOG_IF(INFO, DEBUG_EXPLORATION) << "InfinitelyNearBoundary : Discard small obstacles , area =" << area << " ...";
                 continue;
             }
 
@@ -273,7 +273,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
                 auto randomPoint = borderContour[random];
                 double length = path_planner.planPath(original_map, reachablePoint, randomPoint,
                                                       1, robot_radius, map_resolution);
-//                LOG(INFO) << "InfinitelyNearBoundary : r = " << std::to_string(r) << " , p = "
+//                LOG_IF(INFO, DEBUG_EXPLORATION) << "InfinitelyNearBoundary : r = " << std::to_string(r) << " , p = "
 //                          << std::to_string(scale_in_pixel) << " , point : (" << randomPoint.x << ", " << randomPoint.y
 //                          << ")" << "   " << length;
                 if (length < 1e90) {
@@ -292,7 +292,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
                 }
                 middle_complex_path.push_back(complex);
             } else {
-                LOG(INFO) << "InfinitelyNearBoundary : maxTraversal =" << maxTraversal
+                LOG_IF(INFO, DEBUG_EXPLORATION) << "InfinitelyNearBoundary : maxTraversal =" << maxTraversal
                           << " , accessibleCount = " << accessibleCount;
             }
 

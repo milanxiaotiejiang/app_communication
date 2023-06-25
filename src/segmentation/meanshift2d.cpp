@@ -5,7 +5,7 @@
 #include <opencv2/core.hpp>
 #include "segmentation/meanshift2d.h"
 #include "segmentation/fast_math.h"
-#include "glog/logging.h"
+#include "simulation.h"
 
 void
 MeanShift2D::filter(const std::vector<cv::Vec2d> &data, std::vector<cv::Vec2d> &filtered_data, const double bandwidth,

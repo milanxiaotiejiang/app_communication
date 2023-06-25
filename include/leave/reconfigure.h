@@ -9,7 +9,7 @@
 #include <ros/ros.h>
 
 #include <utility>
-#include "glog/logging.h"
+#include "simulation.h"
 
 class DR {
 public:

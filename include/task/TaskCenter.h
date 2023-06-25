@@ -5,7 +5,7 @@
 #ifndef APP_COMMUNICATION_TASKCENTER_H
 #define APP_COMMUNICATION_TASKCENTER_H
 
-#include "glog/logging.h"
+#include "simulation.h"
 #include "model/Task.h"
 #include "model/task.h"
 #include "task/RealTask.h"

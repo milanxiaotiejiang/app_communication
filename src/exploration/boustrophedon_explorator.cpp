@@ -4,7 +4,6 @@
 
 #include <nav_msgs/OccupancyGrid.h>
 #include "exploration/boustrophedon_explorator.h"
-#include "glog/logging.h"
 #include "exploration/room_rotator.h"
 #include "exploration/grid.h"
 #include "exploration/tsp/nearest_neighbor_TSP.h"
@@ -13,6 +12,7 @@
 #include "exploration/cv_extend.h"
 #include "exploration/voronoi/voronoi.hpp"
 #include "exploration/ExplorationCenter.h"
+#include "simulation.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 static bool DISPLAY_TRAJECTORY_RESULT = false;
@@ -40,7 +40,7 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
                                                const double min_cell_area, const int max_deviation_from_track,
                                                int tsp_solver, int explorer_mode, bool interpolation_operation) {
 
-    LOG(INFO) << "Planning the boustrophedon path trough the room.";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "Planning the boustrophedon path trough the room.";
 
     const int grid_spacing_as_int = (int) std::floor(grid_spacing_in_pixel);
     const int half_grid_spacing_as_int = (int) std::floor(0.5 * grid_spacing_in_pixel);
@@ -75,10 +75,10 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         msg.append("Vertices Size=").append(std::to_string(generalizedPolygon.getVertices().size())).append(" ");
         msg.append("Area=").append(std::to_string((int) generalizedPolygon.getArea())).append(" ");
 
-//        LOG(INFO) << msg;
+//        LOG_IF(INFO, DEBUG_EXPLORATION) << msg;
     }
 
-    LOG(INFO) << "Found the cells in the given map.";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "Found the cells in the given map.";
 
     std::vector<cv::Point> starting_point_vector(1, starting_position);
     //线性图像变换
@@ -106,26 +106,26 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
     // 确定单元格的最佳访问顺序
     if (tsp_solver == TSP_GENETIC) {
         //ROS默认使用的计算TSP遍历顺序的算法是遗传算法，且会先将地图缩放0.25倍后进行计算。默认使用的是GeneticTSPSolver，即用遗传算法来求解区间遍历顺序
-        LOG(INFO) << "GeneticTSPSolver .. ";
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "GeneticTSPSolver .. ";
         GeneticTSPSolver tsp_solver;
         optimal_order = tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 0.25, 0.0, map_resolution,
                                                    start_cell_index, 0);
         if (optimal_order.size() != polygon_centers.size()) {
-            LOG(INFO)
-                    << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
+            LOG_IF(INFO, DEBUG_EXPLORATION)
+            << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
             optimal_order = tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
                                                        map_resolution, start_cell_index, 0);
         }
     } else if (tsp_solver == TSP_NEAREST_NEIGHBOR) {
         // 一种通过计算最临近区域求出TSP近似解的方式，不追求下方的遗传学 TSP 的最优解，只求近似解为止（比下方步缺少一步）
         // 算法原理：每次都取离当前位置最近的区域为下一个清扫区域，到达下一个区域后，再取最近的区域为下一个清扫区域，即遗传学TSP前半段
-        LOG(INFO) << "NearestNeighborTSPSolver .. ";
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "NearestNeighborTSPSolver .. ";
         NearestNeighborTSPSolver neighbor_tsp_solver;
         optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 0.2, 0.0,
                                                             map_resolution, start_cell_index, 0);
         if (optimal_order.size() != polygon_centers.size()) {
-            LOG(INFO)
-                    << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
+            LOG_IF(INFO, DEBUG_EXPLORATION)
+            << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
             optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
                                                                 map_resolution, start_cell_index, 0);
         }
@@ -143,15 +143,18 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         cv::waitKey();
     }
 
-    LOG(INFO) << "Starting to get the paths for each cell, number of cells: " << (int) cell_polygons.size();
-    LOG(INFO) << "Boustrophedon grid_spacing_as_int = " << grid_spacing_as_int;
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "Starting to get the paths for each cell, number of cells: " << (int) cell_polygons.size();
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "Boustrophedon grid_spacing_as_int = " << grid_spacing_as_int;
     cv::Point robot_pos = rotated_starting_point;
 
     std::vector<cv::Point2f> fov_middlepoint_path;
     std::vector<std::vector<cv::Point2f>> complex_middle_path;
-    std::cout << "planned speed " << cell_polygons.size() << " " << std::flush;
+    if (DEBUG_EXPLORATION)
+        std::cout << "planned speed " << cell_polygons.size() << " " << std::flush;
     for (size_t cell = 0; cell < cell_polygons.size(); ++cell) {
-        std::cout << "." << std::flush;
+        if (DEBUG_EXPLORATION)
+            std::cout << "." << std::flush;
         if (explorer_mode == BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE) {
             computeBoustrophedonPath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
                                      fov_middlepoint_path, complex_middle_path,
@@ -166,7 +169,8 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
                                                   interpolation_operation);
         }
     }
-    std::cout << std::endl;
+    if (DEBUG_EXPLORATION)
+        std::cout << std::endl;
 
     if (fov_middlepoint_path.empty()) {
         LOG(ERROR) << "Warning: there are no accessible points in this room.";
@@ -779,7 +783,8 @@ void BoustrophedonExplorer::computeRectangularAmbulatoryPlanePath(const cv::Mat 
         if (find)
             break;
     }
-    LOG(INFO) << "地图 " << mat.cols << "x" << mat.rows << ", 起始点为 (" << start_x << ", " << start_y << ")";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "地图 " << mat.cols << "x" << mat.rows << ", 起始点为 (" << start_x << ", " << start_y << ")";
     vm.generatePath(mat, voronoi_path, cv::Mat(), start_x, start_y);
 
     std::vector<cv::Point> approx_list;
@@ -878,7 +883,8 @@ int BoustrophedonExplorer::mergeCells(cv::Mat &cell_map, cv::Mat &cell_map_label
         }
     }
 
-    LOG(INFO) << "BoustrophedonExplorer::mergeCells: found " << label_index - 1 << " cells before merging.";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "BoustrophedonExplorer::mergeCells: found " << label_index - 1 << " cells before merging.";
 
     //配对响应的邻居
     for (int v = 1; v < cell_map_labels.rows - 1; ++v) {
@@ -924,7 +930,7 @@ int BoustrophedonExplorer::mergeCells(cv::Mat &cell_map, cv::Mat &cell_map_label
             for (const auto &item: set) {
                 msg.append(std::to_string(item->label_)).append(" ");
             }
-            LOG(INFO) << msg;
+            LOG_IF(INFO, DEBUG_EXPLORATION) << msg;
         }
         cv::imshow("merge before", cell_map);
         cv::waitKey();
@@ -956,8 +962,8 @@ int BoustrophedonExplorer::mergeCells(cv::Mat &cell_map, cv::Mat &cell_map_label
                 if (cell_map_labels.at<int>(v, u) == itc->second->label_)
                     cell_map_labels.at<int>(v, u) = new_cell_label;
 
-    LOG(INFO) << "INFO: BoustrophedonExplorer::mergeCells: " << cell_index_mapping.size()
-              << " cells remaining after merging.";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "INFO: BoustrophedonExplorer::mergeCells: " << cell_index_mapping.size()
+                                    << " cells remaining after merging.";
     return cell_index_mapping.size();
 }
 
@@ -998,10 +1004,10 @@ void BoustrophedonExplorer::mergeCellsSelection(cv::Mat &cell_map, cv::Mat &cell
         BoustrophedonCell &large_cell = *(area_sorted_neighbors.begin()->second);
 
         if (DISPLAY_TRAJECTORY) {
-            LOG(INFO) << "small_cell  small_area : " << it->first
-                      << "   small_box_width : " << it->second->bounding_box_.width
-                      << "   small_box_height : " << it->second->bounding_box_.height
-                      << "   large_cell  large_area : " << large_cell.area_;
+            LOG_IF(INFO, DEBUG_EXPLORATION) << "small_cell  small_area : " << it->first
+                                            << "   small_box_width : " << it->second->bounding_box_.width
+                                            << "   small_box_height : " << it->second->bounding_box_.height
+                                            << "   large_cell  large_area : " << large_cell.area_;
         }
 
         //合并单元格

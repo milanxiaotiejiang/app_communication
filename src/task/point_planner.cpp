@@ -3,10 +3,9 @@
 //
 
 #include "task/point_planner.h"
-#include "glog/logging.h"
+#include "simulation.h"
 #include "BaseThrowable.h"
 #include "task/point_routine.h"
-#include "simulation.h"
 #include "db/SqliteDataBase.h"
 
 void PointPlanner::cpToPath(const std::vector<RealPoint> &points, replan_msgs::ReplanGoal &goal_path,

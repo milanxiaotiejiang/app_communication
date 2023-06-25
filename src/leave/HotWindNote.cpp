@@ -4,7 +4,7 @@
 
 #include <std_msgs/Int32.h>
 #include "leave/HotWindNote.h"
-#include "glog/logging.h"
+#include "simulation.h"
 #include "manager/PublishInnerManager.h"
 
 #define HOT_WIND_TIME_DURATION 20 * 60 * 1000L

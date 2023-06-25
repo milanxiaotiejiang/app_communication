@@ -4,7 +4,7 @@
 
 #include "future/node/motor_server.h"
 #include "simulation.h"
-#include "glog/logging.h"
+#include "simulation.h"
 
 void MotorServerSingleton::init(ros::NodeHandle handle) {
     if (!Environment::instance().isRealEnvironment) {

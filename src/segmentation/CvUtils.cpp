@@ -100,7 +100,7 @@ namespace CvUtils {
         cv::applyColorMap(adjMap, falseColorsMap, cv::COLORMAP_JET);
         cv::imwrite(fileName, falseColorsMap, compression_params);
 
-        LOG(INFO) << "SegmentationSubscribe " << fileName;
+        LOG_IF(INFO, DEBUG_SEGMENTATION) << "SegmentationSubscribe " << fileName;
 
         return true;
     }

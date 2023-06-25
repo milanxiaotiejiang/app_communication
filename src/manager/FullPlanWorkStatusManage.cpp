@@ -10,7 +10,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "glog/logging.h"
+#include "simulation.h"
 #include "tool/write_file.hpp"
 #include "db/path.h"
 

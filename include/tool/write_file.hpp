@@ -10,7 +10,7 @@
 
 #include <sys/stat.h>
 
-#include "glog/logging.h"
+#include "simulation.h"
 
 namespace sh {
     enum class FileMode {

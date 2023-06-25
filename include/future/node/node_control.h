@@ -11,7 +11,7 @@
 #include <utility>
 #include "string"
 #include "future/thread_pool.h"
-#include "glog/logging.h"
+#include "simulation.h"
 #include "node_manager.h"
 #include "child_activate_node.h"
 #include "node_observer_mode.h"

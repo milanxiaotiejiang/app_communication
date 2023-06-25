@@ -21,7 +21,7 @@
 #include <sub/json/otaStrategy.h>
 #include <utility>
 
-#include "glog/logging.h"
+#include "simulation.h"
 #include "sub/json/LocationStrategy.h"
 #include "sub/json/ProjectStrategy.h"
 

@@ -5,7 +5,13 @@
 #ifndef APP_COMMUNICATION_SIMULATION_H
 #define APP_COMMUNICATION_SIMULATION_H
 
+#include "glog/logging.h"
 #include "string"
+
+#define DEBUG_FIRING false
+#define DEBUG_EXPLORATION false
+#define DEBUG_SEGMENTATION false
+#define DEBUG_TASK false
 
 const bool isTimely = false;
 const bool isTestCrash = false;

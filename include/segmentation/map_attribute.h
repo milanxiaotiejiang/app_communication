@@ -14,7 +14,7 @@
 #include <condition_variable>
 #include "yaml-cpp/yaml.h"
 
-#include "glog/logging.h"
+#include "simulation.h"
 #include "model/Point.h"
 #include "db/path.h"
 

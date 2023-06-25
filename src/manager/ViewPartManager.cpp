@@ -9,7 +9,7 @@
  * 
  */
 #include "manager/ViewPartManager.h"
-#include "glog/logging.h"
+#include "simulation.h"
 
 bool ViewPartManager::FileOpenRead() {
     if (!sh::File::exists(m_filename)) {

@@ -12,7 +12,7 @@
 
 #include "net/kill_port.h"
 
-#include "glog/logging.h"
+#include "simulation.h"
 
 #include "future/CThread.h"
 

@@ -3,9 +3,9 @@
 //
 
 #include "exploration/room_rotator.h"
-#include "glog/logging.h"
 #include "exploration/histogram.h"
 #include "exploration/cv_extend.h"
+#include "simulation.h"
 
 static bool DISPLAY_ROOM_ROTATOR = false;
 
@@ -27,7 +27,7 @@ double RoomRotator::computeRoomRotationMatrix(const cv::Mat &room_map, cv::Mat &
                                               const double map_resolution, const cv::Point *center,
                                               const double rotation_offset) {
     double rotation_angle = computeRoomMainDirection(room_map, map_resolution) + rotation_offset;
-//    LOG(INFO) << "RoomRotator::computeRoomRotationMatrix: main rotation angle: " << rotation_angle
+//    LOG_IF(INFO, DEBUG_EXPLORATION) << "RoomRotator::computeRoomRotationMatrix: main rotation angle: " << rotation_angle
 //              << "   (rotation_angle * 180) / CV_PI = " << (rotation_angle * 180) / CV_PI;
 
     cv::Point center_of_rotation;

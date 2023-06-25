@@ -214,7 +214,7 @@ void SegmentationCenter::originalSegmentation(cv::Mat &segmented_map, std::vecto
     //id_number_: 1 member_points_: 61651 neighbor_room_ids_: 0 neighbor_room_statistics_: 0 room_area_: 154.127 room_perimeter_: 0
     //id_number_: 1 member_points_: 61651 neighbor_room_ids_: 0 neighbor_room_statistics_: 0 room_area_: 154.128 room_perimeter_: 0
     //id_number_: 1 member_points_: 61651 neighbor_room_ids_: 0 neighbor_room_statistics_: 0 room_area_: 154.128 room_perimeter_: 0
-    LOG(INFO) << room;//三者输出一致
+    LOG_IF(INFO, DEBUG_SEGMENTATION) << room;//三者输出一致
 
     rooms.push_back(room);
     handSegmentation(segmented_map, rooms, 0, ps, pe);

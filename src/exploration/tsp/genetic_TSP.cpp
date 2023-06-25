@@ -4,7 +4,7 @@
 
 #include "exploration/tsp/genetic_TSP.h"
 #include "exploration/tsp/nearest_neighbor_TSP.h"
-#include "glog/logging.h"
+#include "simulation.h"
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 
@@ -134,7 +134,7 @@ std::vector<int> GeneticTSPSolver::mutatePath(const std::vector<int> &parent_pat
             }
         } while (!inverted);
     } else {
-        LOG(INFO) << "Something was wrong in mutation-function.";
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "Something was wrong in mutation-function.";
     }
 
     return mutated_path;
@@ -218,7 +218,7 @@ std::vector<int> GeneticTSPSolver::solveGeneticTSP(const cv::Mat &original_map, 
                                                    double downsampling_factor,
                                                    double robot_radius, double map_resolution, const int start_Node,
                                                    cv::Mat *distance_matrix) {
-    LOG(INFO) << "GeneticTSPSolver::solveGeneticTSP: Constructing distance matrix...";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "GeneticTSPSolver::solveGeneticTSP: Constructing distance matrix...";
     cv::Mat distance_matrix_ref;
     if (distance_matrix != nullptr)
         distance_matrix_ref = *distance_matrix;

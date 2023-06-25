@@ -4,7 +4,6 @@
 
 #include "future/node/mode_validate.h"
 #include "simulation.h"
-#include "glog/logging.h"
 #include "future/node/node_control.h"
 #include "future/thread_pool.h"
 #include "task/point_planner.h"

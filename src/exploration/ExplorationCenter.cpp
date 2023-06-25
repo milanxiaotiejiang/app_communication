@@ -158,32 +158,33 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     }
 
 
-    LOG(INFO) << "generatePlanningPath function explorer_mode : " << explorer_mode
-              << ", addProhibition : " << addProhibition;
-    LOG(INFO) << "map-size: " << map.rows << "x" << map.cols;
-    LOG(INFO) << "map-resolution: " << map_resolution_from_subscription << " m/cell";
-    LOG(INFO) << "map-origin: " << map_origin << " m";
-    LOG(INFO) << "starting-point: (" << robotPosition << " px";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "generatePlanningPath function explorer_mode : " << explorer_mode
+                                    << ", addProhibition : " << addProhibition;
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "map-size: " << map.rows << "x" << map.cols;
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "map-resolution: " << map_resolution_from_subscription << " m/cell";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "map-origin: " << map_origin << " m";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "starting-point: (" << robotPosition << " px";
 
 
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
-    LOG(INFO) << "robot-radius: " << plan.robot_radius << " m   ("
-              << (plan.robot_radius / map_resolution_from_subscription)
-              << " px)";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "robot-radius: " << plan.robot_radius << " m   ("
+                                    << (plan.robot_radius / map_resolution_from_subscription)
+                                    << " px)";
 
     int area_px = 0;
     for (int v = 0; v < map.rows; ++v)
         for (int u = 0; u < map.cols; ++u)
             if (map.at<uchar>(v, u) >= 250)
                 area_px++;
-    LOG(INFO) << "### room area = "
-              << area_px * map_resolution_from_subscription * map_resolution_from_subscription
-              << " m^2";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "### room area = "
+                                    << area_px * map_resolution_from_subscription * map_resolution_from_subscription
+                                    << " m^2";
 
 
     double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//网格正方形的边长
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
-    LOG(INFO) << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
     int half_grid_spacing_as_int_ = (int) std::floor(0.5 * grid_spacing_in_pixel);
     int map_prohibition_expand_size_ = (int) std::floor(grid_spacing_in_pixel);
 
@@ -195,8 +196,8 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     double grid_obstacle_offset_ = plan.grid_obstacle_offset;//0.0;
     //Maximal allowed shift off the ideal boustrophedon track for avoiding obstacles on track, in [pixel]. For negative values max_deviation_from_track is automatically set to grid_spacing.（-1）
     int max_deviation_from_track_ = plan.max_deviation_from_track;//-1;
-    LOG(INFO) << "min_cell_area_ : " << min_cell_area_ << " , path_eps_ : " << path_eps_;
-    LOG(INFO) << "planning mode: planning coverage path with robot's footprint";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "min_cell_area_ : " << min_cell_area_ << " , path_eps_ : " << path_eps_;
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "planning mode: planning coverage path with robot's footprint";
 
     if (model == ExplorationModel::FULL) {
         if (!baseStationAvailable(map, stationPoint)) {
@@ -268,7 +269,8 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
 
 
     int end_time = ros::Time::now().sec;
-    std::cout << "cost getExplorationPath : " << (end_time - start_time) << " s " << std::endl;
+    if (DEBUG_EXPLORATION)
+        std::cout << "cost getExplorationPath : " << (end_time - start_time) << " s " << std::endl;
 }
 
 void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
@@ -282,7 +284,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
 
     cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
 
-    LOG(INFO) << "exploration_path front point size : " << exploration_path.size();
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "exploration_path front point size : " << exploration_path.size();
     if (exploration_path.size() < 3) {
         return;
     }
@@ -305,7 +307,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
     * 2.2 矩形 0.32775 y
     * 3 沿边 0.337024 y
     */
-    LOG(INFO) << "平均路径长度 ： " << point_sqrt / exploration_path.size();
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "平均路径长度 ： " << point_sqrt / exploration_path.size();
 
     // The code commented out below has a bug
 //    std::vector<geometry_msgs::Pose2D> optimize;
@@ -334,7 +336,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
 //        exploration_path.push_back(item);
 //    }
 
-    LOG(INFO) << "exploration_path after point size : " << exploration_path.size();
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "exploration_path after point size : " << exploration_path.size();
 
     if (DISPLAY_TRAJECTORY)
         planning_pose_path_display(room_map, map_origin, exploration_path, 3, "optimizePlanningPath");
@@ -416,9 +418,9 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, bool add
         for (int u = 0; u < map.cols; ++u)
             if (map.at<uchar>(v, u) >= 250)
                 area_px++;
-    LOG(INFO) << "### room area = "
-              << area_px * map_resolution_from_subscription * map_resolution_from_subscription
-              << " m^2";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "### room area = "
+                                    << area_px * map_resolution_from_subscription * map_resolution_from_subscription
+                                    << " m^2";
 
     double min_cell_area_ = std::max(area_px / 2000.0, plan.min_cell_area);
 
@@ -440,10 +442,13 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, bool add
 
     double path_eps_ = std::max(std::floor(grid_spacing_in_pixel), plan.path_eps);
 
-    LOG(INFO) << "(infinitely near boundary) distance_from_obstacles: " << distance_from_obstacles;
-    LOG(INFO) << "(infinitely near boundary) number_extension: " << number_extension;
-    LOG(INFO) << "(infinitely near boundary) multiple_contour_spacing: " << multiple_contour_spacing;
-    LOG(INFO) << "(infinitely near boundary) random_number_generation_ratio: " << random_number_generation_ratio;
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "(infinitely near boundary) distance_from_obstacles: " << distance_from_obstacles;
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "(infinitely near boundary) number_extension: " << number_extension;
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "(infinitely near boundary) multiple_contour_spacing: " << multiple_contour_spacing;
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "(infinitely near boundary) random_number_generation_ratio: " << random_number_generation_ratio;
 
     morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
 
@@ -495,7 +500,8 @@ void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int ex
                                                  std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     std::unique_lock<std::recursive_mutex> lock(cv_mut);
 
-    LOG(INFO) << "------------------------- start generatePlanningPathRect -------------------------";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "------------------------- start generatePlanningPathRect -------------------------";
 
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
@@ -517,7 +523,8 @@ void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int ex
 
     optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
 
-    LOG(INFO) << "------------------------- end generatePlanningPathRect -------------------------";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "------------------------- end generatePlanningPathRect -------------------------";
 }
 
 void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, int explorer_mode, bool addProhibition,
@@ -526,7 +533,8 @@ void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, int exp
                                                 std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     std::unique_lock<std::recursive_mutex> lock(cv_mut);
 
-    LOG(INFO) << "------------------------- start generatePlanningPathSub -------------------------";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "------------------------- start generatePlanningPathSub -------------------------";
 
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
@@ -548,7 +556,8 @@ void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, int exp
 
     optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
 
-    LOG(INFO) << "------------------------- end generatePlanningPathSub -------------------------";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "------------------------- end generatePlanningPathSub -------------------------";
 }
 
 void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int explorer_mode, bool addProhibition,
@@ -557,7 +566,8 @@ void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int ex
                                                  std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     std::unique_lock<std::recursive_mutex> lock(cv_mut);
 
-    LOG(INFO) << "------------------------- start generatePlanningPathFull -------------------------";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "------------------------- start generatePlanningPathFull -------------------------";
 
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
@@ -579,7 +589,8 @@ void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int ex
 
     optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
 
-    LOG(INFO) << "------------------------- end generatePlanningPathFull -------------------------";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "------------------------- end generatePlanningPathFull -------------------------";
 }
 
 void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map, cv::Mat segmented_map,
@@ -590,7 +601,8 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
                                                          std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     std::unique_lock<std::recursive_mutex> lock(cv_mut);
 
-    LOG(INFO) << "------------------------- start generatePlanningSegmentationPath -------------------------";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "------------------------- start generatePlanningSegmentationPath -------------------------";
 
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
@@ -701,7 +713,8 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
 
     optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
 
-    LOG(INFO) << "------------------------- end generatePlanningSegmentationPath -------------------------";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+    << "------------------------- end generatePlanningSegmentationPath -------------------------";
 }
 
 void ExplorationCenter::pathPublish(const std::vector<geometry_msgs::Pose2D> &exploration_path) const {
@@ -784,10 +797,10 @@ cv::Mat ExplorationCenter::findClosestPointRoom(cv::Mat &room_map, const cv::Poi
         }
     }
 
-    LOG(INFO) << "find map info : max_distance : " << max_distance
-              << "   distance_index : " << distance_index
-              << "   max_area : " << max_area
-              << "   area_index : " << area_index << " ... ";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "find map info : max_distance : " << max_distance
+                                    << "   distance_index : " << distance_index
+                                    << "   max_area : " << max_area
+                                    << "   area_index : " << area_index << " ... ";
 
     cv::Mat image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
     if (area_index == distance_index) {
@@ -841,7 +854,7 @@ bool ExplorationCenter::removeUnconnectedRoomParts(cv::Mat &room_map) {
         return false;
 
     const int label_of_biggest_room = area_to_label_map.rbegin()->second;
-    LOG(INFO) << "最大房间标签 = " << label_of_biggest_room;
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "最大房间标签 = " << label_of_biggest_room;
     for (int v = 0; v < room_map.rows; ++v)
         for (int u = 0; u < room_map.cols; ++u)
             if (room_map_int.at<int32_t>(v, u) != label_of_biggest_room)
@@ -967,7 +980,7 @@ cv::Point &ExplorationCenter::findBaseNearReachable(cv::Mat &map, cv::Point &rea
     int origin_y = reachablePoint.y;
 
     if (map.at<unsigned char>(reachablePoint.y, reachablePoint.x) != 255) {
-        LOG(INFO) << "ExplorationCenter : Find available points near the base station";
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "ExplorationCenter : Find available points near the base station";
         for (int row = -range; row <= range; row++) {
             if (map.at<unsigned char>(reachablePoint.y, reachablePoint.x) == 255)
                 break;
@@ -980,6 +993,7 @@ cv::Point &ExplorationCenter::findBaseNearReachable(cv::Mat &map, cv::Point &rea
             }
         }
     } else {
-        LOG(INFO) << "InfinitelyNearBoundary : The location of the base station can ensure the arrival ...";
+        LOG_IF(INFO, DEBUG_EXPLORATION)
+        << "InfinitelyNearBoundary : The location of the base station can ensure the arrival ...";
     }
 }

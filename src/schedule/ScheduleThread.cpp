@@ -1,7 +1,7 @@
 #include "schedule/ScheduleThread.h"
 #include "model/TimerInfo.h"
 #include "net/WsServerManager.h"
-#include "glog/logging.h"
+#include "simulation.h"
 #include "ros/package.h"
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>

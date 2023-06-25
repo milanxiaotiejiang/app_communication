@@ -5,7 +5,7 @@
 #include "task/manager/MechanismManager.h"
 #include "manager/PublishInnerManager.h"
 #include "task/subscribe/zoo_inner_status.h"
-#include "glog/logging.h"
+#include "simulation.h"
 
 void MechanismManager::resetWorkStatus() {
     LOG(INFO) << "MechanismManager : 收起清洁机构 . ";

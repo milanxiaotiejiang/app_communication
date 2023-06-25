@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include "simulation.h"
 
 class BoustrophedonLine {
 public:
@@ -310,7 +311,7 @@ public:
                     }
                 }
 
-//                LOG(INFO) << min_x << max_x << min_y << max_y
+//                LOG_IF(INFO, DEBUG_EXPLORATION) << min_x << max_x << min_y << max_y
 //                          << " 第 " << y << " 列  two_valid_lines : " << cleaned_line.has_two_valid_lines
 //                          << "  upper_line size : " << cleaned_line.upper_line.size() << "  lower_line size : "
 //                          << cleaned_line.lower_line.size();

@@ -6,7 +6,7 @@
 #define APP_COMMUNICATION_ASYNC_CALL_H
 
 #include "thread"
-#include "glog/logging.h"
+#include "simulation.h"
 #include "BaseThrowable.h"
 
 class AsyncCall {

@@ -141,7 +141,7 @@ double Room::getArea() {
     if (room_area_ != 0) {
         return room_area_;
     }
-    LOG(INFO) << "Warning: Room Area hasn't been set for this room.";
+    LOG(ERROR) << "Warning: Room Area hasn't been set for this room.";
     return -1;
 }
 
@@ -165,7 +165,7 @@ cv::Point Room::getCenter() {
 
 const std::vector<cv::Point> &Room::getMembers() {
     if (member_points_.size() == 0) {
-        LOG(INFO) << "Warning: This room has no members.";
+        LOG(ERROR) << "Warning: This room has no members.";
     }
     return member_points_;
 }

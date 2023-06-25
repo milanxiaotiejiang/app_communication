@@ -6,7 +6,7 @@
 #define APP_COMMUNICATION_DYNAMICRECONFIGUREMANAGER_H
 
 #include "nlohmann/json.hpp"
-#include "glog/logging.h"
+#include "simulation.h"
 #include <dynamic_reconfigure/Reconfigure.h>
 #include <ros/ros.h>
 

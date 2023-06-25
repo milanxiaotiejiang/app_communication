@@ -5,7 +5,7 @@
 #include <utility>
 #include "CronData.h"
 #include "CronSchedule.h"
-#include "glog/logging.h"
+#include "simulation.h"
 
 namespace croncpp {
     class TaskInformation {

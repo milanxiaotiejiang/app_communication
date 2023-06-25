@@ -27,7 +27,7 @@
 #include "segmentation/SegmentationStrategy.h"
 #include <utility>
 
-#include "glog/logging.h"
+#include "simulation.h"
 #include "simulation.h"
 #include "sub/json/DBTaskStrategy.h"
 #include "sys/syscall.h"

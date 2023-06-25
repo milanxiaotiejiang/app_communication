@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 
-#include "glog/logging.h"
+#include "simulation.h"
 
 #define SERV_PORT 9099
 #define INET_ADDR "255.255.255.255"

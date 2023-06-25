@@ -5,7 +5,7 @@
 #include "sub/json/otaStrategy.h"
 //#include <manager/TaskPubManager.h>
 #include <std_msgs/String.h>
-#include "glog/logging.h"
+#include "simulation.h"
 #include "manager/VersionManager.h"
 
 int checkFolderExistOta(std::string const &name) {
