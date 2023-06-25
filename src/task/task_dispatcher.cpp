@@ -86,7 +86,7 @@ void TaskDispatcher::dispatcherTask(RealTask &realTask) {
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
 
-    LOG(INFO) << " 验证覆盖点位个数为 : " << coverage.getPoseList().size() << " , 此任务验证可以通过 ... ";
+    LOG_IF(INFO, DEBUG_TASK) << " 验证覆盖点位个数为 : " << coverage.getPoseList().size() << " , 此任务验证可以通过 ... ";
 
 //    asyncTaskCall->executeOneTask(realTask);
 

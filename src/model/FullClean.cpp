@@ -36,11 +36,11 @@ void FullCleanBrief::setWorkStatus(const WorkStatus &workStatus) {
     work_status = workStatus;
 }
 
-const vector<Point> &FullCleanBrief::getFullPath() const {
+const std::vector<Point> &FullCleanBrief::getFullPath() const {
     return full_path;
 }
 
-void FullCleanBrief::setFullPath(const vector<Point> &fullPath) {
+void FullCleanBrief::setFullPath(const std::vector<Point> &fullPath) {
     full_path = fullPath;
 }
 
@@ -57,11 +57,11 @@ FullCleanBriefList::FullCleanBriefList() {}
 
 FullCleanBriefList::~FullCleanBriefList() {}
 
-const vector<FullCleanBrief> &FullCleanBriefList::getFullCleanBriefList() const {
+const std::vector<FullCleanBrief> &FullCleanBriefList::getFullCleanBriefList() const {
     return m_fullclean_brief_list;
 }
 
-void FullCleanBriefList::setFullCLeanBriefList(const vector<FullCleanBrief> &fullcleanBriefList) {
+void FullCleanBriefList::setFullCLeanBriefList(const std::vector<FullCleanBrief> &fullcleanBriefList) {
     m_fullclean_brief_list = fullcleanBriefList;
 }
 
@@ -70,8 +70,8 @@ bool FullCleanBriefList::addFullCleanBrief(const FullCleanBrief &fullCleanBrief)
     return true;
 }
 
-bool FullCleanBriefList::deleteFullCleanBrief(const string &fullclean_id) {
-    vector<FullCleanBrief>::iterator iter;
+bool FullCleanBriefList::deleteFullCleanBrief(const std::string &fullclean_id) {
+    std::vector<FullCleanBrief>::iterator iter;
     for (iter = m_fullclean_brief_list.begin(); iter != m_fullclean_brief_list.end(); iter++) {
         if (iter->getFullPathID() == fullclean_id) {
             if (m_fullclean_brief_list.size() == 1) {
@@ -85,7 +85,7 @@ bool FullCleanBriefList::deleteFullCleanBrief(const string &fullclean_id) {
     return false;
 }
 
-bool FullCleanBriefList::getFullCLeanBrief(FullCleanBrief &fullCleanBrief, const string &fullclean_id) {
+bool FullCleanBriefList::getFullCLeanBrief(FullCleanBrief &fullCleanBrief, const std::string &fullclean_id) {
     for (auto &item: m_fullclean_brief_list) {
         if (item.getFullPathID() == fullclean_id) {
             fullCleanBrief = item;
@@ -95,7 +95,7 @@ bool FullCleanBriefList::getFullCLeanBrief(FullCleanBrief &fullCleanBrief, const
     return false;
 }
 
-bool FullCleanBriefList::resetFullCleanBrief(const FullCleanBrief &full_clean_brief, const string &fullclean_id) {
+bool FullCleanBriefList::resetFullCleanBrief(const FullCleanBrief &full_clean_brief, const std::string &fullclean_id) {
     for (auto &item: m_fullclean_brief_list) {
         if (item.getFullPathID() == fullclean_id) {
             item = full_clean_brief;
@@ -105,7 +105,7 @@ bool FullCleanBriefList::resetFullCleanBrief(const FullCleanBrief &full_clean_br
     return false;
 }
 
-void FullCleanBriefList::setMainFullClean(const string &fullclean_id) {
+void FullCleanBriefList::setMainFullClean(const std::string &fullclean_id) {
     for (auto &item: m_fullclean_brief_list) {
         if (item.getFullPathID() == fullclean_id) {
             item.setPrincipal(true);
@@ -115,7 +115,7 @@ void FullCleanBriefList::setMainFullClean(const string &fullclean_id) {
     }
 }
 
-void FullCleanBriefList::cancelMainFullClean(const string &fullclean_id) {
+void FullCleanBriefList::cancelMainFullClean(const std::string &fullclean_id) {
     for (auto &item: m_fullclean_brief_list) {
         if (item.getFullPathID() == fullclean_id) {
             item.setPrincipal(false);

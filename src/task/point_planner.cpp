@@ -50,7 +50,7 @@ PointPlanner::doneCB(const actionlib::SimpleClientGoalState &state, const replan
 
 void PointPlanner::initialize(ros::NodeHandle handle) {
     PointPlanner::handle = handle;
-    LOG(INFO) << "PointPlanner initialize ...";
+    LOG_IF(INFO, DEBUG_FIRING) << "PointPlanner initialize ...";
     initialize_finish = true;
 }
 

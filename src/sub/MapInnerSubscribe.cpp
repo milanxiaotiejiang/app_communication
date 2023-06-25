@@ -20,7 +20,6 @@ void MapInnerSubscribe::subscribeCallback(const nav_msgs::OccupancyGrid &map_raw
         lastTime = ros::Time::now().sec;
         PublishOutManager::instance().publishMap(map_raw);
     }
-//    LOG(INFO) << "SIZE " << map_raw.info.width << " " << map_raw.info.height;
 
     Variable::get_instance()->setMapApp(map_raw);//存进Device..里面，方便全局获取
 }

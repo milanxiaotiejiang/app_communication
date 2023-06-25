@@ -221,8 +221,8 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
 
     for (std::vector<geometry_msgs::Pose2D>::iterator pose = fov_poses.begin(); pose != fov_poses.end(); ++pose) {
         geometry_msgs::Pose2D current_pose;
-        current_pose.x = (((room_map.cols - pose->x) * map_resolution) + map_origin.x);
-        current_pose.y = (((room_map.rows - pose->y) * map_resolution) + map_origin.y);
+        current_pose.x = (((room_map.cols - pose->x - 0.5) * map_resolution) + map_origin.x);
+        current_pose.y = (((room_map.rows - pose->y - 0.5) * map_resolution) + map_origin.y);
         current_pose.theta = pose->theta;
         pose_path.push_back(current_pose);
     }
@@ -231,8 +231,8 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         std::vector<geometry_msgs::Pose2D> complex_pose;
         for (std::vector<geometry_msgs::Pose2D>::iterator pose = complex.begin(); pose != complex.end(); ++pose) {
             geometry_msgs::Pose2D current_pose;
-            current_pose.x = (((room_map.cols - pose->x) * map_resolution) + map_origin.x);
-            current_pose.y = (((room_map.rows - pose->y) * map_resolution) + map_origin.y);
+            current_pose.x = (((room_map.cols - pose->x - 0.5) * map_resolution) + map_origin.x);
+            current_pose.y = (((room_map.rows - pose->y - 0.5) * map_resolution) + map_origin.y);
             current_pose.theta = pose->theta;
             complex_pose.push_back(current_pose);
         }

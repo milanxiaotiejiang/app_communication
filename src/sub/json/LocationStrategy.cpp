@@ -5,28 +5,27 @@
 #include "sub/json/LocationStrategy.h"
 #include "db/path.h"
 
-string LocationStrategy::handler(Location params) {
-    string filePath;
+std::string LocationStrategy::handler(Location params) {
+    std::string filePath;
     filePath.append(path::data_base_config_dir());
     filePath.append("location_info.txt");
 
     if (!sh::File::exists(filePath)) {
-        unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
+        std::unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
         if (!uFilePtr->create(filePath)) {
             throw app::exception(make_error_code(error::acquisition_file_failed));
         }
     }
 
-    unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
+    std::unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
     if (!uFilePtr->open(std::ios::in)) {
         throw app::exception(make_error_code(error::open_file_fail));
     }
     uFilePtr->close();
 
     json jsonLocation = params;
-    string strLocation = jsonLocation.dump();
+    std::string strLocation = jsonLocation.dump();
     // pubOut.robot_result = strLocation;
-    // LOG(INFO) << "location info  to cloud----------- " << pubOut.robot_result;
 
     //直接保存
     if (sh::File::saveTextTo(filePath, strLocation)) {
@@ -59,14 +58,14 @@ void getLocationStrategy::handler() {
     // } else {
     // }
     // json jsonProject;
-    string responseP;
-    string filePath2;
+    std::string responseP;
+    std::string filePath2;
     filePath2.append(path::data_base_config_dir());
     filePath2.append("location_info.txt");
 
     // *pFile2 = new sh::File(filePath2);
-    std::shared_ptr<sh::File> pFile2 = make_shared<sh::File>(filePath2);
-    string strLocationInfo;
+    std::shared_ptr<sh::File> pFile2 = std::make_shared<sh::File>(filePath2);
+    std::string strLocationInfo;
     json jLocation;
     if (pFile2->open(std::ios::in)) {//检查是否存在矩形文件
         strLocationInfo = pFile2->readAll();

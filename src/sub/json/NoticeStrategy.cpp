@@ -5,7 +5,7 @@
 #include "sub/json/NoticeStrategy.h"
 #include "db/path.h"
 
-vector<Notice> NoticeListStrategy::handler(string params) {
+std::vector<Notice> NoticeListStrategy::handler(std::string params) {
     std::string noticeFilePath;
     noticeFilePath.append(path::data_base_config_dir());
     noticeFilePath.append("notice.txt");
@@ -16,10 +16,10 @@ vector<Notice> NoticeListStrategy::handler(string params) {
         content = noticeFilePtr->readAll();
         noticeFilePtr->close();
     }
-    vector<Notice> list;
+    std::vector<Notice> list;
     if (!content.empty()) {
         auto jdecode = json::parse(content);
-        list = jdecode.get<vector<Notice>>();
+        list = jdecode.get<std::vector<Notice>>();
     }
     return list;
 }

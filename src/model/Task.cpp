@@ -9,11 +9,11 @@ Task::Task() {}
 Task::~Task() {
 }
 
-const string &Task::getTaskId() const {
+const std::string &Task::getTaskId() const {
     return task_id;
 }
 
-void Task::setTaskId(const string &taskId) {
+void Task::setTaskId(const std::string &taskId) {
     task_id = taskId;
 }
 
@@ -57,11 +57,11 @@ void Task::setWorkStatus(const WorkStatus &workStatus) {
     work_status = workStatus;
 }
 
-const vector<float> &Task::getZoned() const {
+const std::vector<float> &Task::getZoned() const {
     return zoned;
 }
 
-void Task::setZoned(const vector<float> &zoned) {
+void Task::setZoned(const std::vector<float> &zoned) {
     Task::zoned = zoned;
 }
 
@@ -74,11 +74,11 @@ void Task::setContinuity(const CleanContinuity &continuity) {
 }
 
 
-const string &Task::getLaunchPeople() const {
+const std::string &Task::getLaunchPeople() const {
     return launch_people;
 }
 
-void Task::setLaunchPeople(const string &launchPeople) {
+void Task::setLaunchPeople(const std::string &launchPeople) {
     launch_people = launchPeople;
 }
 
@@ -90,11 +90,11 @@ void Task::setLaunchTime(long launchTime) {
     launch_time = launchTime;
 }
 
-const string &Task::getTimeMode() const {
+const std::string &Task::getTimeMode() const {
     return time_mode;
 }
 
-void Task::setTimeMode(const string &timeMode) {
+void Task::setTimeMode(const std::string &timeMode) {
     time_mode = timeMode;
 }
 
@@ -106,7 +106,7 @@ void Task::setInExecute(bool inExecute) {
     in_execute = inExecute;
 }
 
-Task::Task(const string &taskId, const WorkStatus &workStatus) : task_id(taskId), work_status(workStatus) {
+Task::Task(const std::string &taskId, const WorkStatus &workStatus) : task_id(taskId), work_status(workStatus) {
 
 }
 
@@ -118,9 +118,9 @@ void Task::setPolygon(const CleanPolygon &polygon) {
     Task::polygon = polygon;
 }
 
-Task::Task(const string &taskId, int mode, int rate, const WorkStatus &workStatus, const CleanPolygon &polygon,
-           const vector<float> &zoned, const CleanContinuity &continuity, const TeachPathInfo &teach_path,
-           const string &launchPeople, long launchTime, const string &timeMode, bool inExecute) : task_id(taskId),
+Task::Task(const std::string &taskId, int mode, int rate, const WorkStatus &workStatus, const CleanPolygon &polygon,
+           const std::vector<float> &zoned, const CleanContinuity &continuity, const TeachPathInfo &teach_path,
+           const std::string &launchPeople, long launchTime, const std::string &timeMode, bool inExecute) : task_id(taskId),
                                                                                                   mode(mode),
                                                                                                   time_mode(timeMode),
                                                                                                   in_execute(

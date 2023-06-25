@@ -49,7 +49,7 @@ public:
         if (combination_brief_list_temp.getCombinationBriefList().size() == 0) {
             return;
         }
-        vector<CombinationBrief> briefList = combination_brief_list_temp.getCombinationBriefList();
+        std::vector<CombinationBrief> briefList = combination_brief_list_temp.getCombinationBriefList();
         for (const auto &item: briefList) {
 
             if (item.getCombinationType() == 1) {
@@ -74,7 +74,7 @@ public:
                     continue;
                 } else {
                     CombinationDetail combination_detail_temp(combination_brief_temp);
-                    vector<string> part_not_mached = combination_brief_temp.toDetail(combination_detail_temp,
+                    std::vector<string> part_not_mached = combination_brief_temp.toDetail(combination_detail_temp,
                                                                                      view_part_list_temp);//用于验证是否有未匹配的iewpart
                     if (part_not_mached.size() > 0) {
                         for (auto &item: part_not_mached) {
@@ -89,10 +89,10 @@ public:
                                       false, false, SqliteDataBase::SourceToString(TaskSource::App), "", 0, 0, 0,
                                       false);
                         std::vector<ZoneVo> zones;
-                        const vector<ViewPart> &partList = combination_detail_temp.getViewPartList();
+                        const std::vector<ViewPart> &partList = combination_detail_temp.getViewPartList();
                         for (const auto &part: partList) {
                             std::vector<PointVo> pointVos;
-                            vector<Point> zoned = part.getZoned();
+                            std::vector<Point> zoned = part.getZoned();
                             for (const auto z: zoned) {
                                 auto x = z.getX();
                                 auto y = z.getY();
@@ -133,7 +133,7 @@ public:
         fileName.append("timer_info_json.txt");
 
         //sh::File *fff = new sh::File(fileName);
-        std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
+        std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
         string base64;
         if (fff->open(std::ios::in)) {
             sss = fff->readAll();
@@ -188,7 +188,7 @@ public:
 
         cppfs::FileHandle fh = cppfs::fs::open(path::data_base_config_dir());
         if (fh.isDirectory()) {
-            const vector<std::string> &files = fh.listFiles();
+            const std::vector<std::string> &files = fh.listFiles();
             for (const auto &item: files) {
                 if (item != "cleanHistory.sqlite" && item != "Property.sqlite" && item != "Task.sqlite" &&
                     item != "move.mp3" && item != "out.mp3" && item != "pad_version_info.txt" &&

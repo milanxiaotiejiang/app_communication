@@ -8,12 +8,12 @@ DeviceStatusV2::DeviceStatusV2() {}
 
 DeviceStatusV2::DeviceStatusV2(int mRsoc, long mCleanArea, long mCleanTime, const MapInfo &mCurrentMap,
                                bool mIsUrgencyStop, bool mLockStatus, bool mDustBoxStatus, bool mWaterBoxStatus,
-                               const WorkStatusUpgrade &mWorkStatus, const string &mWorkStatusMessage,
+                               const WorkStatusUpgrade &mWorkStatus, const std::string &mWorkStatusMessage,
                                int mWorkStatusCode,
-                               const string &version, bool has_facerecognition,
-                               bool has_basestation, bool hasknob, bool hasvoice, const string &device_rosversion,
-                               const string &ecu_softversion, const string &ecu_hardversion,
-                               const string &padversion, int aromstatus) : m_RSOC(mRsoc), m_clean_area(mCleanArea),
+                               const std::string &version, bool has_facerecognition,
+                               bool has_basestation, bool hasknob, bool hasvoice, const std::string &device_rosversion,
+                               const std::string &ecu_softversion, const std::string &ecu_hardversion,
+                               const std::string &padversion, int aromstatus) : m_RSOC(mRsoc), m_clean_area(mCleanArea),
                                                                            m_clean_time(mCleanTime),
                                                                            m_current_map(mCurrentMap),
                                                                            m_is_urgency_stop(mIsUrgencyStop),
@@ -105,11 +105,11 @@ void DeviceStatusV2::setMWorkStatus(const WorkStatusUpgrade &mWorkStatus) {
     m_work_status = mWorkStatus;
 }
 
-const string &DeviceStatusV2::getMWorkStatusMessage() const {
+const std::string &DeviceStatusV2::getMWorkStatusMessage() const {
     return m_work_status_message;
 }
 
-void DeviceStatusV2::setMWorkStatusMessage(const string &mWorkStatusMessage) {
+void DeviceStatusV2::setMWorkStatusMessage(const std::string &mWorkStatusMessage) {
     m_work_status_message = mWorkStatusMessage;
 }
 
@@ -121,43 +121,43 @@ void DeviceStatusV2::setMWorkStatusCode(int mWorkStatusCode) {
     m_work_status_code = mWorkStatusCode;
 }
 
-const string &DeviceStatusV2::getVersion() const {
+const std::string &DeviceStatusV2::getVersion() const {
     return version;
 }
 
-void DeviceStatusV2::setVersion(const string &version) {
+void DeviceStatusV2::setVersion(const std::string &version) {
     DeviceStatusV2::version = version;
 }
 
-const string &DeviceStatusV2::getdevice_ros_version() const {
+const std::string &DeviceStatusV2::getdevice_ros_version() const {
     return device_ros_version;
 }
 
-void DeviceStatusV2::setdevice_ros_version(const string &version) {
+void DeviceStatusV2::setdevice_ros_version(const std::string &version) {
     DeviceStatusV2::device_ros_version = version;
 }
 
-const string &DeviceStatusV2::getecu_softversion() const {
+const std::string &DeviceStatusV2::getecu_softversion() const {
     return ecu_soft_version;
 }
 
-void DeviceStatusV2::setecu_softversion(const string &version) {
+void DeviceStatusV2::setecu_softversion(const std::string &version) {
     DeviceStatusV2::ecu_soft_version = version;
 }
 
-const string &DeviceStatusV2::getecu_hardversion() const {
+const std::string &DeviceStatusV2::getecu_hardversion() const {
     return ecu_hard_version;
 }
 
-void DeviceStatusV2::setecu_hardversion(const string &hardversion) {
+void DeviceStatusV2::setecu_hardversion(const std::string &hardversion) {
     DeviceStatusV2::ecu_hard_version = hardversion;
 }
 
-const string &DeviceStatusV2::getpad_version() const {
+const std::string &DeviceStatusV2::getpad_version() const {
     return pad_version;
 }
 
-void DeviceStatusV2::setpad_version(const string &version) {
+void DeviceStatusV2::setpad_version(const std::string &version) {
     DeviceStatusV2::pad_version = version;
 }
 

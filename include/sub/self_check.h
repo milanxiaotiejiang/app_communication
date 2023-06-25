@@ -692,9 +692,6 @@ public:
 
             if (temp_range < RANGE_THRESHOLD)
             {
-                //                std::cout << (ul_msg_2->header.stamp.toSec() -
-                //                              ul_sensor_trigger_time_2.toSec())
-                //                          << std::endl;
                 if ((ul_msg_2->header.stamp.toSec() -
                      ul_sensor_trigger_time_2.toSec()) > 30.0)
                 {

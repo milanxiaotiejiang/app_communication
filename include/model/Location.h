@@ -11,8 +11,6 @@
 
 using json = nlohmann::json;
 
-using namespace std;
-
 class Location {
 private:
     int locationType; //获取当前定位结果来源，如网络定位结果，详见定位类型表
@@ -21,16 +19,16 @@ private:
     float accuracy;//获取精度信息
     double altitude;//海拔高度
 
-    string address;//地址，如果option中设置isNeedAddress为false，则没有此结果，网络定位结果中会有地址信息，GPS定位不返回地址信息。
-    string country;//国家信息
-    string province;//省信息
-    string city;//城市信息
-    string district;//城区信息
-    string street;//街道信息
-    string streetNum;//街道门牌号信息
-    string cityCode;//城市编码
-    string adCode;//地区编码
-    string aoiName;//获取当前定位点的AOI信息
+    std::string address;//地址，如果option中设置isNeedAddress为false，则没有此结果，网络定位结果中会有地址信息，GPS定位不返回地址信息。
+    std::string country;//国家信息
+    std::string province;//省信息
+    std::string city;//城市信息
+    std::string district;//城区信息
+    std::string street;//街道信息
+    std::string streetNum;//街道门牌号信息
+    std::string cityCode;//城市编码
+    std::string adCode;//地区编码
+    std::string aoiName;//获取当前定位点的AOI信息
 public:
     int getLocationType() const;
 
@@ -52,45 +50,45 @@ public:
 
     void setAltitude(double altitude);
 
-    const string &getAddress() const;
+    const std::string &getAddress() const;
 
-    void setAddress(const string &address);
+    void setAddress(const std::string &address);
 
-    const string &getCountry() const;
+    const std::string &getCountry() const;
 
-    void setCountry(const string &country);
+    void setCountry(const std::string &country);
 
-    const string &getProvince() const;
+    const std::string &getProvince() const;
 
-    void setProvince(const string &province);
+    void setProvince(const std::string &province);
 
-    const string &getCity() const;
+    const std::string &getCity() const;
 
-    void setCity(const string &city);
+    void setCity(const std::string &city);
 
-    const string &getDistrict() const;
+    const std::string &getDistrict() const;
 
-    void setDistrict(const string &district);
+    void setDistrict(const std::string &district);
 
-    const string &getStreet() const;
+    const std::string &getStreet() const;
 
-    void setStreet(const string &street);
+    void setStreet(const std::string &street);
 
-    const string &getStreetNum() const;
+    const std::string &getStreetNum() const;
 
-    void setStreetNum(const string &streetNum);
+    void setStreetNum(const std::string &streetNum);
 
-    const string &getCityCode() const;
+    const std::string &getCityCode() const;
 
-    void setCityCode(const string &cityCode);
+    void setCityCode(const std::string &cityCode);
 
-    const string &getAdCode() const;
+    const std::string &getAdCode() const;
 
-    void setAdCode(const string &adCode);
+    void setAdCode(const std::string &adCode);
 
-    const string &getAoiName() const;
+    const std::string &getAoiName() const;
 
-    void setAoiName(const string &aoiName);
+    void setAoiName(const std::string &aoiName);
 
     friend void to_json(json &j, const Location &location) {
         j = json{

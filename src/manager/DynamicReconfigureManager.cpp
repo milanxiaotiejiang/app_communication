@@ -68,18 +68,18 @@ void DynamicReconfigureManager::ClientInitialize() {
     goal_layer_nh_ = ros::NodeHandle("/move_base/global_costmap/goal_layer");
     std::cout << "/move_base/" + global_namespace << std::endl;
     std::cout << "/move_base/" + local_namespace << std::endl;
-    LOG(INFO) << "Waiting for /move_base/global_costmap/inflation_layer/set_parameters server to start.";
+//    LOG(INFO) << "Waiting for /move_base/global_costmap/inflation_layer/set_parameters server to start.";
     ros::service::waitForService("/move_base/global_costmap/inflation_layer/set_parameters");
     global_dynamic_reconfigure_service_ =
             global_nh_.serviceClient<dynamic_reconfigure::Reconfigure>(
                     "set_parameters", true);
-    LOG(INFO) << "/move_base/global_costmap/inflation_layer/set_parameters server to start.";
-    LOG(INFO) << "Waiting for /move_base/global_costmap/inflation_layer/set_parameters server to start.";
+//    LOG(INFO) << "/move_base/global_costmap/inflation_layer/set_parameters server to start.";
+//    LOG(INFO) << "Waiting for /move_base/global_costmap/inflation_layer/set_parameters server to start.";
     ros::service::waitForService("/move_base/local_costmap/inflation_layer/set_parameters");
     local_dynamic_reconfigure_service_ =
             local_nh_.serviceClient<dynamic_reconfigure::Reconfigure>(
                     "set_parameters", true);
-    LOG(INFO) << "/move_base/local_costmap/inflation_layer/set_parameters server  start.";
+//    LOG(INFO) << "/move_base/local_costmap/inflation_layer/set_parameters server  start.";
     ros::service::waitForService("/move_base/global_costmap/goal_layer/set_parameters");
     goal_layer_dynamic_reconfigure_service_ =
             goal_layer_nh_.serviceClient<dynamic_reconfigure::Reconfigure>(

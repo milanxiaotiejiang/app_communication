@@ -11,16 +11,14 @@
 
 using json = nlohmann::json;
 
-using namespace std;
-
 class Project {
 private:
-    string name;
+    std::string name;
 public:
 
-    const string &getName() const;
+    const std::string &getName() const;
 
-    void setName(const string &name);
+    void setName(const std::string &name);
 
     friend void to_json(json &j, const Project &project) {
         j = json{

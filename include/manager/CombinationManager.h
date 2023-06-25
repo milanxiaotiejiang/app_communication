@@ -37,7 +37,7 @@ public:
         m_filename.append("combination_list_principal_json_work.txt");
         // m_filename.append("/home/admin1/test_ws/src/data_base/config/combination_list.txt");
         //m_file_ptr = new sh::File(m_filename);
-        m_file_ptr = make_shared<sh::File>(m_filename);
+        m_file_ptr = std::make_shared<sh::File>(m_filename);
     }
 
     ~CombinationManager();

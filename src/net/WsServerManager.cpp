@@ -55,18 +55,18 @@ using json = nlohmann::json;
 
 struct Ask {
     websocketpp::connection_hdl hdl;
-    map<string, bool> subMap;
-    string osVersion = "";
-    string osSystem = "";
-    string osModel = "";
-    string osSource = "";
+    std::map<std::string, bool> subMap;
+    std::string osVersion = "";
+    std::string osSystem = "";
+    std::string osModel = "";
+    std::string osSource = "";
 
-    friend ostream &operator<<(ostream &os, const Ask &ask) {
+    friend std::ostream &operator<<(std::ostream &os, const Ask &ask) {
         std_msgs::String mapStr;
         for (const auto &item: ask.subMap) {
             mapStr.data.append(item.first);
             mapStr.data.append(" ");
-            mapStr.data.append(to_string(item.second));
+            mapStr.data.append(std::to_string(item.second));
             mapStr.data.append(" | ");
         }
         os << "hdl: " << ask.hdl.lock().get() << " subMap: " << mapStr;
@@ -75,8 +75,8 @@ struct Ask {
 };
 
 
-vector<websocketpp::connection_hdl> list;
-map<void *, Ask> mMap;
+std::vector<websocketpp::connection_hdl> list;
+std::map<void *, Ask> mMap;
 std::mutex askMutex;
 
 typedef websocketpp::server<websocketpp::config::asio> server;
@@ -88,7 +88,7 @@ using websocketpp::lib::placeholders::_2;
 // pull out the type of messages sent by our config
 typedef server::message_ptr message_ptr;
 
-code_machina::BlockingCollection<string> serverCollection;
+code_machina::BlockingCollection<std::string> serverCollection;
 code_machina::BlockingCollection<NetModel> serverDataCollection;
 
 PolyM::Queue transformQueue;
@@ -114,19 +114,19 @@ void on_http(server *s, websocketpp::connection_hdl hdl) {
 
     std::string res = con->get_request_body();
     auto path = con->get_resource();//"/nebula/sys/randomImage/5585"
-    string host = con->get_host();//"192.168.2.87"
+    std::string host = con->get_host();//"192.168.2.87"
     uint16_t port = con->get_port();//9090
-    string reason = con->get_local_close_reason();
-    string proxy = con->get_proxy();
+    std::string reason = con->get_local_close_reason();
+    std::string proxy = con->get_proxy();
     auto request = con->get_request();//post uri
-    string requestBody = con->get_request_body();//"{\"captcha\":\"\",\"checkKey\":\"5585\",\"password\":\"demo@123\",\"username\":\"demo\"}"
+    std::string requestBody = con->get_request_body();//"{\"captcha\":\"\",\"checkKey\":\"5585\",\"password\":\"demo@123\",\"username\":\"demo\"}"
     auto resource = con->get_resource();//"/nebula/sys/login"
-    string responseMsg = con->get_response_msg();//"[::ffff:192.168.2.83]:42898"
-    string remoteEndPoint = con->get_remote_endpoint();
-    string uri = request.get_uri();//"/nebula/sys/login"
-    string method = request.get_method();//"POST"
-    string body = request.get_body();//"{\"captcha\":\"\",\"checkKey\":\"5585\",\"password\":\"demo@123\",\"username\":\"demo\"}"
-    string version = request.get_version();
+    std::string responseMsg = con->get_response_msg();//"[::ffff:192.168.2.83]:42898"
+    std::string remoteEndPoint = con->get_remote_endpoint();
+    std::string uri = request.get_uri();//"/nebula/sys/login"
+    std::string method = request.get_method();//"POST"
+    std::string body = request.get_body();//"{\"captcha\":\"\",\"checkKey\":\"5585\",\"password\":\"demo@123\",\"username\":\"demo\"}"
+    std::string version = request.get_version();
     auto headers = request.get_headers();
 
     std::stringstream ss;
@@ -159,28 +159,28 @@ void on_open(server *s, websocketpp::connection_hdl hdl) {
 
     auto con = s->get_con_from_hdl(hdl);
     auto path = con->get_resource();
-    string host = con->get_host();
+    std::string host = con->get_host();
     uint16_t port = con->get_port();
-    string origin = con->get_origin();
-    string reason = con->get_local_close_reason();
-    string proxy = con->get_proxy();
+    std::string origin = con->get_origin();
+    std::string reason = con->get_local_close_reason();
+    std::string proxy = con->get_proxy();
     auto request = con->get_request();
-    string requestBody = con->get_request_body();
+    std::string requestBody = con->get_request_body();
     auto resource = con->get_resource();
-    string responseMsg = con->get_response_msg();
-    string remoteEndPoint = con->get_remote_endpoint();
-    string uri = request.get_uri();
-    string method = request.get_method();
-    string body = request.get_body();
-    string version = request.get_version();
+    std::string responseMsg = con->get_response_msg();
+    std::string remoteEndPoint = con->get_remote_endpoint();
+    std::string uri = request.get_uri();
+    std::string method = request.get_method();
+    std::string body = request.get_body();
+    std::string version = request.get_version();
     auto headers = request.get_headers();
-    string osVersion = headers["os-version"];
-    string osSystem = headers["os-system"];
-    string osModel = headers["os-model"];
-    string osSource = headers["os-source"];
-    LOG(INFO) << "Connected to remote : " << remoteEndPoint
-              << " , osVersion : " + osVersion + " , osSystem : " + osSystem +
-                 " , osModel : " + osModel + " , osSource : " + osSource;
+    std::string osVersion = headers["os-version"];
+    std::string osSystem = headers["os-system"];
+    std::string osModel = headers["os-model"];
+    std::string osSource = headers["os-source"];
+    LOG_IF(INFO, DEBUG_REQUEST) << "Connected to remote : " << remoteEndPoint
+                                << " , osVersion : " + osVersion + " , osSystem : " + osSystem +
+                                   " , osModel : " + osModel + " , osSource : " + osSource;
 
     Ask ask = Ask();
     ask.hdl = hdl;
@@ -213,27 +213,27 @@ void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr m
     //              << std::endl;
 
     auto con = s->get_con_from_hdl(hdl);
-    string remoteEndPoint = con->get_remote_endpoint();
-    string payload = msg->get_payload();
+    std::string remoteEndPoint = con->get_remote_endpoint();
+    std::string payload = msg->get_payload();
 
-    string header = msg->get_header();
-    string data = msg->get_extension_data();
-    string raw = msg->get_raw_payload();
+    std::string header = msg->get_header();
+    std::string data = msg->get_extension_data();
+    std::string raw = msg->get_raw_payload();
 
-//    LOG(INFO) << "on_message remote : " << remoteEndPoint << " , payload : " << payload;
+//    LOG_IF(INFO, DEBUG_REQUEST) << "on_message remote : " << remoteEndPoint << " , payload : " << payload;
     {
         std::unique_lock<std::mutex> lock(askMutex);
         if (mMap.find(hdl.lock().get()) != mMap.end()) {
             Ask *ask = &mMap[hdl.lock().get()];
-            string osSystem = ask->osSystem;
-            string osVersion = ask->osVersion;
+            std::string osSystem = ask->osSystem;
+            std::string osVersion = ask->osVersion;
 
             AcceptRequestModel entrance;
             try {
                 json jDecode = json::parse(payload);
                 entrance = jDecode.get<AcceptRequestModel>();
-                string op = entrance.getOp();
-                string topic = entrance.getTopic();
+                std::string op = entrance.getOp();
+                std::string topic = entrance.getTopic();
 
                 if (op == "subscribe") {
                     ask->subMap[topic] = true;
@@ -279,7 +279,7 @@ public:
     explicit WsServerMapThread(websocketpp::server<websocketpp::config::asio> *server) : server(server) {}
 
     void *run() override {
-        LOG(INFO) << "WsServerMapThread : " << syscall(SYS_gettid);
+        LOG_IF(INFO, DEBUG_FIRING) << "WsServerMapThread : " << syscall(SYS_gettid);
         NetModel netModel;
         while (!serverDataCollection.is_completed()) {
             auto status = serverDataCollection.take(netModel);
@@ -298,8 +298,8 @@ public:
 class WsServerSubThread : public CThread {
 private:
     websocketpp::server<websocketpp::config::asio> *server;
-    map<string, string> dataMap;
-    string mapData;
+    std::map<std::string, std::string> dataMap;
+    std::string mapData;
 
 public:
     explicit WsServerSubThread(websocketpp::server<websocketpp::config::asio> *server) : server(server) {
@@ -314,7 +314,7 @@ public:
         dataMap[RESPONSE_JSON] = "";
     }
 
-    void setMapApp(const string &data) {
+    void setMapApp(const std::string &data) {
         mapData = data;
     }
 
@@ -335,12 +335,12 @@ public:
 //        dataMap[key] = jsonResult.dump();
 //    }
 
-    void sendRequestData(const string &key, const std::string &value) {
+    void sendRequestData(const std::string &key, const std::string &value) {
         dataMap[key] = value;
     }
 
     void *run() override {
-        LOG(INFO) << "WsServerSubThread : " << syscall(SYS_gettid);
+        LOG_IF(INFO, DEBUG_FIRING) << "WsServerSubThread : " << syscall(SYS_gettid);
 
         while (ros::ok()) {
             sleep(2);
@@ -350,7 +350,7 @@ public:
                     auto hdl = ask.second.hdl;
                     auto subMap = ask.second.subMap;
                     for (const auto &item: subMap) {
-                        string key = item.first;
+                        std::string key = item.first;
                         bool send = item.second;
                         if (send) {
                             if (key == MAP_APP) {
@@ -401,8 +401,8 @@ public:
     explicit WsServerDataThread(websocketpp::server<websocketpp::config::asio> *server) : server(server) {}
 
     void *run() override {
-        LOG(INFO) << "WsServerDataThread : " << syscall(SYS_gettid);
-        string data;
+        LOG_IF(INFO, DEBUG_FIRING) << "WsServerDataThread : " << syscall(SYS_gettid);
+        std::string data;
         while (!serverCollection.is_completed()) {
             auto status = serverCollection.take(data);
             if (status == BlockingCollectionStatus::Ok) {
@@ -450,7 +450,7 @@ public:
     WsServerThread() {}
 
     void *run() override {
-        LOG(INFO) << "WsServerThread : " << syscall(SYS_gettid);
+        LOG_IF(INFO, DEBUG_FIRING) << "WsServerThread : " << syscall(SYS_gettid);
 
         try {
             //设置日志级别
@@ -522,7 +522,7 @@ public:
                 websocketpp::lib::error_code ec;
                 echo_server.close(item.second.hdl, websocketpp::close::status::going_away, "", ec);
                 if (ec) {
-                    LOG(INFO) << " Error closing connection " << ec.message();
+                    LOG_IF(INFO, DEBUG_REQUEST) << " Error closing connection " << ec.message();
                 }
             }
         }
@@ -533,21 +533,21 @@ public:
 
 WsServerThread *wsServerThread;
 
-void messageBusTopic(const string &message) {
-    LOG(INFO) << "messageBusTopic : " << message;
+void messageBusTopic(const std::string &message) {
+    LOG_IF(INFO, DEBUG_REQUEST) << "messageBusTopic : " << message;
 }
 
 void WsServerManager::startWebSocket() {
 
     std::string pid = get_pid_using_port(9090);
     if (!pid.empty()) {
-        LOG(INFO) << "进程 pid 为 " << pid << " 占用 9090 端口 ！！";
+        LOG_IF(INFO, DEBUG_FIRING) << "进程 pid 为 " << pid << " 占用 9090 端口 ！！";
         kill_process(pid);
     }
 
     //    MessageBusManager::get_instance()->getMessageBus()->attach(
     //            [](const string message) {
-    //                LOG(INFO) << "messageBusTopic : " << message;
+    //                LOG_IF(INFO, DEBUG_REQUEST) << "messageBusTopic : " << message;
     //            }, MESSAGE_BUS_TOPIC);
 
     wsServerThread = new WsServerThread();
@@ -672,7 +672,7 @@ void WsServerManager::setMapApp(const nav_msgs::OccupancyGrid &occupancyGrid) {
 //        LOG(ERROR) << item << " ";
 //    }
 
-    vector<int> dataList = compressValueQuantity(mapDataList);
+    std::vector<int> dataList = compressValueQuantity(mapDataList);
 
     RosMap map(dataList, header, info);
 
@@ -725,7 +725,7 @@ void WsServerManager::setMapApp2(const nav_msgs::OccupancyGrid &occupancyGrid) {
 
     std::string compressedString = compressed.str();
 
-    const string &base64Encode = base64_encode(compressedString);
+    const std::string &base64Encode = base64_encode(compressedString);
 
     GRosMap map(base64Encode, header, info);
 
@@ -752,7 +752,7 @@ void WsServerManager::setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr) {
                          odomPtr->pose.pose.position.y,
                          odomPtr->pose.pose.position.z);
     RosOrigin origin(orientation, position);
-    vector<double> poseCovariance;
+    std::vector<double> poseCovariance;
     for (const auto &item: odomPtr->pose.covariance) {
         poseCovariance.push_back(item);
     }
@@ -765,7 +765,7 @@ void WsServerManager::setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr) {
                      odomPtr->twist.twist.linear.y,
                      odomPtr->twist.twist.linear.z);
     RosTwistX twistX(angular, linear);
-    vector<double> twistCovariance;
+    std::vector<double> twistCovariance;
     for (const auto &item: odomPtr->twist.covariance) {
         twistCovariance.push_back(item);
     }
@@ -783,14 +783,14 @@ void WsServerManager::setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr) {
     serverDataCollection.add(netModel);
 }
 
-void WsServerManager::sendRequestData(const string &key, const std::string &data) {
+void WsServerManager::sendRequestData(const std::string &key, const std::string &data) {
     if (wsServerThread != nullptr)
         if (wsServerThread->getWsServerSubThread() != nullptr)
             wsServerThread->getWsServerSubThread()->sendRequestData(key, data);
 }
 
-void WsServerManager::sendMessageBusTopic(const string &message) {
-    LOG(INFO) << "sendMessageBusTopic : " << message;
-    MessageBusManager::instance().getMessageBus()->sendReq<void, string>(
+void WsServerManager::sendMessageBusTopic(const std::string &message) {
+    LOG_IF(INFO, DEBUG_REQUEST) << "sendMessageBusTopic : " << message;
+    MessageBusManager::instance().getMessageBus()->sendReq<void, std::string>(
             message.data(), MESSAGE_BUS_TOPIC);
 }

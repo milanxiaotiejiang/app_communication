@@ -7,7 +7,7 @@
 
 bool FullCleanManager::FileOpenRead() {
     if (!sh::File::exists(m_filename)) {
-        unique_ptr<sh::File> uFilePtr(new sh::File(m_filename));
+        std::unique_ptr<sh::File> uFilePtr(new sh::File(m_filename));
         if (!uFilePtr->create(m_filename)) {
             LOG(ERROR) << "create file failed!!!";
             return false;
@@ -84,7 +84,7 @@ int FullCleanManager::ResetFullCLean(const FullCleanBrief &fullCleanBrief, const
         return FAILD_TO_OPEN_FILE_;
     }
     if (!m_full_clean_brief_list.resetFullCleanBrief(fullCleanBrief, full_clean_id)) {
-        cout << "CombinationManager::ResetCombination 更改失败" << endl;
+        std::cout << "CombinationManager::ResetCombination 更改失败" << std::endl;
         return EXECUTE_FAILED_;
     }
     if (!FileSave()) {
@@ -98,7 +98,7 @@ int FullCleanManager::GetFullCLeanBrief(FullCleanBrief &fullCleanBrief, const st
         return FAILD_TO_OPEN_FILE_;
     }
     if (!m_full_clean_brief_list.getFullCLeanBrief(fullCleanBrief, full_clean_id)) {
-        cout << "CombinationManager::getCombination 获取失败" << endl;
+        std::cout << "CombinationManager::getCombination 获取失败" << std::endl;
         return EXECUTE_FAILED_;
     }
     if (!FileSave()) {

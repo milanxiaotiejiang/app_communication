@@ -17,49 +17,49 @@
 #include "tool/write_file.hpp"
 #include "model/UpgradeModel.h"
 
-class CombinationCombinationAddStartegy : public MessageStrategy<CombinationDetail, string> {
+class CombinationCombinationAddStartegy : public MessageStrategy<CombinationDetail, std::string> {
 public:
-    string handler(CombinationDetail params) override;
+    std::string handler(CombinationDetail params) override;
 };
 
-class CombinationCombinationListStrategy : public MessageStrategy<string, vector<CombinationBrief>> {
+class CombinationCombinationListStrategy : public MessageStrategy<std::string, std::vector<CombinationBrief>> {
 public:
-    vector<CombinationBrief> handler(string params) override;
+    std::vector<CombinationBrief> handler(std::string params) override;
 };
 
-class CombinationCombinationListStrategyV2 : public MessageStrategy<string, vector<CombinationBriefUpgrade>> {
+class CombinationCombinationListStrategyV2 : public MessageStrategy<std::string, std::vector<CombinationBriefUpgrade>> {
 public:
-    vector<CombinationBriefUpgrade> handler(string params) override;
+std::vector<CombinationBriefUpgrade> handler(std::string params) override;
 };
 
-class CombinationCombinationDetailsStrategy : public MessageStrategy<string, CombinationDetail> {
+class CombinationCombinationDetailsStrategy : public MessageStrategy<std::string, CombinationDetail> {
 public:
-    CombinationDetail handler(string params) override;
+    CombinationDetail handler(std::string params) override;
 };
 
-class CombinationCombinationDetailsStrategyV2 : public MessageStrategy<string, CombinationDetailUpgrade> {
+class CombinationCombinationDetailsStrategyV2 : public MessageStrategy<std::string, CombinationDetailUpgrade> {
 public:
-    CombinationDetailUpgrade handler(string params) override;
+    CombinationDetailUpgrade handler(std::string params) override;
 };
 
-class CombinationCombinationDeleteStrategy : public MessageStrategy<string, string> {
+class CombinationCombinationDeleteStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string params) override;
+    std::string handler(std::string params) override;
 };
 
-class CombinationCombinationUpdateStrategy : public MessageStrategy<CombinationDetail, string> {
+class CombinationCombinationUpdateStrategy : public MessageStrategy<CombinationDetail, std::string> {
 public:
-    string handler(CombinationDetail params) override;
+    std::string handler(CombinationDetail params) override;
 };
 
-class CombinationMainStrategy : public MessageStrategy<string, string> {
+class CombinationMainStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string params) override;
+    std::string handler(std::string params) override;
 };
 
-class CancelCombinationMainStrategy : public MessageStrategy<string, string> {
+class CancelCombinationMainStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string params) override;
+    std::string handler(std::string params) override;
 };
 
 

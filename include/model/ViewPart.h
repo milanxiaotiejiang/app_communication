@@ -18,7 +18,6 @@
 #include <std_msgs/String.h>
 
 using json = nlohmann::json;
-using namespace std;
 
 class ViewPart {
 private:

@@ -10,9 +10,9 @@
 #include "model/Notice.h"
 #include "manager/NoticeManager.h"
 
-class NoticeListStrategy : public MessageStrategy<string, vector<Notice>> {
+class NoticeListStrategy : public MessageStrategy<std::string, std::vector<Notice>> {
 public:
-    vector<Notice> handler(string params) override;
+    std::vector<Notice> handler(std::string params) override;
 };
 
 

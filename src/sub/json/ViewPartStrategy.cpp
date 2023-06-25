@@ -16,7 +16,7 @@
 #include "model/ViewPart.h"
 #include "tool/write_file.hpp"
 
-string CombinationPartAddStrategy::handler(ViewPart method) {
+std::string CombinationPartAddStrategy::handler(ViewPart method) {
     switch (ViewPartManager::get_instance()->AddViewPart(method)) {//添加ViewPart
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));
@@ -33,7 +33,7 @@ string CombinationPartAddStrategy::handler(ViewPart method) {
     }
 }
 
-vector<ViewPart> CombinationPartListStrategy::handler(string params) {
+std::vector<ViewPart> CombinationPartListStrategy::handler(std::string params) {
     ViewPartList view_part_list_temp;
     if (!ViewPartManager::get_instance()->GetViewPartList(view_part_list_temp)) {
         throw app::exception(make_error_code(error::acquisition_file_failed));
@@ -41,18 +41,18 @@ vector<ViewPart> CombinationPartListStrategy::handler(string params) {
     if (view_part_list_temp.GetViewPartList().size() > 0) {
         return view_part_list_temp.GetViewPartList();
     } else {
-        return vector<ViewPart>();
+        return std::vector<ViewPart>();
     }
 }
 
-vector<ViewPartUpgrade> CombinationPartListStrategyV2::handler(string params) {
+std::vector<ViewPartUpgrade> CombinationPartListStrategyV2::handler(std::string params) {
     std_msgs::String result;
     ViewPartList view_part_list_temp;
     if (!ViewPartManager::get_instance()->GetViewPartList(view_part_list_temp)) {
         throw app::exception(make_error_code(error::acquisition_file_failed));
     }
     if (view_part_list_temp.GetViewPartList().size() > 0) {
-        vector<ViewPartUpgrade> list;
+        std::vector<ViewPartUpgrade> list;
         for (const auto &item: view_part_list_temp.GetViewPartList()) {
             WorkStatusUpgrade ws;
             ws.setSweepStatus(item.getWorkStatus().getSweepStatus());
@@ -73,11 +73,11 @@ vector<ViewPartUpgrade> CombinationPartListStrategyV2::handler(string params) {
         }
         return list;
     } else {
-        return vector<ViewPartUpgrade>();
+        return std::vector<ViewPartUpgrade>();
     }
 }
 
-string CombinationPartDeleteStrategy::handler(string params) {
+std::string CombinationPartDeleteStrategy::handler(std::string params) {
     if (CombinationManager::get_instance()->SearchPartID(params) == SUCCESS_) {
         throw app::exception(make_error_code(error::file_acquisition_failed));
     }
@@ -92,11 +92,11 @@ string CombinationPartDeleteStrategy::handler(string params) {
             std::vector<WayPointTask> wayPoints_before;
             //save改
             //读文件
-            string fileName;
-            string sss;
+            std::string fileName;
+            std::string sss;
             fileName.append(path::data_base_config_dir());
             fileName.append("teach_point_json.txt");
-            std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
+            std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
             if (fff->open(std::ios::in)) {
                 sss = fff->readAll();
             } else {
@@ -110,7 +110,7 @@ string CombinationPartDeleteStrategy::handler(string params) {
                 wayPoints_before = jdecode.get<std::vector<WayPointTask>>();//数据内容，结构体格式
             }
             //结构体转json
-            vector<WayPointTask>::iterator iter;
+            std::vector<WayPointTask>::iterator iter;
             for (iter = wayPoints_before.begin(); iter != wayPoints_before.end(); iter++) {
                 if (iter->getTaskId() == params) {
                     wayPoints_before.erase(iter);
@@ -118,7 +118,7 @@ string CombinationPartDeleteStrategy::handler(string params) {
                 }
             }
             json params = wayPoints_before;
-            string base64;
+            std::string base64;
             base64.append(params.dump());//json转base64 string
 
             if (!sh::File::saveTextTo(fileName, base64)) {
@@ -131,7 +131,7 @@ string CombinationPartDeleteStrategy::handler(string params) {
     }
 }
 
-string CombinationPartDeleteForceStrategy::handler(string params) {
+std::string CombinationPartDeleteForceStrategy::handler(std::string params) {
     switch (CombinationManager::get_instance()->DelatePartID(params)) {
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));
@@ -151,11 +151,11 @@ string CombinationPartDeleteForceStrategy::handler(string params) {
                     std::vector<WayPointTask> wayPoints_before;
                     //save改
                     //读文件
-                    string fileName;
-                    string sss;
+                    std::string fileName;
+                    std::string sss;
                     fileName.append(path::data_base_config_dir());
                     fileName.append("teach_point_json.txt");
-                    std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
+                    std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
                     if (fff->open(std::ios::in)) {
                         sss = fff->readAll();
                     } else {
@@ -169,7 +169,7 @@ string CombinationPartDeleteForceStrategy::handler(string params) {
                         wayPoints_before = jdecode.get<std::vector<WayPointTask>>();//数据内容，结构体格式
                     }
                     //结构体转json
-                    vector<WayPointTask>::iterator iter;
+                    std::vector<WayPointTask>::iterator iter;
                     for (iter = wayPoints_before.begin(); iter != wayPoints_before.end(); iter++) {
                         if (iter->getTaskId() == params) {
                             wayPoints_before.erase(iter);
@@ -177,7 +177,7 @@ string CombinationPartDeleteForceStrategy::handler(string params) {
                         }
                     }
                     json params = wayPoints_before;
-                    string base64;
+                    std::string base64;
                     base64.append(params.dump());//json转base64 string
 
                     if (!sh::File::saveTextTo(fileName, base64)) {
@@ -195,7 +195,7 @@ string CombinationPartDeleteForceStrategy::handler(string params) {
     }
 }
 
-string CombinationPartUpdateStrategy::handler(ViewPart params) {
+std::string CombinationPartUpdateStrategy::handler(ViewPart params) {
     switch (ViewPartManager::get_instance()->ResetViewPart(params, params.getPartID())) {
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));

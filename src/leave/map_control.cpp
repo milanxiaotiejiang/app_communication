@@ -31,7 +31,7 @@ bool MapControl::initialize(ros::NodeHandle handle) {
     return true;
 }
 
-bool MapControl::loadInformation(const string &map_id) {
+bool MapControl::loadInformation(const std::string &map_id) {
     std::string dir = path::robot_slam_map_dir() + map_id + path::separator();
 
     cppfs::FileHandle omy = cppfs::fs::open(dir + path::mymap_yaml);
@@ -64,7 +64,7 @@ bool MapControl::loadInformation(const string &map_id) {
     return true;
 }
 
-bool MapControl::checkMapInformation(const string &map_id) {
+bool MapControl::checkMapInformation(const std::string &map_id) {
     std::string dir = path::robot_slam_map_dir() + map_id + path::separator();
 
     cppfs::FileHandle omy = cppfs::fs::open(dir + path::mymap_yaml);
@@ -80,7 +80,7 @@ bool MapControl::checkMapInformation(const string &map_id) {
     return omy.exists() && omp.exists() && ompb.exists();
 }
 
-bool MapControl::backupAndRetrieve(const string &map_id) {
+bool MapControl::backupAndRetrieve(const std::string &map_id) {
     backupMap(map_id, true);
     backupProhibition(map_id, true);
     return true;
@@ -92,7 +92,7 @@ bool MapControl::backupAndRetrieve(const string &map_id) {
  * @param retrieve 是否重置禁行区，为 true 即重置两部分的禁行区文件
  * @return
  */
-bool MapControl::backupProhibition(const string &map_id, bool retrieve) {
+bool MapControl::backupProhibition(const std::string &map_id, bool retrieve) {
     cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + map_id + path::separator());
     if (!dir.isDirectory())
         dir.createDirectory();
@@ -115,7 +115,7 @@ bool MapControl::backupProhibition(const string &map_id, bool retrieve) {
  * @param retrieve 是否删除 maps 下文件，为 true 表示删除
  * @return
  */
-bool MapControl::backupMap(const string &map_id, bool retrieve) {
+bool MapControl::backupMap(const std::string &map_id, bool retrieve) {
     cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + map_id + path::separator());
     if (!dir.isDirectory())
         dir.createDirectory();

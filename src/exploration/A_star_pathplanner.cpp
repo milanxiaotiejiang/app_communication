@@ -4,7 +4,7 @@
 
 #include "exploration/A_star_pathplanner.h"
 #include "exploration/cv_extend.h"
-
+#include "simulation.h"
 
 const int dir = 8;
 
@@ -285,8 +285,8 @@ double AStarPlanner::planPath(const cv::Mat &map, const cv::Mat &downsampled_map
         step_length = 1.;
     }
     if (pathlength > 1e90)
-        std::cout << "######################### No path found on the originally sized map #######################"
-                  << std::endl;
+        LOG_IF(INFO, DEBUG_EXPLORATION)
+        << "######################### No path found on the originally sized map #######################";
     else {
         if (draw_path_map != NULL) {
             drawRoute(*draw_path_map, start_point, route_, step_length);

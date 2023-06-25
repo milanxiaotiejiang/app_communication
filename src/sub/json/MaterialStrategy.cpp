@@ -7,7 +7,7 @@
 #include "task/manager/MechanismManager.h"
 #include "leave/MaintenanceMode.h"
 
-ConsumableVo GetConsumableStrategy::handler(string params) {
+ConsumableVo GetConsumableStrategy::handler(std::string params) {
     const Consumable &consumable = PropertyDataBase::instance().loadConsumable();
     ConsumableVo consumableVo(consumable.sweep_expected,
                               consumable.mop_expected,
@@ -51,7 +51,7 @@ ConsumableVo ResetConsumableStrategy::handler(ResetConsumableVo params) {
     return consumableVo;
 }
 
-string HotWindModeStrategy::handler(int params) {
+std::string HotWindModeStrategy::handler(int params) {
     if (params > 0) {
         HotWindNoteSingleton::instance().openHotWind();
     } else {
@@ -60,15 +60,15 @@ string HotWindModeStrategy::handler(int params) {
     return "";
 }
 
-bool HotWindModeStatusStrategy::handler(string params) {
+bool HotWindModeStatusStrategy::handler(std::string params) {
     return HotWindNoteSingleton::instance().isHotWind();
 }
 
-string MaintenanceModeStrategy::handler(int params) {
+std::string MaintenanceModeStrategy::handler(int params) {
     MaintenanceModeSingleton::instance().operateMaintenanceMode(params > 0);
     return "";
 }
 
-bool MaintenanceModeStatusStrategy::handler(string params) {
+bool MaintenanceModeStatusStrategy::handler(std::string params) {
     return MaintenanceModeSingleton::instance().isMaintenanceMode();
 }

@@ -12,7 +12,7 @@ DeviceStatus::~DeviceStatus() {
 DeviceStatus::DeviceStatus(int RSOC, long clean_area, long clean_time,
                            const MapInfo &current_map, bool is_urgency_stop,
                            bool lock_status, bool dust_box_status, bool water_box_status,
-                           const WorkStatus &work_status, const string &work_status_message,
+                           const WorkStatus &work_status, const std::string &work_status_message,
                            const int &work_status_code) : m_RSOC(RSOC),
                                                           m_clean_area(clean_area),
                                                           m_clean_time(clean_time),
@@ -90,11 +90,11 @@ void DeviceStatus::setWorkStatus(const WorkStatus &workStatus) {
     m_work_status = workStatus;
 }
 
-const string &DeviceStatus::getWorkStatusMessage() const {
+const std::string &DeviceStatus::getWorkStatusMessage() const {
     return m_work_status_message;
 }
 
-void DeviceStatus::setWorkStatusMessage(const string &workStatusMessage) {
+void DeviceStatus::setWorkStatusMessage(const std::string &workStatusMessage) {
     m_work_status_message = workStatusMessage;
 }
 

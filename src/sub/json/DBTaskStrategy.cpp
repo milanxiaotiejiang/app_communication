@@ -28,7 +28,7 @@ long AddTaskStrategy::handler(TaskVo params) {
     return TaskDataBase::instance().addTask(map.id, params);
 }
 
-string DeleteTaskStrategy::handler(long params) {
+std::string DeleteTaskStrategy::handler(long params) {
     if (ParamManager::instance().getRainSnow()) {
         MapPo map = SegmentationDataBase::instance().getDbMap();
         const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params);
@@ -42,7 +42,7 @@ string DeleteTaskStrategy::handler(long params) {
     return "";
 }
 
-string DeleteMultipleTaskStrategy::handler(std::vector<long> params) {
+std::string DeleteMultipleTaskStrategy::handler(std::vector<long> params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     if (ParamManager::instance().getRainSnow()) {
         for (const auto &item: params) {
@@ -60,7 +60,7 @@ string DeleteMultipleTaskStrategy::handler(std::vector<long> params) {
     return "";
 }
 
-vector<TaskVo> ListTaskStrategy::handler(string params) {
+std::vector<TaskVo> ListTaskStrategy::handler(std::string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTaskFoMap(map.id);
 }
@@ -89,13 +89,13 @@ long AddTimerTaskStrategy::handler(TimerVo params) {
     return timer;
 }
 
-string DeleteTimerTaskStrategy::handler(long params) {
+std::string DeleteTimerTaskStrategy::handler(long params) {
     TaskDataBase::instance().deleteTimerForId(params);
     ScheduleManagerSingleton::instance().trigger_task_update();
     return "";
 }
 
-string DeleteMultipleTimerTaskStrategy::handler(std::vector<long> params) {
+std::string DeleteMultipleTimerTaskStrategy::handler(std::vector<long> params) {
     for (const auto &item: params) {
         TaskDataBase::instance().deleteTimerForId(item);
     }
@@ -103,12 +103,12 @@ string DeleteMultipleTimerTaskStrategy::handler(std::vector<long> params) {
     return "";
 }
 
-vector<TimerVo> ListTimerTaskStrategy::handler(string params) {
+std::vector<TimerVo> ListTimerTaskStrategy::handler(std::string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTimerFoMap(map.id);
 }
 
-string ModifyTimerTaskStrategy::handler(TimerVo params) {
+std::string ModifyTimerTaskStrategy::handler(TimerVo params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
 
     checkName(params.getTimerName());
@@ -130,7 +130,7 @@ TaskVo CancelPrincipalTaskStrategy::handler(long params) {
     return TaskDataBase::instance().modifyPrincipalTask(map.id, params, false);
 }
 
-TaskVo PrincipalTaskStrategy::handler(string params) {
+TaskVo PrincipalTaskStrategy::handler(std::string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     const TaskVo &vo = TaskDataBase::instance().loadPrincipalTask(map.id);
     if (vo.getId() == -1) {
@@ -164,7 +164,7 @@ TaskVo CancelRainSnowTaskStrategy::handler(long params) {
     return TaskDataBase::instance().modifyRainSnowTask(map.id, params, false);
 }
 
-TaskVo RainSnowTaskStrategy::handler(string params) {
+TaskVo RainSnowTaskStrategy::handler(std::string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     const TaskVo &vo = TaskDataBase::instance().loadRainSnowTask(map.id);
     if (vo.getId() == -1) {
@@ -173,25 +173,25 @@ TaskVo RainSnowTaskStrategy::handler(string params) {
     return vo;
 }
 
-string ModifyTaskNameStrategy::handler(ModifyTaskName params) {
+std::string ModifyTaskNameStrategy::handler(ModifyTaskName params) {
     checkName(params.name);
     TaskDataBase::instance().modifyName(params.id, params.name);
     return "";
 }
 
-string ModifyTaskRateStrategy::handler(ModifyTaskRate params) {
+std::string ModifyTaskRateStrategy::handler(ModifyTaskRate params) {
     checkRate(params.rate);
     TaskDataBase::instance().modifyRate(params.id, params.rate);
     return "";
 }
 
-string ModifyTaskWorkStatusStrategy::handler(ModifyTaskWorkStatus params) {
+std::string ModifyTaskWorkStatusStrategy::handler(ModifyTaskWorkStatus params) {
     checkWorkStatus(params.workStatus);
     TaskDataBase::instance().modifyWorkStatus(params.id, params.workStatus);
     return "";
 }
 
-string ModifyTaskKnifeStrategy::handler(ModifyTaskKnife params) {
+std::string ModifyTaskKnifeStrategy::handler(ModifyTaskKnife params) {
     TaskDataBase::instance().modifyKnife(params.id, params.knife);
     return "";
 }
@@ -223,18 +223,18 @@ long OperateAddZoneStrategy::handler(ModifyTaskZone params) {
     return zoneId;
 }
 
-string OperateDeleteZoneStrategy::handler(ModifyTaskZone params) {
+std::string OperateDeleteZoneStrategy::handler(ModifyTaskZone params) {
     TaskDataBase::instance().operateDeleteZone(params.id, params.zone);
     return "";
 }
 
-string OperateModifyZoneStrategy::handler(ModifyTaskZone params) {
+std::string OperateModifyZoneStrategy::handler(ModifyTaskZone params) {
     checkZoned(params.zone);
     TaskDataBase::instance().operateModifyZone(params.id, params.zone);
     return "";
 }
 
-string ModifyTaskPartitionStrategy::handler(ModifyTaskPartition params) {
+std::string ModifyTaskPartitionStrategy::handler(ModifyTaskPartition params) {
     TaskDataBase::instance().modifyPartition(params.id, params.partition);
     return "";
 }
@@ -248,11 +248,11 @@ long OperateAddSubregionStrategy::handler(ModifyTaskSubregion params) {
     return subregionId;
 }
 
-string OperateDeleteSubregionStrategy::handler(ModifyTaskSubregion params) {
+std::string OperateDeleteSubregionStrategy::handler(ModifyTaskSubregion params) {
     TaskDataBase::instance().operateDeleteSubregion(params.id, params.subregion);
 }
 
-string ModifyTimerNameStrategy::handler(ModifyTimerName params) {
+std::string ModifyTimerNameStrategy::handler(ModifyTimerName params) {
     checkName(params.timer_name);
     TaskDataBase::instance().modifyTimerName(params.id, params.timer_name);
     return "";

@@ -63,7 +63,7 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
     explorationCenter.pathPublish(exploration_path);
 
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
-    string uuid_string = boost::uuids::to_string(uuid);
+    std::string uuid_string = boost::uuids::to_string(uuid);
 
     RoomCoverage roomCoverage;
     TaskExploration::planningPath2RoomCoverage(roomCoverage, exploration_path, point_path, complex_path);
@@ -80,7 +80,7 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
     return result;
 }
 
-PlanParam PlanParamGetStrategy::handler(string params) {
+PlanParam PlanParamGetStrategy::handler(std::string params) {
     auto planPo = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
     return PlanParam(planPo.robot_radius, planPo.map_correction_closing_neighborhood_size,
                      planPo.grid_obstacle_offset, planPo.path_eps, planPo.min_cell_area,
@@ -117,7 +117,7 @@ bool PlanParamSetStrategy::handler(PlanParam params) {
     ExplorationCenter::instance().repaintCoveragePath();
 }
 
-PlanParam PlanParamResetStrategy::handler(string params) {
+PlanParam PlanParamResetStrategy::handler(std::string params) {
     MapAttribute::instance().loadDefaultPlanParam();
     auto planPo = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
     return PlanParam(planPo.robot_radius, planPo.map_correction_closing_neighborhood_size,
@@ -135,7 +135,7 @@ bool SetExplorerEnergyStrategy::handler(bool params) {
     return ParamManager::instance().getEnergy();
 }
 
-bool GetExplorerEnergyStrategy::handler(string params) {
+bool GetExplorerEnergyStrategy::handler(std::string params) {
     return ParamManager::instance().getEnergy();
 }
 

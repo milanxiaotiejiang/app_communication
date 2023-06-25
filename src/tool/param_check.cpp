@@ -127,7 +127,7 @@ void checkSameTimer(const std::string &map_id, const std::string &timer_rule, in
         if (item.getTimerId() == selfTimerId) {
             continue;
         }
-        LOG(INFO) << "checkSameTimer" <<
+        LOG_IF(INFO, DEBUG_TIMER) << "checkSameTimer" <<
                   "  originalPoints : " << timer_rule <<
                   "  targetExpression : " << item.getTimerRule();
         const std::string &targetExpression = ScheduleManager::fix_cron_expression("0 " + item.getTimerRule());

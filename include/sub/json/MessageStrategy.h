@@ -29,7 +29,6 @@
 #include "manager/cloud_robot_control.h"
 
 using json = nlohmann::json;
-using namespace std;
 
 namespace MessageSource {
     enum {
@@ -79,9 +78,9 @@ public:
     virtual Result handler(Model params) = 0;
 
     void parseError(int source, int id, int errorCode, const std::string &errorMessage) {
-        BaseResult<string> error(id, errorCode, errorMessage);
+        BaseResult<std::string> error(id, errorCode, errorMessage);
         if (source == MessageSource::WebSocket) {
-            RequestModel<BaseResult<string>> requestModel(
+            RequestModel<BaseResult<std::string>> requestModel(
                     "publish", "/response_json", error
             );
             json jsonResult = requestModel;
@@ -113,11 +112,11 @@ public:
 
 };
 
-class MessageStringStrategy : public MessageStrategy<string, string> {
+class MessageStringStrategy : public MessageStrategy<std::string, std::string> {
 public:
     ~MessageStringStrategy() override = default;
 
-    string handler(string params) override {
+    std::string handler(std::string params) override {
         handler();
         return "";
     }

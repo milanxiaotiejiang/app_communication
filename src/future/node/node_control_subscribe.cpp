@@ -12,7 +12,7 @@ NodeControlSubscribe::NodeControlSubscribe(ros::NodeHandle handle) {
 
 void NodeControlSubscribe::nodeControlSubscribeCallback(const std_msgs::Int32 &flag_result) {
     auto flag = flag_result.data;
-    LOG(INFO) << "NodeControlSubscribe : " << flag;
+    LOG_IF(INFO, DEBUG_NODE) << "NodeControlSubscribe : " << flag;
     if (flag == WorkMode::SLEEPING) {
         NodeControl::instance().changeSleepMode();
     } else if (flag == WorkMode::WORKING) {

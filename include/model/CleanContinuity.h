@@ -8,8 +8,6 @@
 #include "model/Continuity_info.h"
 #include "nlohmann/json.hpp"
 
-using namespace std;
-
 using json = nlohmann::json;
 
 class CleanContinuity {
@@ -34,9 +32,9 @@ public:
 
     void setIsCustomized(bool isCustomized);
 
-    const vector<Continuity_info> &getContinuityList() const;
+    const std::vector<Continuity_info> &getContinuityList() const;
 
-    void setContinuityList(const vector<Continuity_info> &continuityList);
+    void setContinuityList(const std::vector<Continuity_info> &continuityList);
 
     friend void to_json(json &j, const CleanContinuity &b) {
         j = json{

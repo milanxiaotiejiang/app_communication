@@ -44,7 +44,7 @@ public:
         m_filename.append("view_part_principal_json.txt");
         // m_filename.append("/home/admin1/test_ws/src/data_base/config/view_part.txt");
         // m_file_ptr = new sh::File(m_filename);
-        m_file_ptr = make_shared<sh::File>(m_filename);
+        m_file_ptr = std::make_shared<sh::File>(m_filename);
     }
 
     ~ViewPartManager();

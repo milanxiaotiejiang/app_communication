@@ -19,13 +19,13 @@ int ModeValidate::getMoveBaseMode() {
 bool ModeValidate::validateCartographer(node::State state) {
     switch (state) {
         case node::State::sleep:
-            LOG(INFO) << "ModeValidate  Cartographer 睡眠模式校验 ------------------------------ ";
+            LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  Cartographer 睡眠模式校验 ------------------------------ ";
             break;
         case node::State::work:
-            LOG(INFO) << "ModeValidate  Cartographer 定位模式校验 ------------------------------ ";
+            LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  Cartographer 定位模式校验 ------------------------------ ";
             break;
         case node::State::map:
-            LOG(INFO) << "ModeValidate  Cartographer 建图模式校验 ------------------------------ ";
+            LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  Cartographer 建图模式校验 ------------------------------ ";
             break;
     }
 
@@ -41,7 +41,7 @@ bool ModeValidate::validateCartographer(node::State state) {
     std::unique_lock<std::mutex> lck(wait_mutex);
     cond.wait_for(lck, std::chrono::seconds(5));
 
-    LOG(INFO) << "ModeValidate  Cartographer 最终启动结果 "
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  Cartographer 最终启动结果 "
               << "  state： " << static_cast<int>(state)
               << "  carto_mode： " << NodeControl::instance().cartoMode()
               << "  heart_beat： " << NodeControl::instance().heart_beat;
@@ -59,9 +59,9 @@ bool ModeValidate::validateCartographer(node::State state) {
 
 bool ModeValidate::validateMoveBase(int open) {
     if (open) {
-        LOG(INFO) << "ModeValidate  MoveBase 服务启动校验 ------------------------------ ";
+        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 服务启动校验 ------------------------------ ";
     } else {
-        LOG(INFO) << "ModeValidate  MoveBase 服务关闭校验 ------------------------------ ";
+        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 服务关闭校验 ------------------------------ ";
     }
 
     if (!Environment::instance().isRealEnvironment) {
@@ -82,7 +82,7 @@ bool ModeValidate::validateMoveBase(int open) {
             sleep(1);
 
             int moveBaseMode = getMoveBaseMode();
-            LOG(INFO) << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
+            LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
             if (open == moveBaseMode) {
                 wait_cv.notify_one();
                 end_loop = true;
@@ -93,23 +93,23 @@ bool ModeValidate::validateMoveBase(int open) {
                 end_loop = true;
             }
         }
-        LOG(INFO) << "ModeValidate  MoveBase 时时获取的线程结束 ...";
+        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 时时获取的线程结束 ...";
     });
 
     std::unique_lock<std::mutex> lck(wait_mutex);
     if (wait_cv.wait_for(lck, std::chrono::seconds(5)) == std::cv_status::timeout) {
         int moveBaseMode = getMoveBaseMode();
-        LOG(INFO) << "ModeValidate  MoveBase 获取结果超时再次获取 move_base_mode ：" << moveBaseMode;
+        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 获取结果超时再次获取 move_base_mode ：" << moveBaseMode;
         return open == moveBaseMode;
     }
-    LOG(INFO) << "ModeValidate  MoveBase Server 启动成功 ... ";
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase Server 启动成功 ... ";
     return true;
 }
 
 bool ModeValidate::validateMoveBaseAvailable() {
-    LOG(INFO) << "ModeValidate  MoveBase 服务可用校验 ------------------------------ ";
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 服务可用校验 ------------------------------ ";
     bool replanServer = PointPlanner::instance().waitForReplanServer();
-    LOG(INFO) << "ModeValidate  MoveBase 服务可用校验结果 " << replanServer;
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 服务可用校验结果 " << replanServer;
     return replanServer;
 
     // 测试线程终端的代码
@@ -137,19 +137,19 @@ bool ModeValidate::validateMoveBaseAvailable() {
 bool ModeValidate::validateMotorServer() {
     bool firingResult = MotorServerSingleton::instance().start();
     if (!firingResult) {
-        LOG(INFO) << "ModeValidate  MotorServer 雷达启动失败 ------------------------------ ";
+        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer 雷达启动失败 ------------------------------ ";
         return false;
     }
 
     sleep(2);
 
-    LOG(INFO) << "ModeValidate  MotorServer 服务可用校验 ------------------------------ ";
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer 服务可用校验 ------------------------------ ";
 
     bool callReadyCheckFirst = CartographerServiceClient::instance().callReadyCheck();
     if (callReadyCheckFirst) {
         return true;
     }
-    LOG(INFO) << "ModeValidate  MotorServer 首次校验结果 " << callReadyCheckFirst << " ------------------------------ ";
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer 首次校验结果 " << callReadyCheckFirst << " ------------------------------ ";
 
     sleep(2);
 
@@ -157,6 +157,6 @@ bool ModeValidate::validateMotorServer() {
     if (callReadyCheckAgain) {
         return true;
     }
-    LOG(INFO) << "ModeValidate  MotorServer 再次校验结果 " << callReadyCheckAgain << " ------------------------------ ";
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer 再次校验结果 " << callReadyCheckAgain << " ------------------------------ ";
     return false;
 }

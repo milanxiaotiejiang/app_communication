@@ -4,8 +4,6 @@
 #include "model/Polygon_info.h"
 #include "nlohmann/json.hpp"
 
-using namespace std;
-
 using json = nlohmann::json;
 
 class CleanPolygon {
@@ -30,9 +28,9 @@ public:
 
     void setIsCustomized(bool isCustomized);
 
-    const vector<Polygon_info> &getPolygonList() const;
+    const std::vector<Polygon_info> &getPolygonList() const;
 
-    void setPolygonList(const vector<Polygon_info> &polygonList);
+    void setPolygonList(const std::vector<Polygon_info> &polygonList);
 
     friend void to_json(json &j, const CleanPolygon &b) {
         j = json{

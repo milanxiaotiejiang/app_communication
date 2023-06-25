@@ -22,7 +22,7 @@
 #include "tool/Variable.h"
 #include "leave/ParamManager.h"
 
-string StartMapStrategy::handler(string params) {
+std::string StartMapStrategy::handler(std::string params) {
     if (ParamManager::instance().getRainSnow()) {
         throw app::exception(make_error_code(error::please_exit_the_rain_and_snow_mode_first));
     }
@@ -186,7 +186,7 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
 //    }
 }
 
-vector<MapInfo> GetMultiMapsStrategy::handler(string params) {
+std::vector<MapInfo> GetMultiMapsStrategy::handler(std::string params) {
     std::vector<MapInfo> mapInfos;
     const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
     for (const auto &map: allMap) {
@@ -196,7 +196,7 @@ vector<MapInfo> GetMultiMapsStrategy::handler(string params) {
     return mapInfos;
 }
 
-string ChangeMapStrategy::handler(string params) {
+std::string ChangeMapStrategy::handler(std::string params) {
     MapPo oldMap = SegmentationDataBase::instance().getDbMap();
     if (oldMap.id == params) {
         throw app::exception(make_error_code(error::create_map_fail));
@@ -228,7 +228,7 @@ string ChangeMapStrategy::handler(string params) {
     return "";
 }
 
-string ModifyMapNameStrategy::handler(MapInfo params) {
+std::string ModifyMapNameStrategy::handler(MapInfo params) {
     const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
     bool isFind = false;
     for (const auto &item: allMap) {
@@ -244,11 +244,11 @@ string ModifyMapNameStrategy::handler(MapInfo params) {
     return "";
 }
 
-string DeleteMapStrategy::handler(string params) {
+std::string DeleteMapStrategy::handler(std::string params) {
 
 }
 
-string EditMapStrategy::handler(vector<std::vector<float>> params) {
+std::string EditMapStrategy::handler(std::vector<std::vector<float>> params) {
     //操作，将编辑信息写入当前地图对应的编辑文件内
     int prohibition_num = params.size();
     reset_prohibition();
@@ -282,7 +282,7 @@ string EditMapStrategy::handler(vector<std::vector<float>> params) {
     return "";
 }
 
-vector<std::vector<float>> GetEditMapStrategy::handler(string params) {
+std::vector<std::vector<float>> GetEditMapStrategy::handler(std::string params) {
 
     //操作，打开当前地图对应的编辑文件，并读取编辑信息
     std::vector<std::vector<float>> result;
@@ -292,8 +292,8 @@ vector<std::vector<float>> GetEditMapStrategy::handler(string params) {
     return result;
 }
 
-int ManualPushStartStrategy::handler(string params) {
-    LOG(INFO) << "MapStrategy manual_push_start ...";
+int ManualPushStartStrategy::handler(std::string params) {
+    LOG_IF(INFO, DEBUG_REQUEST) << "MapStrategy manual_push_start ...";
 
     if (!ZooInnerStatus::instance().getIsCharging()) {
         throw app::exception(make_error_code(error::map_creation_needs_to_start_at_the_base_station));
@@ -307,15 +307,15 @@ int ManualPushStartStrategy::handler(string params) {
     return 5;
 }
 
-int ManualPushResetStrategy::handler(string params) {
-    LOG(INFO) << "MapStrategy manual_push_reset ...";
+int ManualPushResetStrategy::handler(std::string params) {
+    LOG_IF(INFO, DEBUG_REQUEST) << "MapStrategy manual_push_reset ...";
     std_msgs::Int32 map_start;
     map_start.data = 0;
     PublishInnerManager::instance().publishManualPush(map_start);
     return 5;
 }
 
-string MapObstaclesStrategy::handler(vector<vector<PointVo>> params) {
+std::string MapObstaclesStrategy::handler(std::vector<std::vector<PointVo>> params) {
     std::vector<std::vector<cv::Point>> points;
 
     for (const auto &vector: params) {
@@ -335,7 +335,7 @@ string MapObstaclesStrategy::handler(vector<vector<PointVo>> params) {
     return "";
 }
 
-string MapFeasibleZoneStrategy::handler(vector<vector<PointVo>> params) {
+std::string MapFeasibleZoneStrategy::handler(std::vector<std::vector<PointVo>> params) {
     std::vector<std::vector<cv::Point>> points;
 
     for (const auto &vector: params) {
@@ -355,7 +355,7 @@ string MapFeasibleZoneStrategy::handler(vector<vector<PointVo>> params) {
     return "";
 }
 
-string MapApplyIncreaseArea::handler(vector<int> params) {
+std::string MapApplyIncreaseArea::handler(std::vector<int> params) {
     MapModification mapModification;
     mapModification.applyIncreaseArea(params);
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);

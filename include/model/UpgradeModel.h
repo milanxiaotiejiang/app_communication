@@ -13,8 +13,6 @@
 #include "FullPath.h"
 #include "Task.h"
 
-using namespace std;
-
 using json = nlohmann::json;
 
 class CombinationBriefUpgrade {
@@ -22,22 +20,22 @@ private:
     std::string combination_id;
     std::string name;
     int rate;
-    std::vector<string> part_id_list;
+    std::vector<std::string> part_id_list;
     int combination_type; //0--combination;1--full clean
 
 public:
     CombinationBriefUpgrade();
 
-    CombinationBriefUpgrade(const string &combinationId, const string &name, int rate,
-                            const vector<string> &partIdList);
+    CombinationBriefUpgrade(const std::string &combinationId, const std::string &name, int rate,
+                            const std::vector<std::string> &partIdList);
 
-    const string &getCombinationId() const;
+    const std::string &getCombinationId() const;
 
-    void setCombinationId(const string &combinationId);
+    void setCombinationId(const std::string &combinationId);
 
-    const string &getName() const;
+    const std::string &getName() const;
 
-    void setName(const string &name);
+    void setName(const std::string &name);
 
     int getRate() const;
 
@@ -47,9 +45,9 @@ public:
 
     void setCombinationType(int type);
 
-    const vector<string> &getPartIdList() const;
+    const std::vector<std::string> &getPartIdList() const;
 
-    void setPartIdList(const vector<string> &partIdList);
+    void setPartIdList(const std::vector<std::string> &partIdList);
 
     friend void to_json(json &j, const CombinationBriefUpgrade &model) {
         j = json{
@@ -165,45 +163,45 @@ public:
 
     ViewPartUpgrade();
 
-    ViewPartUpgrade(int mode, const string &name, const string &partId, const vector<Point> &polygon, int rate,
-                    const vector<Point> &teach, const string &pathId, const WorkStatusUpgrade &workStatus,
-                    const vector<Point> &zoned);
+    ViewPartUpgrade(int mode, const std::string &name, const std::string &partId, const std::vector<Point> &polygon, int rate,
+                    const std::vector<Point> &teach, const std::string &pathId, const WorkStatusUpgrade &workStatus,
+                    const std::vector<Point> &zoned);
 
     int getMode() const;
 
     void setMode(int mode);
 
-    const string &getName() const;
+    const std::string &getName() const;
 
-    void setName(const string &name);
+    void setName(const std::string &name);
 
-    const string &getPartId() const;
+    const std::string &getPartId() const;
 
-    void setPartId(const string &partId);
+    void setPartId(const std::string &partId);
 
-    const vector<Point> &getPolygon() const;
+    const std::vector<Point> &getPolygon() const;
 
-    void setPolygon(const vector<Point> &polygon);
+    void setPolygon(const std::vector<Point> &polygon);
 
     int getRate() const;
 
     void setRate(int rate);
 
-    const vector<Point> &getTeach() const;
+    const std::vector<Point> &getTeach() const;
 
-    void setTeach(const vector<Point> &teach);
+    void setTeach(const std::vector<Point> &teach);
 
-    const string &getPathId() const;
+    const std::string &getPathId() const;
 
-    void setPathId(const string &pathId);
+    void setPathId(const std::string &pathId);
 
     const WorkStatusUpgrade &getWorkStatus() const;
 
     void setWorkStatus(const WorkStatusUpgrade &workStatus);
 
-    const vector<Point> &getZoned() const;
+    const std::vector<Point> &getZoned() const;
 
-    void setZoned(const vector<Point> &zoned);
+    void setZoned(const std::vector<Point> &zoned);
 
     friend void to_json(json &j, const ViewPartUpgrade &b) {
         j = json{
@@ -261,19 +259,19 @@ private:
     long execute_time;
     long end_time;
     int task_mode;
-    string task_id;
+    std::string task_id;
     int clean_area;
     int clean_time;
     int error_code;
-    string error_code2;
-    string error_message;
+    std::string error_code2;
+    std::string error_message;
 
     // Ewen change begin
     bool m_base_complete;
     int task_type;
-    vector<std::string> component_id_list_;
+    std::vector<std::string> component_id_list_;
     int skip_path_point_count_;
-    vector<int> oper_event;
+    std::vector<int> oper_event;
     int rate_;
     int sweep_status_;
     int mop_status_;
@@ -307,11 +305,11 @@ public:
     CleanHistoryUpgrade();
 
     CleanHistoryUpgrade(bool isComplete, long launchTime, long executeTime, long endTime, int taskMode,
-                        const string &taskId, int cleanArea, int cleanTime,
-                        int errorCode, const string errorCode2, const string &errorMessage, bool mBaseComplete,
+                        const std::string &taskId, int cleanArea, int cleanTime,
+                        int errorCode, const std::string errorCode2, const std::string &errorMessage, bool mBaseComplete,
                         int taskType,
-                        const vector<std::string> &componentIdList, int skipPathPointCount,
-                        const vector<int> &operEvent, int rate, int sweepStatus, int mopStatus, int vacuumStatus,
+                        const std::vector<std::string> &componentIdList, int skipPathPointCount,
+                        const std::vector<int> &operEvent, int rate, int sweepStatus, int mopStatus, int vacuumStatus,
                         int pushStatus, int aromatherapyStatus, int disinfectStatus, int currentStep,
                         int currentFrquency, int totalStep, int totalFrequency, int historyState, int currentFlow,
                         int urgencyStop, int pauseNum, int manualBack, int lowPowerBack, int forceBack, int outStation,
@@ -322,7 +320,7 @@ public:
 
     int getTaskType() const;
 
-    vector<int> getOperEvent() const;
+    std::vector<int> getOperEvent() const;
 
     // Ewen change end
     bool isComplete() const;
@@ -345,9 +343,9 @@ public:
 
     void setTaskMode(int taskMode);
 
-    const string &getTaskId() const;
+    const std::string &getTaskId() const;
 
-    void setTaskId(const string &taskId);
+    void setTaskId(const std::string &taskId);
 
     const WorkStatusUpgrade &getWorkStatus() const;
 
@@ -365,9 +363,9 @@ public:
 
     void setErrorCode(int errorCode);
 
-    const string &getErrorMessage() const;
+    const std::string &getErrorMessage() const;
 
-    void setErrorMessage(const string &errorMessage);
+    void setErrorMessage(const std::string &errorMessage);
 
     friend void to_json(json &j, const CleanHistoryUpgrade &b) {
         j = json{
@@ -469,15 +467,15 @@ public:
 
 class CleanHistoryListUpgrade {//清洁历史列表，储存用
 private:
-    vector<CleanHistoryUpgrade> m_clean_history_list;
+    std::vector<CleanHistoryUpgrade> m_clean_history_list;
 public:
     CleanHistoryListUpgrade();
 
-    CleanHistoryListUpgrade(const vector<CleanHistoryUpgrade> &mCleanHistoryList);
+    CleanHistoryListUpgrade(const std::vector<CleanHistoryUpgrade> &mCleanHistoryList);
 
-    const vector<CleanHistoryUpgrade> &getMCleanHistoryList() const;
+    const std::vector<CleanHistoryUpgrade> &getMCleanHistoryList() const;
 
-    void setMCleanHistoryList(const vector<CleanHistoryUpgrade> &mCleanHistoryList);
+    void setMCleanHistoryList(const std::vector<CleanHistoryUpgrade> &mCleanHistoryList);
 
     friend void to_json(json &j, const CleanHistoryListUpgrade &b) {
         j = json{
@@ -492,12 +490,12 @@ public:
 
 class TaskUpgrade {
 private:
-    string task_id;
+    std::string task_id;
     int mode;
     int rate;
     WorkStatusUpgrade work_status;
     CleanPolygon polygon;
-    vector<float> zoned;
+    std::vector<float> zoned;
     CleanContinuity continuity;
     TeachPathInfo teach_path;
     std::string launch_people;
@@ -510,14 +508,14 @@ private:
 public:
     TaskUpgrade();
 
-    TaskUpgrade(const string &taskId, int mode, int rate, const WorkStatusUpgrade &workStatus,
-                const CleanPolygon &polygon, const vector<float> &zoned, const CleanContinuity &continuity,
-                const TeachPathInfo &teachPath, const string &launchPeople, long launchTime, const string &timeMode,
+    TaskUpgrade(const std::string &taskId, int mode, int rate, const WorkStatusUpgrade &workStatus,
+                const CleanPolygon &polygon, const std::vector<float> &zoned, const CleanContinuity &continuity,
+                const TeachPathInfo &teachPath, const std::string &launchPeople, long launchTime, const std::string &timeMode,
                 bool inExecute, const Combination &combination, const FullPath &fullPath);
 
-    const string &getTaskId() const;
+    const std::string &getTaskId() const;
 
-    void setTaskId(const string &taskId);
+    void setTaskId(const std::string &taskId);
 
     int getMode() const;
 
@@ -535,9 +533,9 @@ public:
 
     void setPolygon(const CleanPolygon &polygon);
 
-    const vector<float> &getZoned() const;
+    const std::vector<float> &getZoned() const;
 
-    void setZoned(const vector<float> &zoned);
+    void setZoned(const std::vector<float> &zoned);
 
     const CleanContinuity &getContinuity() const;
 
@@ -547,17 +545,17 @@ public:
 
     void setTeachPath(const TeachPathInfo &teachPath);
 
-    const string &getLaunchPeople() const;
+    const std::string &getLaunchPeople() const;
 
-    void setLaunchPeople(const string &launchPeople);
+    void setLaunchPeople(const std::string &launchPeople);
 
     long getLaunchTime() const;
 
     void setLaunchTime(long launchTime);
 
-    const string &getTimeMode() const;
+    const std::string &getTimeMode() const;
 
-    void setTimeMode(const string &timeMode);
+    void setTimeMode(const std::string &timeMode);
 
     bool isInExecute() const;
 
@@ -616,24 +614,24 @@ private:
 public:
     CombinationDetailUpgrade();
 
-    CombinationDetailUpgrade(const string &combinationId, const string &name, int rate,
-                             const vector<ViewPartUpgrade> &viewPartList);
+    CombinationDetailUpgrade(const std::string &combinationId, const std::string &name, int rate,
+                             const std::vector<ViewPartUpgrade> &viewPartList);
 
-    const string &getCombinationId() const;
+    const std::string &getCombinationId() const;
 
-    void setCombinationId(const string &combinationId);
+    void setCombinationId(const std::string &combinationId);
 
-    const string &getName() const;
+    const std::string &getName() const;
 
-    void setName(const string &name);
+    void setName(const std::string &name);
 
     int getRate() const;
 
     void setRate(int rate);
 
-    const vector<ViewPartUpgrade> &getViewPartList() const;
+    const std::vector<ViewPartUpgrade> &getViewPartList() const;
 
-    void setViewPartList(const vector<ViewPartUpgrade> &viewPartList);
+    void setViewPartList(const std::vector<ViewPartUpgrade> &viewPartList);
 
     friend void to_json(json &j, const CombinationDetailUpgrade &b) {
         j = json{
@@ -658,31 +656,31 @@ private:
     std::string combination_id;
     std::string name;
     int rate;
-    std::vector<string> part_id_list;
+    std::vector<std::string> part_id_list;
     bool principal{false};
 
 public:
 
     CombinationBriefWork();
 
-    CombinationBriefWork(const string &combinationId, const string &name, int rate, const vector<string> &partIdList,
+    CombinationBriefWork(const std::string &combinationId, const std::string &name, int rate, const std::vector<std::string> &partIdList,
                          bool principal);
 
-    const string &getCombinationId() const;
+    const std::string &getCombinationId() const;
 
-    void setCombinationId(const string &combinationId);
+    void setCombinationId(const std::string &combinationId);
 
-    const string &getName() const;
+    const std::string &getName() const;
 
-    void setName(const string &name);
+    void setName(const std::string &name);
 
     int getRate() const;
 
     void setRate(int rate);
 
-    const vector<string> &getPartIdList() const;
+    const std::vector<std::string> &getPartIdList() const;
 
-    void setPartIdList(const vector<string> &partIdList);
+    void setPartIdList(const std::vector<std::string> &partIdList);
 
     bool isPrincipal() const;
 
@@ -714,11 +712,11 @@ private:
 public:
     CombinationBriefWorkList();
 
-    CombinationBriefWorkList(const vector<CombinationBriefWork> &mCombinationBriefList);
+    CombinationBriefWorkList(const std::vector<CombinationBriefWork> &mCombinationBriefList);
 
-    const vector<CombinationBriefWork> &getMCombinationBriefList() const;
+    const std::vector<CombinationBriefWork> &getMCombinationBriefList() const;
 
-    void setMCombinationBriefList(const vector<CombinationBriefWork> &mCombinationBriefList);
+    void setMCombinationBriefList(const std::vector<CombinationBriefWork> &mCombinationBriefList);
 
     friend void to_json(json &j, const CombinationBriefWorkList &b) {
         j = json{

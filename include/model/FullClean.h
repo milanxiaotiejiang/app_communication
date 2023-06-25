@@ -9,16 +9,14 @@
 #include "Point.h"
 #include "WorkStatus.h"
 
-using namespace std;
-
 class FullCleanBrief {
 private:
     std::string m_full_clean_path_id;
     std::string m_full_clean_name;
     int m_rate;
-    vector<Point> full_path;
+    std::vector<Point> full_path;
     WorkStatus work_status;
-    std::vector<string> m_part_id_list;
+    std::vector<std::string> m_part_id_list;
 
     bool principal{false};
 
@@ -27,7 +25,7 @@ public:
 
     FullCleanBrief() {}
 
-    FullCleanBrief(std::string full_path_id, std::string name, int rate, const vector<Point> &fullPath,
+    FullCleanBrief(std::string full_path_id, std::string name, int rate, const std::vector<Point> &fullPath,
                    const WorkStatus &workStatus) : m_full_clean_path_id(full_path_id),
                                                    m_full_clean_name(name),
                                                    m_rate(rate),
@@ -51,9 +49,9 @@ public:
 
     void setWorkStatus(const WorkStatus &workStatus);
 
-    const vector<Point> &getFullPath() const;
+    const std::vector<Point> &getFullPath() const;
 
-    void setFullPath(const vector<Point> &fullPath);
+    void setFullPath(const std::vector<Point> &fullPath);
 
     bool isPrincipal() const;
 
@@ -96,21 +94,21 @@ public:
 
     ~FullCleanBriefList();
 
-    const vector<FullCleanBrief> &getFullCleanBriefList() const;
+    const std::vector<FullCleanBrief> &getFullCleanBriefList() const;
 
-    void setFullCLeanBriefList(const vector<FullCleanBrief> &fullclean_brief_list);
+    void setFullCLeanBriefList(const std::vector<FullCleanBrief> &fullclean_brief_list);
 
     bool addFullCleanBrief(const FullCleanBrief &fullCleanBrief);
 
-    bool deleteFullCleanBrief(const string &fullclean_id);
+    bool deleteFullCleanBrief(const std::string &fullclean_id);
 
-    bool getFullCLeanBrief(FullCleanBrief &fullcleanBrief, const string &fullclean_id);
+    bool getFullCLeanBrief(FullCleanBrief &fullcleanBrief, const std::string &fullclean_id);
 
-    bool resetFullCleanBrief(const FullCleanBrief &full_clean_brief, const string &fullclean_id);
+    bool resetFullCleanBrief(const FullCleanBrief &full_clean_brief, const std::string &fullclean_id);
 
-    void setMainFullClean(const string &fullclean_id);
+    void setMainFullClean(const std::string &fullclean_id);
 
-    void cancelMainFullClean(const string &fullclean_id);
+    void cancelMainFullClean(const std::string &fullclean_id);
 
 };
 

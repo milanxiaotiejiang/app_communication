@@ -33,7 +33,7 @@ public:
 
     DeviceStatus(int RSOC, long clean_area, long clean_time, const MapInfo &current_map, bool is_urgency_stop,
                  bool lock_status, bool dust_box_status, bool water_box_status,
-                 const WorkStatus &work_status, const string &work_status_message, const int &work_status_code);
+                 const WorkStatus &work_status, const std::string &work_status_message, const int &work_status_code);
 
     virtual ~DeviceStatus();
 
@@ -78,9 +78,9 @@ public:
 
     void setWorkStatus(const WorkStatus &workStatus);
 
-    const string &getWorkStatusMessage() const;
+    const std::string &getWorkStatusMessage() const;
 
-    void setWorkStatusMessage(const string &workStatusMessage);
+    void setWorkStatusMessage(const std::string &workStatusMessage);
 
     int getWorkStatusCode() const;
 

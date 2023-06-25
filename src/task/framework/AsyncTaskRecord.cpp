@@ -43,7 +43,7 @@ bool AsyncTaskRecord::isReturningBase(event::flow flow) {
 }
 
 bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend) {
-//    LOG(INFO) << "AsyncTaskRecord : lastEmergencyStop : " << lastEmergencyStop();
+//    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskRecord : lastEmergencyStop : " << lastEmergencyStop();
     if (isManualMode()) {
         return false;
     }

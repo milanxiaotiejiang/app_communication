@@ -33,8 +33,8 @@ public:
 
     void setPlannerType(int plannerType);
 
-    void sendNotice(int noticeCode, long noticeTime, const string &noticeTitle,
-                    const string &noticeMessage, const string &solution);
+    void sendNotice(int noticeCode, long noticeTime, const std::string &noticeTitle,
+                    const std::string &noticeMessage, const std::string &solution);
 
 };
 

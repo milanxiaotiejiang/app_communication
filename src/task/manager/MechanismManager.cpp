@@ -8,7 +8,7 @@
 #include "simulation.h"
 
 void MechanismManager::resetWorkStatus() {
-    LOG(INFO) << "MechanismManager : 收起清洁机构 . ";
+    LOG_IF(INFO, DEBUG_TASK) << "MechanismManager : 收起清洁机构 . ";
     std_msgs::Int32 sweep_status;
 //    if (ZooInnerStatus::instance().getSweepStatus() != 0 && ZooInnerStatus::instance().getSweepStatus() != -1) {
     sweep_status.data = 0;
@@ -45,7 +45,7 @@ void MechanismManager::resetWorkStatus() {
 }
 
 void MechanismManager::resetBelowWorkStatus() {
-    LOG(INFO) << "MechanismManager : 收起下方清洁机构.";
+    LOG_IF(INFO, DEBUG_TASK) << "MechanismManager : 收起下方清洁机构.";
 //    std_msgs::Int32 sweep_status;
 //    sweep_status.data = 0;
 //    PublishInnerManager::instance().publishSweepMode(sweep_status);
@@ -66,7 +66,7 @@ void MechanismManager::resetBelowWorkStatus() {
 }
 
 void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knife) {
-    LOG(INFO) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
+    LOG_IF(INFO, DEBUG_TASK) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
     //扫
     std_msgs::Int32 sweep_status;
     if (workStatus.getSweepStatus() >= 0 && workStatus.getSweepStatus() <= 2) {
@@ -122,7 +122,7 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knif
 }
 
 void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus, bool knife) {
-    LOG(INFO) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
+    LOG_IF(INFO, DEBUG_TASK) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
     //扫
     std_msgs::Int32 sweep_status;
     sweep_status.data = workStatus.getSweepStatus();
@@ -169,14 +169,14 @@ void MechanismManager::quitManualControl() {
 }
 
 void MechanismManager::openKnife() {
-    LOG(INFO) << "MechanismManager : 开启风刀.";
+    LOG_IF(INFO, DEBUG_TASK) << "MechanismManager : 开启风刀.";
     std_msgs::Int32 msg;
     msg.data = 1;
     PublishInnerManager::instance().pubKnife(msg);
 }
 
 void MechanismManager::closeKnife() {
-    LOG(INFO) << "MechanismManager : 关闭风刀.";
+    LOG_IF(INFO, DEBUG_TASK) << "MechanismManager : 关闭风刀.";
     std_msgs::Int32 msg;
     msg.data = 0;
     PublishInnerManager::instance().pubKnife(msg);

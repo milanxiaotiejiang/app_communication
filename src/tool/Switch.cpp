@@ -5,9 +5,6 @@ choose a corresponding function author -jiang
 #include "tool/Switch.h"
 #include <iostream>
 
-using namespace std;
-
-
 pid_t getProcessPidByName(const char *proc_name) {
     FILE *fp;
     char buf[100];

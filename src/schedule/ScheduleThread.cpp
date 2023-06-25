@@ -58,9 +58,9 @@ std::string fixWeek(std::string strin) {
 }
 
 void execTask(TimerInfo &tsk) {
-    std::shared_ptr<Task> tk = make_shared<Task>();
+    std::shared_ptr<Task> tk = std::make_shared<Task>();
     std::string st = croncpp::Cron<croncpp::LocalClock, croncpp::NullLock>::get_timestring();
-    LOG(INFO) << "execTask  taskid  " << st;
+    LOG_IF(INFO, DEBUG_TIMER) << "execTask  taskid  " << st;
 
     tk->setTaskId(st);
 
@@ -70,7 +70,7 @@ void execTask(TimerInfo &tsk) {
     } else {
         CombinationBrief combination_brief_temp;
         if (CombinationManager::get_instance()->GetCombination(combination_brief_temp, tsk.getTaskId()) != SUCCESS_) {
-            LOG(INFO) << "获取组合路径失败";
+            LOG_IF(INFO, DEBUG_TIMER) << "获取组合路径失败";
             return;
         }
         if (combination_brief_temp.getCombinationType() == 0) {
@@ -90,7 +90,7 @@ void execTask(TimerInfo &tsk) {
     tk->setLaunchPeople("admin1");
     //任务运行中，不分配任务
     if (ManualManager::instance().taskRunning()) {
-        LOG(INFO) << "当前有任务在执行，定时清扫被取消";
+        LOG_IF(INFO, DEBUG_TIMER) << "当前有任务在执行，定时清扫被取消";
     } else {
         if (tk->getMode() == 6) {
 
@@ -108,7 +108,7 @@ void execTask(TimerInfo &tsk) {
 
             ExplorationCenter::instance().pathPublish(exploration_path);
             boost::uuids::uuid uuid = boost::uuids::random_generator()();
-            string uuid_string = boost::uuids::to_string(uuid);
+            std::string uuid_string = boost::uuids::to_string(uuid);
 
             RoomCoverage roomCoverage;
             TaskExploration::planningPath2RoomCoverage(roomCoverage, exploration_path, point_path, complex_path);
@@ -132,10 +132,10 @@ void execTask(TimerInfo &tsk) {
                     TaskCenter::instance().executeTask(*tk);
                 } catch (app::exception const &e) {
                     LOG(ERROR) << e.what();
-                    LOG(INFO) << "定时全局清扫失败!!!";
+                    LOG_IF(INFO, DEBUG_TIMER) << "定时全局清扫失败!!!";
                 } catch (const std::exception &e) {
                     LOG(ERROR) << e.what();
-                    LOG(INFO) << "定时全局清扫失败!!!";
+                    LOG_IF(INFO, DEBUG_TIMER) << "定时全局清扫失败!!!";
                 }
             }
         } else if (tk->getMode() == 7) {
@@ -143,30 +143,30 @@ void execTask(TimerInfo &tsk) {
                 TaskCenter::instance().executeTask(*tk);
             } catch (app::exception const &e) {
                 LOG(ERROR) << e.what();
-                LOG(INFO) << "定时组合路径执行失败!!!";
+                LOG_IF(INFO, DEBUG_TIMER) << "定时组合路径执行失败!!!";
             } catch (const std::exception &e) {
                 LOG(ERROR) << e.what();
-                LOG(INFO) << "定时组合路径执行失败!!!";
+                LOG_IF(INFO, DEBUG_TIMER) << "定时组合路径执行失败!!!";
             }
         } else {
-            LOG(INFO) << "定时任务  未知命令   ";
+            LOG_IF(INFO, DEBUG_TIMER) << "定时任务  未知命令   ";
         }
 
     }
 }
 
 void ScheduleThread::startScheduleCheck() {
-    string fileName;
-    string sss;
+    std::string fileName;
+    std::string sss;
     fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
     //设置清扫计时器
 
-    std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
-    cout << "timeinfo file  " << fileName << endl;
+    std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
+    std::cout << "timeinfo file  " << fileName << std::endl;
     if (!fff->open(std::ios::in)) {
         if (!fff->create(fileName)) {
-            cout << "fail to create timeinfo file" << endl;
+            std::cout << "fail to create timeinfo file" << std::endl;
             return;
         }
     } else {
@@ -176,7 +176,7 @@ void ScheduleThread::startScheduleCheck() {
 
     while (1) {
         try {
-            string sss = stimer_list;
+            std::string sss = stimer_list;
 
             //gang rebuild
             if (sss.length() > 0) //不为空
@@ -185,7 +185,7 @@ void ScheduleThread::startScheduleCheck() {
                 std::vector<TimerInfo> timer_infos = jdecode.get<std::vector<TimerInfo>>(); //数据内容，结构体格式
                 for (int i = 0; i < timer_infos.size(); i++) {
 
-                    std::shared_ptr<TimerInfo> ti = make_shared<TimerInfo>();
+                    std::shared_ptr<TimerInfo> ti = std::make_shared<TimerInfo>();
 
                     ti->setTimerRule(timer_infos[i].getTimerRule());
                     ti->setTaskId(timer_infos[i].getTaskId());
@@ -243,20 +243,20 @@ void ScheduleThread::startScheduleCheck() {
 void ScheduleThread::subscribeCallback(const std_msgs::String &result) {
     std::string decode = result.data; // base64消息解码成string
     json jdecode = json::parse(decode);
-    cout << "timeinfo file subscribeCallback209   " << endl;
+    std::cout << "timeinfo file subscribeCallback209   " << std::endl;
     //
     //
-    string fileName;
+    std::string fileName;
 
     fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
     //设置清扫计时器
     // sh::File *fff = new sh::File(fileName);
-    std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
-    cout << "timeinfo file subscribeCallback " << fileName << endl;
+    std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
+    std::cout << "timeinfo file subscribeCallback " << fileName << std::endl;
     if (!fff->open(std::ios::in)) {
 
-        cout << "fail to read timeinfo file in subscribeCallback" << endl;
+        std::cout << "fail to read timeinfo file in subscribeCallback" << std::endl;
     } else {
         stimer_list = fff->readAll();
         fff->close();

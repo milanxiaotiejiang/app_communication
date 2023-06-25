@@ -173,7 +173,7 @@ AiServerThread *aiServerThread;
 void AiServerManager::startWebSocket() {
     std::string pid = get_pid_using_port(9095);
     if (!pid.empty()) {
-        LOG(INFO) << "进程 pid 为 " << pid << " 占用 9095 端口 ！！";
+        LOG_IF(INFO, DEBUG_FIRING) << "进程 pid 为 " << pid << " 占用 9095 端口 ！！";
         kill_process(pid);
     }
 

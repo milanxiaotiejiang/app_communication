@@ -20,9 +20,9 @@ protected:
 
     virtual void softwareInterruptTask(const RealBlock &block) = 0;
 
-    void callOpenMechanism(const WorkStatus &status, bool knife, function<void()> f) override;
+    void callOpenMechanism(const WorkStatus &status, bool knife, std::function<void()> f) override;
 
-    void callCloseMechanism(function<void()> f) override;
+    void callCloseMechanism(std::function<void()> f) override;
 
 public:
     bool canIssuedTask(const RealTask &task);

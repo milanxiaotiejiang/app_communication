@@ -5,7 +5,7 @@
 #include "sub/json/TTStrategy.h"
 #include "tool/DangerousThreadPool.h"
 
-string TTErrorCheck::handler(string params) {
+std::string TTErrorCheck::handler(std::string params) {
     DangerousThreadPool dangerousThreadPool(1);
     dangerousThreadPool.enqueue([]() {
 //        Py_Initialize();

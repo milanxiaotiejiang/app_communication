@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 
     //初始化ros节点
     ros::init(argc, argv, "rec_app_node");
-    LOG_IF(INFO, DEBUG_FIRING) << "启动 rec_app_node " << sys_gettid() << " start to listening!";
+    LOG_IF(INFO, DEBUG_FIRING) << "启动 rec_app_node " << sys_gettid() << " start to listening ! ";
 
     //新清洁历史
     clean_history_db::CleanHistoryCenter::instance().initialize();
@@ -153,15 +153,15 @@ void initLog(char *const *argv) {
     time_t timestamp_ = std::time(0);
     struct ::tm tm_time;
     localtime_r(&timestamp_, &tm_time);
-    ostringstream time_pid_stream;
+    std::ostringstream time_pid_stream;
     time_pid_stream.fill('0');
     time_pid_stream << 1900 + tm_time.tm_year
-                    << setw(2) << 1 + tm_time.tm_mon
-                    << setw(2) << tm_time.tm_mday
+                    << std::setw(2) << 1 + tm_time.tm_mon
+                    << std::setw(2) << tm_time.tm_mday
                     << '-'
-                    << setw(2) << tm_time.tm_hour
-                    << setw(2) << tm_time.tm_min
-                    << setw(2) << tm_time.tm_sec
+                    << std::setw(2) << tm_time.tm_hour
+                    << std::setw(2) << tm_time.tm_min
+                    << std::setw(2) << tm_time.tm_sec
                     << '.'
                     << getpid();
     const string &time_pid_string = time_pid_stream.str();
@@ -178,7 +178,7 @@ void initLog(char *const *argv) {
     //    LOG(WARNING) << "This is my first glog WARNING";
     //    LOG(ERROR) << "This is my first glog ERROR 1";
 
-    LOG(INFO) << "glog file is " << glog_info_time_pid_string;
+    LOG_IF(INFO, DEBUG_FIRING) << "glog file is " << glog_info_time_pid_string;
 }
 
 /**
@@ -253,7 +253,7 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
             if ((pid = fork()) < 0) {
                 LOG(ERROR) << "fork error";
             } else if (pid == 0) {
-                LOG(INFO) << "fork success, this is son process" << " " << getpid();
+                LOG_IF(INFO, DEBUG_DUMP) << "fork success, this is son process" << " " << getpid();
 
                 if (execl(dump_upload_executable_file.data(),
                           dump_upload_executable_file.data(),
@@ -262,11 +262,11 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
                           glog_info_time_pid_string.c_str(),
                           (char *) 0)
                         ) {
-                    LOG(INFO) << "execle error";
+                    LOG_IF(INFO, DEBUG_DUMP) << "execle error";
                 }
             }
 
-            LOG(INFO) << "son process" << " " << pid;
+            LOG_IF(INFO, DEBUG_DUMP) << "son process" << " " << pid;
 
             if (waitpid(pid, nullptr, 0) != pid) {
                 LOG(ERROR) << "wait error";
@@ -284,7 +284,7 @@ static bool filterCallback(void *context) {
 void initDump() {
     std::string dumpDirStr = string(getenv_rec("HOME")) + "/app_dump";
 
-    LOG(INFO) << "dumpDirStr " << dumpDirStr;
+    LOG_IF(INFO, DEBUG_FIRING) << "dumpDirStr " << dumpDirStr;
     mkdir(dumpDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
     google_breakpad::MinidumpDescriptor descriptor(dumpDirStr);
     exceptionHandler = new google_breakpad::ExceptionHandler(descriptor,//minidump文件写入的目录
@@ -299,7 +299,7 @@ void initDump() {
 }
 
 void initTest(int argc, char **argv) {
-    if (!Environment::instance().isRealEnvironment) {
+    if (Environment::instance().isRealEnvironment) {
         Catch::Session().run(argc, argv);
     }
 }

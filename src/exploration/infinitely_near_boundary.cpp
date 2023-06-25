@@ -72,7 +72,8 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
         }
 
     } else {
-        LOG_IF(INFO, DEBUG_EXPLORATION) << "InfinitelyNearBoundary : The location of the base station can ensure the arrival ...";
+        LOG_IF(INFO, DEBUG_EXPLORATION)
+        << "InfinitelyNearBoundary : The location of the base station can ensure the arrival ...";
     }
 
     if (principle_map.at<unsigned char>(reachablePoint.y, reachablePoint.x) != 255)
@@ -112,8 +113,9 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
 //        cv::erode(borderMat, borderMat, cv::Mat(), cv::Point(-1, -1), half_grid_spacing_as_int);
 //        explorationErode(borderMat, borderMat, cv::MORPH_RECT, scale_in_pixel);
 
-        LOG_IF(INFO, DEBUG_EXPLORATION) << "(infinitely near boundary) 边界距离 scale_in_pixel: " << (half_grid_spacing_as_int + scale_in_pixel)
-                  << " px";
+        LOG_IF(INFO, DEBUG_EXPLORATION)
+        << "(infinitely near boundary) 边界距离 scale_in_pixel: " << (half_grid_spacing_as_int + scale_in_pixel)
+        << " px";
 
         //下列分别测试四种 step，采用 step3 为主
 
@@ -293,7 +295,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
                 middle_complex_path.push_back(complex);
             } else {
                 LOG_IF(INFO, DEBUG_EXPLORATION) << "InfinitelyNearBoundary : maxTraversal =" << maxTraversal
-                          << " , accessibleCount = " << accessibleCount;
+                                                << " , accessibleCount = " << accessibleCount;
             }
 
         }
@@ -344,8 +346,8 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
         for (int i = 0; i < complex_poses.size(); i++) {
             auto &pose = complex_poses[i];
             geometry_msgs::Pose2D current_pose;
-            current_pose.x = (((room_map.cols - pose.x) * map_resolution) + map_origin.x);
-            current_pose.y = (((room_map.rows - pose.y) * map_resolution) + map_origin.y);
+            current_pose.x = (((room_map.cols - pose.x - 0.5) * map_resolution) + map_origin.x);
+            current_pose.y = (((room_map.rows - pose.y - 0.5) * map_resolution) + map_origin.y);
             current_pose.theta = pose.theta;
             complex_pose.push_back(current_pose);
             // pose_path return
@@ -488,7 +490,7 @@ std::vector<Point2D> InfinitelyNearBoundary::splitPoints(const Point2D &p1, cons
 }
 
 void InfinitelyNearBoundary::splitPointsIfNeeded(const std::vector<Point2D> &points,
-                                                 std::vector<Point2D>& results,
+                                                 std::vector<Point2D> &results,
                                                  double distance) {
 
 

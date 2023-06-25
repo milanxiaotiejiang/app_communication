@@ -11,8 +11,6 @@
 #include <ros/node_handle.h>
 #include <std_msgs/String.h>
 
-using namespace std;
-
 class ScheduleThread : public CThread {
 
 public:
@@ -26,7 +24,7 @@ public:
 
     ros::NodeHandle handle;
     ros::Subscriber sub_json_;
-    string stimer_list;
+    std::string stimer_list;
 
     void subscribeCallback(const std_msgs::String &result);
 

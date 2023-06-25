@@ -10,7 +10,6 @@
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
-using namespace std;
 
 class Notice {
 private:
@@ -23,8 +22,8 @@ private:
 public:
     Notice();
 
-    Notice(int noticeCode, long noticeTime, const string &noticeTitle, const string &noticeMessage,
-           const string &solution);
+    Notice(int noticeCode, long noticeTime, const std::string &noticeTitle, const std::string &noticeMessage,
+           const std::string &solution);
 
     int getNoticeCode() const;
 
@@ -34,19 +33,19 @@ public:
 
     void setNoticeTime(long noticeTime);
 
-    const string &getNoticeTitle() const;
+    const std::string &getNoticeTitle() const;
 
-    void setNoticeTitle(const string &noticeTitle);
+    void setNoticeTitle(const std::string &noticeTitle);
 
-    const string &getNoticeMessage() const;
+    const std::string &getNoticeMessage() const;
 
-    void setNoticeMessage(const string &noticeMessage);
+    void setNoticeMessage(const std::string &noticeMessage);
 
-    const string &getSolution() const;
+    const std::string &getSolution() const;
 
-    void setSolution(const string &solution);
+    void setSolution(const std::string &solution);
 
-    friend ostream &operator<<(ostream &os, const Notice &notice);
+    friend std::ostream &operator<<(std::ostream &os, const Notice &notice);
 
     friend void to_json(json &j, const Notice &b) {
         j = json{

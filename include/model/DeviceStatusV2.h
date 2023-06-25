@@ -28,26 +28,26 @@ private:
     std::string m_work_status_message;
     int m_work_status_code;
     int aromatherapy_status{-1};
-    string version;
+    std::string version;
     bool has_face_recognition;
     bool has_base_station;
     bool has_knob;
     bool has_voice;
-    string device_ros_version;
-    string ecu_soft_version;
-    string ecu_hard_version;
-    string pad_version;
+    std::string device_ros_version;
+    std::string ecu_soft_version;
+    std::string ecu_hard_version;
+    std::string pad_version;
 public:
     DeviceStatusV2();
 
     DeviceStatusV2(int mRsoc, long mCleanArea, long mCleanTime, const MapInfo &mCurrentMap,
                    bool mIsUrgencyStop, bool mLockStatus, bool mDustBoxStatus, bool mWaterBoxStatus,
                    const WorkStatusUpgrade &mWorkStatus,
-                   const string &mWorkStatusMessage, int mWorkStatusCode, const string &version,
+                   const std::string &mWorkStatusMessage, int mWorkStatusCode, const std::string &version,
                    bool has_facerecognition,
-                   bool has_basestation, bool hasknob, bool hasvoice, const string &device_ros_version,
-                   const string &ecu_softversion,
-                   const string &ecu_hardversion, const string &pad_version, int aromstatus);
+                   bool has_basestation, bool hasknob, bool hasvoice, const std::string &device_ros_version,
+                   const std::string &ecu_softversion,
+                   const std::string &ecu_hardversion, const std::string &pad_version, int aromstatus);
 
     int getMRsoc() const;
 
@@ -85,33 +85,33 @@ public:
 
     void setMWorkStatus(const WorkStatusUpgrade &mWorkStatus);
 
-    const string &getMWorkStatusMessage() const;
+    const std::string &getMWorkStatusMessage() const;
 
-    void setMWorkStatusMessage(const string &mWorkStatusMessage);
+    void setMWorkStatusMessage(const std::string &mWorkStatusMessage);
 
     int getMWorkStatusCode() const;
 
     void setMWorkStatusCode(int mWorkStatusCode);
 
-    const string &getVersion() const;
+    const std::string &getVersion() const;
 
-    void setVersion(const string &version);
+    void setVersion(const std::string &version);
 
-    const string &getdevice_ros_version() const;
+    const std::string &getdevice_ros_version() const;
 
-    void setdevice_ros_version(const string &version);
+    void setdevice_ros_version(const std::string &version);
 
-    const string &getecu_softversion() const;
+    const std::string &getecu_softversion() const;
 
-    void setecu_softversion(const string &version);
+    void setecu_softversion(const std::string &version);
 
-    const string &getecu_hardversion() const;
+    const std::string &getecu_hardversion() const;
 
-    void setecu_hardversion(const string &version);
+    void setecu_hardversion(const std::string &version);
 
-    const string &getpad_version() const;
+    const std::string &getpad_version() const;
 
-    void setpad_version(const string &version);
+    void setpad_version(const std::string &version);
 
 
     bool ishas_face_recognition() const;

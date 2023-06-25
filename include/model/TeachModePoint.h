@@ -15,7 +15,6 @@
 #include <iostream>
 
 using json = nlohmann::json;
-using namespace std;
 
 const int ON_SAVING = 1;
 const int START_SAVE = 0;
@@ -23,7 +22,7 @@ const int CANCLE_SAVE = -1;
 
 class WayPoint {//单个示教点
 private:
-    string point_name;
+    std::string point_name;
     float pos_x;
     float pos_y;
     float pos_z;
@@ -61,9 +60,9 @@ public:
 
     virtual ~WayPoint();
 
-    const string &getPointName() const;
+    const std::string &getPointName() const;
 
-    void setPointName(const string &pointName);
+    void setPointName(const std::string &pointName);
 
     float getPosX() const;
 
@@ -95,8 +94,8 @@ public:
 };
 
 class TeachPathInfo {//单个示教任务
-    string teach_path_id;
-    vector<Point> teach_point_list;
+    std::string teach_path_id;
+    std::vector<Point> teach_point_list;
 
 public:
     friend void to_json(json &j, const TeachPathInfo &b) {
@@ -112,22 +111,22 @@ public:
 
     TeachPathInfo();
 
-    TeachPathInfo(const string &teachPathId, const vector<Point> &teachPointList);
+    TeachPathInfo(const std::string &teachPathId, const std::vector<Point> &teachPointList);
 
     virtual ~TeachPathInfo();
 
-    const string &getTeachPathId() const;
+    const std::string &getTeachPathId() const;
 
-    void setTeachPathId(const string &teachPathId);
+    void setTeachPathId(const std::string &teachPathId);
 
-    const vector<Point> &getTeachPointList();
+    const std::vector<Point> &getTeachPointList();
 
-    void setTeachPointList(const vector<Point> &teachPointList);
+    void setTeachPointList(const std::vector<Point> &teachPointList);
 };
 
 class WayPointTask {//单个示教任务
-    string task_id;
-    string task_name;
+    std::string task_id;
+    std::string task_name;
     std::vector<WayPoint> wayPointTask;
 
 public:
@@ -148,23 +147,23 @@ public:
 
     virtual ~WayPointTask();
 
-    const string &getTaskId() const;
+    const std::string &getTaskId() const;
 
-    void setTaskId(const string &taskId);
+    void setTaskId(const std::string &taskId);
 
-    const vector<WayPoint> &getWayPointList() const;
+    const std::vector<WayPoint> &getWayPointList() const;
 
-    void setWayPointTask(const vector<WayPoint> &wayPointTask);
+    void setWayPointTask(const std::vector<WayPoint> &wayPointTask);
 
-    const string &getTaskName() const;
+    const std::string &getTaskName() const;
 
-    void setTaskName(const string &taskName);
+    void setTaskName(const std::string &taskName);
 };
 
 class ResponseGetTeachTask {
 private:
-    string teach_path_id;
-    string teach_path_name;
+    std::string teach_path_id;
+    std::string teach_path_name;
 
 public:
     friend void to_json(json &j, const ResponseGetTeachTask &b) {
@@ -182,19 +181,19 @@ public:
 
     virtual ~ResponseGetTeachTask();
 
-    const string &getTeachPathId() const;
+    const std::string &getTeachPathId() const;
 
-    void setTeachPathId(const string &teachPathId);
+    void setTeachPathId(const std::string &teachPathId);
 
-    const string &getTeachPathName() const;
+    const std::string &getTeachPathName() const;
 
-    void setTeachPathName(const string &teachPathName);
+    void setTeachPathName(const std::string &teachPathName);
 };
 
 class ClossTeachMode {//用于处理结束示教命令
     bool force_quit;
-    string teach_path_id;
-    string teach_path_name;
+    std::string teach_path_id;
+    std::string teach_path_name;
 
 public:
     friend void to_json(json &j, const ClossTeachMode &b) {
@@ -219,13 +218,13 @@ public:
 
     void setForceQuit(bool forceQuit);
 
-    const string &getTeachPathId() const;
+    const std::string &getTeachPathId() const;
 
-    void setTeachPathId(const string &teachPathId);
+    void setTeachPathId(const std::string &teachPathId);
 
-    const string &getTeachPathName() const;
+    const std::string &getTeachPathName() const;
 
-    void setTeachPathName(const string &teachPathName);
+    void setTeachPathName(const std::string &teachPathName);
 };
 
 class TeachModePoint {//示教执行
@@ -233,8 +232,8 @@ private:
     int excute_mode;
     bool isStarted;
     bool GetHeartBeat;
-    string teach_path_id;
-    string teach_path_name;
+    std::string teach_path_id;
+    std::string teach_path_name;
 
     std::vector<WayPoint> Waypoints;
 
@@ -253,13 +252,13 @@ public:
 
     static void open();
 
-    const string &getTeachPathId() const;
+    const std::string &getTeachPathId() const;
 
-    void setTeachPathId(const string &teachPathId);
+    void setTeachPathId(const std::string &teachPathId);
 
-    const string &getTeachPathName() const;
+    const std::string &getTeachPathName() const;
 
-    void setTeachPathName(const string &teachPathName);
+    void setTeachPathName(const std::string &teachPathName);
 
 
 private:
@@ -278,7 +277,7 @@ public:
 };
 
 
-string float2str(float x);
+std::string float2str(float x);
 
 
 #endif//APP_COMMUNICATION_TEACHMODEPOINT_H

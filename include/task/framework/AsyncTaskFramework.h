@@ -37,7 +37,7 @@ private:
     std::deque<RealTask> taskEpollDeque;
     std::deque<RealBlock> blockEpollDeque;
 
-    atomic<bool> sleepTimeout;
+    std::atomic<bool> sleepTimeout;
 
 public:
     AsyncTaskFramework();
@@ -115,11 +115,11 @@ protected:
 
     void callCancelBackStation();
 
-    void callSwitchWorkMode(function<void(bool work)> f);
+    void callSwitchWorkMode(std::function<void(bool work)> f);
 
-    virtual void callOpenMechanism(const WorkStatus &status, bool knife, function<void()> f) = 0;
+    virtual void callOpenMechanism(const WorkStatus &status, bool knife, std::function<void()> f) = 0;
 
-    virtual void callCloseMechanism(function<void()> f) = 0;
+    virtual void callCloseMechanism(std::function<void()> f) = 0;
 
     void callBackBasePoint();
 

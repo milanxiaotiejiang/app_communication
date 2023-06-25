@@ -15,12 +15,12 @@
 #include "db/SqliteDataBase.h"
 #include "tool/param_check.h"
 
-string ExecuteTaskStrategy::handler(Task task) {
+std::string ExecuteTaskStrategy::handler(Task task) {
     TaskCenter::instance().executeTask(task);
     return "";
 }
 
-string PerformTaskStrategy::handler(OnTask params) {
+std::string PerformTaskStrategy::handler(OnTask params) {
     LOG(ERROR) << params;
     checkRate(params.on_rate);
     return TaskCenter::instance().performTask(params.task_id,
@@ -29,7 +29,7 @@ string PerformTaskStrategy::handler(OnTask params) {
     );
 }
 
-vector<Task> GetTaskListStrategy::handler(string params) {
+std::vector<Task> GetTaskListStrategy::handler(std::string params) {
     std::vector<Task> task_list;
     for (const auto &item: ManualManager::instance().runTaskList()) {
         Task task(item.getId(), item.getMode(), item.getRate(), item.getWorkStatus(),
@@ -43,7 +43,7 @@ vector<Task> GetTaskListStrategy::handler(string params) {
     return task_list;
 }
 
-RunTask RunningTaskStrategy::handler(string params) {
+RunTask RunningTaskStrategy::handler(std::string params) {
     RunTask runTask("");
     const RealTask &runningTask = ManualManager::instance().runningTask();
     if (!runningTask.getId().empty()) {
@@ -62,7 +62,7 @@ RunTask RunningTaskStrategy::handler(string params) {
     return runTask;
 }
 
-vector<TaskUpgrade> GetTaskListStrategyV2::handler(string params) {
+std::vector<TaskUpgrade> GetTaskListStrategyV2::handler(std::string params) {
 //    //操作，获取当前任务状态
 //    std::vector<Task> clean_task_list;
 //    for (const auto &item: TaskManager::get_instance()->getTaskList()) {
@@ -90,11 +90,11 @@ vector<TaskUpgrade> GetTaskListStrategyV2::handler(string params) {
 //    return taskUpgradeList;
 }
 
-bool IsInBasementStrategy::handler(string params) {
+bool IsInBasementStrategy::handler(std::string params) {
     return true;
 }
 
-VersionInfo GetRosVersionStrategy::handler(string params) {
+VersionInfo GetRosVersionStrategy::handler(std::string params) {
     VersionManager::instance().getAirCodeVersion();
     VersionInfo into(
             VersionManager::instance().getAirCodeVersion(),
@@ -105,7 +105,7 @@ VersionInfo GetRosVersionStrategy::handler(string params) {
     return into;
 }
 
-std::vector<PointProgressVo> GetFinishedPointStrategy::handler(string params) {
+std::vector<PointProgressVo> GetFinishedPointStrategy::handler(std::string params) {
 //    //操作，获取当前任务状态
 //    deque<PointProgressVo> finished_point_list;
 //    for (const auto &block: ManualManager::instance().runTaskPointList()) {
@@ -146,7 +146,7 @@ std::vector<PointProgressVo> GetFinishedPointStrategy::handler(string params) {
     return ManualManager::instance().runTaskPointList();
 }
 
-Task GetFullPlanStrategy::handler(vector<int> params) {
+Task GetFullPlanStrategy::handler(std::vector<int> params) {
 
 //    std::vector<geometry_msgs::Pose2D> exploration_path;
 //    std::vector<cv::Point> point_path;

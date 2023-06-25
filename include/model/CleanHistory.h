@@ -6,8 +6,6 @@
 #include <vector>
 
 using json = nlohmann::json;
-using namespace std;
-
 
 class CleanHistory {//回复清洁历史
 private:
@@ -17,15 +15,15 @@ private:
     long m_execute_time;
     long m_end_time;
     int m_task_mode;
-    string m_task_id;
+    std::string m_task_id;
     WorkStatus m_work_status;
     int m_clean_area;
     int m_clean_time;
     int m_error_code;
-    string m_error_message;
+    std::string m_error_message;
     int m_task_type{1};//1:manual task 2:Timer task
     // Ewen change begin
-    vector<int> m_oper_event;
+    std::vector<int> m_oper_event;
     // Ewen change end
 
 
@@ -83,12 +81,12 @@ public:
                  long execute_time,
                  long m_end_time,
                  int m_task_mode,
-                 string m_task_id,
+                 std::string m_task_id,
                  WorkStatus m_work_status,
                  int m_clean_area,
                  int m_clean_time,
                  int m_error_code,
-                 string m_error_message,
+                 std::string m_error_message,
                  int tasktype);
 
     virtual ~CleanHistory();
@@ -113,9 +111,9 @@ public:
 
     void setTaskMode(const int &task_mode);
 
-    const string &getTaskID() const;
+    const std::string &getTaskID() const;
 
-    void setTaskID(const string &task_id);
+    void setTaskID(const std::string &task_id);
 
     const WorkStatus &getWorkStatus() const;
 
@@ -137,11 +135,11 @@ public:
         return m_error_code;
     }
 
-    const string &getErrorMessage() const {
+    const std::string &getErrorMessage() const {
         return m_error_message;
     }
 
-    void setErrorMessage(const string &error_message) {
+    void setErrorMessage(const std::string &error_message) {
         m_error_message = error_message;
     }
 
@@ -154,13 +152,13 @@ public:
     }
 
     // Ewen change begin
-    vector<int> getoper_event() const {
+    std::vector<int> getoper_event() const {
         // Ewen change end
         return m_oper_event;
     }
 
     // Ewen change begin
-    void setoper_event(vector<int> &oe) {
+    void setoper_event(std::vector<int> &oe) {
         // Ewen change end 
         m_oper_event = oe;
     }
@@ -176,7 +174,7 @@ public:
 
 class CleanHistoryList {//清洁历史列表，储存用
 private:
-    vector<CleanHistory> m_clean_history_list;
+    std::vector<CleanHistory> m_clean_history_list;
 
 public:
     friend void to_json(json &j, const CleanHistoryList &b) {
@@ -193,13 +191,13 @@ public:
 
     ~CleanHistoryList();
 
-    const vector<CleanHistory> &GetCleanHistoryList() const;
+    const std::vector<CleanHistory> &GetCleanHistoryList() const;
 
-    void SetCleanHistoryList(const vector<CleanHistory> &clean_history_list);
+    void SetCleanHistoryList(const std::vector<CleanHistory> &clean_history_list);
 
     bool AddCleanHistory(const CleanHistory &clean_history);
 
-    bool GetCleanHistory(CleanHistory &clean_history, const string &taskId);
+    bool GetCleanHistory(CleanHistory &clean_history, const std::string &taskId);
 
     bool GetLatestCleanHistory(CleanHistory &clean_history) {
         if (m_clean_history_list.size() > 0) {
@@ -210,7 +208,7 @@ public:
         }
     }
 
-    bool ResetCleanHistory(const CleanHistory &clean_history, const string &taskId);
+    bool ResetCleanHistory(const CleanHistory &clean_history, const std::string &taskId);
 
     void ShowAllCleanHistory();
 };

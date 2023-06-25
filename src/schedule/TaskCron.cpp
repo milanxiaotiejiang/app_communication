@@ -30,7 +30,7 @@ namespace croncpp {
         auto tnt = time_until_expiry(now).count();
 
         // std::cout <<"until_expiry is: "<< tnt << std::endl;
-        //LOG(INFO) << "until_expiry is: "<< tnt;
+        //LOG_IF(INFO, DEBUG_TIMER) << "until_expiry is: "<< tnt;
         return valid && now >= last_run && time_until_expiry(now) <= 5s;
     }
 

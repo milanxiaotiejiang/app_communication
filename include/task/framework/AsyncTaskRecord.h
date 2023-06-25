@@ -117,7 +117,7 @@ protected:
             case FLOW_IN_STATION:
                 return "进站节点";
             default:
-                return "流程点 " + to_string(id) + " ";
+                return "流程点 " + std::to_string(id) + " ";
         }
     }
 

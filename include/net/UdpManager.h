@@ -20,8 +20,6 @@ class UdpThread : public CThread {
 public:
     void *run() override {
 
-        LOG(INFO) << "UdpThread Start";
-
         int udpFd;
         int sendSize;
         int optval = 1;
@@ -46,11 +44,9 @@ public:
                 printf("sendto fail, errno=%d\n", errno);
                 return NULL;
             }
-            // LOG(INFO) << "UDP send size " << sendSize;
             sleep(5);
         }
 
-        LOG(INFO) << "UDP end .. ";
     }
 };
 

@@ -8,25 +8,23 @@
 #include "vector"
 #include "Point.h"
 
-using namespace std;
-
 class FullPath {
 private:
-    vector<Point> full_path;
+    std::vector<Point> full_path;
 public:
     FullPath() {}
 
-    FullPath(const vector<Point> &fullPath) : full_path(fullPath) {}
+    FullPath(const std::vector<Point> &fullPath) : full_path(fullPath) {}
 
     virtual ~FullPath() {
 
     }
 
-    const vector<Point> &getFullPath() const {
+    const std::vector<Point> &getFullPath() const {
         return full_path;
     }
 
-    void setFullPath(const vector<Point> &fullPath) {
+    void setFullPath(const std::vector<Point> &fullPath) {
         full_path = fullPath;
     }
 

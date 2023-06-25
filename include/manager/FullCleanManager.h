@@ -26,7 +26,7 @@ public:
     FullCleanManager() {
         m_filename.append(path::data_base_config_dir());
         m_filename.append("fullclean_list_primcipal_json_work.txt");
-        m_file_ptr = make_shared<sh::File>(m_filename);
+        m_file_ptr = std::make_shared<sh::File>(m_filename);
     }
 
     ~FullCleanManager();

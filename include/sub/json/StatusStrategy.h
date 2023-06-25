@@ -9,9 +9,7 @@
 #include "ros/ros.h"
 #include <nlohmann/json.hpp>
 
-
 using json = nlohmann::json;
-using namespace std;
 
 class StatusPauseStrategy : public MessageStringStrategy {
 public:

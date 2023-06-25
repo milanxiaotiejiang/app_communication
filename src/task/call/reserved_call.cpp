@@ -83,7 +83,7 @@ void ReservedCall::handleErrorOperation() {
             CleanHistoryCenter::instance().laserInterrupt();
             break;
         default:
-            LOG(INFO) << "AsyncTaskCall handleErrorOperation : " << epoll_error << " ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall handleErrorOperation : " << epoll_error << " ...";
             break;
     }
     AsyncTaskCall::handleErrorOperation();
@@ -259,7 +259,7 @@ std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint
             error_string = "未知错误";
             error_code = 3200 - errorId;
             std::string base_string = "CCR_";
-            std::string flow_string = to_string(200 - errorId);
+            std::string flow_string = std::to_string(200 - errorId);
             error_code2 = base_string + flow_string;
 
             break;

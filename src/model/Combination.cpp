@@ -55,11 +55,11 @@ void CombinationBrief::setRate(int rate) {
     m_rate = rate;
 }
 
-const std::vector<string> CombinationBrief::getPartIDList() const {
+const std::vector<std::string> CombinationBrief::getPartIDList() const {
     return m_part_id_list;
 }
 
-void CombinationBrief::setPartIDList(const std::vector<string> &part_id_list) {
+void CombinationBrief::setPartIDList(const std::vector<std::string> &part_id_list) {
     m_part_id_list = part_id_list;
 }
 
@@ -97,7 +97,7 @@ void CombinationBrief::setCombinationType(int type) {
 }
 
 bool CombinationBrief::delatePartID(const std::string &part_id) {
-    vector<string>::iterator iter;
+    std::vector<std::string>::iterator iter;
     bool mached = false;
     for (iter = m_part_id_list.begin(); iter != m_part_id_list.end();) {
         if (*iter == part_id) {
@@ -115,10 +115,10 @@ bool CombinationBrief::delatePartID(const std::string &part_id) {
     return mached;
 }
 
-vector<string> CombinationBrief::toDetail(CombinationDetail &combination_detail, ViewPartList &view_part_list) {
-    vector<string> part_not_mached;
+std::vector<std::string> CombinationBrief::toDetail(CombinationDetail &combination_detail, ViewPartList &view_part_list) {
+    std::vector<std::string> part_not_mached;
     CombinationDetail combination_detail_temp(*this);
-    vector<ViewPart> view_part_list_temp = view_part_list.GetViewPartList();
+    std::vector<ViewPart> view_part_list_temp = view_part_list.GetViewPartList();
     for (auto &combination_part_item: m_part_id_list) {
         bool mached = false;
         for (auto &view_part_item: view_part_list_temp) {
@@ -130,7 +130,7 @@ vector<string> CombinationBrief::toDetail(CombinationDetail &combination_detail,
         }
         if (!mached) {
             part_not_mached.push_back(combination_part_item);
-            cout << "can't mach part_id:" << combination_part_item << endl;
+            std::cout << "can't mach part_id:" << combination_part_item << std::endl;
         }
     }
     combination_detail = combination_detail_temp;
@@ -220,11 +220,11 @@ CombinationBriefList::CombinationBriefList() {}
 
 CombinationBriefList::~CombinationBriefList() {}
 
-const vector<CombinationBrief> &CombinationBriefList::getCombinationBriefList() const {
+const std::vector<CombinationBrief> &CombinationBriefList::getCombinationBriefList() const {
     return m_combination_brief_list;
 }
 
-void CombinationBriefList::setCombinationBriefList(const vector<CombinationBrief> &combination_brief_list) {
+void CombinationBriefList::setCombinationBriefList(const std::vector<CombinationBrief> &combination_brief_list) {
     m_combination_brief_list = combination_brief_list;
 }
 
@@ -233,8 +233,8 @@ bool CombinationBriefList::addCombination(const CombinationBrief &combination_br
     return true;
 }
 
-bool CombinationBriefList::delateCombination(const string &combination_id) {
-    vector<CombinationBrief>::iterator iter;
+bool CombinationBriefList::delateCombination(const std::string &combination_id) {
+    std::vector<CombinationBrief>::iterator iter;
     for (iter = m_combination_brief_list.begin(); iter != m_combination_brief_list.end(); iter++) {
 
         if (iter->getCombinationID() == combination_id) {
@@ -246,29 +246,29 @@ bool CombinationBriefList::delateCombination(const string &combination_id) {
             return true;
         }
     }
-    cout << "CombinationBriefList::delateCombination匹配失败" << endl;
+    std::cout << "CombinationBriefList::delateCombination匹配失败" << std::endl;
     return false;
 }
 
-bool CombinationBriefList::getCombination(CombinationBrief &combination_brief, const string &combination_id) {
+bool CombinationBriefList::getCombination(CombinationBrief &combination_brief, const std::string &combination_id) {
     for (auto &item: m_combination_brief_list) {
         if (item.getCombinationID() == combination_id) {
             combination_brief = item;
             return true;
         }
     }
-    cout << "CombinationBriefList::getCombination匹配失败" << endl;
+    std::cout << "CombinationBriefList::getCombination匹配失败" << std::endl;
     return false;
 }
 
-bool CombinationBriefList::resetCombination(const CombinationBrief &combination_brief, const string &combination_id) {
+bool CombinationBriefList::resetCombination(const CombinationBrief &combination_brief, const std::string &combination_id) {
     for (auto &item: m_combination_brief_list) {
         if (item.getCombinationID() == combination_id) {
             item = combination_brief;
             return true;
         }
     }
-    cout << "CombinationBriefList::resetCombination匹配失败" << endl;
+    std::cout << "CombinationBriefList::resetCombination匹配失败" << std::endl;
     return false;
 }
 
@@ -283,7 +283,7 @@ bool CombinationBriefList::serchPartID(const std::string &part_id) {
 
 bool CombinationBriefList::delatePartID(const std::string &part_id) {
     bool mached = false;
-    vector<CombinationBrief>::iterator iter;
+    std::vector<CombinationBrief>::iterator iter;
     for (iter = m_combination_brief_list.begin(); iter != m_combination_brief_list.end();) {
         if (iter->delatePartID(part_id)) {
             mached = true;
@@ -314,7 +314,7 @@ bool CombinationBriefList::searchPartName(const std::string &part_name) {
 
 void CombinationBriefList::ShowAllCombinationBrief() {}
 
-void CombinationBriefList::setMainCombination(const string &combination_id) {
+void CombinationBriefList::setMainCombination(const std::string &combination_id) {
     for (auto &item: m_combination_brief_list) {
         if (item.getCombinationID() == combination_id) {
             item.setPrincipal(true);
@@ -324,7 +324,7 @@ void CombinationBriefList::setMainCombination(const string &combination_id) {
     }
 }
 
-void CombinationBriefList::cancelMainCombination(const string &combination_id) {
+void CombinationBriefList::cancelMainCombination(const std::string &combination_id) {
     for (auto &item: m_combination_brief_list) {
         if (item.getCombinationID() == combination_id) {
             item.setPrincipal(false);
@@ -338,11 +338,11 @@ CombinationDetailList::CombinationDetailList() {}
 
 CombinationDetailList::~CombinationDetailList() {}
 
-const vector<CombinationDetail> &CombinationDetailList::getCombinationDetailList() const {
+const std::vector<CombinationDetail> &CombinationDetailList::getCombinationDetailList() const {
     return m_combination_detail_list;
 }
 
-void CombinationDetailList::setCombinationDetailList(const vector<CombinationDetail> &combination_detail_list) {
+void CombinationDetailList::setCombinationDetailList(const std::vector<CombinationDetail> &combination_detail_list) {
     m_combination_detail_list = combination_detail_list;
 }
 

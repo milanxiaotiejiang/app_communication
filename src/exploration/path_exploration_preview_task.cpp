@@ -71,7 +71,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
 
 
     if (mode == TaskMode::Zoned) {
-        vector<ZoneVo> zones = task.getZoned();
+        std::vector<ZoneVo> zones = task.getZoned();
         for (const auto &zone: zones) {
             std::vector<std::vector<cv::Point>> polygon_array;
 
@@ -209,7 +209,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
     }
 
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
-    string uuid_string = boost::uuids::to_string(uuid);
+    std::string uuid_string = boost::uuids::to_string(uuid);
     coverage.setCoverageId(uuid_string);
 
     if (preLoaded) {

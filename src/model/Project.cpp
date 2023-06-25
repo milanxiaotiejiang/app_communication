@@ -4,10 +4,10 @@
 
 #include "model/Project.h"
 
-const string &Project::getName() const {
+const std::string &Project::getName() const {
     return name;
 }
 
-void Project::setName(const string &name) {
+void Project::setName(const std::string &name) {
     Project::name = name;
 }

@@ -104,7 +104,7 @@ WorkMode NodeWorkModeManager::nowWorkMode() {
 }
 
 bool NodeWorkModeManager::asyncWorkMode(WorkMode mode) {
-    LOG(INFO) << "NodeWorkModeManager 切换为 mode = " << mode << " 的模式 ... ";
+    LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 切换为 mode = " << mode << " 的模式 ... ";
     if (mode == WorkMode::UNKNOWN) {
         LOG(ERROR) << "NodeWorkModeManager asyncWorkMode unknown " << mode;
     } else {
@@ -118,7 +118,7 @@ bool NodeWorkModeManager::tryToWork() {
     std::unique_lock<std::mutex> lock(cv_mut);
 
     if (nowWorkMode() == WorkMode::WORKING) {
-        LOG(INFO) << "NodeWorkModeManager 已经为工作模式，无需再次进入 ... ";
+        LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 已经为工作模式，无需再次进入 ... ";
         return true;
     }
     if (nowWorkMode() == WorkMode::SLEEPING || nowWorkMode() == WorkMode::MAPPING) {
@@ -134,7 +134,7 @@ bool NodeWorkModeManager::tryToWork() {
                 sleep(1);
                 counter++;
                 if (nowWorkMode() == WorkMode::WORKING) {
-                    LOG(INFO) << "NodeWorkModeManager 检测到已经切换为工作模式了 ... ";
+                    LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 检测到已经切换为工作模式了 ... ";
                     counter = MAXIMUM_TIME_LIMIT_FOR_QUICK_EXIT;
                     wait_cv.notify_one();
                 }
@@ -145,7 +145,7 @@ bool NodeWorkModeManager::tryToWork() {
         if (wait_cv.wait_for(lck,
                              std::chrono::seconds(MAXIMUM_LIMIT_TIME_OF_TIMEOUT)
         ) == std::cv_status::timeout) {
-            LOG(INFO) << "NodeWorkModeManager 切换工作模式超时，进入再次确认 ... ";
+            LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 切换工作模式超时，进入再次确认 ... ";
             return nowWorkMode() == WorkMode::WORKING;
         }
         return true;
@@ -157,7 +157,7 @@ bool NodeWorkModeManager::tryToMap() {
     std::unique_lock<std::mutex> lock(cv_mut);
 
     if (nowWorkMode() == WorkMode::MAPPING) {
-        LOG(INFO) << "NodeWorkModeManager 已经为建图模式，无需再次进入 ... ";
+        LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 已经为建图模式，无需再次进入 ... ";
         return true;
     }
     if (nowWorkMode() == WorkMode::SLEEPING || nowWorkMode() == WorkMode::WORKING) {
@@ -172,7 +172,7 @@ bool NodeWorkModeManager::tryToMap() {
                 sleep(1);
                 counter++;
                 if (nowWorkMode() == WorkMode::MAPPING) {
-                    LOG(INFO) << "NodeWorkModeManager 检测到已经切换为建图模式了 ... ";
+                    LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 检测到已经切换为建图模式了 ... ";
                     counter = MAXIMUM_TIME_LIMIT_FOR_QUICK_EXIT;
                     wait_cv.notify_one();
                 }
@@ -183,7 +183,7 @@ bool NodeWorkModeManager::tryToMap() {
         if (wait_cv.wait_for(lck,
                              std::chrono::seconds(MAXIMUM_LIMIT_TIME_OF_TIMEOUT)
         ) == std::cv_status::timeout) {
-            LOG(INFO) << "NodeWorkModeManager 切换建图模式超时，进入再次确认 ... ";
+            LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 切换建图模式超时，进入再次确认 ... ";
             return nowWorkMode() == WorkMode::MAPPING;
         }
         return true;
@@ -193,15 +193,15 @@ bool NodeWorkModeManager::tryToMap() {
 
 void NodeWorkModeManager::forceToWork() {
     if (!tryToWork()) {
-        LOG(INFO) << "NodeWorkModeManager 尝试进入工作模式失败，开启强制进入 ... ";
+        LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 尝试进入工作模式失败，开启强制进入 ... ";
         NodeControl::instance().asyncOn([this]() {
             int counter = 0;
             while (counter < MAXIMUM_NUMBER_OF_FORCED_ENTRY) {
                 sleep(1);
                 counter++;
-                LOG(INFO) << "NodeWorkModeManager 强制进入工作模式下第 " << counter << " 次尝试 ... ";
+                LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 强制进入工作模式下第 " << counter << " 次尝试 ... ";
                 if (tryToWork()) {
-                    LOG(INFO) << "NodeWorkModeManager 强制进入工作模式成功 ... ";
+                    LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 强制进入工作模式成功 ... ";
                     counter = MAXIMUM_NUMBER_OF_FORCED_ENTRY;
                 }
             }
@@ -211,15 +211,15 @@ void NodeWorkModeManager::forceToWork() {
 
 void NodeWorkModeManager::forceToMap() {
     if (!tryToMap()) {
-        LOG(INFO) << "NodeWorkModeManager 尝试进入建图模式失败，开启强制进入 ... ";
+        LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 尝试进入建图模式失败，开启强制进入 ... ";
         NodeControl::instance().asyncOn([this]() {
             int counter = 0;
             while (counter < MAXIMUM_NUMBER_OF_FORCED_ENTRY) {
                 sleep(1);
                 counter++;
-                LOG(INFO) << "NodeWorkModeManager 强制进入建图模式下第 " << counter << " 次尝试 ... ";
+                LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 强制进入建图模式下第 " << counter << " 次尝试 ... ";
                 if (tryToMap()) {
-                    LOG(INFO) << "NodeWorkModeManager 强制进入建图模式成功 ... ";
+                    LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 强制进入建图模式成功 ... ";
                     counter = MAXIMUM_NUMBER_OF_FORCED_ENTRY;
                 }
             }
@@ -231,7 +231,7 @@ bool NodeWorkModeManager::tryToSleep() {
     std::unique_lock<std::mutex> lock(cv_mut);
 
     if (nowWorkMode() == WorkMode::SLEEPING) {
-        LOG(INFO) << "NodeWorkModeManager 已经为 sleep 模式，无需再次进入 ... ";
+        LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 已经为 sleep 模式，无需再次进入 ... ";
         return true;
     }
     if (nowWorkMode() == WorkMode::MAPPING || nowWorkMode() == WorkMode::WORKING) {
@@ -253,7 +253,7 @@ bool NodeWorkModeManager::tryToSleep() {
                 }
                 ros::param::get("/node_controller/work_mode", work_mode);
                 if (work_mode == 1) {
-                    LOG(INFO) << "NodeWorkModeManager 检测到已经切换为 sleep 模式了 ... ";
+                    LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 检测到已经切换为 sleep 模式了 ... ";
                     counter = MAXIMUM_TIME_LIMIT_FOR_QUICK_EXIT;
                     wait_cv.notify_one();
                 }
@@ -264,7 +264,7 @@ bool NodeWorkModeManager::tryToSleep() {
         if (wait_cv.wait_for(lck,
                              std::chrono::seconds(MAXIMUM_LIMIT_TIME_OF_TIMEOUT)
         ) == std::cv_status::timeout) {
-            LOG(INFO) << "NodeWorkModeManager 切换 sleep 模式超时，进入再次确认 ... ";
+            LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 切换 sleep 模式超时，进入再次确认 ... ";
             int work_mode = -1;
             if (nowWorkMode() == WorkMode::MAPPING) {
                 work_mode = 0;
@@ -301,7 +301,7 @@ bool NodeWorkModeManager::enterWorkMode(int enter) {
     } else if (enter == 2) {//工作
         return NodeWorkModeManager::instance().tryToWork();
     } else {
-        LOG(INFO) << "NodeWorkModeManager enterWorkMode unknown " << enter;
+        LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager enterWorkMode unknown " << enter;
         return true;
     }
 }
@@ -312,6 +312,6 @@ bool NodeWorkModeManager::forceEnterWorkMode(int enter) {
     } else if (enter == 2) {//工作
         NodeWorkModeManager::instance().forceToWork();
     } else {
-        LOG(INFO) << "NodeWorkModeManager forceEnterWorkMode unknown " << enter;
+        LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager forceEnterWorkMode unknown " << enter;
     }
 }

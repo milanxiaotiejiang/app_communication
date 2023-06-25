@@ -225,7 +225,7 @@ void SegmentationDataBase::setPlanParam(const std::string &mapId, double robotRa
     segmentationStorage.replace(planPo);
 }
 
-void SegmentationDataBase::removePlanParam(const string &mapId) {
+void SegmentationDataBase::removePlanParam(const std::string &mapId) {
     segmentationStorage.remove_all<PlanPo>(
             where(c(&PlanPo::map_id) == std::move(mapId))
     );

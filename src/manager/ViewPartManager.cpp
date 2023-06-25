@@ -13,9 +13,9 @@
 
 bool ViewPartManager::FileOpenRead() {
     if (!sh::File::exists(m_filename)) {
-        unique_ptr<sh::File> uFilePtr(new sh::File(m_filename));
+        std::unique_ptr<sh::File> uFilePtr(new sh::File(m_filename));
         if (!uFilePtr->create(m_filename)) {
-            cout << "create file " << m_filename << " fail !!!";
+            std::cout << "create file " << m_filename << " fail !!!";
             return false;
         }
     }
@@ -32,7 +32,7 @@ bool ViewPartManager::FileOpenRead() {
         }
         return true;
     } else {
-        cout << "ViewPartManager fail to open file" << endl;
+        std::cout << "ViewPartManager fail to open file" << std::endl;
         return false;
     }
 }

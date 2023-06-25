@@ -27,7 +27,7 @@ void HotWindNote::hot_wind_handle_thread_func() {
             close_node = false;
             if (!open_node) {
                 open_node = true;
-                LOG(INFO) << "开启热风烘干 ... ";
+                LOG_IF(INFO, DEBUG_MAINTENANCE) << "开启热风烘干 ... ";
                 std_msgs::Int32 msg;
                 msg.data = 1;
                 PublishInnerManager::instance().publishSelfClean(msg);
@@ -38,7 +38,7 @@ void HotWindNote::hot_wind_handle_thread_func() {
             open_node = false;
             if (!close_node) {
                 close_node = true;
-                LOG(INFO) << "关闭热风烘干 ... ";
+                LOG_IF(INFO, DEBUG_MAINTENANCE) << "关闭热风烘干 ... ";
                 std_msgs::Int32 msg;
                 msg.data = 0;
                 PublishInnerManager::instance().publishSelfClean(msg);

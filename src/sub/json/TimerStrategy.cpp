@@ -9,21 +9,20 @@
 #include "net/base/Entrance.h"
 
 
-string SetTimerStrategy::handler(TimerInfo params) {
+std::string SetTimerStrategy::handler(TimerInfo params) {
 
-    string fileName;
-    string sss;
+    std::string fileName;
+    std::string sss;
     fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
     //设置清扫计时器
     //sh::File *fff = new sh::File(fileName);
-    std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
+    std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
     if (!fff->open(std::ios::in)) {
         if (!fff->create(fileName)) {
             throw app::exception(make_error_code(error::create_file_timer_fail));
         }
     }
-    cout << "begin add timeinfo file" << endl;
     if (fff->open(std::ios::in)) {//打开成功
         sss = fff->readAll();
         std::vector<TimerInfo> timerInfoTask;//最终存储文件
@@ -33,8 +32,6 @@ string SetTimerStrategy::handler(TimerInfo params) {
             std::vector<TimerInfo> param = jdecode_l.get<std::vector<TimerInfo>>();//数据内容，结构体格式
             for (int i = 0; i < param.size(); i++) timerInfoTask.push_back(param[i]);
         }
-        cout << " add timeinfo file  36 " << endl;
-        cout << params.getTimerRule() << endl;
         /*  TimerInfo tinf(params.getTimerId(),
                          params.getTimerRule(),
                          //params.getTaskName(),
@@ -66,7 +63,7 @@ string SetTimerStrategy::handler(TimerInfo params) {
 
 
         json params_l = timerInfoTask;
-        string base64;
+        std::string base64;
         base64.append(params_l.dump());//json转base64 string
         if (!sh::File::saveTextTo(fileName, base64)) {
             throw app::exception(make_error_code(error::save_file_timer_failed));
@@ -92,15 +89,15 @@ string SetTimerStrategy::handler(TimerInfo params) {
 
 }
 
-string UpdateTimerStrategy::handler(TimerInfo params) {
-    string fileName;
-    string sss;
+std::string UpdateTimerStrategy::handler(TimerInfo params) {
+    std::string fileName;
+    std::string sss;
     fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
 
     // *fff = new sh::File(fileName);
-    std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
-    string base64;
+    std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
+    std::string base64;
     if (fff->open(std::ios::in)) {
         sss = fff->readAll();
     } else {
@@ -136,7 +133,7 @@ string UpdateTimerStrategy::handler(TimerInfo params) {
         fff->close();
 
         json params_l = timer_infos;
-        string base64;
+        std::string base64;
         base64.append(params_l.dump());//json转base64 string
 
         if (!sh::File::saveTextTo(fileName, base64)) {
@@ -164,15 +161,15 @@ string UpdateTimerStrategy::handler(TimerInfo params) {
     return jj.dump();
 }
 
-vector<TimerInfo> GetTimerListStrategy::handler(string params) {
-    string fileName;
-    string sss;
+std::vector<TimerInfo> GetTimerListStrategy::handler(std::string params) {
+    std::string fileName;
+    std::string sss;
     fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
 
     //sh::File *fff = new sh::File(fileName);
-    std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
-    string base64;
+    std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
+    std::string base64;
     if (fff->open(std::ios::in)) {
         sss = fff->readAll();
     } else {
@@ -190,20 +187,18 @@ vector<TimerInfo> GetTimerListStrategy::handler(string params) {
     return timer_info;
 }
 
-string DelTimerStrategy::handler(string params) {
+std::string DelTimerStrategy::handler(std::string params) {
     //    使能/失能清扫计时器
-    string fileName;
-    string path;
+    std::string fileName;
+    std::string path;
     fileName.append(path::data_base_config_dir());
     fileName.append("timer_info_json.txt");
-    cout << "timer_infos 214 " << endl;
     //sh::File *fff = new sh::File(fileName);
-    std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
-    string base64;
+    std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
+    std::string base64;
     if (fff->open(std::ios::in)) {
         path = fff->readAll();
     } else {
-        cout << "fail to open timeinfo file" << endl;
         throw app::exception(make_error_code(error::open_file_fail));
     }
     std_msgs::String result;
@@ -212,7 +207,7 @@ string DelTimerStrategy::handler(string params) {
         std::vector<TimerInfo> timer_infos = jdecode_l.get<std::vector<TimerInfo>>();//数据内容，结构体格式
 
         int i = 0;
-        for (vector<TimerInfo>::iterator iter = timer_infos.begin(); iter != timer_infos.end();) {
+        for (std::vector<TimerInfo>::iterator iter = timer_infos.begin(); iter != timer_infos.end();) {
 
             if (timer_infos[i].getTimerId() == params) {
                 iter = timer_infos.erase(iter);//erase函数的返回指向当前被删除元素的下一个元素的迭代器
@@ -223,9 +218,8 @@ string DelTimerStrategy::handler(string params) {
             }
         }
         fff->close();
-        cout << "timer_infos  " << timer_infos.size() << endl;
         json params_l = timer_infos;
-        string base64;
+        std::string base64;
         base64.append(params_l.dump());//json转base64 string
 
         if (!sh::File::saveTextTo(fileName, base64)) {
@@ -238,7 +232,6 @@ string DelTimerStrategy::handler(string params) {
         json js;
         js["method"] = "del";
         js["timerid"] = params;
-        cout << "280  " << js["timerid"] << endl;
         ret.data.append(js.dump());
 
         PublishInnerManager::instance().publishAppSchedule(ret);

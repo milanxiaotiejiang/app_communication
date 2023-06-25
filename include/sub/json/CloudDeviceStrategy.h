@@ -7,9 +7,9 @@
 
 #include "MessageStrategy.h"
 
-class GetDeviceSecretStrategy : public MessageStrategy<string, string> {
+class GetDeviceSecretStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string method) override;
+    std::string handler(std::string method) override;
 };
 
 

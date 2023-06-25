@@ -150,7 +150,7 @@ bool CartographerServiceClient::callSensorStatus() {
         bool imuStatus = srv.response.imu_status;//imu
         bool laserStatus = srv.response.laser_status;//激光雷达
         bool localizationStatus = srv.response.localization_status;//定位
-        LOG(INFO) << "callSensorStatus  hlsStatus : " << hlsStatus
+        LOG_IF(INFO, DEBUG_NODE) << "callSensorStatus  hlsStatus : " << hlsStatus
                   << " , imuStatus : " << imuStatus
                   << " , laserStatus : " << laserStatus
                   << " , localizationStatus : " << localizationStatus;
@@ -171,7 +171,7 @@ bool CartographerServiceClient::callReadyCheck() {
         bool imuStatus = srv.response.imu_status;//imu
         bool laserStatus = srv.response.laser_status;//激光雷达
         bool bumpTriggeredStatus = srv.response.bump_triggered;//后碰撞
-        LOG(INFO) << "callReadyCheck  hlsStatus : " << hlsStatus
+        LOG_IF(INFO, DEBUG_NODE) << "callReadyCheck  hlsStatus : " << hlsStatus
                   << " , imuStatus : " << imuStatus
                   << " , laserStatus : " << laserStatus
                   << " , bumpTriggeredStatus : " << bumpTriggeredStatus;
@@ -190,7 +190,7 @@ bool CartographerServiceClient::callStartLocalization() {
     bool result = start_localization.call(srv);
     if (result) {
         bool tfValid = srv.response.tf_valid;
-        LOG(INFO) << "callStartLocalization  tfValid : " << tfValid;
+        LOG_IF(INFO, DEBUG_NODE) << "callStartLocalization  tfValid : " << tfValid;
         return tfValid;
     } else {
         LOG(ERROR) << "Failed to call service start_localization ...";
@@ -206,7 +206,7 @@ bool CartographerServiceClient::callStopLocalization() {
     bool result = stop_localization.call(srv);
     if (result) {
         bool tfValid = srv.response.tf_valid;
-        LOG(INFO) << "callStopLocalization  tfValid : " << tfValid;
+        LOG_IF(INFO, DEBUG_NODE) << "callStopLocalization  tfValid : " << tfValid;
         return !tfValid;
     } else {
         LOG(ERROR) << "Failed to call service stop_localization ...";

@@ -15,8 +15,6 @@
 #include "model/ViewPart.h"
 #include <nlohmann/json.hpp>
 
-using namespace std;
-
 using json = nlohmann::json;
 
 class CombinationBrief;
@@ -28,7 +26,7 @@ private:
     std::string m_combination_id;
     std::string m_name;
     int m_rate;
-    std::vector<string> m_part_id_list;
+    std::vector<std::string> m_part_id_list;
     bool principal{false};
     WorkStatus work_status;
     int combination_type; //0--combination;1--full clean
@@ -55,9 +53,9 @@ public:
 
     void setRate(int rate);
 
-    const std::vector<string> getPartIDList() const;
+    const std::vector<std::string> getPartIDList() const;
 
-    void setPartIDList(const std::vector<string> &part_id_list);
+    void setPartIDList(const std::vector<std::string> &part_id_list);
 
     bool isPrincipal() const;
 
@@ -75,7 +73,7 @@ public:
 
     bool delatePartID(const std::string &part_id);
 
-    vector<string> toDetail(CombinationDetail &combination_detail, ViewPartList &view_part_list);
+    std::vector<std::string> toDetail(CombinationDetail &combination_detail, ViewPartList &view_part_list);
 
     friend void to_json(json &j, const CombinationBrief &b) {
         j = json{
@@ -193,17 +191,17 @@ public:
 
     ~CombinationBriefList();
 
-    const vector<CombinationBrief> &getCombinationBriefList() const;
+    const std::vector<CombinationBrief> &getCombinationBriefList() const;
 
-    void setCombinationBriefList(const vector<CombinationBrief> &combination_brief_list);
+    void setCombinationBriefList(const std::vector<CombinationBrief> &combination_brief_list);
 
     bool addCombination(const CombinationBrief &combination_brief);
 
-    bool delateCombination(const string &combination_id);
+    bool delateCombination(const std::string &combination_id);
 
-    bool getCombination(CombinationBrief &combination_brief, const string &combination_id);
+    bool getCombination(CombinationBrief &combination_brief, const std::string &combination_id);
 
-    bool resetCombination(const CombinationBrief &combination_brief, const string &combination_id);
+    bool resetCombination(const CombinationBrief &combination_brief, const std::string &combination_id);
 
     bool serchPartID(const std::string &part_id);
 
@@ -213,9 +211,9 @@ public:
 
     void ShowAllCombinationBrief();
 
-    void setMainCombination(const string &combination_id);
+    void setMainCombination(const std::string &combination_id);
 
-    void cancelMainCombination(const string &combination_id);
+    void cancelMainCombination(const std::string &combination_id);
 };
 
 class CombinationDetailList {//简化路径组合列表
@@ -237,9 +235,9 @@ public:
 
     ~CombinationDetailList();
 
-    const vector<CombinationDetail> &getCombinationDetailList() const;
+    const std::vector<CombinationDetail> &getCombinationDetailList() const;
 
-    void setCombinationDetailList(const vector<CombinationDetail> &combination_detail_list);
+    void setCombinationDetailList(const std::vector<CombinationDetail> &combination_detail_list);
 
     void ShowAllCombinationDetail();
 };

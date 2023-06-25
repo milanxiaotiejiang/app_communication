@@ -38,49 +38,49 @@
 #include "task/model/PointProgressVo.h"
 #include "model/task.h"
 
-class ExecuteTaskStrategy : public MessageStrategy<Task, string> {
+class ExecuteTaskStrategy : public MessageStrategy<Task, std::string> {
 public:
-    string handler(Task params) override;
+    std::string handler(Task params) override;
 };
 
-class PerformTaskStrategy : public MessageStrategy<OnTask, string> {
+class PerformTaskStrategy : public MessageStrategy<OnTask, std::string> {
 public:
-    string handler(OnTask params) override;
+    std::string handler(OnTask params) override;
 };
 
-class GetTaskListStrategy : public MessageStrategy<string, std::vector<Task>> {
+class GetTaskListStrategy : public MessageStrategy<std::string, std::vector<Task>> {
 public:
-    vector<Task> handler(string params) override;
+    std::vector<Task> handler(std::string params) override;
 };
 
-class RunningTaskStrategy : public MessageStrategy<string, RunTask> {
+class RunningTaskStrategy : public MessageStrategy<std::string, RunTask> {
 public:
-    RunTask handler(string params) override;
+    RunTask handler(std::string params) override;
 };
 
-class GetTaskListStrategyV2 : public MessageStrategy<string, std::vector<TaskUpgrade>> {
+class GetTaskListStrategyV2 : public MessageStrategy<std::string, std::vector<TaskUpgrade>> {
 public:
-    vector<TaskUpgrade> handler(string params) override;
+    std::vector<TaskUpgrade> handler(std::string params) override;
 };
 
-class IsInBasementStrategy : public MessageStrategy<string, bool> {
+class IsInBasementStrategy : public MessageStrategy<std::string, bool> {
 public:
-    bool handler(string params) override;
+    bool handler(std::string params) override;
 };
 
-class GetRosVersionStrategy : public MessageStrategy<string, VersionInfo> {
+class GetRosVersionStrategy : public MessageStrategy<std::string, VersionInfo> {
 public:
-    VersionInfo handler(string params) override;
+    VersionInfo handler(std::string params) override;
 };
 
-class GetFinishedPointStrategy : public MessageStrategy<string, std::vector<PointProgressVo>> {
+class GetFinishedPointStrategy : public MessageStrategy<std::string, std::vector<PointProgressVo>> {
 public:
-    std::vector<PointProgressVo> handler(string params) override;
+    std::vector<PointProgressVo> handler(std::string params) override;
 };
 
-class GetFullPlanStrategy : public MessageStrategy<vector<int>, Task> {
+class GetFullPlanStrategy : public MessageStrategy<std::vector<int>, Task> {
 public:
-    Task handler(vector<int> params) override;
+    Task handler(std::vector<int> params) override;
 };
 
 #endif// APP_COMMUNICATION_TASKSTRATEGY_H

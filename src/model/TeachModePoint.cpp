@@ -59,9 +59,9 @@ void TeachModeProcess() {
                 abs(pose_now.position.y - pose_last.position.y) > 0.05) {
                 if (point_count > 1) {
                     if (is_in_line(pose_now, pose_last, pose_last_last)) {
-                        cout << "point1 " << pose_last_last.position.x << " , " << pose_last_last.position.y << " and "
+                        std::cout << "point1 " << pose_last_last.position.x << " , " << pose_last_last.position.y << " and "
                              << "point2 " << pose_last.position.x << " , " << pose_last.position.y << " and "
-                             << "point3 " << pose_now.position.x << " , " << pose_now.position.y << "共线" << endl;
+                             << "point3 " << pose_now.position.x << " , " << pose_now.position.y << "共线" << std::endl;
                         Points.pop_back();
                     }
                 }
@@ -97,16 +97,14 @@ void TeachModeProcess() {
                 std::vector<WayPointTask> wayPoints_before;
                 //save改
                 //读文件
-                string fileName;
-                string sss;
+                std::string fileName;
+                std::string sss;
                 fileName.append(path::data_base_config_dir());
                 fileName.append("teach_point_json.txt");
-                std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
+                std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
                 if (fff->open(std::ios::in)) {
                     sss = fff->readAll();
                 } else {
-                    cout << "fail to open file" << endl;
-
                     return;
                 }
 
@@ -124,7 +122,7 @@ void TeachModeProcess() {
                 WayPoint temp_point;                    //单个路径点
 
                 for (int i = 0; i < Points.size(); i++) {
-                    temp_point.setPointName("point_" + to_string((i + 1)));
+                    temp_point.setPointName("point_" + std::to_string((i + 1)));
                     temp_point.setPosX(Points[i].position.x);
                     temp_point.setPosY(Points[i].position.y);
                     temp_point.setPosZ(Points[i].position.z);
@@ -143,7 +141,7 @@ void TeachModeProcess() {
                 wayPointsTask.push_back(wayPoints_now);
 
                 json params = wayPointsTask;
-                string base64;
+                std::string base64;
                 base64.append(params.dump());//json转base64 string
 
                 if (!sh::File::saveTextTo(fileName, base64)) {
@@ -154,7 +152,7 @@ void TeachModeProcess() {
                     view_part_temp.setName(wayPoints_now.getTaskName());
                     view_part_temp.setPartID(wayPoints_now.getTaskId());
                     view_part_temp.setPathID(wayPoints_now.getTaskId());
-                    vector<Point> teach_point_list_temp;
+                    std::vector<Point> teach_point_list_temp;
                     Point point_temp;
                     for (auto &item: wayPointsNow) {
                         point_temp.setXandY(item.getPosX(), item.getPosY());
@@ -201,10 +199,10 @@ void TeachModeProcess() {
 }
 
 
-string float2str(float inVal) {
-    ostringstream stringStream;
+std::string float2str(float inVal) {
+    std::ostringstream stringStream;
     stringStream << inVal;
-    string resStr = stringStream.str();
+    std::string resStr = stringStream.str();
     return resStr;
 }
 
@@ -222,19 +220,19 @@ void TeachModePoint::setGetHeartBeat(bool getHeartBeat) {
     GetHeartBeat = getHeartBeat;
 }
 
-const string &TeachModePoint::getTeachPathId() const {
+const std::string &TeachModePoint::getTeachPathId() const {
     return teach_path_id;
 }
 
-void TeachModePoint::setTeachPathId(const string &teachPathId) {
+void TeachModePoint::setTeachPathId(const std::string &teachPathId) {
     teach_path_id = teachPathId;
 }
 
-const string &TeachModePoint::getTeachPathName() const {
+const std::string &TeachModePoint::getTeachPathName() const {
     return teach_path_name;
 }
 
-void TeachModePoint::setTeachPathName(const string &teachPathName) {
+void TeachModePoint::setTeachPathName(const std::string &teachPathName) {
     teach_path_name = teachPathName;
 }
 
@@ -279,11 +277,11 @@ WayPoint::WayPoint() {}
 WayPoint::~WayPoint() {
 }
 
-const string &WayPoint::getPointName() const {
+const std::string &WayPoint::getPointName() const {
     return point_name;
 }
 
-void WayPoint::setPointName(const string &pointName) {
+void WayPoint::setPointName(const std::string &pointName) {
     point_name = pointName;
 }
 
@@ -348,27 +346,27 @@ WayPointTask::WayPointTask() {}
 WayPointTask::~WayPointTask() {
 }
 
-const string &WayPointTask::getTaskId() const {
+const std::string &WayPointTask::getTaskId() const {
     return task_id;
 }
 
-void WayPointTask::setTaskId(const string &taskId) {
+void WayPointTask::setTaskId(const std::string &taskId) {
     task_id = taskId;
 }
 
-const vector<WayPoint> &WayPointTask::getWayPointList() const {
+const std::vector<WayPoint> &WayPointTask::getWayPointList() const {
     return wayPointTask;
 }
 
-void WayPointTask::setWayPointTask(const vector<WayPoint> &wayPointTask) {
+void WayPointTask::setWayPointTask(const std::vector<WayPoint> &wayPointTask) {
     WayPointTask::wayPointTask = wayPointTask;
 }
 
-const string &WayPointTask::getTaskName() const {
+const std::string &WayPointTask::getTaskName() const {
     return task_name;
 }
 
-void WayPointTask::setTaskName(const string &taskName) {
+void WayPointTask::setTaskName(const std::string &taskName) {
     task_name = taskName;
 }
 
@@ -385,19 +383,19 @@ void ClossTeachMode::setForceQuit(bool forceQuit) {
     force_quit = forceQuit;
 }
 
-const string &ClossTeachMode::getTeachPathId() const {
+const std::string &ClossTeachMode::getTeachPathId() const {
     return teach_path_id;
 }
 
-void ClossTeachMode::setTeachPathId(const string &teachPathId) {
+void ClossTeachMode::setTeachPathId(const std::string &teachPathId) {
     teach_path_id = teachPathId;
 }
 
-const string &ClossTeachMode::getTeachPathName() const {
+const std::string &ClossTeachMode::getTeachPathName() const {
     return teach_path_name;
 }
 
-void ClossTeachMode::setTeachPathName(const string &teachPathName) {
+void ClossTeachMode::setTeachPathName(const std::string &teachPathName) {
     teach_path_name = teachPathName;
 }
 
@@ -406,25 +404,25 @@ ResponseGetTeachTask::ResponseGetTeachTask() {}
 ResponseGetTeachTask::~ResponseGetTeachTask() {
 }
 
-const string &ResponseGetTeachTask::getTeachPathId() const {
+const std::string &ResponseGetTeachTask::getTeachPathId() const {
     return teach_path_id;
 }
 
-void ResponseGetTeachTask::setTeachPathId(const string &teachPathId) {
+void ResponseGetTeachTask::setTeachPathId(const std::string &teachPathId) {
     teach_path_id = teachPathId;
 }
 
-const string &ResponseGetTeachTask::getTeachPathName() const {
+const std::string &ResponseGetTeachTask::getTeachPathName() const {
     return teach_path_name;
 }
 
-void ResponseGetTeachTask::setTeachPathName(const string &teachPathName) {
+void ResponseGetTeachTask::setTeachPathName(const std::string &teachPathName) {
     teach_path_name = teachPathName;
 }
 
 TeachPathInfo::TeachPathInfo() {}
 
-TeachPathInfo::TeachPathInfo(const string &teachPathId, const vector<Point> &teachPointList) : teach_path_id(
+TeachPathInfo::TeachPathInfo(const std::string &teachPathId, const std::vector<Point> &teachPointList) : teach_path_id(
         teachPathId),
                                                                                                teach_point_list(
                                                                                                        teachPointList) {}
@@ -432,18 +430,18 @@ TeachPathInfo::TeachPathInfo(const string &teachPathId, const vector<Point> &tea
 TeachPathInfo::~TeachPathInfo() {
 }
 
-const string &TeachPathInfo::getTeachPathId() const {
+const std::string &TeachPathInfo::getTeachPathId() const {
     return teach_path_id;
 }
 
-void TeachPathInfo::setTeachPathId(const string &teachPathId) {
+void TeachPathInfo::setTeachPathId(const std::string &teachPathId) {
     teach_path_id = teachPathId;
 }
 
-const vector<Point> &TeachPathInfo::getTeachPointList() {
+const std::vector<Point> &TeachPathInfo::getTeachPointList() {
     return teach_point_list;
 }
 
-void TeachPathInfo::setTeachPointList(const vector<Point> &teachPointList) {
+void TeachPathInfo::setTeachPointList(const std::vector<Point> &teachPointList) {
     teach_point_list = teachPointList;
 }

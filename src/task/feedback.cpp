@@ -62,7 +62,7 @@ void TaskFeedback::start() {
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
     double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//网格正方形的边长
     double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
-    LOG(INFO) << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
+    LOG_IF(INFO, DEBUG_TASK) << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
     spacing_half = (int) std::floor(0.5 * grid_spacing_in_pixel);
 
     auto map = room_map.clone();
@@ -132,7 +132,7 @@ void TaskFeedback::feedback(geometry_msgs::Pose2D data) {
         }
 
         if (!Environment::instance().isRealEnvironment) {
-            LOG(INFO) << "### area_px : " << area_px << " , plan_px : " << plan_px << "  "
+            LOG_IF(INFO, DEBUG_TASK) << "### area_px : " << area_px << " , plan_px : " << plan_px << "  "
                       << run_task_id << " 真实面积/总面积 = " << (clear_px * 1.0 / area_px)
                       << " , 真实面积/规划面积 = " << (clear_px * 1.0 / plan_px);
         }

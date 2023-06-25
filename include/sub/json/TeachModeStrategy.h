@@ -17,36 +17,36 @@
 
 geometry_msgs::Pose get_current_pose();
 
-class StartTeachModeStrategy : public MessageStrategy<string, string> {
+class StartTeachModeStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string params) override;
+    std::string handler(std::string params) override;
 };
 
-class StopTeachModeStrategy : public MessageStrategy<ClossTeachMode, string> {
+class StopTeachModeStrategy : public MessageStrategy<ClossTeachMode, std::string> {
 public:
-    string handler(ClossTeachMode params) override;
+    std::string handler(ClossTeachMode params) override;
 };
 
-class HeartBeatofTeachModeStrategy : public MessageStrategy<string, string> {
+class HeartBeatofTeachModeStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string params) override;
+    std::string handler(std::string params) override;
 };
 
-class GetTeachModeListStrategy : public MessageStrategy<string, std::vector<ResponseGetTeachTask>> {
+class GetTeachModeListStrategy : public MessageStrategy<std::string, std::vector<ResponseGetTeachTask>> {
 public:
-    vector<ResponseGetTeachTask> handler(string params) override;
+    std::vector<ResponseGetTeachTask> handler(std::string params) override;
 };
 
-class GetTeachModeDetialStrategy : public MessageStrategy<string, std::vector<Point>> {
+class GetTeachModeDetialStrategy : public MessageStrategy<std::string, std::vector<Point>> {
 public:
-    vector<Point> handler(string params) override;
+    std::vector<Point> handler(std::string params) override;
 };
 
-class DeleteTeachModeStrategy : public MessageStrategy<vector<string>, string> {
+class DeleteTeachModeStrategy : public MessageStrategy<std::vector<std::string>, std::string> {
 public:
-    string handler(vector<string> params) override;
+    std::string handler(std::vector<std::string> params) override;
 
-    bool is_exist(const string &str, vector<string> str_list);
+    bool is_exist(const std::string &str, std::vector<std::string> str_list);
 };
 
 #endif //APP_COMMUNICATION_TEACHMODESTRATEGY_H

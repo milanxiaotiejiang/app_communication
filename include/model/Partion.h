@@ -12,25 +12,23 @@
 
 using json = nlohmann::json;
 
-using namespace std;
-
 class Name_info {
 private:
     int id;
-    string name;
+    std::string name;
 public:
     int getId() const;
 
     void setId(int id);
 
-    const string &getName() const;
+    const std::string &getName() const;
 
-    void setName(const string &name);
+    void setName(const std::string &name);
 
 public:
     Name_info();
 
-    Name_info(int id, string name);
+    Name_info(int id, std::string name);
 
     virtual ~Name_info();
 
@@ -91,8 +89,8 @@ private:
     double area;
     int cx;
     int cy;
-    string name;
-    vector<Point> board;
+    std::string name;
+    std::vector<Point> board;
 
 public:
     Partion_component();
@@ -135,13 +133,13 @@ public:
 
     void setCy(int cy);
 
-    const string &getName() const;
+    const std::string &getName() const;
 
-    void setName(const string &name);
+    void setName(const std::string &name);
 
-    const vector<Point> &getBoard() const;
+    const std::vector<Point> &getBoard() const;
 
-    void setBoard(const vector<Point> &board);
+    void setBoard(const std::vector<Point> &board);
 
     friend void to_json(json &j, const Partion_component &b) {
         j = json{
@@ -178,8 +176,8 @@ class Partion {
 private:
     int mapWidth;
     int mapHeight;
-    vector<Partion_line> segmentationPoints;
-    vector<Partion_component> component;
+    std::vector<Partion_line> segmentationPoints;
+    std::vector<Partion_component> component;
 
 
 public:
@@ -195,13 +193,13 @@ public:
 
     int getMapHeight();
 
-    void setSegmentationPoints(vector<Partion_line> segmentationPoints_);
+    void setSegmentationPoints(std::vector<Partion_line> segmentationPoints_);
 
-    vector<Partion_line> getSegmentationPoints();
+    std::vector<Partion_line> getSegmentationPoints();
 
-    void setComponent(vector<Partion_component> component);
+    void setComponent(std::vector<Partion_component> component);
 
-    vector<Partion_component> getComponent();
+    std::vector<Partion_component> getComponent();
 
     friend void to_json(json &j, const Partion &b) {
         j = json{

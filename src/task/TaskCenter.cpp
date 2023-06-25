@@ -68,13 +68,13 @@ std::string TaskCenter::preTask(const RealTask &task) {
     } catch (app::exception const &e) {
         //如果错误，会走到此处，历史更新错误信息
         clean_history_db::CleanHistoryCenter::instance().launchFailed(task, e);
-        const error_code &code = e.code();
+        const std::error_code &code = e.code();
         throw e;
     }
 }
 
 std::string TaskCenter::proTask(const RealTask &task) {
-    LOG(INFO) << "TASK ID : " << task.getId();
+    LOG_IF(INFO, DEBUG_TASK) << "TASK ID : " << task.getId();
     if (AsyncMachine::instance().getError() == loop::error_epoll::error_unrecoverable) {
         throw app::exception(make_error_code(error::operation_failure_please_restart_the_machine));
     }

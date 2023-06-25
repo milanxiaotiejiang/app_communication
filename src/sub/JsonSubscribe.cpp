@@ -39,7 +39,7 @@ JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
 JsonSubscribe::~JsonSubscribe() {}
 
 void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
-    LOG(INFO) << "subscribeCallback : " << syscall(SYS_gettid) << " " << result.data;
+    LOG_IF(INFO, DEBUG_REQUEST) << "subscribeCallback : " << syscall(SYS_gettid) << " " << result.data;
 
     json jDecode = json::parse(result.data);
 
@@ -461,7 +461,7 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
     }
 
     int end_time = ros::Time::now().sec;
-    LOG(INFO) << "----------------" << "JsonSubscribe end : " << entrance.getMethod() << " "
+    LOG_IF(INFO, DEBUG_REQUEST) << "----------------" << "JsonSubscribe end : " << entrance.getMethod() << " "
               << end_time - start_time << " s " << "----------------";
 
 }

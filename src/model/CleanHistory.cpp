@@ -17,12 +17,12 @@ CleanHistory::CleanHistory(bool is_complete, bool base_complete,
                            long execute_time,
                            long end_time,
                            int task_mode,
-                           string task_id,
+                           std::string task_id,
                            WorkStatus work_status,
                            int clean_area,
                            int clean_time,
                            int error_code,
-                           string error_message,
+                           std::string error_message,
 
                            int task_type) {
     m_is_complete = is_complete;
@@ -82,11 +82,11 @@ void CleanHistory::setTaskMode(const int &task_mode) {
     m_task_mode = task_mode;
 }
 
-const string &CleanHistory::getTaskID() const {
+const std::string &CleanHistory::getTaskID() const {
     return m_task_id;
 }
 
-void CleanHistory::setTaskID(const string &task_id) {
+void CleanHistory::setTaskID(const std::string &task_id) {
     m_task_id = task_id;
 }
 
@@ -118,11 +118,11 @@ CleanHistoryList::CleanHistoryList() {}
 
 CleanHistoryList::~CleanHistoryList() {}
 
-const vector<CleanHistory> &CleanHistoryList::GetCleanHistoryList() const {
+const std::vector<CleanHistory> &CleanHistoryList::GetCleanHistoryList() const {
     return m_clean_history_list;
 }
 
-void CleanHistoryList::SetCleanHistoryList(const vector<CleanHistory> &clean_history_list) {
+void CleanHistoryList::SetCleanHistoryList(const std::vector<CleanHistory> &clean_history_list) {
     m_clean_history_list = clean_history_list;
 }
 
@@ -130,7 +130,7 @@ bool CleanHistoryList::AddCleanHistory(const CleanHistory &clean_history) {
     //Ewen change begin
     if (m_clean_history_list.size() > 0 && m_clean_history_list.back().getTaskID() == clean_history.getTaskID()) {
         //Ewen change end
-        cout << "new task id equals to the latest task id, refuse to add" << std::endl;
+        std::cout << "new task id equals to the latest task id, refuse to add" << std::endl;
     } else {
         m_clean_history_list.push_back(clean_history);
     }
@@ -139,7 +139,7 @@ bool CleanHistoryList::AddCleanHistory(const CleanHistory &clean_history) {
     }
 }
 
-bool CleanHistoryList::GetCleanHistory(CleanHistory &clean_history, const string &taskId) {
+bool CleanHistoryList::GetCleanHistory(CleanHistory &clean_history, const std::string &taskId) {
     for (auto &item: m_clean_history_list) {
 //        cout<<"taskID"<<item.getTaskID()<<endl;
         if (item.getTaskID() == taskId) {
@@ -152,7 +152,7 @@ bool CleanHistoryList::GetCleanHistory(CleanHistory &clean_history, const string
     return false;
 }
 
-bool CleanHistoryList::ResetCleanHistory(const CleanHistory &clean_history, const string &taskId) {
+bool CleanHistoryList::ResetCleanHistory(const CleanHistory &clean_history, const std::string &taskId) {
     for (auto &item: m_clean_history_list) {
         if (item.getTaskID() == taskId) {
 //            cout << "At CleanHistoryList::ResetCleanHistory successfully match taskid:"<<taskId << endl;

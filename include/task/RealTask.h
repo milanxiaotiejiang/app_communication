@@ -56,11 +56,11 @@ private:
 public:
     RealTask() = default;
 
-    const string &getId() const {
+    const std::string &getId() const {
         return id;
     }
 
-    void setId(const string &id) {
+    void setId(const std::string &id) {
         RealTask::id = id;
     }
 
@@ -72,11 +72,11 @@ public:
         RealTask::renew = renew;
     }
 
-    const string &getMapId() const {
+    const std::string &getMapId() const {
         return map_id;
     }
 
-    void setMapId(const string &mapId) {
+    void setMapId(const std::string &mapId) {
         map_id = mapId;
     }
 
@@ -88,11 +88,11 @@ public:
         task_id = taskId;
     }
 
-    const string &getName() const {
+    const std::string &getName() const {
         return name;
     }
 
-    void setName(const string &name) {
+    void setName(const std::string &name) {
         RealTask::name = name;
     }
 
@@ -128,11 +128,11 @@ public:
         RealTask::principal = principal;
     }
 
-    const vector<ZoneVo> &getZoned() const {
+    const std::vector<ZoneVo> &getZoned() const {
         return zoned;
     }
 
-    void setZoned(const vector<ZoneVo> &zoned) {
+    void setZoned(const std::vector<ZoneVo> &zoned) {
         RealTask::zoned = zoned;
     }
 
@@ -144,11 +144,11 @@ public:
         RealTask::partition = partition;
     }
 
-    const vector<SubregionVo> &getSubregions() const {
+    const std::vector<SubregionVo> &getSubregions() const {
         return subregions;
     }
 
-    void setSubregions(const vector<SubregionVo> &subregions) {
+    void setSubregions(const std::vector<SubregionVo> &subregions) {
         RealTask::subregions = subregions;
     }
 
@@ -160,11 +160,11 @@ public:
         RealTask::knife = knife;
     }
 
-    const vector<float> &getZoned0() const {
+    const std::vector<float> &getZoned0() const {
         return zoned0;
     }
 
-    void setZoned0(const vector<float> &zoned0) {
+    void setZoned0(const std::vector<float> &zoned0) {
         RealTask::zoned0 = zoned0;
     }
 
@@ -184,27 +184,27 @@ public:
         combination_type = combinationType;
     }
 
-    const string &getTimeMode() const {
+    const std::string &getTimeMode() const {
         return time_mode;
     }
 
-    void setTimeMode(const string &timeMode) {
+    void setTimeMode(const std::string &timeMode) {
         time_mode = timeMode;
     }
 
-    const string &getSource() const {
+    const std::string &getSource() const {
         return source;
     }
 
-    void setSource(const string &source) {
+    void setSource(const std::string &source) {
         RealTask::source = source;
     }
 
-    const string &getLaunchPeople() const {
+    const std::string &getLaunchPeople() const {
         return launch_people;
     }
 
-    void setLaunchPeople(const string &launchPeople) {
+    void setLaunchPeople(const std::string &launchPeople) {
         launch_people = launchPeople;
     }
 
@@ -216,11 +216,11 @@ public:
         launch_time = launchTime;
     }
 
-    const string &getOnSource() const {
+    const std::string &getOnSource() const {
         return on_source;
     }
 
-    void setOnSource(const string &onSource) {
+    void setOnSource(const std::string &onSource) {
         on_source = onSource;
     }
 
@@ -240,19 +240,19 @@ public:
         RealTask::totalFrequency = totalFrequency;
     }
 
-    const vector<RealBlock> &getPlanBlocks() const {
+    const std::vector<RealBlock> &getPlanBlocks() const {
         return planBlocks;
     }
 
-    void setPlanPoints(const vector<RealBlock> &planBlocks) {
+    void setPlanPoints(const std::vector<RealBlock> &planBlocks) {
         RealTask::planBlocks = planBlocks;
     }
 
-    const vector<RealBlock> &getRealBlocks() const {
+    const std::vector<RealBlock> &getRealBlocks() const {
         return realBlocks;
     }
 
-    void setRealPoints(const vector<RealBlock> &realBlocks) {
+    void setRealPoints(const std::vector<RealBlock> &realBlocks) {
         RealTask::realBlocks = realBlocks;
     }
 

@@ -12,8 +12,6 @@
 
 using json = nlohmann::json;
 
-using namespace std;
-
 typedef boost::array<double, 36> _covariance_type;
 
 class RosMapLoadTime {
@@ -43,7 +41,7 @@ public:
         RosMapLoadTime::secs = secs;
     }
 
-    friend ostream &operator<<(ostream &os, const RosMapLoadTime &oadTime) {
+    friend std::ostream &operator<<(std::ostream &os, const RosMapLoadTime &oadTime) {
         os << "nsecs: " << oadTime.nsecs << " secs: " << oadTime.secs;
         return os;
     }
@@ -88,7 +86,7 @@ public:
         RosStamp::secs = secs;
     }
 
-    friend ostream &operator<<(ostream &os, const RosStamp &stamp) {
+    friend std::ostream &operator<<(std::ostream &os, const RosStamp &stamp) {
         os << "nsecs: " << stamp.nsecs << " secs: " << stamp.secs;
         return os;
     }
@@ -108,21 +106,21 @@ public:
 
 class RosHeader {
 private:
-    string frame_id;
+    std::string frame_id;
     int seq;
     RosStamp stamp;
 public:
     RosHeader() = default;
 
-    RosHeader(const string &frameId, int seq, const RosStamp &stamp) : frame_id(frameId), seq(seq), stamp(stamp) {}
+    RosHeader(const std::string &frameId, int seq, const RosStamp &stamp) : frame_id(frameId), seq(seq), stamp(stamp) {}
 
     virtual ~RosHeader() = default;
 
-    const string &getFrameId() const {
+    const std::string &getFrameId() const {
         return frame_id;
     }
 
-    void setFrameId(const string &frameId) {
+    void setFrameId(const std::string &frameId) {
         frame_id = frameId;
     }
 
@@ -142,7 +140,7 @@ public:
         RosHeader::stamp = stamp;
     }
 
-    friend ostream &operator<<(ostream &os, const RosHeader &header) {
+    friend std::ostream &operator<<(std::ostream &os, const RosHeader &header) {
         os << "frame_id: " << header.frame_id << " seq: " << header.seq << " stamp: " << header.stamp;
         return os;
     }
@@ -207,7 +205,7 @@ public:
         RosOrientation::z = z;
     }
 
-    friend ostream &operator<<(ostream &os, const RosOrientation &orientation) {
+    friend std::ostream &operator<<(std::ostream &os, const RosOrientation &orientation) {
         os << "w: " << orientation.w << " x: " << orientation.x << " y: " << orientation.y << " z: " << orientation.z;
         return os;
     }
@@ -265,7 +263,7 @@ public:
         RosPosition::z = z;
     }
 
-    friend ostream &operator<<(ostream &os, const RosPosition &position) {
+    friend std::ostream &operator<<(std::ostream &os, const RosPosition &position) {
         os << "x: " << position.x << " y: " << position.y << " z: " << position.z;
         return os;
     }
@@ -313,7 +311,7 @@ public:
         RosOrigin::position = position;
     }
 
-    friend ostream &operator<<(ostream &os, const RosOrigin &origin) {
+    friend std::ostream &operator<<(std::ostream &os, const RosOrigin &origin) {
         os << "orientation: " << origin.orientation << " position: " << origin.position;
         return os;
     }
@@ -386,7 +384,7 @@ public:
         RosInfo::origin = origin;
     }
 
-    friend ostream &operator<<(ostream &os, const RosInfo &info) {
+    friend std::ostream &operator<<(std::ostream &os, const RosInfo &info) {
         os << "width: " << info.width << " height: " << info.height << " resolution: " << info.resolution
            << " map_load_time: " << info.map_load_time << " origin: " << info.origin;
         return os;
@@ -415,12 +413,12 @@ public:
 class RosPose {
 private:
     RosOrigin pose;
-    vector<double> covariance;
+    std::vector<double> covariance;
 public:
 
     RosPose() = default;
 
-    RosPose(const RosOrigin &pose, const vector<double> &covariance) : pose(pose), covariance(covariance) {}
+    RosPose(const RosOrigin &pose, const std::vector<double> &covariance) : pose(pose), covariance(covariance) {}
 
     virtual ~RosPose() = default;
 
@@ -432,15 +430,15 @@ public:
         RosPose::pose = pose;
     }
 
-    const vector<double> &getCovariance() const {
+    const std::vector<double> &getCovariance() const {
         return covariance;
     }
 
-    void setCovariance(const vector<double> &covariance) {
+    void setCovariance(const std::vector<double> &covariance) {
         RosPose::covariance = covariance;
     }
 
-    friend ostream &operator<<(ostream &os, const RosPose &rosPose) {
+    friend std::ostream &operator<<(std::ostream &os, const RosPose &rosPose) {
         os << "pose: " << rosPose.pose << " covariance: " << rosPose.covariance.size();
         return os;
     }
@@ -495,7 +493,7 @@ public:
         RosAngular::z = z;
     }
 
-    friend ostream &operator<<(ostream &os, const RosAngular &angular) {
+    friend std::ostream &operator<<(std::ostream &os, const RosAngular &angular) {
         os << "x: " << angular.x << " y: " << angular.y << " z: " << angular.z;
         return os;
     }
@@ -551,7 +549,7 @@ public:
         RosLinear::z = z;
     }
 
-    friend ostream &operator<<(ostream &os, const RosLinear &linear) {
+    friend std::ostream &operator<<(std::ostream &os, const RosLinear &linear) {
         os << "x: " << linear.x << " y: " << linear.y << " z: " << linear.z;
         return os;
     }
@@ -598,7 +596,7 @@ public:
         RosTwistX::linear = linear;
     }
 
-    friend ostream &operator<<(ostream &os, const RosTwistX &x) {
+    friend std::ostream &operator<<(std::ostream &os, const RosTwistX &x) {
         os << "angular: " << x.angular << " linear: " << x.linear;
         return os;
     }
@@ -620,11 +618,11 @@ public:
 class RosTwist {
 private:
     RosTwistX twist;
-    vector<double> covariance;
+    std::vector<double> covariance;
 public:
     RosTwist() = default;
 
-    RosTwist(const RosTwistX &twist, const vector<double> &covariance) : twist(twist), covariance(covariance) {}
+    RosTwist(const RosTwistX &twist, const std::vector<double> &covariance) : twist(twist), covariance(covariance) {}
 
     virtual ~RosTwist() {
 
@@ -638,15 +636,15 @@ public:
         RosTwist::twist = twist;
     }
 
-    const vector<double> &getCovariance() const {
+    const std::vector<double> &getCovariance() const {
         return covariance;
     }
 
-    void setCovariance(const vector<double> &covariance) {
+    void setCovariance(const std::vector<double> &covariance) {
         RosTwist::covariance = covariance;
     }
 
-    friend ostream &operator<<(ostream &os, const RosTwist &twist) {
+    friend std::ostream &operator<<(std::ostream &os, const RosTwist &twist) {
         os << "twist: " << twist.twist << " covariance: " << twist.covariance.size();
         return os;
     }
@@ -666,23 +664,23 @@ public:
 
 class RosOdom {
 private:
-    string child_frame_id;
+    std::string child_frame_id;
     RosHeader header;
     RosPose pose;
     RosTwist twist;
 public:
     RosOdom() = default;
 
-    RosOdom(const string &childFrameId, const RosHeader &header, const RosPose &pose, const RosTwist &twist)
+    RosOdom(const std::string &childFrameId, const RosHeader &header, const RosPose &pose, const RosTwist &twist)
             : child_frame_id(childFrameId), header(header), pose(pose), twist(twist) {}
 
     virtual ~RosOdom() = default;
 
-    const string &getChildFrameId() const {
+    const std::string &getChildFrameId() const {
         return child_frame_id;
     }
 
-    void setChildFrameId(const string &childFrameId) {
+    void setChildFrameId(const std::string &childFrameId) {
         child_frame_id = childFrameId;
     }
 
@@ -710,7 +708,7 @@ public:
         RosOdom::twist = twist;
     }
 
-    friend ostream &operator<<(ostream &os, const RosOdom &odom) {
+    friend std::ostream &operator<<(std::ostream &os, const RosOdom &odom) {
         os << "child_frame_id: " << odom.child_frame_id << " header: " << odom.header << " pose: " << odom.pose
            << " twist: " << odom.twist;
         return os;
@@ -736,22 +734,22 @@ public:
 
 class RosMap {
 private:
-    vector<int> data;
+    std::vector<int> data;
     RosHeader header;
     RosInfo info;
 public:
     RosMap() = default;
 
-    RosMap(const vector<int> &data, const RosHeader &header, const RosInfo &info) : data(data), header(header),
+    RosMap(const std::vector<int> &data, const RosHeader &header, const RosInfo &info) : data(data), header(header),
                                                                                     info(info) {}
 
     virtual ~RosMap() = default;
 
-    const vector<int> &getData() const {
+    const std::vector<int> &getData() const {
         return data;
     }
 
-    void setData(const vector<int> &data) {
+    void setData(const std::vector<int> &data) {
         RosMap::data = data;
     }
 
@@ -771,7 +769,7 @@ public:
         RosMap::info = info;
     }
 
-    friend ostream &operator<<(ostream &os, const RosMap &map) {
+    friend std::ostream &operator<<(std::ostream &os, const RosMap &map) {
         os << "data: " << map.data.size() << " header: " << map.header << " info: " << map.info;
         return os;
     }
@@ -806,11 +804,11 @@ public:
 
     virtual ~GRosMap() = default;
 
-    const string &getData() const {
+    const std::string &getData() const {
         return data;
     }
 
-    void setData(const string &data) {
+    void setData(const std::string &data) {
         GRosMap::data = data;
     }
 
@@ -830,7 +828,7 @@ public:
         GRosMap::info = info;
     }
 
-    friend ostream &operator<<(ostream &os, const GRosMap &map) {
+    friend std::ostream &operator<<(std::ostream &os, const GRosMap &map) {
         os << "data: " << map.data.size() << " header: " << map.header << " info: " << map.info;
         return os;
     }

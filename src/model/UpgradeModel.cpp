@@ -4,24 +4,24 @@
 
 #include "model/UpgradeModel.h"
 
-CombinationBriefUpgrade::CombinationBriefUpgrade(const string &combinationId, const string &name, int rate,
-                                                 const vector<string> &partIdList) : combination_id(combinationId),
+CombinationBriefUpgrade::CombinationBriefUpgrade(const std::string &combinationId, const std::string &name, int rate,
+                                                 const std::vector<std::string> &partIdList) : combination_id(combinationId),
                                                                                      name(name), rate(rate),
                                                                                      part_id_list(partIdList) {}
 
-const string &CombinationBriefUpgrade::getCombinationId() const {
+const std::string &CombinationBriefUpgrade::getCombinationId() const {
     return combination_id;
 }
 
-void CombinationBriefUpgrade::setCombinationId(const string &combinationId) {
+void CombinationBriefUpgrade::setCombinationId(const std::string &combinationId) {
     combination_id = combinationId;
 }
 
-const string &CombinationBriefUpgrade::getName() const {
+const std::string &CombinationBriefUpgrade::getName() const {
     return name;
 }
 
-void CombinationBriefUpgrade::setName(const string &name) {
+void CombinationBriefUpgrade::setName(const std::string &name) {
     CombinationBriefUpgrade::name = name;
 }
 
@@ -41,11 +41,11 @@ void CombinationBriefUpgrade::setCombinationType(int type) {
     combination_type = type;
 }
 
-const vector<string> &CombinationBriefUpgrade::getPartIdList() const {
+const std::vector<std::string> &CombinationBriefUpgrade::getPartIdList() const {
     return part_id_list;
 }
 
-void CombinationBriefUpgrade::setPartIdList(const vector<string> &partIdList) {
+void CombinationBriefUpgrade::setPartIdList(const std::vector<std::string> &partIdList) {
     part_id_list = partIdList;
 }
 
@@ -114,9 +114,9 @@ void WorkStatusUpgrade::setAromatherapyStatus(int st) {
 
 ViewPartUpgrade::ViewPartUpgrade() {}
 
-ViewPartUpgrade::ViewPartUpgrade(int mode, const string &name, const string &partId, const vector<Point> &polygon,
-                                 int rate, const vector<Point> &teach, const string &pathId,
-                                 const WorkStatusUpgrade &workStatus, const vector<Point> &zoned) : mode(mode),
+ViewPartUpgrade::ViewPartUpgrade(int mode, const std::string &name, const std::string &partId, const std::vector<Point> &polygon,
+                                 int rate, const std::vector<Point> &teach, const std::string &pathId,
+                                 const WorkStatusUpgrade &workStatus, const std::vector<Point> &zoned) : mode(mode),
                                                                                                     name(name),
                                                                                                     part_id(partId),
                                                                                                     polygon(polygon),
@@ -135,27 +135,27 @@ void ViewPartUpgrade::setMode(int mode) {
     ViewPartUpgrade::mode = mode;
 }
 
-const string &ViewPartUpgrade::getName() const {
+const std::string &ViewPartUpgrade::getName() const {
     return name;
 }
 
-void ViewPartUpgrade::setName(const string &name) {
+void ViewPartUpgrade::setName(const std::string &name) {
     ViewPartUpgrade::name = name;
 }
 
-const string &ViewPartUpgrade::getPartId() const {
+const std::string &ViewPartUpgrade::getPartId() const {
     return part_id;
 }
 
-void ViewPartUpgrade::setPartId(const string &partId) {
+void ViewPartUpgrade::setPartId(const std::string &partId) {
     part_id = partId;
 }
 
-const vector<Point> &ViewPartUpgrade::getPolygon() const {
+const std::vector<Point> &ViewPartUpgrade::getPolygon() const {
     return polygon;
 }
 
-void ViewPartUpgrade::setPolygon(const vector<Point> &polygon) {
+void ViewPartUpgrade::setPolygon(const std::vector<Point> &polygon) {
     ViewPartUpgrade::polygon = polygon;
 }
 
@@ -167,19 +167,19 @@ void ViewPartUpgrade::setRate(int rate) {
     ViewPartUpgrade::rate = rate;
 }
 
-const vector<Point> &ViewPartUpgrade::getTeach() const {
+const std::vector<Point> &ViewPartUpgrade::getTeach() const {
     return teach;
 }
 
-void ViewPartUpgrade::setTeach(const vector<Point> &teach) {
+void ViewPartUpgrade::setTeach(const std::vector<Point> &teach) {
     ViewPartUpgrade::teach = teach;
 }
 
-const string &ViewPartUpgrade::getPathId() const {
+const std::string &ViewPartUpgrade::getPathId() const {
     return path_id;
 }
 
-void ViewPartUpgrade::setPathId(const string &pathId) {
+void ViewPartUpgrade::setPathId(const std::string &pathId) {
     path_id = pathId;
 }
 
@@ -191,11 +191,11 @@ void ViewPartUpgrade::setWorkStatus(const WorkStatusUpgrade &workStatus) {
     work_status = workStatus;
 }
 
-const vector<Point> &ViewPartUpgrade::getZoned() const {
+const std::vector<Point> &ViewPartUpgrade::getZoned() const {
     return zoned;
 }
 
-void ViewPartUpgrade::setZoned(const vector<Point> &zoned) {
+void ViewPartUpgrade::setZoned(const std::vector<Point> &zoned) {
     ViewPartUpgrade::zoned = zoned;
 }
 
@@ -220,7 +220,7 @@ int CleanHistoryUpgrade::getTaskType() const {
     return task_type;
 }
 
-vector<int> CleanHistoryUpgrade::getOperEvent() const {
+std::vector<int> CleanHistoryUpgrade::getOperEvent() const {
     return oper_event;
 }
 
@@ -264,11 +264,11 @@ void CleanHistoryUpgrade::setTaskMode(int taskMode) {
     task_mode = taskMode;
 }
 
-const string &CleanHistoryUpgrade::getTaskId() const {
+const std::string &CleanHistoryUpgrade::getTaskId() const {
     return task_id;
 }
 
-void CleanHistoryUpgrade::setTaskId(const string &taskId) {
+void CleanHistoryUpgrade::setTaskId(const std::string &taskId) {
     task_id = taskId;
 }
 
@@ -296,22 +296,22 @@ void CleanHistoryUpgrade::setErrorCode(int errorCode) {
     error_code = errorCode;
 }
 
-const string &CleanHistoryUpgrade::getErrorMessage() const {
+const std::string &CleanHistoryUpgrade::getErrorMessage() const {
     return error_message;
 }
 
-void CleanHistoryUpgrade::setErrorMessage(const string &errorMessage) {
+void CleanHistoryUpgrade::setErrorMessage(const std::string &errorMessage) {
     error_message = errorMessage;
 }
 
 CleanHistoryUpgrade::CleanHistoryUpgrade() {}
 
 CleanHistoryUpgrade::CleanHistoryUpgrade(bool isComplete, long launchTime, long executeTime, long endTime, int taskMode,
-                                         const string &taskId, int cleanArea,
-                                         int cleanTime, int errorCode, const string errorCode2,
-                                         const string &errorMessage, bool mBaseComplete,
-                                         int taskType, const vector<std::string> &componentIdList,
-                                         int skipPathPointCount, const vector<int> &operEvent, int rate,
+                                         const std::string &taskId, int cleanArea,
+                                         int cleanTime, int errorCode, const std::string errorCode2,
+                                         const std::string &errorMessage, bool mBaseComplete,
+                                         int taskType, const std::vector<std::string> &componentIdList,
+                                         int skipPathPointCount, const std::vector<int> &operEvent, int rate,
                                          int sweepStatus, int mopStatus, int vacuumStatus, int pushStatus,
                                          int aromatherapyStatus, int disinfectStatus, int currentStep,
                                          int currentFrquency, int totalStep, int totalFrequency, int historyState,
@@ -393,24 +393,24 @@ CleanHistoryUpgrade::CleanHistoryUpgrade(bool isComplete, long launchTime, long 
                                                                                                        open_mechanism_(
                                                                                                                openMechanism) {}
 
-CleanHistoryListUpgrade::CleanHistoryListUpgrade(const vector<CleanHistoryUpgrade> &mCleanHistoryList)
+CleanHistoryListUpgrade::CleanHistoryListUpgrade(const std::vector<CleanHistoryUpgrade> &mCleanHistoryList)
         : m_clean_history_list(mCleanHistoryList) {}
 
-const vector<CleanHistoryUpgrade> &CleanHistoryListUpgrade::getMCleanHistoryList() const {
+const std::vector<CleanHistoryUpgrade> &CleanHistoryListUpgrade::getMCleanHistoryList() const {
     return m_clean_history_list;
 }
 
-void CleanHistoryListUpgrade::setMCleanHistoryList(const vector<CleanHistoryUpgrade> &mCleanHistoryList) {
+void CleanHistoryListUpgrade::setMCleanHistoryList(const std::vector<CleanHistoryUpgrade> &mCleanHistoryList) {
     m_clean_history_list = mCleanHistoryList;
 }
 
 CleanHistoryListUpgrade::CleanHistoryListUpgrade() {}
 
-const string &TaskUpgrade::getTaskId() const {
+const std::string &TaskUpgrade::getTaskId() const {
     return task_id;
 }
 
-void TaskUpgrade::setTaskId(const string &taskId) {
+void TaskUpgrade::setTaskId(const std::string &taskId) {
     task_id = taskId;
 }
 
@@ -446,11 +446,11 @@ void TaskUpgrade::setPolygon(const CleanPolygon &polygon) {
     TaskUpgrade::polygon = polygon;
 }
 
-const vector<float> &TaskUpgrade::getZoned() const {
+const std::vector<float> &TaskUpgrade::getZoned() const {
     return zoned;
 }
 
-void TaskUpgrade::setZoned(const vector<float> &zoned) {
+void TaskUpgrade::setZoned(const std::vector<float> &zoned) {
     TaskUpgrade::zoned = zoned;
 }
 
@@ -470,11 +470,11 @@ void TaskUpgrade::setTeachPath(const TeachPathInfo &teachPath) {
     teach_path = teachPath;
 }
 
-const string &TaskUpgrade::getLaunchPeople() const {
+const std::string &TaskUpgrade::getLaunchPeople() const {
     return launch_people;
 }
 
-void TaskUpgrade::setLaunchPeople(const string &launchPeople) {
+void TaskUpgrade::setLaunchPeople(const std::string &launchPeople) {
     launch_people = launchPeople;
 }
 
@@ -486,11 +486,11 @@ void TaskUpgrade::setLaunchTime(long launchTime) {
     launch_time = launchTime;
 }
 
-const string &TaskUpgrade::getTimeMode() const {
+const std::string &TaskUpgrade::getTimeMode() const {
     return time_mode;
 }
 
-void TaskUpgrade::setTimeMode(const string &timeMode) {
+void TaskUpgrade::setTimeMode(const std::string &timeMode) {
     time_mode = timeMode;
 }
 
@@ -512,10 +512,10 @@ void TaskUpgrade::setFullPath(const FullPath &fullPath) {
 
 TaskUpgrade::TaskUpgrade() {}
 
-TaskUpgrade::TaskUpgrade(const string &taskId, int mode, int rate, const WorkStatusUpgrade &workStatus,
-                         const CleanPolygon &polygon, const vector<float> &zoned, const CleanContinuity &continuity,
-                         const TeachPathInfo &teachPath, const string &launchPeople, long launchTime,
-                         const string &timeMode, bool inExecute, const Combination &combination,
+TaskUpgrade::TaskUpgrade(const std::string &taskId, int mode, int rate, const WorkStatusUpgrade &workStatus,
+                         const CleanPolygon &polygon, const std::vector<float> &zoned, const CleanContinuity &continuity,
+                         const TeachPathInfo &teachPath, const std::string &launchPeople, long launchTime,
+                         const std::string &timeMode, bool inExecute, const Combination &combination,
                          const FullPath &fullPath) : task_id(taskId), mode(mode), rate(rate), work_status(workStatus),
                                                      polygon(polygon), zoned(zoned), continuity(continuity),
                                                      teach_path(teachPath), launch_people(launchPeople),
@@ -533,23 +533,23 @@ void TaskUpgrade::setCombination(const Combination &combination) {
 
 CombinationDetailUpgrade::CombinationDetailUpgrade() {}
 
-CombinationDetailUpgrade::CombinationDetailUpgrade(const string &combinationId, const string &name, int rate,
-                                                   const vector<ViewPartUpgrade> &viewPartList) : combination_id(
+CombinationDetailUpgrade::CombinationDetailUpgrade(const std::string &combinationId, const std::string &name, int rate,
+                                                   const std::vector<ViewPartUpgrade> &viewPartList) : combination_id(
         combinationId), name(name), rate(rate), view_part_list(viewPartList) {}
 
-const string &CombinationDetailUpgrade::getCombinationId() const {
+const std::string &CombinationDetailUpgrade::getCombinationId() const {
     return combination_id;
 }
 
-void CombinationDetailUpgrade::setCombinationId(const string &combinationId) {
+void CombinationDetailUpgrade::setCombinationId(const std::string &combinationId) {
     combination_id = combinationId;
 }
 
-const string &CombinationDetailUpgrade::getName() const {
+const std::string &CombinationDetailUpgrade::getName() const {
     return name;
 }
 
-void CombinationDetailUpgrade::setName(const string &name) {
+void CombinationDetailUpgrade::setName(const std::string &name) {
     CombinationDetailUpgrade::name = name;
 }
 
@@ -561,33 +561,33 @@ void CombinationDetailUpgrade::setRate(int rate) {
     CombinationDetailUpgrade::rate = rate;
 }
 
-const vector<ViewPartUpgrade> &CombinationDetailUpgrade::getViewPartList() const {
+const std::vector<ViewPartUpgrade> &CombinationDetailUpgrade::getViewPartList() const {
     return view_part_list;
 }
 
-void CombinationDetailUpgrade::setViewPartList(const vector<ViewPartUpgrade> &viewPartList) {
+void CombinationDetailUpgrade::setViewPartList(const std::vector<ViewPartUpgrade> &viewPartList) {
     view_part_list = viewPartList;
 }
 
 CombinationBriefWork::CombinationBriefWork() {}
 
-CombinationBriefWork::CombinationBriefWork(const string &combinationId, const string &name, int rate,
-                                           const vector<string> &partIdList, bool principal) : combination_id(
+CombinationBriefWork::CombinationBriefWork(const std::string &combinationId, const std::string &name, int rate,
+                                           const std::vector<std::string> &partIdList, bool principal) : combination_id(
         combinationId), name(name), rate(rate), part_id_list(partIdList), principal(principal) {}
 
-const string &CombinationBriefWork::getCombinationId() const {
+const std::string &CombinationBriefWork::getCombinationId() const {
     return combination_id;
 }
 
-void CombinationBriefWork::setCombinationId(const string &combinationId) {
+void CombinationBriefWork::setCombinationId(const std::string &combinationId) {
     combination_id = combinationId;
 }
 
-const string &CombinationBriefWork::getName() const {
+const std::string &CombinationBriefWork::getName() const {
     return name;
 }
 
-void CombinationBriefWork::setName(const string &name) {
+void CombinationBriefWork::setName(const std::string &name) {
     CombinationBriefWork::name = name;
 }
 
@@ -599,11 +599,11 @@ void CombinationBriefWork::setRate(int rate) {
     CombinationBriefWork::rate = rate;
 }
 
-const vector<string> &CombinationBriefWork::getPartIdList() const {
+const std::vector<std::string> &CombinationBriefWork::getPartIdList() const {
     return part_id_list;
 }
 
-void CombinationBriefWork::setPartIdList(const vector<string> &partIdList) {
+void CombinationBriefWork::setPartIdList(const std::vector<std::string> &partIdList) {
     part_id_list = partIdList;
 }
 
@@ -617,13 +617,13 @@ void CombinationBriefWork::setPrincipal(bool principal) {
 
 CombinationBriefWorkList::CombinationBriefWorkList() {}
 
-CombinationBriefWorkList::CombinationBriefWorkList(const vector<CombinationBriefWork> &mCombinationBriefList)
+CombinationBriefWorkList::CombinationBriefWorkList(const std::vector<CombinationBriefWork> &mCombinationBriefList)
         : m_combination_brief_list(mCombinationBriefList) {}
 
-const vector<CombinationBriefWork> &CombinationBriefWorkList::getMCombinationBriefList() const {
+const std::vector<CombinationBriefWork> &CombinationBriefWorkList::getMCombinationBriefList() const {
     return m_combination_brief_list;
 }
 
-void CombinationBriefWorkList::setMCombinationBriefList(const vector<CombinationBriefWork> &mCombinationBriefList) {
+void CombinationBriefWorkList::setMCombinationBriefList(const std::vector<CombinationBriefWork> &mCombinationBriefList) {
     m_combination_brief_list = mCombinationBriefList;
 }

@@ -67,24 +67,25 @@ void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &ex
 
             if (coverage_need_again) {
                 coverage_need_again = false;
-                LOG(INFO) << "CoveragePathGenerator : 处理需要再次进行的规划请求，准备开始规划 ...";
+                LOG_IF(INFO, DEBUG_EXPLORATION_CACHE) << "CoveragePathGenerator : 处理需要再次进行的规划请求，准备开始规划 ...";
             } else {
                 coverage_planner_done = true;
                 wait_cv.notify_one();
 
                 coverage_obtain_path = false;
                 retried_again_count = 0;
-                LOG(INFO) << "CoveragePathGenerator : 规划全部完成，支持获取全覆盖路径 ...";
+                LOG_IF(INFO, DEBUG_EXPLORATION_CACHE) << "CoveragePathGenerator : 规划全部完成，支持获取全覆盖路径 ...";
             }
         } else {
             retried_again_count++;
             if (retried_again_count > 2) {
-                LOG(INFO) << "CoveragePathGenerator : 全覆盖规划有异常情况，停止当前规划 ...";
+                LOG_IF(INFO, DEBUG_EXPLORATION_CACHE) << "CoveragePathGenerator : 全覆盖规划有异常情况，停止当前规划 ...";
                 coverage_need_again = false;
                 coverage_obtain_path = false;
                 coverage_planner_done = true;
             } else {
-                LOG(INFO) << "CoveragePathGenerator : 全覆盖规划有异常情况，尝试重新规划 " << retried_again_count << " ...";
+                LOG_IF(INFO, DEBUG_EXPLORATION_CACHE)
+                << "CoveragePathGenerator : 全覆盖规划有异常情况，尝试重新规划 " << retried_again_count << " ...";
                 sleep(5);
                 coverage_need_again = true;
             }
@@ -93,7 +94,7 @@ void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &ex
 }
 
 RoomCoverage CoveragePathGenerator::obtainCoveragePath(int overtime) {
-    LOG(INFO) << "CoveragePathGenerator " << overtime;
+    LOG_IF(INFO, DEBUG_EXPLORATION_CACHE) << "CoveragePathGenerator " << overtime;
     if (coverage_planner_done) {
         publish();
         return roomCoverage;
@@ -143,7 +144,7 @@ void CoveragePathGenerator::preloadCoveragePath() {
 
 void CoveragePathGenerator::repaintCoveragePath() {
     if (coverage_need_again) {
-        LOG(INFO) << "CoveragePathGenerator : 已通知需要重新规划，此处拦截多次的请求 ...";
+        LOG_IF(INFO, DEBUG_EXPLORATION_CACHE) << "CoveragePathGenerator : 已通知需要重新规划，此处拦截多次的请求 ...";
         return;
     }
 
@@ -219,16 +220,16 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
 
             if (coverage_need_again) {
                 coverage_need_again = false;
-                LOG(INFO) << "SubregionPathGenerator : 分区处理需要再次进行的规划请求，准备开始规划 ...";
+                LOG_IF(INFO, DEBUG_EXPLORATION_CACHE) << "SubregionPathGenerator : 分区处理需要再次进行的规划请求，准备开始规划 ...";
             } else {
                 coverage_planner_done = true;
                 wait_cv.notify_one();
 
                 coverage_obtain_path = false;
-                LOG(INFO) << "SubregionPathGenerator : 分区规划全部完成，支持获取全覆盖路径 ...";
+                LOG_IF(INFO, DEBUG_EXPLORATION_CACHE) << "SubregionPathGenerator : 分区规划全部完成，支持获取全覆盖路径 ...";
             }
         } else {
-            LOG(INFO) << "SubregionPathGenerator : 分区全覆盖规划有异常情况，停止当前规划 ...";
+            LOG_IF(INFO, DEBUG_EXPLORATION_CACHE) << "SubregionPathGenerator : 分区全覆盖规划有异常情况，停止当前规划 ...";
             coverage_need_again = false;
             coverage_obtain_path = false;
             coverage_planner_done = true;
@@ -237,7 +238,7 @@ void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &e
 }
 
 RoomCoverage SubregionPathGenerator::obtainCoveragePath(int overtime) {
-    LOG(INFO) << "SubregionPathGenerator " << overtime;
+    LOG_IF(INFO, DEBUG_EXPLORATION_CACHE) << "SubregionPathGenerator " << overtime;
     if (coverage_planner_done) {
         publish();
         return roomCoverage;
@@ -287,7 +288,7 @@ void SubregionPathGenerator::preloadCoveragePath() {
 
 void SubregionPathGenerator::repaintCoveragePath() {
 //    if (coverage_need_again) {
-//        LOG(INFO) << "SubregionPathGenerator : 分区已通知需要重新规划，此处拦截多次的请求 ...";
+//        LOG_IF(INFO, DEBUG_EXPLORATION_CACHE) << "SubregionPathGenerator : 分区已通知需要重新规划，此处拦截多次的请求 ...";
 //        return;
 //    }
 //

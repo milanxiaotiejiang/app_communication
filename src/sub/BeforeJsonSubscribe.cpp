@@ -19,15 +19,15 @@ void BeforeJsonSubscribe::subscribeCallback(const std_msgs::String &str) {
     geometry_msgs::Twist clean_msg;//用于发布区域清扫信息
     command.data.clear();
 
-    string header(str.data, 0, 4);
-    string len(str.data, 4, 2);
+    std::string header(str.data, 0, 4);
+    std::string len(str.data, 4, 2);
     int length = hexstring2int(len);//字节数
-    string mission_id(str.data, 6, 2);
+    std::string mission_id(str.data, 6, 2);
     int mission_ID = hexstring2int(mission_id);
 
     //mission_ID = hexstring2int("00027100");
     // int mission_ID = atoi(mission_id.c_str());
-    string mission(str.data, 8, (length - 3) * 2);
+    std::string mission(str.data, 8, (length - 3) * 2);
     float point[8];
     int flag = -1;
     flag = (int) htoi_signed(mission.substr(0, 2));
@@ -36,8 +36,8 @@ void BeforeJsonSubscribe::subscribeCallback(const std_msgs::String &str) {
         // point[i]=(float)hexstring2int(mission.substr(8*i, 8) )/10000;//存储点的信息
         point[i] = (float) htoi_signed(mission.substr(8 * i, 8)) / 10000;//存储点的信息
     }
-    string Syn_flag(str.data, (length + 3 - 2) * 2, 2);//同步位信息
-    string check(str.data, (length + 3 - 1) * 2, 2);   //校验位信息
+    std::string Syn_flag(str.data, (length + 3 - 2) * 2, 2);//同步位信息
+    std::string check(str.data, (length + 3 - 1) * 2, 2);   //校验位信息
     //    ROS_INFO("header: %s", header.c_str());
     //    ROS_INFO("length: %s", len.c_str());
     //    ROS_INFO("mission_id: %s", mission_id.c_str());
@@ -47,7 +47,7 @@ void BeforeJsonSubscribe::subscribeCallback(const std_msgs::String &str) {
     if (header == "FFAA")                              //判断校验位
     {
         float vel_value = hexstring2int(mission.substr(2, 2)) * 0.005;//针对移动指令的处理,30对应的速度是0.15
-        string vel_direction(mission, 0, 2);
+        std::string vel_direction(mission, 0, 2);
         switch (mission_ID) {
             case BASE_MOVE://底盘移动
                 //clean_msg.angular.z = 2.0;//2.0表示工作，1表示返回基站，0表示停止

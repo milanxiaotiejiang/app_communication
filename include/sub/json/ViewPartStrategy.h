@@ -17,34 +17,34 @@
 #include "tool/write_file.hpp"
 #include "model/UpgradeModel.h"
 
-class CombinationPartAddStrategy : public MessageStrategy<ViewPart, string> {
+class CombinationPartAddStrategy : public MessageStrategy<ViewPart, std::string> {
 public:
-    string handler(ViewPart method) override;
+    std::string handler(ViewPart method) override;
 };
 
-class CombinationPartListStrategy : public MessageStrategy<string, vector<ViewPart>> {
+class CombinationPartListStrategy : public MessageStrategy<std::string, std::vector<ViewPart>> {
 public:
-    vector<ViewPart> handler(string params) override;
+    std::vector<ViewPart> handler(std::string params) override;
 };
 
-class CombinationPartListStrategyV2 : public MessageStrategy<string, vector<ViewPartUpgrade>> {
+class CombinationPartListStrategyV2 : public MessageStrategy<std::string, std::vector<ViewPartUpgrade>> {
 public:
-    vector<ViewPartUpgrade> handler(string params) override;
+std::vector<ViewPartUpgrade> handler(std::string params) override;
 };
 
-class CombinationPartDeleteStrategy : public MessageStrategy<string, string> {
+class CombinationPartDeleteStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string params) override;
+    std::string handler(std::string params) override;
 };
 
-class CombinationPartDeleteForceStrategy : public MessageStrategy<string, string> {
+class CombinationPartDeleteForceStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string params) override;
+    std::string handler(std::string params) override;
 };
 
-class CombinationPartUpdateStrategy : public MessageStrategy<ViewPart, string> {
+class CombinationPartUpdateStrategy : public MessageStrategy<ViewPart, std::string> {
 public:
-    string handler(ViewPart params) override;
+    std::string handler(ViewPart params) override;
 };
 
 

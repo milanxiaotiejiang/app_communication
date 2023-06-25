@@ -19,12 +19,12 @@ DSVersionSubscribe::DSVersionSubscribe(ros::NodeHandle handle) : handle(handle) 
     version.data = 1;
     PublishInnerManager::instance().publishDSVersion(version);
 
-    string filePath;
+    std::string filePath;
     filePath.append(path::data_base_config_dir());
     filePath.append("pad_version_info.txt");
 
     if (sh::File::exists(filePath)) {
-        unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
+        std::unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
         if (uFilePtr->open(std::ios::in)) {
             auto padVersion = uFilePtr->readAll();
             VersionManager::instance().setAppPadVersion(padVersion);

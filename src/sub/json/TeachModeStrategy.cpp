@@ -4,21 +4,21 @@
 
 #include "sub/json/TeachModeStrategy.h"
 
-string StartTeachModeStrategy::handler(string params) {
+std::string StartTeachModeStrategy::handler(std::string params) {
     TeachModePoint::get_instance()->setExcuteMode(ON_SAVING);
     return "";
 }
 
-string StopTeachModeStrategy::handler(ClossTeachMode params) {
-    string new_name = params.getTeachPathName();
+std::string StopTeachModeStrategy::handler(ClossTeachMode params) {
+    std::string new_name = params.getTeachPathName();
     if (!params.isForceQuit())//如果并非强制退出
     {
         bool can_save = true;//判断是否能保存
-        string fileName;
-        string sss;
+        std::string fileName;
+        std::string sss;
         fileName.append(path::data_base_config_dir());
         fileName.append("teach_point_json.txt");
-        std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
+        std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
         if (fff->open(std::ios::in)) {//打开成功
             sss = fff->readAll();
             if (sss.length() > 0)//文件不为空
@@ -60,17 +60,17 @@ string StopTeachModeStrategy::handler(ClossTeachMode params) {
     return "";
 }
 
-string HeartBeatofTeachModeStrategy::handler(string params) {
+std::string HeartBeatofTeachModeStrategy::handler(std::string params) {
     TeachModePoint::get_instance()->setGetHeartBeat(true);
     return "";
 }
 
-vector<ResponseGetTeachTask> GetTeachModeListStrategy::handler(string params) {
-    string fileName;
-    string sss;
+std::vector<ResponseGetTeachTask> GetTeachModeListStrategy::handler(std::string params) {
+    std::string fileName;
+    std::string sss;
     fileName.append(path::data_base_config_dir());
     fileName.append("teach_point_json.txt");
-    std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
+    std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
     if (fff->open(std::ios::in)) {
         sss = fff->readAll();
     } else {
@@ -97,12 +97,12 @@ vector<ResponseGetTeachTask> GetTeachModeListStrategy::handler(string params) {
     }
 }
 
-vector<Point> GetTeachModeDetialStrategy::handler(string params) {
-    string fileName;
-    string sss;
+std::vector<Point> GetTeachModeDetialStrategy::handler(std::string params) {
+    std::string fileName;
+    std::string sss;
     fileName.append(path::data_base_config_dir());
     fileName.append("teach_point_json.txt");
-    std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
+    std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
     if (fff->open(std::ios::in)) {
         sss = fff->readAll();
     } else {
@@ -132,14 +132,14 @@ vector<Point> GetTeachModeDetialStrategy::handler(string params) {
     }
 }
 
-bool DeleteTeachModeStrategy::is_exist(const string &str, vector<string> str_list) {
+bool DeleteTeachModeStrategy::is_exist(const std::string &str, std::vector<std::string> str_list) {
     for (const auto &item: str_list) {
         if (str == item) return true;
     }
     return false;
 }
 
-string DeleteTeachModeStrategy::handler(vector<string> params) {
+std::string DeleteTeachModeStrategy::handler(std::vector<std::string> params) {
     for (auto &item: params) {
         switch (CombinationManager::get_instance()->DelatePartID(item)) {
             case FAILD_TO_OPEN_FILE_:
@@ -181,11 +181,11 @@ string DeleteTeachModeStrategy::handler(vector<string> params) {
     std::vector<WayPointTask> wayPoints_before;
     //save改
     //读文件
-    string fileName;
-    string sss;
+    std::string fileName;
+    std::string sss;
     fileName.append(path::data_base_config_dir());
     fileName.append("teach_point_json.txt");
-    std::shared_ptr<sh::File> fff = make_shared<sh::File>(fileName);
+    std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
     if (fff->open(std::ios::in)) {
         sss = fff->readAll();
     } else {
@@ -207,7 +207,7 @@ string DeleteTeachModeStrategy::handler(vector<string> params) {
         }
     }
     json wayparams = wayPointsTask;
-    string base64;
+    std::string base64;
     base64.append(wayparams.dump());//json转base64 string
 
     if (!sh::File::saveTextTo(fileName, base64)) {

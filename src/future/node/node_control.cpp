@@ -333,9 +333,9 @@ void NodeControl::resetLocalization(bool open) {
 
 void NodeControl::defeatModeStart(node::State state) {
     if (state == node::State::work) {
-        LOG(INFO) << "工作模式启动失败，休息几秒尝试进入睡眠模式 ... ";
+        LOG_IF(INFO, DEBUG_NODE) << "工作模式启动失败，休息几秒尝试进入睡眠模式 ... ";
     } else if (state == node::State::map) {
-        LOG(INFO) << "建图模式启动失败，休息几秒尝试进入睡眠模式 ... ";
+        LOG_IF(INFO, DEBUG_NODE) << "建图模式启动失败，休息几秒尝试进入睡眠模式 ... ";
     }
     sleep(5);
     trySleep();
@@ -343,16 +343,16 @@ void NodeControl::defeatModeStart(node::State state) {
 
 void NodeControl::update() {
     if (isSleep()) {
-        LOG(INFO) << "当前为睡眠模式，应该是主动切换到睡眠模式的，暂时不需要处理（也可能需要处理）";
+        LOG_IF(INFO, DEBUG_NODE) << "当前为睡眠模式，应该是主动切换到睡眠模式的，暂时不需要处理（也可能需要处理）";
     } else {
         if (isWork()) {
-            LOG(INFO) << "当前为工作模式，应该是工作模式中一些节点莫名崩溃导致，需要重新进入工作模式";
+            LOG_IF(INFO, DEBUG_NODE) << "当前为工作模式，应该是工作模式中一些节点莫名崩溃导致，需要重新进入工作模式";
             changeWorkMode();
         }
         if (isMap()) {
-//            LOG(INFO) << "当前为建图模式，应该是建图模式中一些节点莫名崩溃导致，需要重新进入建图模式";
+//            LOG_IF(INFO, DEBUG_NODE) << "当前为建图模式，应该是建图模式中一些节点莫名崩溃导致，需要重新进入建图模式";
 //            changeMapMode();
-            LOG(INFO) << "当前为建图模式，应该是建图模式中一些节点莫名崩溃导致，退出建图模式进入睡眠模式";
+            LOG_IF(INFO, DEBUG_NODE) << "当前为建图模式，应该是建图模式中一些节点莫名崩溃导致，退出建图模式进入睡眠模式";
             changeSleepMode();
         }
     }

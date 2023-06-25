@@ -4,15 +4,15 @@
 
 #include "sub/json/CloudDeviceStrategy.h"
 
-string GetDeviceSecretStrategy::handler(string method) {
-    string path;
+std::string GetDeviceSecretStrategy::handler(std::string method) {
+    std::string path;
     path.append("/opt/robot/robot_hw_info.yaml");
     if (sh::File::exists(path)) {
         YAML::Node config = YAML::LoadFile(path);
         YAML::Node deviceSecretNode = config["device_secret"];
         YAML::Node deviceNameNode = config["device_name"];
         if (!deviceNameNode.IsNull()) {
-            std::string deviceSecret = deviceNameNode.as<string>();
+            std::string deviceSecret = deviceNameNode.as<std::string>();
             return deviceSecret;
         } else {
             throw app::exception(make_error_code(error::robot_hw_info_parsing_failed));

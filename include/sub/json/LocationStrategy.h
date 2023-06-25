@@ -16,12 +16,10 @@
 #include "ros/package.h"
 
 using json = nlohmann::json;
-using namespace std;
 
-
-class LocationStrategy : public MessageStrategy<Location, string> {
+class LocationStrategy : public MessageStrategy<Location, std::string> {
 public:
-    string handler(Location params) override;
+    std::string handler(Location params) override;
 };
 
 class getLocationStrategy : public MessageStringStrategy {

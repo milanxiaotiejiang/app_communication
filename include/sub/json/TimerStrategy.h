@@ -18,26 +18,25 @@
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
-using namespace std;
 
-class SetTimerStrategy : public MessageStrategy<TimerInfo, string> {
+class SetTimerStrategy : public MessageStrategy<TimerInfo, std::string> {
 public:
-    string handler(TimerInfo params) override;
+    std::string handler(TimerInfo params) override;
 };
 
-class UpdateTimerStrategy : public MessageStrategy<TimerInfo, string> {
+class UpdateTimerStrategy : public MessageStrategy<TimerInfo, std::string> {
 public:
-    string handler(TimerInfo params) override;
+    std::string handler(TimerInfo params) override;
 };
 
-class GetTimerListStrategy : public MessageStrategy<string, std::vector<TimerInfo>> {
+class GetTimerListStrategy : public MessageStrategy<std::string, std::vector<TimerInfo>> {
 public:
-    vector<TimerInfo> handler(string params) override;
+    std::vector<TimerInfo> handler(std::string params) override;
 };
 
-class DelTimerStrategy : public MessageStrategy<string, string> {
+class DelTimerStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string method) override;
+    std:: string handler(std::string method) override;
 };
 
 

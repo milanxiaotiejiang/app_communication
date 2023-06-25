@@ -12,7 +12,7 @@
 
 //添加
 ///////////////////////////////////////////////////////////////////
-string CombinationCombinationAddStartegy::handler(CombinationDetail params) {
+std::string CombinationCombinationAddStartegy::handler(CombinationDetail params) {
     switch (CombinationManager::get_instance()->AddCombination(params)) {
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));
@@ -31,7 +31,7 @@ string CombinationCombinationAddStartegy::handler(CombinationDetail params) {
 
 //获取全部
 //////////////////////////////////////////////////////////////////
-vector<CombinationBrief> CombinationCombinationListStrategy::handler(string params) {
+std::vector<CombinationBrief> CombinationCombinationListStrategy::handler(std::string params) {
     std_msgs::String result;
     CombinationBriefList combination_brief_list_temp;
     auto startegyResult = CombinationManager::get_instance()->GetCombinationBriefList(combination_brief_list_temp);
@@ -41,12 +41,12 @@ vector<CombinationBrief> CombinationCombinationListStrategy::handler(string para
     if (combination_brief_list_temp.getCombinationBriefList().size() > 0) {
         return combination_brief_list_temp.getCombinationBriefList();
     } else {
-        return vector<CombinationBrief>();
+        return std::vector<CombinationBrief>();
     }
 }
 
 
-vector<CombinationBriefUpgrade> CombinationCombinationListStrategyV2::handler(string params) {
+std::vector<CombinationBriefUpgrade> CombinationCombinationListStrategyV2::handler(std::string params) {
     std_msgs::String result;
     CombinationBriefList combination_brief_list_temp;
     auto startegyResult = CombinationManager::get_instance()->GetCombinationBriefList(combination_brief_list_temp);
@@ -54,7 +54,7 @@ vector<CombinationBriefUpgrade> CombinationCombinationListStrategyV2::handler(st
         throw app::exception(make_error_code(error::unknown_command));
     }
     if (combination_brief_list_temp.getCombinationBriefList().size() > 0) {
-        vector<CombinationBriefUpgrade> list;
+        std::vector<CombinationBriefUpgrade> list;
         for (const auto &item: combination_brief_list_temp.getCombinationBriefList()) {
             auto combination = CombinationBriefUpgrade();
             combination.setCombinationId(item.getCombinationID());
@@ -66,13 +66,13 @@ vector<CombinationBriefUpgrade> CombinationCombinationListStrategyV2::handler(st
         }
         return list;
     } else {
-        return vector<CombinationBriefUpgrade>();
+        return std::vector<CombinationBriefUpgrade>();
     }
 }
 
 //获取详情
 //////////////////////////////////////////////////////////
-CombinationDetail CombinationCombinationDetailsStrategy::handler(string params) {
+CombinationDetail CombinationCombinationDetailsStrategy::handler(std::string params) {
     std_msgs::String result;                         //回复app
     CombinationBrief combination_brief_temp;
     ViewPartList view_part_list_temp;
@@ -83,8 +83,8 @@ CombinationDetail CombinationCombinationDetailsStrategy::handler(string params) 
         throw app::exception(make_error_code(error::unable_to_get_combination));
     } else {
         CombinationDetail combination_detail_temp(combination_brief_temp);
-        vector<string> part_not_mached = combination_brief_temp.toDetail(combination_detail_temp,
-                                                                         view_part_list_temp);//用于验证是否有未匹配的iewpart
+        std::vector<std::string> part_not_mached = combination_brief_temp.toDetail(combination_detail_temp,
+                                                                                   view_part_list_temp);//用于验证是否有未匹配的iewpart
         if (part_not_mached.size() > 0) {
             for (auto &item: part_not_mached) {
                 CombinationManager::get_instance()->DelatePartID(item);
@@ -96,9 +96,9 @@ CombinationDetail CombinationCombinationDetailsStrategy::handler(string params) 
     }
 }
 
-CombinationDetailUpgrade CombinationCombinationDetailsStrategyV2::handler(string params) {
+CombinationDetailUpgrade CombinationCombinationDetailsStrategyV2::handler(std::string params) {
     std_msgs::String result;                         //回复app
-    cout << "要获取id:" << params << "的详情" << endl;
+    std::cout << "要获取id:" << params << "的详情" << std::endl;
     CombinationBrief combination_brief_temp;
     ViewPartList view_part_list_temp;
     if (ViewPartManager::get_instance()->GetViewPartList(view_part_list_temp) != SUCCESS_) {//访问ViewPartList成功
@@ -108,15 +108,15 @@ CombinationDetailUpgrade CombinationCombinationDetailsStrategyV2::handler(string
         throw app::exception(make_error_code(error::unable_to_get_combination));
     } else {
         CombinationDetail combination_detail_temp(combination_brief_temp);
-        vector<string> part_not_mached = combination_brief_temp.toDetail(combination_detail_temp,
-                                                                         view_part_list_temp);//用于验证是否有未匹配的iewpart
+        std::vector <std::string> part_not_mached = combination_brief_temp.toDetail(combination_detail_temp,
+                                                                          view_part_list_temp);//用于验证是否有未匹配的iewpart
         if (part_not_mached.size() > 0) {
             for (auto &item: part_not_mached) {
                 CombinationManager::get_instance()->DelatePartID(item);
             }
             throw app::exception(make_error_code(error::there_are_unmatched_parts));
         } else {//正常
-            vector<ViewPartUpgrade> list;
+            std::vector <ViewPartUpgrade> list;
             for (const auto &item: combination_detail_temp.getViewPartList()) {
                 WorkStatusUpgrade ws;
                 ws.setSweepStatus(item.getWorkStatus().getSweepStatus());
@@ -147,7 +147,7 @@ CombinationDetailUpgrade CombinationCombinationDetailsStrategyV2::handler(string
 
 //删除
 //////////////////////////////////////////////////////////////
-string CombinationCombinationDeleteStrategy::handler(string params) {
+std::string CombinationCombinationDeleteStrategy::handler(std::string params) {
     switch (CombinationManager::get_instance()->DelateCombination(params)) {
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));
@@ -165,7 +165,7 @@ string CombinationCombinationDeleteStrategy::handler(string params) {
 //更新
 ////////////////////////////////////////////////////////////////
 
-string CombinationCombinationUpdateStrategy::handler(CombinationDetail params) {
+std::string CombinationCombinationUpdateStrategy::handler(CombinationDetail params) {
     CombinationBrief combination_brief_temp(params);
     switch (CombinationManager::get_instance()->ResetCombination(combination_brief_temp,
                                                                  combination_brief_temp.getCombinationID())) {
@@ -184,7 +184,7 @@ string CombinationCombinationUpdateStrategy::handler(CombinationDetail params) {
 }
 
 
-string CombinationMainStrategy::handler(string params) {
+std::string CombinationMainStrategy::handler(std::string params) {
     switch (CombinationManager::get_instance()->setMainCombination(params)) {
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));
@@ -197,7 +197,7 @@ string CombinationMainStrategy::handler(string params) {
     }
 }
 
-string CancelCombinationMainStrategy::handler(string params) {
+std::string CancelCombinationMainStrategy::handler(std::string params) {
     switch (CombinationManager::get_instance()->cancelMainCombination(params)) {
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));

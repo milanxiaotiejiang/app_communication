@@ -450,7 +450,7 @@ void TaskDataBase::modifyTimerName(long timerId, std::string name) {
     taskStorage.update(timer);
 }
 
-void TaskDataBase::modifyTimer(const string &mapId, const TimerVo &timer) {
+void TaskDataBase::modifyTimer(const std::string &mapId, const TimerVo &timer) {
     TimerPo timerPo(timer.getTimerId(), mapId, timer.getTaskId(), timer.getTaskName(),
                     timer.getTimerRule(), timer.getTimerName(),
                     timer.isExecute(), timer.getRate(), timer.isNever(), timer.isSkip(),
@@ -518,7 +518,7 @@ TaskVo TaskDataBase::loadPrincipalTask(const std::string &mapId) {
     return taskPo2Vo(principalTask);
 }
 
-TaskVo TaskDataBase::loadRainSnowTask(const string &mapId) {
+TaskVo TaskDataBase::loadRainSnowTask(const std::string &mapId) {
     TaskVo taskVo;
     taskVo.setId(-1);
 

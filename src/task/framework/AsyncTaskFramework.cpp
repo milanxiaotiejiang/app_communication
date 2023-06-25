@@ -15,7 +15,7 @@
 
 AsyncTaskFramework::AsyncTaskFramework() {
     int err = AsyncTaskCall::make_thread(run, this);
-    LOG(INFO) << "AsyncTaskFramework : " << err;
+    LOG_IF(INFO, DEBUG_FIRING) << "AsyncTaskFramework : " << err;
 }
 
 void AsyncTaskFramework::execute() {
@@ -215,24 +215,24 @@ void AsyncTaskFramework::setUrgencyStop(loop::urgency_stop urgency_stop) {
 }
 
 void AsyncTaskFramework::callOutBaseStation() {
-    LOG(INFO) << "AsyncTaskFramework : 准备齐全，请求出站啦 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备齐全，请求出站啦 ...";
     StationManager::instance().outStation();
 }
 
 void AsyncTaskFramework::callBackStation() {
-    LOG(INFO) << "AsyncTaskFramework : 任务结束，准备返回基站充电啦 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 任务结束，准备返回基站充电啦 ...";
     StationManager::instance().backStation();
 }
 
 void AsyncTaskFramework::callCancelBackStation() {
-    LOG(INFO) << "AsyncTaskFramework : 取消回充动作 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 取消回充动作 ...";
     StationManager::instance().cancelBackStation();
 }
 
-void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
-    LOG(INFO) << "AsyncTaskFramework : 新任务来了，查看当前是否处于工作状态 ...";
+void AsyncTaskFramework::callSwitchWorkMode(const std::function<void(bool work)> f) {
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 新任务来了，查看当前是否处于工作状态 ...";
     if (!isWorkMode()) {
-        LOG(INFO) << "AsyncTaskFramework : 不是工作状态，准备启动工作状态 ...";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 不是工作状态，准备启动工作状态 ...";
 
         NodeWorkModeManager::instance().forceToWork();
 
@@ -245,7 +245,7 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
             if (!sleepTimeout) {
                 async::TimerCall::instance().baseLoop()->cancelAny();
             }
-            LOG(INFO) << "AsyncTaskFramework : 工作模式启动状态 "
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 工作模式启动状态 "
                       << "  是否是工作 ： " << NodeControl::instance().isWork()
                       << "  是否是建图 ： " << NodeControl::instance().isMap()
                       << "  是否是睡眠 ： " << NodeControl::instance().isSleep()
@@ -259,7 +259,7 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
                     sleepTimeout = true;
                 });
     } else {
-        LOG(INFO) << "AsyncTaskFramework : 是工作状态 ...";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 是工作状态 ...";
         notify_one([&f]() {
             f(true);
         });
@@ -267,39 +267,39 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
 }
 
 void AsyncTaskFramework::callOpenMechanism(const WorkStatus &status, bool knife, std::function<void()> f) {
-    LOG(INFO) << "AsyncTaskFramework : 准备打开相应的清洁机构 " << status << " ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备打开相应的清洁机构 " << status << " ...";
     MechanismManager::instance().controlWorkStatus(status, knife);
     auto fun = std::move(f);
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this, &fun]() {
-            LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
-            LOG(INFO) << "thread " << pthread_self();
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "thread " << pthread_self();
             notify_one(fun);
         });
     } else {
         async::TimerCall::instance().baseLoop()->scheduleLater(
                 std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this, &fun]() {
-                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
+                    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
                     notify_one(fun);
                 });
     }
 }
 
 void AsyncTaskFramework::callCloseMechanism(std::function<void()> f) {
-    LOG(INFO) << "AsyncTaskFramework : 准备关闭相应的清洁机构 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备关闭相应的清洁机构 ...";
     //这个函数里面关闭所有清洁机构
     MechanismManager::instance().resetWorkStatus();
     auto fun = std::move(f);
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()
                 ->scheduleLater(std::chrono::seconds(1), [this, &fun]() {
-                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
+                    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
                     notify_one(fun);
                 });
     } else {
         async::TimerCall::instance().baseLoop()
                 ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this, &fun]() {
-                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
+                    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
                     notify_one(fun);
                 });
     }
@@ -351,12 +351,12 @@ bool AsyncTaskFramework::isCharging() {
 }
 
 void AsyncTaskFramework::callBackBasePoint() {
-//    LOG(INFO) << "AsyncTaskFramework : 准备返回摆渡点了 ...";
+//    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备返回摆渡点了 ...";
     PointPlanner::instance().backBasePoint();
 }
 
 void AsyncTaskFramework::callNeedPublishSleep() {
-    LOG(INFO) << "AsyncTaskFramework : 等待充电成功即可发布睡眠模式 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 等待充电成功即可发布睡眠模式 ...";
     ZooInnerStatus::instance().setNeedSleep(true);
 }
 

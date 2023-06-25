@@ -7,7 +7,7 @@
 #include "db/task_data_base.h"
 #include "db/task_model.h"
 
-MapRoomVo RoomMapDataStrategy::handler(string params) {
+MapRoomVo RoomMapDataStrategy::handler(std::string params) {
     if (SegmentationCenter::instance().checkPartition()) {
         return SegmentationCenter::instance().resultMapRoomVo();
     } else {
@@ -78,12 +78,12 @@ void RoomResetStrategy::handler() {
     SegmentationCenter::instance().resetSegmentation();
 }
 
-string RoomRenameStrategy::handler(RoomNameTarget params) {
+std::string RoomRenameStrategy::handler(RoomNameTarget params) {
     SegmentationCenter::instance().reRoomName(params.getTargetId(), params.getName());
     return "";
 }
 
-MapRoomVo AutoSegmentationStrategy::handler(string params) {
+MapRoomVo AutoSegmentationStrategy::handler(std::string params) {
     SegmentationCenter::instance().resetSegmentation();
 
     cv::Mat segmented_map;

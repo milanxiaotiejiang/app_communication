@@ -8,14 +8,12 @@
 
 #include "string"
 
-using namespace std;
-
 class VersionManager {
 private:
-    string air_code_version{"0.0.0.1"};
-    string ds_hard_version{"0.0.0.1"};
-    string ds_soft_version{"0.0.0.1"};
-    string app_pad_version{"0.0.0.1"};
+    std::string air_code_version{"0.0.0.1"};
+    std::string ds_hard_version{"0.0.0.1"};
+    std::string ds_soft_version{"0.0.0.1"};
+    std::string app_pad_version{"0.0.0.1"};
     int machine_version{630};
     int self_check_version{1};
 public:
@@ -24,35 +22,35 @@ public:
         return obj;
     }
 
-    const string &getAirCodeVersion() const {
+    const std::string &getAirCodeVersion() const {
         return air_code_version;
     }
 
-    void setAirCodeVersion(const string &airCodeVersion) {
+    void setAirCodeVersion(const std::string &airCodeVersion) {
         air_code_version = airCodeVersion;
     }
 
-    const string &getDsHardVersion() const {
+    const std::string &getDsHardVersion() const {
         return ds_hard_version;
     }
 
-    void setDsHardVersion(const string &dsHardVersion) {
+    void setDsHardVersion(const std::string &dsHardVersion) {
         ds_hard_version = dsHardVersion;
     }
 
-    const string &getDsSoftVersion() const {
+    const std::string &getDsSoftVersion() const {
         return ds_soft_version;
     }
 
-    void setDsSoftVersion(const string &dsSoftVersion) {
+    void setDsSoftVersion(const std::string &dsSoftVersion) {
         ds_soft_version = dsSoftVersion;
     }
 
-    const string &getAppPadVersion() const {
+    const std::string &getAppPadVersion() const {
         return app_pad_version;
     }
 
-    void setAppPadVersion(const string &appPadVersion) {
+    void setAppPadVersion(const std::string &appPadVersion) {
         app_pad_version = appPadVersion;
     }
 

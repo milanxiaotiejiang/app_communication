@@ -14,11 +14,10 @@
 #include <fstream>
 
 using json = nlohmann::json;
-using namespace std;
 
-class TTErrorCheck : public MessageStrategy<string, string> {
+class TTErrorCheck : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string params) override;
+    std::string handler(std::string params) override;
 };
 
 

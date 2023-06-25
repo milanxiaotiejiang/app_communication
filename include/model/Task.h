@@ -19,23 +19,21 @@
 
 using json = nlohmann::json;
 
-using namespace std;
-
 class Combination {
 private:
 
-    string m_combination_id;
+    std::string m_combination_id;
 
 public:
     Combination() {}
 
     ~Combination() {}
 
-    const string &getCombinationID() const {
+    const std::string &getCombinationID() const {
         return m_combination_id;
     }
 
-    void setCombinationID(const string &combination_id) {
+    void setCombinationID(const std::string &combination_id) {
         m_combination_id = combination_id;
     }
 
@@ -53,12 +51,12 @@ public:
 class Task {
 
 private:
-    string task_id;
+    std::string task_id;
     int mode;
     int rate;
     WorkStatus work_status;
     CleanPolygon polygon;
-    vector<float> zoned;
+    std::vector<float> zoned;
     CleanContinuity continuity;
     TeachPathInfo teach_path;
     std::string launch_people;
@@ -75,15 +73,15 @@ public:
 
     virtual ~Task();
 
-    Task(const string &taskId, int mode, int rate, const WorkStatus &workStatus, const CleanPolygon &polygon,
-         const vector<float> &zoned, const CleanContinuity &continuity, const TeachPathInfo &teach_path,
-         const string &launchPeople, long launchTime, const string &timeMode, bool inExecute);
+    Task(const std::string &taskId, int mode, int rate, const WorkStatus &workStatus, const CleanPolygon &polygon,
+         const std::vector<float> &zoned, const CleanContinuity &continuity, const TeachPathInfo &teach_path,
+         const std::string &launchPeople, long launchTime, const std::string &timeMode, bool inExecute);
 
-    Task(const string &taskId, const WorkStatus &workStatus);
+    Task(const std::string &taskId, const WorkStatus &workStatus);
 
-    const string &getTaskId() const;
+    const std::string &getTaskId() const;
 
-    void setTaskId(const string &taskId);
+    void setTaskId(const std::string &taskId);
 
     int getMode() const;
 
@@ -109,9 +107,9 @@ public:
 
     void setWorkStatus(const WorkStatus &workStatus);
 
-    const vector<float> &getZoned() const;
+    const std::vector<float> &getZoned() const;
 
-    void setZoned(const vector<float> &zoned);
+    void setZoned(const std::vector<float> &zoned);
 
     const CleanContinuity &getContinuity() const;
 
@@ -121,17 +119,17 @@ public:
 
     void setTeachPath(const TeachPathInfo &teachPath);
 
-    const string &getLaunchPeople() const;
+    const std::string &getLaunchPeople() const;
 
-    void setLaunchPeople(const string &launchPeople);
+    void setLaunchPeople(const std::string &launchPeople);
 
     long getLaunchTime() const;
 
     void setLaunchTime(long launchTime);
 
-    const string &getTimeMode() const;
+    const std::string &getTimeMode() const;
 
-    void setTimeMode(const string &timeMode);
+    void setTimeMode(const std::string &timeMode);
 
     bool isInExecute() const;
 

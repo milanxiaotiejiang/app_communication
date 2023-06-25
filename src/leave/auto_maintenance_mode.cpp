@@ -28,8 +28,8 @@ void AutoMaintenanceModeManager::auto_maintenance_thread_func() {
     while (true) {
 
         std::unique_lock<std::mutex> lk(auto_maintenance_mutex);
-        LOG(INFO) << "自动维护下次执行时间 ： " << ScheduleManager::format_time_point(end);
-
+        LOG_IF(INFO, DEBUG_MAINTENANCE) << "自动维护下次执行时间 ： " << ScheduleManager::format_time_point(end);
+        
         auto_maintenance_cv.wait_until(lk, end);
 
         if (ZooInnerStatus::instance().getIsCharging()) {

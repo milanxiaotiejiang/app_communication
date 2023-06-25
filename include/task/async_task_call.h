@@ -29,9 +29,9 @@ private:
 
 protected:
 
-    atomic<int> firstRetryCount;
-    atomic<int> backBaseRetryCount;
-    atomic<int> rechargeRetryCount;
+    std::atomic<int> firstRetryCount;
+    std::atomic<int> backBaseRetryCount;
+    std::atomic<int> rechargeRetryCount;
 
     void setFlow(event::flow flow) {
         event_flow = flow;
@@ -42,7 +42,7 @@ protected:
         return event_flow;
     }
 
-    atomic<bool> isCarpetAndPack;
+    std::atomic<bool> isCarpetAndPack;
 
     std::deque<PointProgressVo> finishedPoints;
 

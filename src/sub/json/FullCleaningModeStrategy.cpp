@@ -8,7 +8,7 @@
 
 //获取全部
 //////////////////////////////////////////////////////////////////
-vector<FullCleanBrief> FullCLeanListStrategy::handler(string params) {
+std::vector<FullCleanBrief> FullCLeanListStrategy::handler(std::string params) {
     std_msgs::String result;
     FullCleanBriefList full_brief_list_temp;
     auto startegyResult = FullCleanManager::get_instance()->GetFullCleanBriefList(full_brief_list_temp);
@@ -18,11 +18,11 @@ vector<FullCleanBrief> FullCLeanListStrategy::handler(string params) {
     if (full_brief_list_temp.getFullCleanBriefList().size() > 0) {
         return full_brief_list_temp.getFullCleanBriefList();
     } else {
-        return vector<FullCleanBrief>();
+        return std::vector<FullCleanBrief>();
     }
 }
 
-string FullCLeaningAddStrategy::handler(FullCleanBrief params) {
+std::string FullCLeaningAddStrategy::handler(FullCleanBrief params) {
     switch (FullCleanManager::get_instance()->AddFullClean(params)) {
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));
@@ -39,7 +39,7 @@ string FullCLeaningAddStrategy::handler(FullCleanBrief params) {
     }
 }
 
-string FullCleaningUpdateStrategy::handler(FullCleanBrief params) {
+std::string FullCleaningUpdateStrategy::handler(FullCleanBrief params) {
     FullCleanBrief full_clean_brief_temp(params);
     switch (FullCleanManager::get_instance()->ResetFullCLean(full_clean_brief_temp,
                                                              full_clean_brief_temp.getFullPathID())) {
@@ -57,7 +57,7 @@ string FullCleaningUpdateStrategy::handler(FullCleanBrief params) {
     }
 }
 
-string FullCLeaningDeleteStrategy::handler(string params) {
+std::string FullCLeaningDeleteStrategy::handler(std::string params) {
     switch (FullCleanManager::get_instance()->DeleteFullClean(params)) {
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));
@@ -72,7 +72,7 @@ string FullCLeaningDeleteStrategy::handler(string params) {
     }
 }
 
-FullCleanBrief FullCleaningDetailsStrategy::handler(string params) {
+FullCleanBrief FullCleaningDetailsStrategy::handler(std::string params) {
     std_msgs::String result;
     FullCleanBrief full_clean_brif_temp;
     if (FullCleanManager::get_instance()->GetFullCLeanBrief(full_clean_brif_temp, params) !=
@@ -83,7 +83,7 @@ FullCleanBrief FullCleaningDetailsStrategy::handler(string params) {
     }
 }
 
-string FullCleaningMainStrategy::handler(string params) {
+std::string FullCleaningMainStrategy::handler(std::string params) {
     switch (FullCleanManager::get_instance()->setMainFullClean(params)) {
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));
@@ -96,7 +96,7 @@ string FullCleaningMainStrategy::handler(string params) {
     }
 }
 
-string CancelFullCleaningMainStrategy::handler(string params) {
+std::string CancelFullCleaningMainStrategy::handler(std::string params) {
     switch (FullCleanManager::get_instance()->cancelMainFullCLean(params)) {
         case FAILD_TO_OPEN_FILE_:
             throw app::exception(make_error_code(error::open_file_fail));

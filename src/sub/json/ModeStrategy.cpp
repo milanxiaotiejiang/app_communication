@@ -8,7 +8,7 @@
 #include "task/manager/NodeWorkModeManager.h"
 #include "future/node/node_control.h"
 
-string RobotTryEnterModeStrategy::handler(int params) {
+std::string RobotTryEnterModeStrategy::handler(int params) {
     if (ManualManager::instance().taskRunning()) {
         throw app::exception(make_error_code(error::current_in_task));
     } else {
@@ -19,13 +19,13 @@ string RobotTryEnterModeStrategy::handler(int params) {
     }
 }
 
-string RobotForceEnterModeStrategy::handler(int params) {
+std::string RobotForceEnterModeStrategy::handler(int params) {
     ManualManager::instance().backToBase(true);
     NodeWorkModeManager::instance().forceEnterWorkMode(params);
     return "";
 }
 
-string RobotPreparetoWorkStrategy::handler(string params) {
+std::string RobotPreparetoWorkStrategy::handler(std::string params) {
 //    if (NodeControl::instance().isWork()) {
 //        return "";
 //    }
@@ -38,7 +38,7 @@ string RobotPreparetoWorkStrategy::handler(string params) {
     return "";
 }
 
-string MapPreparetoWorkStrategy::handler(string params) {
+std::string MapPreparetoWorkStrategy::handler(std::string params) {
     PublishOutManager::instance().publishMap(Variable::get_instance()->getMapApp());
     return "";
 }

@@ -44,82 +44,82 @@ void Location::setAltitude(double altitude) {
     Location::altitude = altitude;
 }
 
-const string &Location::getAddress() const {
+const std::string &Location::getAddress() const {
     return address;
 }
 
-void Location::setAddress(const string &address) {
+void Location::setAddress(const std::string &address) {
     Location::address = address;
 }
 
-const string &Location::getCountry() const {
+const std::string &Location::getCountry() const {
     return country;
 }
 
-void Location::setCountry(const string &country) {
+void Location::setCountry(const std::string &country) {
     Location::country = country;
 }
 
-const string &Location::getProvince() const {
+const std::string &Location::getProvince() const {
     return province;
 }
 
-void Location::setProvince(const string &province) {
+void Location::setProvince(const std::string &province) {
     Location::province = province;
 }
 
-const string &Location::getCity() const {
+const std::string &Location::getCity() const {
     return city;
 }
 
-void Location::setCity(const string &city) {
+void Location::setCity(const std::string &city) {
     Location::city = city;
 }
 
-const string &Location::getDistrict() const {
+const std::string &Location::getDistrict() const {
     return district;
 }
 
-void Location::setDistrict(const string &district) {
+void Location::setDistrict(const std::string &district) {
     Location::district = district;
 }
 
-const string &Location::getStreet() const {
+const std::string &Location::getStreet() const {
     return street;
 }
 
-void Location::setStreet(const string &street) {
+void Location::setStreet(const std::string &street) {
     Location::street = street;
 }
 
-const string &Location::getStreetNum() const {
+const std::string &Location::getStreetNum() const {
     return streetNum;
 }
 
-void Location::setStreetNum(const string &streetNum) {
+void Location::setStreetNum(const std::string &streetNum) {
     Location::streetNum = streetNum;
 }
 
-const string &Location::getCityCode() const {
+const std::string &Location::getCityCode() const {
     return cityCode;
 }
 
-void Location::setCityCode(const string &cityCode) {
+void Location::setCityCode(const std::string &cityCode) {
     Location::cityCode = cityCode;
 }
 
-const string &Location::getAdCode() const {
+const std::string &Location::getAdCode() const {
     return adCode;
 }
 
-void Location::setAdCode(const string &adCode) {
+void Location::setAdCode(const std::string &adCode) {
     Location::adCode = adCode;
 }
 
-const string &Location::getAoiName() const {
+const std::string &Location::getAoiName() const {
     return aoiName;
 }
 
-void Location::setAoiName(const string &aoiName) {
+void Location::setAoiName(const std::string &aoiName) {
     Location::aoiName = aoiName;
 }

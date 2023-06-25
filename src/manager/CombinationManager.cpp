@@ -13,9 +13,8 @@
 
 bool CombinationManager::FileOpenRead() {
     if (!sh::File::exists(m_filename)) {
-        unique_ptr<sh::File> uFilePtr(new sh::File(m_filename));
+        std::unique_ptr<sh::File> uFilePtr(new sh::File(m_filename));
         if (!uFilePtr->create(m_filename)) {
-            cout << "create file " << m_filename << " fail !!!";
             return false;
         }
     }
@@ -32,7 +31,7 @@ bool CombinationManager::FileOpenRead() {
         }
         return true;
     } else {
-        cout << "CombinationManager fail to open file" << endl;
+        std::cout << "CombinationManager fail to open file" << std::endl;
         return false;
     }
 }
@@ -82,7 +81,7 @@ int CombinationManager::DelateCombination(const std::string &combination_id) {
         return FAILD_TO_OPEN_FILE_;
     }
     if (!m_combination_brief_list.delateCombination(combination_id)) {
-        cout << "CombinationManager::DelateCombination 删除失败" << endl;
+        std::cout << "CombinationManager::DelateCombination 删除失败" << std::endl;
         return EXECUTE_FAILED_;
     }
     if (!FileSave()) {
@@ -96,7 +95,7 @@ int CombinationManager::DelatePartID(const std::string &part_id) {
         return FAILD_TO_OPEN_FILE_;
     }
     if (!m_combination_brief_list.delatePartID(part_id)) {
-        cout << "CombinationManager::DelateCombination 删除失败" << endl;
+        std::cout << "CombinationManager::DelateCombination 删除失败" << std::endl;
         return EXECUTE_FAILED_;
     }
     if (!FileSave()) {
@@ -110,7 +109,7 @@ int CombinationManager::SearchPartID(const std::string &part_id) {
         return FAILD_TO_OPEN_FILE_;
     }
     if (!m_combination_brief_list.serchPartID(part_id)) {
-        cout << "CombinationManager::DelateCombination 未找到part_id" << part_id << endl;
+        std::cout << "CombinationManager::DelateCombination 未找到part_id" << part_id << std::endl;
         return EXECUTE_FAILED_;
     }
     if (!FileSave()) {
@@ -124,7 +123,7 @@ int CombinationManager::ResetCombination(const CombinationBrief &combination_bri
         return FAILD_TO_OPEN_FILE_;
     }
     if (!m_combination_brief_list.resetCombination(combination_brief, combination_id)) {
-        cout << "CombinationManager::ResetCombination 更改失败" << endl;
+        std::cout << "CombinationManager::ResetCombination 更改失败" << std::endl;
         return EXECUTE_FAILED_;
     }
     if (!FileSave()) {
@@ -138,7 +137,7 @@ int CombinationManager::GetCombination(CombinationBrief &combination_brief, cons
         return FAILD_TO_OPEN_FILE_;
     }
     if (!m_combination_brief_list.getCombination(combination_brief, combination_id)) {
-        cout << "CombinationManager::getCombination 获取失败" << endl;
+        std::cout << "CombinationManager::getCombination 获取失败" << std::endl;
         return EXECUTE_FAILED_;
     }
     if (!FileSave()) {

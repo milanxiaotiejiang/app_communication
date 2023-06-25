@@ -12,7 +12,7 @@ void PointRoutine::pathActive() {
 
 void PointRoutine::pathFeedback(const replan_msgs::ReplanFeedbackConstPtr &replan) {
     unsigned int step = replan->current_step;
-    replan_msgs::ReplanFeedback_<allocator<void>>::_base_position_type stamped = replan->base_position;
+    replan_msgs::ReplanFeedback_<std::allocator<void>>::_base_position_type stamped = replan->base_position;
     asyncTaskCall->executeOnPathFeedBack(step, stamped.pose);
 }
 
