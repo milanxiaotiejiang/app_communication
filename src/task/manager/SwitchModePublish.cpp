@@ -11,29 +11,29 @@
 //0 建图 1 睡眠 //2 工作
 void SwitchModePublish::initialize(ros::NodeHandle handle) {
     //开个线程lambda表达式
-    std::thread postponePublish(
-            [this]() {
-                for (;;) {
-                    std::unique_lock<std::mutex> lk(cv_m);
-                    auto delay = std::chrono::milliseconds(15 * 1000);
-                    auto now = std::chrono::system_clock::now();
-                    auto end = now + delay;
-                    cv.wait_until(lk, end, [this]() {
-                        return isReset;
-                    });
-
-                    if (!isReset) {
-                        if (isPublish) {
-                            LOG(INFO) << "发布睡眠模式 ...";
-                            NodeWorkModeManager::instance().toSleep();
-                            isPublish = false;
-                        }
-                    }
-                    isReset = false;
-                }
-            }
-    );
-    postponePublish.detach();
+//    std::thread postponePublish(
+//            [this]() {
+//                for (;;) {
+//                    std::unique_lock<std::mutex> lk(cv_m);
+//                    auto delay = std::chrono::milliseconds(15 * 1000);
+//                    auto now = std::chrono::system_clock::now();
+//                    auto end = now + delay;
+//                    cv.wait_until(lk, end, [this]() {
+//                        return isReset;
+//                    });
+//
+//                    if (!isReset) {
+//                        if (isPublish) {
+//                            LOG(INFO) << "发布睡眠模式 ...";
+//                            NodeWorkModeManager::instance().toSleep();
+//                            isPublish = false;
+//                        }
+//                    }
+//                    isReset = false;
+//                }
+//            }
+//    );
+//    postponePublish.detach();
 }
 
 void SwitchModePublish::publish() {
@@ -43,6 +43,7 @@ void SwitchModePublish::publish() {
         isReset = true;
     }
     cv.notify_one();
+    NodeWorkModeManager::instance().toSleep();
 }
 
 void SwitchModePublish::cancel() {
