@@ -138,7 +138,7 @@ protected:
         MMapHead::dataLength = dataLength;
     }
 
-    void setAdditionalHeader(const vector<int8_t> &additionalHeader) {
+    void setAdditionalHeader(const std::vector<int8_t> &additionalHeader) {
         MMapHead::additionalHeader = additionalHeader;
     }
 
@@ -245,7 +245,7 @@ public:
         setDataLength(imgHeight * imgWidth);
     }
 
-    void setMapArray(const vector<int8_t> &mapArray) {
+    void setMapArray(const std::vector<int8_t> &mapArray) {
         MMapResource::mapArray = mapArray;
     }
 
@@ -356,7 +356,7 @@ public:
         setPoints(points);
     }
 
-    void setPoints(const vector<MPoint> &points) {
+    void setPoints(const std::vector<MPoint> &points) {
         MMapPath::points = points;
 
         pointLength = points.size();
@@ -385,7 +385,7 @@ public:
         setProhibitions(prohibitions);
     }
 
-    void setProhibitions(const vector<MZone> &prohibitions) {
+    void setProhibitions(const std::vector<MZone> &prohibitions) {
         MMapProhibition::prohibitions = prohibitions;
 
         setAdditionalHeader(
@@ -413,7 +413,7 @@ public:
         setVirtuallys(virtuallys);
     }
 
-    void setVirtuallys(const vector<MLine> &virtuallys) {
+    void setVirtuallys(const std::vector<MLine> &virtuallys) {
         MMapVirtually::virtuallys = virtuallys;
 
         setAdditionalHeader(MMapExtend::generateIntToByteArray(std::vector<int>{static_cast<int>(virtuallys.size())}));
@@ -439,7 +439,7 @@ public:
         setZones(zones);
     }
 
-    void setZones(const vector<MZone> &zones) {
+    void setZones(const std::vector<MZone> &zones) {
         MMapZone::zones = zones;
 
         setAdditionalHeader(MMapExtend::generateIntToByteArray(std::vector<int>{static_cast<int>(zones.size())}));
@@ -601,7 +601,7 @@ public:
         rrMapWall.setVirtuallys(walls);
 
         std::vector<MZone> zones;
-        const vector <TaskVo> &tasks = TaskDataBase::instance().loadTaskFoMap(
+        const std::vector<TaskVo> &tasks = TaskDataBase::instance().loadTaskFoMap(
                 SegmentationDataBase::instance().getDbMap().id);
         for (const auto &task: tasks) {
             if (task.getMode() == static_cast<int>(TaskMode::Zoned)) {
@@ -623,15 +623,15 @@ public:
         MMapValid rrMapValid;
 
         RRMap rrMap;
-        rrMap.addArray(make_unique<MMapResource>(rrMapSize));
-        rrMap.addArray(make_unique<MMapCharger>(rrMapCharger));
-        rrMap.addArray(make_unique<MMapRobot>(rrMapRobot));
-        rrMap.addArray(make_unique<MMapTarget>(rrMapTarget));
-        rrMap.addArray(make_unique<MMapPath>(rrMapPath));
-        rrMap.addArray(make_unique<MMapProhibition>(rrMapArea));
-        rrMap.addArray(make_unique<MMapVirtually>(rrMapWall));
-        rrMap.addArray(make_unique<MMapZone>(rrMapZone));
-        rrMap.addArray(make_unique<MMapValid>(rrMapValid));
+        rrMap.addArray(std::make_unique<MMapResource>(rrMapSize));
+        rrMap.addArray(std::make_unique<MMapCharger>(rrMapCharger));
+        rrMap.addArray(std::make_unique<MMapRobot>(rrMapRobot));
+        rrMap.addArray(std::make_unique<MMapTarget>(rrMapTarget));
+        rrMap.addArray(std::make_unique<MMapPath>(rrMapPath));
+        rrMap.addArray(std::make_unique<MMapProhibition>(rrMapArea));
+        rrMap.addArray(std::make_unique<MMapVirtually>(rrMapWall));
+        rrMap.addArray(std::make_unique<MMapZone>(rrMapZone));
+        rrMap.addArray(std::make_unique<MMapValid>(rrMapValid));
 
         const std::vector<int8_t> byteArray = rrMap.toByteArray();
 

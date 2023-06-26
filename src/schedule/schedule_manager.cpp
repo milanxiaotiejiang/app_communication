@@ -60,10 +60,10 @@ void ScheduleManager::update_task_schedule() {
     int currentMon = 1 + ltm->tm_mon;
     int currentDay = ltm->tm_mday;
     LOG_IF(INFO, DEBUG_TIMER) << "update_task_schedule "
-              << "  年: " << currentYear
-              << "  月: " << currentMon
-              << "  日: " << currentDay
-              << "  地图ID: " << map.id;
+                              << "  年: " << currentYear
+                              << "  月: " << currentMon
+                              << "  日: " << currentDay
+                              << "  地图ID: " << map.id;
 
     const std::vector<TimerVo> &timerList = TaskDataBase::instance().loadTimerFoMap(map.id);
 
@@ -99,7 +99,7 @@ void ScheduleManager::update_task_schedule() {
                     }
             );
             LOG_IF(INFO, DEBUG_TIMER) << "定时名称 ： " << timer.getTimerName() << " ， 定时规则 ： " << timer.getTimerRule()
-                      << "    下次执行时间 ： " << format_time_point(scheduledTask.next_run_time);
+                                      << "    下次执行时间 ： " << format_time_point(scheduledTask.next_run_time);
             tasks.push_back(scheduledTask);
 
         } catch (const cron::bad_cronexpr &ex) {
@@ -149,8 +149,9 @@ void ScheduleManager::task_loop_thread_func() {
                         task.taskFun(task);
                         //更新任务的下次运行时间
                         task.next_run_time = cron::cron_next(task.cron_expression, now);
-                        LOG_IF(INFO, DEBUG_TIMER) << "定时名称 ： " << task.timer.getTimerName() << " ， 定时规则 ： " << task.timer.getTimerRule()
-                                  << " ， 下次执行时间 ： " << format_time_point(task.next_run_time);
+                        LOG_IF(INFO, DEBUG_TIMER)
+                        << "定时名称 ： " << task.timer.getTimerName() << " ， 定时规则 ： " << task.timer.getTimerRule()
+                        << " ， 下次执行时间 ： " << format_time_point(task.next_run_time);
                         //继续遍历下一个任务
                         ++task_iter;
                     }

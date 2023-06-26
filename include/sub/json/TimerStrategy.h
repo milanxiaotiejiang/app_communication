@@ -36,7 +36,7 @@ public:
 
 class DelTimerStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    std:: string handler(std::string method) override;
+    std::string handler(std::string method) override;
 };
 
 

@@ -163,8 +163,9 @@ public:
 
     ViewPartUpgrade();
 
-    ViewPartUpgrade(int mode, const std::string &name, const std::string &partId, const std::vector<Point> &polygon, int rate,
-                    const std::vector<Point> &teach, const std::string &pathId, const WorkStatusUpgrade &workStatus,
+    ViewPartUpgrade(int mode, const std::string &name, const std::string &partId,
+                    const std::vector<Point> &polygon, int rate, const std::vector<Point> &teach,
+                    const std::string &pathId, const WorkStatusUpgrade &workStatus,
                     const std::vector<Point> &zoned);
 
     int getMode() const;
@@ -306,7 +307,8 @@ public:
 
     CleanHistoryUpgrade(bool isComplete, long launchTime, long executeTime, long endTime, int taskMode,
                         const std::string &taskId, int cleanArea, int cleanTime,
-                        int errorCode, const std::string errorCode2, const std::string &errorMessage, bool mBaseComplete,
+                        int errorCode, const std::string errorCode2, const std::string &errorMessage,
+                        bool mBaseComplete,
                         int taskType,
                         const std::vector<std::string> &componentIdList, int skipPathPointCount,
                         const std::vector<int> &operEvent, int rate, int sweepStatus, int mopStatus, int vacuumStatus,
@@ -510,7 +512,8 @@ public:
 
     TaskUpgrade(const std::string &taskId, int mode, int rate, const WorkStatusUpgrade &workStatus,
                 const CleanPolygon &polygon, const std::vector<float> &zoned, const CleanContinuity &continuity,
-                const TeachPathInfo &teachPath, const std::string &launchPeople, long launchTime, const std::string &timeMode,
+                const TeachPathInfo &teachPath, const std::string &launchPeople, long launchTime,
+                const std::string &timeMode,
                 bool inExecute, const Combination &combination, const FullPath &fullPath);
 
     const std::string &getTaskId() const;
@@ -663,7 +666,8 @@ public:
 
     CombinationBriefWork();
 
-    CombinationBriefWork(const std::string &combinationId, const std::string &name, int rate, const std::vector<std::string> &partIdList,
+    CombinationBriefWork(const std::string &combinationId, const std::string &name, int rate,
+                         const std::vector<std::string> &partIdList,
                          bool principal);
 
     const std::string &getCombinationId() const;

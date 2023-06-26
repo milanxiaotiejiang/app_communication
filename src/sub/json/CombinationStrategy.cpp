@@ -108,15 +108,15 @@ CombinationDetailUpgrade CombinationCombinationDetailsStrategyV2::handler(std::s
         throw app::exception(make_error_code(error::unable_to_get_combination));
     } else {
         CombinationDetail combination_detail_temp(combination_brief_temp);
-        std::vector <std::string> part_not_mached = combination_brief_temp.toDetail(combination_detail_temp,
-                                                                          view_part_list_temp);//用于验证是否有未匹配的iewpart
+        std::vector<std::string> part_not_mached = combination_brief_temp.toDetail(combination_detail_temp,
+                                                                                   view_part_list_temp);//用于验证是否有未匹配的iewpart
         if (part_not_mached.size() > 0) {
             for (auto &item: part_not_mached) {
                 CombinationManager::get_instance()->DelatePartID(item);
             }
             throw app::exception(make_error_code(error::there_are_unmatched_parts));
         } else {//正常
-            std::vector <ViewPartUpgrade> list;
+            std::vector<ViewPartUpgrade> list;
             for (const auto &item: combination_detail_temp.getViewPartList()) {
                 WorkStatusUpgrade ws;
                 ws.setSweepStatus(item.getWorkStatus().getSweepStatus());

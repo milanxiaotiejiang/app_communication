@@ -44,8 +44,8 @@ float Point::calculateDistance(Point &another_point) {//求两点间距离
                 (this->getY() - another_point.getY()) * (this->getY() - another_point.getY()));
 }
 
-Line Point::operator-(Point &another_point){
-    return Line(this->getX() - another_point.getX(),this->getY() - another_point.getY());
+Line Point::operator-(Point &another_point) {
+    return Line(this->getX() - another_point.getX(), this->getY() - another_point.getY());
 }
 
 Line::Line(float x, float y) : x(x), y(y) {}
@@ -102,11 +102,11 @@ Line Line::operator+(const Line &p) const {
     return result;
 }
 
-Line Line::operator*(const float &p) const{
+Line Line::operator*(const float &p) const {
     return Line(this->getX() * p, this->getY() * p);
 }
 
-Line Line::operator/(const float &p) const{
+Line Line::operator/(const float &p) const {
     return Line(this->getX() / p, this->getY() / p);
 }
 

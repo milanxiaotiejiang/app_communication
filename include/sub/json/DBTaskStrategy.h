@@ -105,7 +105,7 @@ public:
 
 class ModifyTaskWorkStatusStrategy : public MessageStrategy<ModifyTaskWorkStatus, std::string> {
 public:
-    std:: string handler(ModifyTaskWorkStatus params) override;
+    std::string handler(ModifyTaskWorkStatus params) override;
 };
 
 class ModifyTaskKnifeStrategy : public MessageStrategy<ModifyTaskKnife, std::string> {

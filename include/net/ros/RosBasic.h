@@ -741,7 +741,7 @@ public:
     RosMap() = default;
 
     RosMap(const std::vector<int> &data, const RosHeader &header, const RosInfo &info) : data(data), header(header),
-                                                                                    info(info) {}
+                                                                                         info(info) {}
 
     virtual ~RosMap() = default;
 

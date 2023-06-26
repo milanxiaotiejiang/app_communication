@@ -87,7 +87,7 @@ void PublishOutManager::publishAppJson(int version, const std_msgs::String &mess
     }
 }
 
-void PublishOutManager::publishAlarm(const internal_event::AlarmEvent& alarmEvent) const {
+void PublishOutManager::publishAlarm(const internal_event::AlarmEvent &alarmEvent) const {
     VersionSubscribe<internal_event::AlarmEvent> versionSubscribe(1, alarmEvent);
 
     RequestModel<VersionSubscribe<internal_event::AlarmEvent>> requestModel(

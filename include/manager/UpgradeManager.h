@@ -75,7 +75,7 @@ public:
                 } else {
                     CombinationDetail combination_detail_temp(combination_brief_temp);
                     std::vector<string> part_not_mached = combination_brief_temp.toDetail(combination_detail_temp,
-                                                                                     view_part_list_temp);//用于验证是否有未匹配的iewpart
+                                                                                          view_part_list_temp);//用于验证是否有未匹配的iewpart
                     if (part_not_mached.size() > 0) {
                         for (auto &item: part_not_mached) {
                             CombinationManager::get_instance()->DelatePartID(item);

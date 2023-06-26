@@ -53,7 +53,7 @@ public:
 
     void publishAppCommunication(const std_msgs::String &message) const;
 
-    void publishAlarm(const internal_event::AlarmEvent& alarmEvent) const;
+    void publishAlarm(const internal_event::AlarmEvent &alarmEvent) const;
 
     void publishKnob(const VersionSubscribe<KnobStatus> &versionSubscribe) const;
 

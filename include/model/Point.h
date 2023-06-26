@@ -10,7 +10,9 @@
 
 
 using json = nlohmann::json;
+
 class Line;
+
 class Point {
 private:
     float x;

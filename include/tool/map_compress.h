@@ -14,6 +14,6 @@ std::vector<int> compressValueQuantity(const std::vector<int> &maps);
 
 std::vector<int> decompressValueQuantity(const std::vector<int> &compress);
 
-cv::Mat vector2Mat(const std::vector<int>& maps, int rows, int cols);
+cv::Mat vector2Mat(const std::vector<int> &maps, int rows, int cols);
 
 #endif //APP_COMMUNICATION_MAP_COMPRESS_H

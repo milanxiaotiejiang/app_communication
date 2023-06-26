@@ -42,9 +42,9 @@ bool ModeValidate::validateCartographer(node::State state) {
     cond.wait_for(lck, std::chrono::seconds(5));
 
     LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  Cartographer 最终启动结果 "
-              << "  state： " << static_cast<int>(state)
-              << "  carto_mode： " << NodeControl::instance().cartoMode()
-              << "  heart_beat： " << NodeControl::instance().heart_beat;
+                             << "  state： " << static_cast<int>(state)
+                             << "  carto_mode： " << NodeControl::instance().cartoMode()
+                             << "  heart_beat： " << NodeControl::instance().heart_beat;
 
     // 0定位，1建图，2睡眠
     switch (state) {
@@ -82,7 +82,8 @@ bool ModeValidate::validateMoveBase(int open) {
             sleep(1);
 
             int moveBaseMode = getMoveBaseMode();
-            LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
+            LOG_IF(INFO, DEBUG_NODE)
+            << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
             if (open == moveBaseMode) {
                 wait_cv.notify_one();
                 end_loop = true;
@@ -149,7 +150,8 @@ bool ModeValidate::validateMotorServer() {
     if (callReadyCheckFirst) {
         return true;
     }
-    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer 首次校验结果 " << callReadyCheckFirst << " ------------------------------ ";
+    LOG_IF(INFO, DEBUG_NODE)
+    << "ModeValidate  MotorServer 首次校验结果 " << callReadyCheckFirst << " ------------------------------ ";
 
     sleep(2);
 
@@ -157,6 +159,7 @@ bool ModeValidate::validateMotorServer() {
     if (callReadyCheckAgain) {
         return true;
     }
-    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer 再次校验结果 " << callReadyCheckAgain << " ------------------------------ ";
+    LOG_IF(INFO, DEBUG_NODE)
+    << "ModeValidate  MotorServer 再次校验结果 " << callReadyCheckAgain << " ------------------------------ ";
     return false;
 }

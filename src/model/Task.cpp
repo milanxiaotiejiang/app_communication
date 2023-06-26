@@ -120,11 +120,13 @@ void Task::setPolygon(const CleanPolygon &polygon) {
 
 Task::Task(const std::string &taskId, int mode, int rate, const WorkStatus &workStatus, const CleanPolygon &polygon,
            const std::vector<float> &zoned, const CleanContinuity &continuity, const TeachPathInfo &teach_path,
-           const std::string &launchPeople, long launchTime, const std::string &timeMode, bool inExecute) : task_id(taskId),
-                                                                                                  mode(mode),
-                                                                                                  time_mode(timeMode),
-                                                                                                  in_execute(
-                                                                                                          inExecute) {}
+           const std::string &launchPeople, long launchTime, const std::string &timeMode, bool inExecute) : task_id(
+        taskId),
+                                                                                                            mode(mode),
+                                                                                                            time_mode(
+                                                                                                                    timeMode),
+                                                                                                            in_execute(
+                                                                                                                    inExecute) {}
 
 const TeachPathInfo &Task::getTeachPath() const {
     return teach_path;

@@ -29,7 +29,7 @@ public:
 
 class CombinationPartListStrategyV2 : public MessageStrategy<std::string, std::vector<ViewPartUpgrade>> {
 public:
-std::vector<ViewPartUpgrade> handler(std::string params) override;
+    std::vector<ViewPartUpgrade> handler(std::string params) override;
 };
 
 class CombinationPartDeleteStrategy : public MessageStrategy<std::string, std::string> {

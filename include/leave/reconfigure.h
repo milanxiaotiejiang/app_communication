@@ -23,11 +23,11 @@ private:
 
 public:
 
-    void d(double value)  ;
+    void d(double value);
 
-    void i(int value) ;
+    void i(int value);
 
-    void b(bool value) ;
+    void b(bool value);
 
 };
 

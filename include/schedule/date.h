@@ -1255,10 +1255,10 @@ template<class T> inline constexpr bool is_clock_v = is_clock<T>::value;
                             std::int32_t,
                             typename std::conditional
                                     <
-                                    digits < 64,
-                                    std::int64_t,
+                                            digits < 64,
+                                            std::int64_t,
 #ifdef __SIZEOF_INT128__
-                                    __int128
+                                            __int128
 #else
                                     std::int64_t
 #endif
@@ -7303,13 +7303,13 @@ scan_keyword(std::basic_istream<CharT, Traits>& is, FwdIter kb, FwdIter ke)
                         }
                         if (U != not_a_week_num) {
                             auto start = sys_days(Sunday[1] / January / ymd.year());
-                            auto U_trial = floor<weeks>(sys_days(ymd) - start).count() + 1;
+                            auto U_trial = floor < weeks > (sys_days(ymd) - start).count() + 1;
                             if (U != U_trial)
                                 goto broken;
                         }
                         if (W != not_a_week_num) {
                             auto start = sys_days(Monday[1] / January / ymd.year());
-                            auto W_trial = floor<weeks>(sys_days(ymd) - start).count() + 1;
+                            auto W_trial = floor < weeks > (sys_days(ymd) - start).count() + 1;
                             if (W != W_trial)
                                 goto broken;
                         }
@@ -7346,7 +7346,7 @@ scan_keyword(std::basic_istream<CharT, Traits>& is, FwdIter kb, FwdIter ke)
                 }
                 if (H != not_a_hour) {
                     fds.has_tod = true;
-                    fds.tod = hh_mm_ss<Duration>{hours{H}};
+                    fds.tod = hh_mm_ss < Duration > {hours{H}};
                 }
                 if (M != not_a_minute) {
                     fds.has_tod = true;

@@ -143,20 +143,20 @@ void AsyncTaskCall::handleStop() {
 void AsyncTaskCall::handleTask(const RealTask &realTask) {
     if (isUnrecoverableError()) {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 程序达到不可恢复状态，不能接受任何数据，当前状态 "
-                  << "epoll_manual " << epoll_manual << " "
-                  << "epoll_special " << epoll_special << " "
-                  << "epoll_error " << epoll_error << " "
-                  << "urgency_stop " << urgency_stop << " ";
+                                 << "epoll_manual " << epoll_manual << " "
+                                 << "epoll_special " << epoll_special << " "
+                                 << "epoll_error " << epoll_error << " "
+                                 << "urgency_stop " << urgency_stop << " ";
         return;
     }
     if (isUrgencyStop()) {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 急停拦截，不能接受 task 了 " << realTask.getId() << " "
-                  << "urgency_stop " << urgency_stop << " ";
+                                 << "urgency_stop " << urgency_stop << " ";
         return;
     }
     if (isManualMode()) {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动模式开启，暂不接受 task " << realTask.getId() << " "
-                  << "epoll_error " << epoll_error << " ";
+                                 << "epoll_error " << epoll_error << " ";
         return;
     }
 
@@ -263,7 +263,8 @@ void AsyncTaskCall::handleBlockManualControl(const RealBlock &block) {
             processControl(block);
             break;
         default:
-            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动接管期间不必要接受 " << output_interpolation_block(block.id) << " ...";
+            LOG_IF(INFO, DEBUG_TASK)
+            << "AsyncTaskCall : 手动接管期间不必要接受 " << output_interpolation_block(block.id) << " ...";
             break;
     }
 }
@@ -344,15 +345,15 @@ void AsyncTaskCall::garbage(event::SB sb) {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall plannerQueue: " << plannerQueue.size();
 
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall firstRetryCount: " << firstRetryCount
-              << " , backBaseRetryCount : " << backBaseRetryCount
-              << " , rechargeRetryCount : " << rechargeRetryCount;
+                             << " , backBaseRetryCount : " << backBaseRetryCount
+                             << " , rechargeRetryCount : " << rechargeRetryCount;
 
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall OpenMechanism: " << flowOpenMechanismPoint.arrive
-              << " , CloseMechanism : " << flowCloseMechanismPoint.arrive
-              << " , OutStation : " << flowOutStationPoint.arrive
-              << " , EndSleep : " << flowEndSleepPoint.arrive
-              << " , InBase : " << flowInBasePoint.arrive
-              << " , InStation : " << flowInStationPoint.arrive;
+                             << " , CloseMechanism : " << flowCloseMechanismPoint.arrive
+                             << " , OutStation : " << flowOutStationPoint.arrive
+                             << " , EndSleep : " << flowEndSleepPoint.arrive
+                             << " , InBase : " << flowInBasePoint.arrive
+                             << " , InStation : " << flowInStationPoint.arrive;
 
     MechanismManager::instance().resetWorkStatus();
 
@@ -550,7 +551,8 @@ void AsyncTaskCall::callUrgencyStop() {
         }
         if (isContinueWork(event_flow, true)) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
-            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : event_flow : " << event_flow << "   " << recoverableEmergencyStop();
+            LOG_IF(INFO, DEBUG_TASK)
+            << "AsyncTaskCall : event_flow : " << event_flow << "   " << recoverableEmergencyStop();
             setEpollManual(loop::manual_epoll::manual_pause);
             if (isRechargeFLow(event_flow)) {
                 LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
@@ -964,8 +966,8 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
                     isCarpetAndPack = true;
                     MechanismManager::instance().resetBelowWorkStatus();
                     LOG_IF(INFO, DEBUG_TASK) << "NativeSystemManager : executeCarpet "
-                              << "  检测到地毯并且已经收起清洁机构"
-                              << " ...";
+                                             << "  检测到地毯并且已经收起清洁机构"
+                                             << " ...";
                     for (int i = 0; i < 15; i++) {
                         carpetStop();
                         ros::Duration(0.3).sleep();
@@ -975,8 +977,8 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
                 if (isCarpetAndPack) {
                     isCarpetAndPack = false;
                     LOG_IF(INFO, DEBUG_TASK) << "NativeSystemManager : executeCarpet "
-                              << "  离开地毯，且机构已收起，执行再次放下清洁机构"
-                              << " ...";
+                                             << "  离开地毯，且机构已收起，执行再次放下清洁机构"
+                                             << " ...";
                     MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus(), runTask.isKnife());
                 }
             }

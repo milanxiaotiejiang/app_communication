@@ -308,6 +308,25 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new SetRainSnowStrategy();
             break;
 
+        case GET_COLLECT_DUST:
+            messageStrategy = new GetCollectDustStrategy();
+            break;
+        case SET_COLLECT_DUST:
+            messageStrategy = new SetCollectDustStrategy();
+            break;
+        case GET_AUTO_OIL:
+            messageStrategy = new GetAutoOilStrategy();
+            break;
+        case SET_AUTO_OIL:
+            messageStrategy = new SetAutoOilStrategy();
+            break;
+        case GET_MAINTENANCE_START_TIME:
+            messageStrategy = new GetMaintenanceStartTimeStrategy();
+            break;
+        case SET_MAINTENANCE_START_TIME:
+            messageStrategy = new SetMaintenanceStartTimeStrategy();
+            break;
+
         case MAP_OBSTACLES:
             messageStrategy = new MapObstaclesStrategy();
             break;
@@ -462,6 +481,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
 
     int end_time = ros::Time::now().sec;
     LOG_IF(INFO, DEBUG_REQUEST) << "----------------" << "JsonSubscribe end : " << entrance.getMethod() << " "
-              << end_time - start_time << " s " << "----------------";
+                                << end_time - start_time << " s " << "----------------";
 
 }

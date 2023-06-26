@@ -40,8 +40,8 @@ void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
             } else {
 //                setFlow(event::flow::software_interrupt_task);
                 LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 多次返回摆渡点失败， 直接记为“任务执行完成且返回了基站点”， " <<
-                          "backBaseRetryCount : " << backBaseRetryCount <<
-                          "rechargeRetryCount : " << rechargeRetryCount << " ...";
+                                         "backBaseRetryCount : " << backBaseRetryCount <<
+                                         "rechargeRetryCount : " << rechargeRetryCount << " ...";
                 setFlow(event::flow::flowing_water_execution_completed);
             }
         }
@@ -161,18 +161,21 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             break;
         }
         case event::flow::try_recharging_again: {
-            LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 回充失败 rechargeRetryCount : " << rechargeRetryCount << " , 再次返回基站点位置 ...";
+            LOG_IF(INFO, DEBUG_TASK)
+            << "HeadTailPointCall : 回充失败 rechargeRetryCount : " << rechargeRetryCount << " , 再次返回基站点位置 ...";
             backBaseRetryCount = 0;
             callBackBasePoint();
             break;
         }
         case event::flow::try_move_base_point_again: {
-            LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 返回基站点位失败 backBaseRetryCount : " << backBaseRetryCount << " , 重试中 ...";
+            LOG_IF(INFO, DEBUG_TASK)
+            << "HeadTailPointCall : 返回基站点位失败 backBaseRetryCount : " << backBaseRetryCount << " , 重试中 ...";
             callBackBasePoint();
             break;
         }
         case event::flow::hardware_interrupt_task: {
-            LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 清洁机构出错，执行返回基站命令 错误 ： " << output_interpolation_block(block.id);
+            LOG_IF(INFO, DEBUG_TASK)
+            << "HeadTailPointCall : 清洁机构出错，执行返回基站命令 错误 ： " << output_interpolation_block(block.id);
             callBackBasePoint();
             break;
         }

@@ -5,8 +5,9 @@
 #include "model/Notice.h"
 
 Notice::Notice(int noticeCode, long noticeTime, const std::string &noticeTitle, const std::string &noticeMessage,
-               const std::string &solution) : notice_code(noticeCode), notice_time(noticeTime), notice_title(noticeTitle),
-                                         notice_message(noticeMessage), solution(solution) {}
+               const std::string &solution) : notice_code(noticeCode), notice_time(noticeTime),
+                                              notice_title(noticeTitle),
+                                              notice_message(noticeMessage), solution(solution) {}
 
 Notice::Notice() {}
 

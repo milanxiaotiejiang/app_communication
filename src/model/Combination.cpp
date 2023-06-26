@@ -115,7 +115,8 @@ bool CombinationBrief::delatePartID(const std::string &part_id) {
     return mached;
 }
 
-std::vector<std::string> CombinationBrief::toDetail(CombinationDetail &combination_detail, ViewPartList &view_part_list) {
+std::vector<std::string>
+CombinationBrief::toDetail(CombinationDetail &combination_detail, ViewPartList &view_part_list) {
     std::vector<std::string> part_not_mached;
     CombinationDetail combination_detail_temp(*this);
     std::vector<ViewPart> view_part_list_temp = view_part_list.GetViewPartList();
@@ -261,7 +262,8 @@ bool CombinationBriefList::getCombination(CombinationBrief &combination_brief, c
     return false;
 }
 
-bool CombinationBriefList::resetCombination(const CombinationBrief &combination_brief, const std::string &combination_id) {
+bool
+CombinationBriefList::resetCombination(const CombinationBrief &combination_brief, const std::string &combination_id) {
     for (auto &item: m_combination_brief_list) {
         if (item.getCombinationID() == combination_id) {
             item = combination_brief;

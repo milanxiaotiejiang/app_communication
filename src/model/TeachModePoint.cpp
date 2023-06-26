@@ -59,9 +59,11 @@ void TeachModeProcess() {
                 abs(pose_now.position.y - pose_last.position.y) > 0.05) {
                 if (point_count > 1) {
                     if (is_in_line(pose_now, pose_last, pose_last_last)) {
-                        std::cout << "point1 " << pose_last_last.position.x << " , " << pose_last_last.position.y << " and "
-                             << "point2 " << pose_last.position.x << " , " << pose_last.position.y << " and "
-                             << "point3 " << pose_now.position.x << " , " << pose_now.position.y << "共线" << std::endl;
+                        std::cout << "point1 " << pose_last_last.position.x << " , " << pose_last_last.position.y
+                                  << " and "
+                                  << "point2 " << pose_last.position.x << " , " << pose_last.position.y << " and "
+                                  << "point3 " << pose_now.position.x << " , " << pose_now.position.y << "共线"
+                                  << std::endl;
                         Points.pop_back();
                     }
                 }
@@ -424,8 +426,8 @@ TeachPathInfo::TeachPathInfo() {}
 
 TeachPathInfo::TeachPathInfo(const std::string &teachPathId, const std::vector<Point> &teachPointList) : teach_path_id(
         teachPathId),
-                                                                                               teach_point_list(
-                                                                                                       teachPointList) {}
+                                                                                                         teach_point_list(
+                                                                                                                 teachPointList) {}
 
 TeachPathInfo::~TeachPathInfo() {
 }

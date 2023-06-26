@@ -29,7 +29,7 @@ public:
 
 class CombinationCombinationListStrategyV2 : public MessageStrategy<std::string, std::vector<CombinationBriefUpgrade>> {
 public:
-std::vector<CombinationBriefUpgrade> handler(std::string params) override;
+    std::vector<CombinationBriefUpgrade> handler(std::string params) override;
 };
 
 class CombinationCombinationDetailsStrategy : public MessageStrategy<std::string, CombinationDetail> {

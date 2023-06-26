@@ -171,7 +171,7 @@ int otaStrategy::handlePad(OtaInfo &params) {
         ros::Duration(2).sleep();
         LOG_IF(INFO, DEBUG_OTA) << "Send notice to pad:" << noticeFile << "  " << i;
         NoticeManager::instance().sendNotice(6666, noticeTime, noticeFile, params.getota_desc(),
-                                                  filename); //文件名传递给pad
+                                             filename); //文件名传递给pad
     }
     return result;
 }
@@ -208,7 +208,8 @@ int otaStrategy::handleEcu(OtaInfo &params) {
     std::size_t found2 = ecu_path.find_last_of(".");
     path.data = ecu_ota_folder + ecu_path.substr(found + 1, ecu_path.length() - found);
     path.data = ecu_ota_folder + ecu_path.substr(found + 1, ecu_path.length() - found - 5) + ".rbl";
-    LOG_IF(INFO, DEBUG_OTA) << "Notify driver ecu ota start:" << ecu_path.substr(found + 1, ecu_path.length() - found) << "  ";
+    LOG_IF(INFO, DEBUG_OTA)
+    << "Notify driver ecu ota start:" << ecu_path.substr(found + 1, ecu_path.length() - found) << "  ";
     PublishInnerManager::instance().publishOtaLow(path); //发给下位机
     return 0;
 }

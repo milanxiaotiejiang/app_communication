@@ -151,9 +151,9 @@ bool CartographerServiceClient::callSensorStatus() {
         bool laserStatus = srv.response.laser_status;//激光雷达
         bool localizationStatus = srv.response.localization_status;//定位
         LOG_IF(INFO, DEBUG_NODE) << "callSensorStatus  hlsStatus : " << hlsStatus
-                  << " , imuStatus : " << imuStatus
-                  << " , laserStatus : " << laserStatus
-                  << " , localizationStatus : " << localizationStatus;
+                                 << " , imuStatus : " << imuStatus
+                                 << " , laserStatus : " << laserStatus
+                                 << " , localizationStatus : " << localizationStatus;
     } else {
         LOG(ERROR) << "Failed to call service sensor_status ...";
     }
@@ -172,9 +172,9 @@ bool CartographerServiceClient::callReadyCheck() {
         bool laserStatus = srv.response.laser_status;//激光雷达
         bool bumpTriggeredStatus = srv.response.bump_triggered;//后碰撞
         LOG_IF(INFO, DEBUG_NODE) << "callReadyCheck  hlsStatus : " << hlsStatus
-                  << " , imuStatus : " << imuStatus
-                  << " , laserStatus : " << laserStatus
-                  << " , bumpTriggeredStatus : " << bumpTriggeredStatus;
+                                 << " , imuStatus : " << imuStatus
+                                 << " , laserStatus : " << laserStatus
+                                 << " , bumpTriggeredStatus : " << bumpTriggeredStatus;
         return hlsStatus && imuStatus && laserStatus && !bumpTriggeredStatus;
     } else {
         LOG(ERROR) << "Failed to call service ready_check ...";

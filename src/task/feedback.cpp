@@ -133,8 +133,8 @@ void TaskFeedback::feedback(geometry_msgs::Pose2D data) {
 
         if (!Environment::instance().isRealEnvironment) {
             LOG_IF(INFO, DEBUG_TASK) << "### area_px : " << area_px << " , plan_px : " << plan_px << "  "
-                      << run_task_id << " 真实面积/总面积 = " << (clear_px * 1.0 / area_px)
-                      << " , 真实面积/规划面积 = " << (clear_px * 1.0 / plan_px);
+                                     << run_task_id << " 真实面积/总面积 = " << (clear_px * 1.0 / area_px)
+                                     << " , 真实面积/规划面积 = " << (clear_px * 1.0 / plan_px);
         }
 
         for (const auto &item: points) {

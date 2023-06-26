@@ -246,10 +246,10 @@ void AsyncTaskFramework::callSwitchWorkMode(const std::function<void(bool work)>
                 async::TimerCall::instance().baseLoop()->cancelAny();
             }
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 工作模式启动状态 "
-                      << "  是否是工作 ： " << NodeControl::instance().isWork()
-                      << "  是否是建图 ： " << NodeControl::instance().isMap()
-                      << "  是否是睡眠 ： " << NodeControl::instance().isSleep()
-                      << " ...";
+                                     << "  是否是工作 ： " << NodeControl::instance().isWork()
+                                     << "  是否是建图 ： " << NodeControl::instance().isMap()
+                                     << "  是否是睡眠 ： " << NodeControl::instance().isSleep()
+                                     << " ...";
             notify_one([this, &f]() {
                 f(isWorkMode());
             });

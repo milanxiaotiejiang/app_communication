@@ -29,7 +29,7 @@ public:
 
     void pathActive();
 
-    void pathFeedback(const replan_msgs::ReplanFeedbackConstPtr& pose);
+    void pathFeedback(const replan_msgs::ReplanFeedbackConstPtr &pose);
 
     void pathDone(const actionlib::SimpleClientGoalState &state);
 

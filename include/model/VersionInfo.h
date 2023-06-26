@@ -23,9 +23,9 @@ public:
 
     VersionInfo(std::string airCodeVersion, std::string dsHardVersion, std::string dsSoftVersion,
                 std::string appPadVersion) : air_code_version(std::move(airCodeVersion)),
-                                        ds_hard_version(std::move(dsHardVersion)),
-                                        ds_soft_version(std::move(dsSoftVersion)),
-                                        app_pad_version(std::move(appPadVersion)) {}
+                                             ds_hard_version(std::move(dsHardVersion)),
+                                             ds_soft_version(std::move(dsSoftVersion)),
+                                             app_pad_version(std::move(appPadVersion)) {}
 
     friend void to_json(json &j, const VersionInfo &info) {
         j = json{

@@ -5,9 +5,11 @@
 #include "model/UpgradeModel.h"
 
 CombinationBriefUpgrade::CombinationBriefUpgrade(const std::string &combinationId, const std::string &name, int rate,
-                                                 const std::vector<std::string> &partIdList) : combination_id(combinationId),
-                                                                                     name(name), rate(rate),
-                                                                                     part_id_list(partIdList) {}
+                                                 const std::vector<std::string> &partIdList) : combination_id(
+        combinationId),
+                                                                                               name(name), rate(rate),
+                                                                                               part_id_list(
+                                                                                                       partIdList) {}
 
 const std::string &CombinationBriefUpgrade::getCombinationId() const {
     return combination_id;
@@ -114,18 +116,19 @@ void WorkStatusUpgrade::setAromatherapyStatus(int st) {
 
 ViewPartUpgrade::ViewPartUpgrade() {}
 
-ViewPartUpgrade::ViewPartUpgrade(int mode, const std::string &name, const std::string &partId, const std::vector<Point> &polygon,
+ViewPartUpgrade::ViewPartUpgrade(int mode, const std::string &name, const std::string &partId,
+                                 const std::vector<Point> &polygon,
                                  int rate, const std::vector<Point> &teach, const std::string &pathId,
                                  const WorkStatusUpgrade &workStatus, const std::vector<Point> &zoned) : mode(mode),
-                                                                                                    name(name),
-                                                                                                    part_id(partId),
-                                                                                                    polygon(polygon),
-                                                                                                    rate(rate),
-                                                                                                    teach(teach),
-                                                                                                    path_id(pathId),
-                                                                                                    work_status(
-                                                                                                            workStatus),
-                                                                                                    zoned(zoned) {}
+                                                                                                         name(name),
+                                                                                                         part_id(partId),
+                                                                                                         polygon(polygon),
+                                                                                                         rate(rate),
+                                                                                                         teach(teach),
+                                                                                                         path_id(pathId),
+                                                                                                         work_status(
+                                                                                                                 workStatus),
+                                                                                                         zoned(zoned) {}
 
 int ViewPartUpgrade::getMode() const {
     return mode;
@@ -513,7 +516,8 @@ void TaskUpgrade::setFullPath(const FullPath &fullPath) {
 TaskUpgrade::TaskUpgrade() {}
 
 TaskUpgrade::TaskUpgrade(const std::string &taskId, int mode, int rate, const WorkStatusUpgrade &workStatus,
-                         const CleanPolygon &polygon, const std::vector<float> &zoned, const CleanContinuity &continuity,
+                         const CleanPolygon &polygon, const std::vector<float> &zoned,
+                         const CleanContinuity &continuity,
                          const TeachPathInfo &teachPath, const std::string &launchPeople, long launchTime,
                          const std::string &timeMode, bool inExecute, const Combination &combination,
                          const FullPath &fullPath) : task_id(taskId), mode(mode), rate(rate), work_status(workStatus),
@@ -624,6 +628,7 @@ const std::vector<CombinationBriefWork> &CombinationBriefWorkList::getMCombinati
     return m_combination_brief_list;
 }
 
-void CombinationBriefWorkList::setMCombinationBriefList(const std::vector<CombinationBriefWork> &mCombinationBriefList) {
+void
+CombinationBriefWorkList::setMCombinationBriefList(const std::vector<CombinationBriefWork> &mCombinationBriefList) {
     m_combination_brief_list = mCombinationBriefList;
 }
