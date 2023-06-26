@@ -64,7 +64,7 @@ public:
                       int multipleContourSpacing,
                       int random_number_generation_ratio,
                       int boundary_min_area,
-                      int version = 3
+                      int version = CURRENT_PLAN_VERSION
     );
 
     void removePlanParam(const std::string &mapId);

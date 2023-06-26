@@ -103,7 +103,7 @@ void MapAttribute::loadPlanParam() {
         loadDefaultPlanParam();
     }
     auto planPo2 = SegmentationDataBase::instance().getDbPlan(map_id);
-    if (planPo2.version < 3) {
+    if (planPo2.version < 4) {
         SegmentationDataBase::instance().removePlanParam(map_id);
         loadDefaultPlanParam();
     }
