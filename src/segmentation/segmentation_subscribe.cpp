@@ -16,6 +16,8 @@
 #include "leave/map_control.h"
 #include "task/manager/manual.h"
 #include "leave/HotWindNote.h"
+#include "leave/auto_maintenance_mode.h"
+#include "leave/ParamManager.h"
 
 SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
     sub_node_control_ = handle.subscribe("/segmentation_task", 1, &SegmentationSubscribe::segmentationSubscribeCallback,
@@ -23,6 +25,9 @@ SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
     sub_order_control_ = handle.subscribe("/segmentation_order", 1,
                                           &SegmentationSubscribe::segmentationOrderSubscribeCallback,
                                           this);
+    sub_test_control_ = handle.subscribe("/segmentation_test", 1,
+                                         &SegmentationSubscribe::segmentationTestSubscribeCallback,
+                                         this);
 }
 
 void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 &flag_result) {
@@ -67,4 +72,10 @@ void SegmentationSubscribe::segmentationOrderSubscribeCallback(const std_msgs::I
     } catch (...) {
         LOG(ERROR) << "MessageStrategy other start exception";
     }
+}
+
+void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::Int32 &flag_result) {
+    auto flag = flag_result.data;
+    ParamManager::instance().setMaintenanceStartTime(flag);
+    AutoMaintenanceModeManager::instance().reset();
 }

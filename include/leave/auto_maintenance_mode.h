@@ -21,9 +21,11 @@ private:
 
     void auto_maintenance_thread_func();
 
-    std::chrono::system_clock::time_point end;
+    std::chrono::system_clock::time_point end_time_point;
 
-    bool startMaintenanceMode;
+    bool isResetTime;
+
+    void autoMaintenance();
 
 public:
     static auto &instance() {
@@ -33,13 +35,15 @@ public:
 
     void run();
 
-    bool isMaintenanceMode();
+    void reset();
+
+    std::chrono::system_clock::time_point calculate_end_point_time() const;
+
+    static bool isMaintenanceMode();
 
     static bool isTimeInRange(long maintenanceStartTime);
 
     static std::chrono::system_clock::time_point calculate_next_time(long maintenanceStartTime);
-
-    void autoMaintenance();
 };
 
 

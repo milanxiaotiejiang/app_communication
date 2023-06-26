@@ -163,10 +163,8 @@ void ScheduleThread::startScheduleCheck() {
     //设置清扫计时器
 
     std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
-    std::cout << "timeinfo file  " << fileName << std::endl;
     if (!fff->open(std::ios::in)) {
         if (!fff->create(fileName)) {
-            std::cout << "fail to create timeinfo file" << std::endl;
             return;
         }
     } else {
@@ -243,8 +241,6 @@ void ScheduleThread::startScheduleCheck() {
 void ScheduleThread::subscribeCallback(const std_msgs::String &result) {
     std::string decode = result.data; // base64消息解码成string
     json jdecode = json::parse(decode);
-    std::cout << "timeinfo file subscribeCallback209   " << std::endl;
-    //
     //
     std::string fileName;
 
@@ -253,10 +249,8 @@ void ScheduleThread::subscribeCallback(const std_msgs::String &result) {
     //设置清扫计时器
     // sh::File *fff = new sh::File(fileName);
     std::shared_ptr<sh::File> fff = std::make_shared<sh::File>(fileName);
-    std::cout << "timeinfo file subscribeCallback " << fileName << std::endl;
     if (!fff->open(std::ios::in)) {
 
-        std::cout << "fail to read timeinfo file in subscribeCallback" << std::endl;
     } else {
         stimer_list = fff->readAll();
         fff->close();

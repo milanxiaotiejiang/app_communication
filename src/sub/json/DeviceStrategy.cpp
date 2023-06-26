@@ -6,6 +6,7 @@
 #include "leave/ParamManager.h"
 #include "db/segmentation_data_base.h"
 #include "db/task_data_base.h"
+#include "leave/auto_maintenance_mode.h"
 
 /**
  * @brief Get the Device Status Strategy::date Progressing object获取机器当前状态
@@ -181,6 +182,7 @@ bool GetAutoOilStrategy::handler(std::string params) {
 
 std::string SetMaintenanceStartTimeStrategy::handler(long params) {
     ParamManager::instance().setMaintenanceStartTime(params);
+    AutoMaintenanceModeManager::instance().reset();
     return "";
 }
 

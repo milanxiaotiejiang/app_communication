@@ -16,10 +16,7 @@
 #include "task/manager/manual.h"
 
 void AutoMaintenanceModeManager::run() {
-    long maintenanceStartTime = ParamManager::instance().getMaintenanceStartTime();
-    auto next_time_point = AutoMaintenanceModeManager::calculate_next_time(maintenanceStartTime);
-    end = next_time_point;
-//    end = std::chrono::system_clock::now();
+    end_time_point = calculate_end_point_time();
     auto_maintenance_thread = std::thread(&AutoMaintenanceModeManager::auto_maintenance_thread_func, this);
     auto_maintenance_thread.detach();
 }
@@ -28,62 +25,83 @@ void AutoMaintenanceModeManager::auto_maintenance_thread_func() {
     while (true) {
 
         std::unique_lock<std::mutex> lk(auto_maintenance_mutex);
-        LOG_IF(INFO, DEBUG_MAINTENANCE) << "自动维护下次执行时间 ： " << ScheduleManager::format_time_point(end);
-        
-        auto_maintenance_cv.wait_until(lk, end);
+        LOG_IF(INFO, DEBUG_MAINTENANCE) << "自动维护下次执行时间 ： " << ScheduleManager::format_time_point(end_time_point);
 
-        if (ZooInnerStatus::instance().getIsCharging()) {
-            autoMaintenance();
+        auto_maintenance_cv.wait_until(lk, end_time_point, [this]() {
+            return isResetTime;
+        });
+        if (isResetTime) {
+            isResetTime = false;
         } else {
-            back_base_thread = std::thread([this]() {
-                try {
-                    ManualManager::instance().backToBase(false);
-                } catch (app::exception const &e) {
-                    LOG(ERROR) << e.what();
-                } catch (const std::exception &e) {
-                    LOG(ERROR) << e.what();
-                } catch (...) {
-                    LOG(ERROR) << "MessageStrategy other start exception";
-                }
+            if (ZooInnerStatus::instance().getIsCharging()) {
+                autoMaintenance();
+            } else {
+                back_base_thread = std::thread([this]() {
+                    try {
+                        ManualManager::instance().backToBase(false);
+                    } catch (app::exception const &e) {
+                        LOG(ERROR) << e.what();
+                    } catch (const std::exception &e) {
+                        LOG(ERROR) << e.what();
+                    } catch (...) {
+                        LOG(ERROR) << "MessageStrategy other start exception";
+                    }
 
-                int count = 0;
-                while (count > 5) {
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
-                    count++;
-                    bool inBaseStation = ZooInnerStatus::instance().getIsCharging();
-                    if (inBaseStation)
-                        count = 5;
-                }
+                    int count = 0;
+                    while (count < 5) {
+                        std::this_thread::sleep_for(std::chrono::minutes(1));
+                        count++;
+                        bool inBaseStation = ZooInnerStatus::instance().getIsCharging();
+                        if (inBaseStation)
+                            count = 5;
+                    }
 
-                if (ZooInnerStatus::instance().getIsCharging()) {
-                    autoMaintenance();
-                } else {
-                    LOG(ERROR) << "规定时间内未返回基站...";
-                }
+                    if (ZooInnerStatus::instance().getIsCharging()) {
+                        autoMaintenance();
+                    } else {
+                        LOG(ERROR) << "规定时间内未返回基站...";
+                    }
 
-            });
-            back_base_thread.detach();
+                });
+                back_base_thread.detach();
+            }
         }
+        end_time_point = calculate_end_point_time();
     }
 }
 
-void AutoMaintenanceModeManager::autoMaintenance() {
-    if (ParamManager::instance().getAutoOil()) {
-        std_msgs::Int32 message;
-        message.data = 1;
-        PublishInnerManager::instance().publishOil();
+void AutoMaintenanceModeManager::reset() {
+    {
+        std::unique_lock<std::mutex> lk(auto_maintenance_mutex);
+        isResetTime = true;
     }
+    auto_maintenance_cv.notify_one();
+}
 
+std::chrono::system_clock::time_point AutoMaintenanceModeManager::calculate_end_point_time() const {
+    long maintenanceStartTime = ParamManager::instance().getMaintenanceStartTime();
+    auto next_time_point = calculate_next_time(maintenanceStartTime);
+    return next_time_point;
+}
+
+void AutoMaintenanceModeManager::autoMaintenance() {
     async::TimerCall::instance().baseLoop()
-            ->scheduleLater(std::chrono::seconds(5), []() {
-                if (ParamManager::instance().getCollectDust()) {
-                    PublishInnerManager::instance().publishCollectDust();
+            ->scheduleLater(std::chrono::seconds(1), []() {
+                LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil status " << ParamManager::instance().getAutoOil();
+                if (ParamManager::instance().getAutoOil()) {
+                    PublishInnerManager::instance().publishOil();
+                    LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil publish ";
                 }
             });
 
-    long maintenanceStartTime = ParamManager::instance().getMaintenanceStartTime();
-    auto next_time_point = calculate_next_time(maintenanceStartTime);
-    end = next_time_point;
+    async::TimerCall::instance().baseLoop()
+            ->scheduleLater(std::chrono::minutes(5), []() {
+                LOG_IF(INFO, DEBUG_MAINTENANCE) << "collectDust status " << ParamManager::instance().getCollectDust();
+                if (ParamManager::instance().getCollectDust()) {
+                    PublishInnerManager::instance().publishCollectDust();
+                    LOG_IF(INFO, DEBUG_MAINTENANCE) << "collectDust publish ";
+                }
+            });
 }
 
 bool AutoMaintenanceModeManager::isMaintenanceMode() {
