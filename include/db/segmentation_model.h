@@ -102,14 +102,14 @@ max_area_for_merging: 12.5              #应与其周围房间合并的房间的
     const double min_critical_point_distance_factor_ = 0.5;
     const double max_area_for_merging_ = 12.5;
 
-    const int distance_from_obstacles_ = 4;
+    const int distance_from_obstacles_ = 5;
     const int number_extension_ = 1;
     const int multiple_contour_spacing_ = 0;
     const int random_number_generation_ratio_ = 100;
     const int boundary_min_area_ = 1;
  */
 
-const int CURRENT_PLAN_VERSION = 3;
+const int CURRENT_PLAN_VERSION = 4;
 
 class PlanPo {
 public:

@@ -137,7 +137,7 @@ void on_http(server *s, websocketpp::connection_hdl hdl) {
 }
 
 void on_fail(server *s, websocketpp::connection_hdl hdl) {
-    server::connection_ptr con = s->get_con_from_hdl(hdl);
+    server::connection_ptr con = s->get_con_from_hdl(std::move(hdl));
     {
         std::unique_lock<std::mutex> lock(askMutex);
         mMap.clear();
@@ -146,7 +146,7 @@ void on_fail(server *s, websocketpp::connection_hdl hdl) {
     LOG(WARNING) << "Fail handler: " << con->get_ec() << " " << con->get_ec().message();
 }
 
-void on_close(websocketpp::connection_hdl hdl) {
+void on_close(const websocketpp::connection_hdl& hdl) {
     LOG(WARNING) << "Close handler";
     {
         std::unique_lock<std::mutex> lock(askMutex);
@@ -154,7 +154,7 @@ void on_close(websocketpp::connection_hdl hdl) {
     }
 }
 
-void on_open(server *s, websocketpp::connection_hdl hdl) {
+void on_open(server *s, const websocketpp::connection_hdl& hdl) {
     LOG(WARNING) << "Open handler" << std::endl;
 
     auto con = s->get_con_from_hdl(hdl);
