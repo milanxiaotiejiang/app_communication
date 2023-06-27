@@ -54,17 +54,11 @@ public:
 
     int SearchPartID(const std::string &part_id);
 
-    bool SearchPathID(const std::string &path_id);
-
     int DelatePartID(const std::string &part_id);
-
-    bool DelatePathID(const std::string &path_id);
 
     int ResetCombination(const CombinationBrief &combination_brief, const std::string &combination_id);
 
     int GetCombination(CombinationBrief &combination_brief, const std::string &combination_id);
-
-    bool ShowAllCombination();
 
     int setMainCombination(const std::string &combination_id);
 
@@ -84,4 +78,4 @@ public:
 };
 
 
-#endif//APP_COMMUNICATION_VIEWPARTMANAGER_H
+#endif//APP_COMMUNICATION_COMBINATIONMANAGER_H

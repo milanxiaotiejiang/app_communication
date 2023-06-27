@@ -25,5 +25,5 @@ void AbnormalSubject::notify() {
     while (it != nodeObserverList.end()) {
         (*it)->update();
         it++;
-    };
+    }
 }

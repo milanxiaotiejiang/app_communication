@@ -97,7 +97,7 @@ namespace croncpp {
         //   std::cout<<now_tm.tm_year << "  "<< now_tm.tm_mon<<"  "<<now_tm.tm_mday<<" "<< now_tm.tm_hour<<"  "<<now_tm.tm_min<<"  "<<now_tm.tm_sec<<std::endl;
         bool beExpired = false;
         time_t ltime_new = mktime(&now_tm);
-        beExpired = true ? ltime_new > ltime_old : ltime_old > ltime_new;
+        beExpired = ltime_new > ltime_old;
         if (!beExpired) curr += hours{1};
         //  std::cout <<"calculate_from_end:   "<< ltime_new<<"   "<<ltime_old << std::endl;
         return std::make_tuple(true, curr);

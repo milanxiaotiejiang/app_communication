@@ -15,7 +15,7 @@ DSVersionSubscribe::DSVersionSubscribe(ros::NodeHandle handle) : handle(handle) 
     std_msgs::Int32 version;
     version.data = 0;
     PublishInnerManager::instance().publishDSVersion(version);
-    sleep(0.5);
+    sleep(1);
     version.data = 1;
     PublishInnerManager::instance().publishDSVersion(version);
 

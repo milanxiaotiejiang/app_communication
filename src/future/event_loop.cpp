@@ -30,6 +30,7 @@ namespace async {
 //        };
 
         std::this_thread::sleep_for(timeout);
+        return true;
     }
 
     EventLoop::EventLoop() {

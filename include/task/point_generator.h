@@ -33,10 +33,6 @@ protected:
                                        const std::vector<std::vector<PoseVo>> &complexList,
                                        std::vector<RealBlock> &blockList);
 
-    static void combinationPose2RealPoint(RealTask realTask, std::vector<CombinationPoseVo> poseList,
-                                          std::vector<RealBlock> &realPointList);
-
-
 public:
     virtual std::vector<RealBlock> taskGeneratePointList(RealTask &task) = 0;
 

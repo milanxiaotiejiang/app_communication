@@ -42,7 +42,7 @@ namespace APP_COMMUNICATION_VERSION {
         V1,
         V2
     };
-};
+}
 
 class WsServerManager {
 public:

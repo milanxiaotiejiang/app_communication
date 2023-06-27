@@ -117,3 +117,5 @@ int ViewPartManager::GetViewPartList(ViewPartList &view_part_list) {
     view_part_list = m_view_part_list;
     return SUCCESS_;
 }
+
+ViewPartManager::~ViewPartManager() = default;

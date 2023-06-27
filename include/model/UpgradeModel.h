@@ -121,14 +121,6 @@ public:
 
     void setAromatherapyStatus(int st);
 
-    std::string getPushMsg() const;
-
-    void setPushMsg(std::string ss);
-
-    std::string getSweepMsg() const;
-
-    void setSweepMsg(std::string ss);
-
     friend void to_json(json &j, const WorkStatusUpgrade &b) {
         j = json{
                 {"sweep_status",        b.sweep_status},
@@ -348,10 +340,6 @@ public:
     const std::string &getTaskId() const;
 
     void setTaskId(const std::string &taskId);
-
-    const WorkStatusUpgrade &getWorkStatus() const;
-
-    void setWorkStatus(const WorkStatusUpgrade &workStatus);
 
     int getCleanArea() const;
 

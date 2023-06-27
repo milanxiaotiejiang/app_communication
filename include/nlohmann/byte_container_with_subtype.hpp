@@ -50,7 +50,7 @@ order to override the binary type.
         }
 
         bool operator!=(const byte_container_with_subtype &rhs) const {
-            return !(rhs == *this);
+            return rhs != *this;
         }
 
         /*!

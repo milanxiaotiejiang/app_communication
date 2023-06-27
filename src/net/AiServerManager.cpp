@@ -20,6 +20,7 @@
 #include "vector"
 
 #include <boost/bind.hpp>
+#include <utility>
 
 #include "manager/PublishInnerManager.h"
 #include "ai_msgs/MultiRectangles.h"
@@ -79,15 +80,15 @@ struct AiData {
 
 
 void ai_fail(server *s, websocketpp::connection_hdl hdl) {
-    server::connection_ptr con = s->get_con_from_hdl(hdl);
+    server::connection_ptr con = s->get_con_from_hdl(std::move(hdl));
     LOG(WARNING) << "Fail handler: " << con->get_ec() << " " << con->get_ec().message();
 }
 
-void ai_close(websocketpp::connection_hdl hdl) {
+void ai_close(const websocketpp::connection_hdl& hdl) {
     LOG(WARNING) << "Close handler";
 }
 
-void ai_open(server *s, websocketpp::connection_hdl hdl) {
+void ai_open(server *s, const websocketpp::connection_hdl& hdl) {
     LOG(WARNING) << "Open handler" << std::endl;
 
 }
@@ -161,6 +162,7 @@ public:
         } catch (...) {
             LOG(ERROR) << "other start exception";
         }
+        return nullptr;
     }
 
     void stopThread() {

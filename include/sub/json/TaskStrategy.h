@@ -9,7 +9,6 @@
 #include <std_msgs/Int32.h>
 
 #include "net/base/BaseResult.h"
-#include "model/Partion.h"
 #include "model/Point.h"
 #include "model/Task.h"
 #include "string"

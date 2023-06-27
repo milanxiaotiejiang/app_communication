@@ -185,6 +185,8 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             softwareInterruptTask(block);
             break;
         }
+        case event::waiting_for_task:
+            break;
     }
 }
 

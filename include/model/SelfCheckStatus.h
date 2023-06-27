@@ -56,8 +56,6 @@ public:
 
     ~SelfCheckStatus() {}
 
-    void self_check_reset();
-
     //传入信息时调用的方法。
     void set_camera(bool b) {
         m_camera_check = b;

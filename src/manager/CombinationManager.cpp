@@ -146,8 +146,6 @@ int CombinationManager::GetCombination(CombinationBrief &combination_brief, cons
     return SUCCESS_;
 }
 
-bool CombinationManager::ShowAllCombination() {}
-
 int CombinationManager::setMainCombination(const std::string &combination_id) {
     if (!FileOpenRead()) {
         return FAILD_TO_OPEN_FILE_;
@@ -188,3 +186,5 @@ int CombinationManager::cancelMainCombination(const std::string &combination_id)
     }
     return SUCCESS_;
 }
+
+CombinationManager::~CombinationManager() = default;

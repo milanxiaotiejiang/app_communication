@@ -81,22 +81,22 @@ namespace clean_history_db {
         }
 
         //初始化清洁历史数据库
-        bool initalize() {
+        void initalize() {
             clean_history_storage_.sync_schema();
         }
 
         //添加一条清洁历史
-        bool addCleanHistory(CleanHistory clean_history) {
+        void addCleanHistory(CleanHistory clean_history) {
             clean_history_storage_.replace(clean_history);
         }
 
         //清除所有清洁历史
-        bool removeAll() {
+        void removeAll() {
             clean_history_storage_.remove_all<CleanHistory>();
         }
 
         //更新清洁历史
-        bool updateHistory(CleanHistory clean_history) {
+        void updateHistory(CleanHistory clean_history) {
             clean_history_storage_.replace(clean_history);
         }
 

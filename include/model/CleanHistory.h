@@ -191,26 +191,6 @@ public:
 
     ~CleanHistoryList();
 
-    const std::vector<CleanHistory> &GetCleanHistoryList() const;
-
-    void SetCleanHistoryList(const std::vector<CleanHistory> &clean_history_list);
-
-    bool AddCleanHistory(const CleanHistory &clean_history);
-
-    bool GetCleanHistory(CleanHistory &clean_history, const std::string &taskId);
-
-    bool GetLatestCleanHistory(CleanHistory &clean_history) {
-        if (m_clean_history_list.size() > 0) {
-            clean_history = m_clean_history_list.back();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    bool ResetCleanHistory(const CleanHistory &clean_history, const std::string &taskId);
-
-    void ShowAllCleanHistory();
 };
 
 

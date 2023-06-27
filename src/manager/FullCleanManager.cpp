@@ -147,5 +147,7 @@ int FullCleanManager::cancelMainFullCLean(const std::string &full_clean_id) {
     return SUCCESS_;
 }
 
+FullCleanManager::~FullCleanManager() = default;
+
 
 

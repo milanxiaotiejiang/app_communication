@@ -21,7 +21,7 @@ void AutoMaintenanceModeManager::run() {
     auto_maintenance_thread.detach();
 }
 
-void AutoMaintenanceModeManager::auto_maintenance_thread_func() {
+[[noreturn]] void AutoMaintenanceModeManager::auto_maintenance_thread_func() {
     while (true) {
 
         std::unique_lock<std::mutex> lk(auto_maintenance_mutex);

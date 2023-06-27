@@ -35,7 +35,7 @@ namespace MessageSource {
         WebSocket,
         Cloud
     };
-};
+}
 
 class MessageBaseStrategy {
 public:

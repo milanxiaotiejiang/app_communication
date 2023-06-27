@@ -641,7 +641,7 @@ namespace nlohmann {
                 // use a pointer to fill the buffer
                 auto buffer_ptr = number_buffer.begin(); // NOLINT(llvm-qualified-auto,readability-qualified-auto,cppcoreguidelines-pro-type-vararg,hicpp-vararg)
 
-                const bool is_negative = std::is_signed<NumberType>::value && !(x >= 0); // see issue #755
+                const bool is_negative = std::is_signed<NumberType>::value && x < 0; // see issue #755
                 number_unsigned_t abs_value;
 
                 unsigned int n_chars{};

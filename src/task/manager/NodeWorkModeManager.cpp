@@ -112,6 +112,7 @@ bool NodeWorkModeManager::asyncWorkMode(WorkMode mode) {
         message.data = mode;
         pub_node_.publish(message);
     }
+    return true;
 }
 
 bool NodeWorkModeManager::tryToWork() {
@@ -314,4 +315,5 @@ bool NodeWorkModeManager::forceEnterWorkMode(int enter) {
     } else {
         LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager forceEnterWorkMode unknown " << enter;
     }
+    return true;
 }

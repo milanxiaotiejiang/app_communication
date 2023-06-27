@@ -247,7 +247,7 @@ public:
         // 绝对位置两帧之间跳变超过阈值
         if ((abs(last_tracked_pose_x - current_tracked_pose_x) >= POSE_THRESHOLD) ||
             (abs(last_tracked_pose_y - current_tracked_pose_y) >= POSE_THRESHOLD)) {
-            if (tracked_pose_valid == true) {
+            if (tracked_pose_valid) {
                 tracked_pose_valid = false;
                 setPublish();
             }
@@ -262,14 +262,14 @@ public:
     void biasDetectCB(const std_msgs::Int16ConstPtr &msg) {
         // 定位丢了
         if (msg->data == 1) {
-            if (localization_lost == false) {
+            if (!localization_lost) {
                 bias_detect_valid = false; //从没丢到丢，置为false
             }
             localization_lost = true;
         }
         // 定位正常
         if (msg->data == 0) {
-            if (localization_lost == true) {
+            if (localization_lost) {
                 bias_detect_valid = true;
             }
             localization_lost = false;
@@ -333,7 +333,7 @@ public:
             // 里程计两帧之间跳变超过阈值
             if ((abs(last_odom_pose_x - current_odom_pose_x) >= ODOM_THRESHOLD) ||
                 (abs(last_odom_pose_y - current_odom_pose_y) >= ODOM_THRESHOLD)) {
-                if (valid_ == true) {
+                if (valid_) {
                     valid_ = false;
                     setPublish();
                 }
@@ -387,7 +387,7 @@ public:
         u_char battery = battery_msg->data;
         // check if go on battery jump
         if (last_battery != 255 && abs(last_battery - battery) >= BATTERY_THRESHOLD) {
-            if (battery_valid == true) {
+            if (battery_valid) {
                 battery_valid = false;
                 setPublish();
             }

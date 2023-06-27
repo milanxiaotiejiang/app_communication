@@ -70,7 +70,6 @@
 #include "client/linux/handler/minidump_descriptor.h"
 #include "task/TaskCenter.h"
 #include "future/timer_call.h"
-#include "sub/BiasDetectSubscribe.h"
 #include "task/manager/NodeWorkModeManager.h"
 #include "clean_history/CleanHistoryCenter.h"
 #include "model/FullClean.h"

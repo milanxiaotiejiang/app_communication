@@ -54,14 +54,6 @@ public:
 
     void setCurrentMap(const MapInfo &currentMap);
 
-    bool isInCleaning() const;
-
-    void setInCleaning(bool inCleaning);
-
-    bool isInReturning() const;
-
-    void setInReturning(bool inReturning);
-
     bool getLockStatus() const;
 
     void setLockStatus(bool lockStatus);

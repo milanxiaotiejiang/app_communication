@@ -1317,7 +1317,7 @@ namespace nlohmann {
             // such a conversion is required to allow values greater than 128.
             // See <https://github.com/nlohmann/json/issues/1286> for a discussion.
             template<typename C = CharType,
-                    enable_if_t<std::is_signed<C>::value && std::is_signed<char>::value> * = nullptr>
+                    enable_if_t<std::is_signed<C>::value> * = nullptr>
             static constexpr CharType to_char_type(std::uint8_t x) noexcept {
                 return *reinterpret_cast<char *>(&x);
             }
@@ -1342,7 +1342,6 @@ namespace nlohmann {
             template<typename InputCharType, typename C = CharType,
                     enable_if_t<
                             std::is_signed<C>::value &&
-                            std::is_signed<char>::value &&
                             std::is_same<char, typename std::remove_cv<InputCharType>::type>::value
                     > * = nullptr>
             static constexpr CharType to_char_type(InputCharType x) noexcept {

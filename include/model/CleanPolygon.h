@@ -48,4 +48,4 @@ public:
 
 };
 
-#endif //C_PTHREAD_POLYGONLISTTASK_H
+#endif //C_PTHREAD_CLEANPOLYGONTTASK_H

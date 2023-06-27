@@ -246,10 +246,6 @@ public:
 
     void setGetHeartBeat(bool getHeartBeat);
 
-    bool isStarted1() const;
-
-    void setIsStarted(bool isStarted);
-
     static void open();
 
     const std::string &getTeachPathId() const;

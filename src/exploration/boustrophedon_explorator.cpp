@@ -107,14 +107,14 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
     if (tsp_solver == TSP_GENETIC) {
         //ROS默认使用的计算TSP遍历顺序的算法是遗传算法，且会先将地图缩放0.25倍后进行计算。默认使用的是GeneticTSPSolver，即用遗传算法来求解区间遍历顺序
         LOG_IF(INFO, DEBUG_EXPLORATION) << "GeneticTSPSolver .. ";
-        GeneticTSPSolver tsp_solver;
-        optimal_order = tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 0.25, 0.0, map_resolution,
-                                                   start_cell_index, 0);
+        GeneticTSPSolver genetic_tsp_solver;
+        optimal_order = genetic_tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 0.25, 0.0, map_resolution,
+                                                   start_cell_index, nullptr);
         if (optimal_order.size() != polygon_centers.size()) {
             LOG_IF(INFO, DEBUG_EXPLORATION)
             << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
-            optimal_order = tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
-                                                       map_resolution, start_cell_index, 0);
+            optimal_order = genetic_tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
+                                                       map_resolution, start_cell_index, nullptr);
         }
     } else if (tsp_solver == TSP_NEAREST_NEIGHBOR) {
         // 一种通过计算最临近区域求出TSP近似解的方式，不追求下方的遗传学 TSP 的最优解，只求近似解为止（比下方步缺少一步）
@@ -122,12 +122,12 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         LOG_IF(INFO, DEBUG_EXPLORATION) << "NearestNeighborTSPSolver .. ";
         NearestNeighborTSPSolver neighbor_tsp_solver;
         optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 0.2, 0.0,
-                                                            map_resolution, start_cell_index, 0);
+                                                            map_resolution, start_cell_index, nullptr);
         if (optimal_order.size() != polygon_centers.size()) {
             LOG_IF(INFO, DEBUG_EXPLORATION)
             << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
             optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
-                                                                map_resolution, start_cell_index, 0);
+                                                                map_resolution, start_cell_index, nullptr);
         }
     }
 

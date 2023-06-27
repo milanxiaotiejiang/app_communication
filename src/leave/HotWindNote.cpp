@@ -94,5 +94,5 @@ void HotWindNoteSingleton::closeHotWind() {
 }
 
 bool HotWindNoteSingleton::isHotWind() {
-    return getHotWindNote().isHotWind();;
+    return getHotWindNote().isHotWind();
 }

@@ -19,7 +19,7 @@ private:
     std::thread auto_maintenance_thread;
     std::thread back_base_thread;
 
-    void auto_maintenance_thread_func();
+    [[noreturn]] void auto_maintenance_thread_func();
 
     std::chrono::system_clock::time_point end_time_point;
 
