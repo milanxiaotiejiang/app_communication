@@ -150,10 +150,14 @@ bool CartographerServiceClient::callSensorStatus() {
         bool imuStatus = srv.response.imu_status;//imu
         bool laserStatus = srv.response.laser_status;//激光雷达
         bool localizationStatus = srv.response.localization_status;//定位
+        bool camera1Status = srv.response.camera1_status;
+        bool camera2Status = srv.response.camera2_status;
         LOG_IF(INFO, DEBUG_NODE) << "callSensorStatus  hlsStatus : " << hlsStatus
                                  << " , imuStatus : " << imuStatus
                                  << " , laserStatus : " << laserStatus
-                                 << " , localizationStatus : " << localizationStatus;
+                                 << " , localizationStatus : " << localizationStatus
+                                 << " , camera1Status : " << camera1Status
+                                 << " , camera2Status : " << camera2Status;
     } else {
         LOG(ERROR) << "Failed to call service sensor_status ...";
     }
@@ -171,11 +175,15 @@ bool CartographerServiceClient::callReadyCheck() {
         bool imuStatus = srv.response.imu_status;//imu
         bool laserStatus = srv.response.laser_status;//激光雷达
         bool bumpTriggeredStatus = srv.response.bump_triggered;//后碰撞
+        bool camera1Status = srv.response.camera1_status;
+        bool camera2Status = srv.response.camera2_status;
         LOG_IF(INFO, DEBUG_NODE) << "callReadyCheck  hlsStatus : " << hlsStatus
                                  << " , imuStatus : " << imuStatus
                                  << " , laserStatus : " << laserStatus
-                                 << " , bumpTriggeredStatus : " << bumpTriggeredStatus;
-        return hlsStatus && imuStatus && laserStatus && !bumpTriggeredStatus;
+                                 << " , bumpTriggeredStatus : " << bumpTriggeredStatus
+                                 << " , camera1Status : " << camera1Status
+                                 << " , camera2Status : " << camera2Status;
+        return hlsStatus && imuStatus && laserStatus && !bumpTriggeredStatus && camera1Status && camera2Status;
     } else {
         LOG(ERROR) << "Failed to call service ready_check ...";
         return result;
