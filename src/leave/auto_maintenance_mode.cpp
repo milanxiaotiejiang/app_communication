@@ -48,9 +48,10 @@ void AutoMaintenanceModeManager::run() {
                     }
 
                     int count = 0;
-                    while (count < 5) {
+                    while (count < 10) {
                         std::this_thread::sleep_for(std::chrono::minutes(1));
                         count++;
+                        LOG_IF(INFO, DEBUG_MAINTENANCE) << "持续检查是否返回基站了 " << count << " ...";
                         bool inBaseStation = ZooInnerStatus::instance().getIsCharging();
                         if (inBaseStation)
                             count = 5;
@@ -85,36 +86,59 @@ std::chrono::system_clock::time_point AutoMaintenanceModeManager::calculate_end_
 }
 
 void AutoMaintenanceModeManager::autoMaintenance() {
-    async::TimerCall::instance().baseLoop()
-            ->scheduleLater(std::chrono::seconds(1), []() {
-                LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil status " << ParamManager::instance().getAutoOil();
-                if (ParamManager::instance().getAutoOil()) {
-                    PublishInnerManager::instance().publishOil();
-                    LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil publish ";
-                }
-            });
+    if (ParamManager::instance().getAutoOil() && ParamManager::instance().getCollectDust()) {
+        LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil and collectDust 1 ";
+        async::TimerCall::instance().baseLoop()
+                ->scheduleLater(std::chrono::seconds(1), []() {
+                    LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil status " << ParamManager::instance().getAutoOil();
+                    if (ParamManager::instance().getAutoOil()) {
+                        PublishInnerManager::instance().publishOil();
+                        LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil publish ";
+                    }
+                });
 
-    async::TimerCall::instance().baseLoop()
-            ->scheduleLater(std::chrono::minutes(5), []() {
-                LOG_IF(INFO, DEBUG_MAINTENANCE) << "collectDust status " << ParamManager::instance().getCollectDust();
-                if (ParamManager::instance().getCollectDust()) {
-                    PublishInnerManager::instance().publishCollectDust();
-                    LOG_IF(INFO, DEBUG_MAINTENANCE) << "collectDust publish ";
-                }
-            });
+        async::TimerCall::instance().baseLoop()
+                ->scheduleLater(std::chrono::minutes(5), []() {
+                    LOG_IF(INFO, DEBUG_MAINTENANCE)
+                    << "collectDust status " << ParamManager::instance().getCollectDust();
+                    if (ParamManager::instance().getCollectDust()) {
+                        PublishInnerManager::instance().publishCollectDust();
+                        LOG_IF(INFO, DEBUG_MAINTENANCE) << "collectDust publish ";
+                    }
+                });
+    } else if (ParamManager::instance().getAutoOil()) {
+        LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil and collectDust 2 ";
+        async::TimerCall::instance().baseLoop()
+                ->scheduleLater(std::chrono::seconds(1), []() {
+                    LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil status " << ParamManager::instance().getAutoOil();
+                    if (ParamManager::instance().getAutoOil()) {
+                        PublishInnerManager::instance().publishOil();
+                        LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil publish ";
+                    }
+                });
+    } else if (ParamManager::instance().getCollectDust()) {
+        LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil and collectDust 3 ";
+        async::TimerCall::instance().baseLoop()
+                ->scheduleLater(std::chrono::seconds(1), []() {
+                    LOG_IF(INFO, DEBUG_MAINTENANCE)
+                    << "collectDust status " << ParamManager::instance().getCollectDust();
+                    if (ParamManager::instance().getCollectDust()) {
+                        PublishInnerManager::instance().publishCollectDust();
+                        LOG_IF(INFO, DEBUG_MAINTENANCE) << "collectDust publish ";
+                    }
+                });
+    }
+
 }
 
 bool AutoMaintenanceModeManager::isMaintenanceMode() {
-    bool isCollectDust = ParamManager::instance().getCollectDust();
-    bool isAutoOil = ParamManager::instance().getAutoOil();
-    if (!isCollectDust && !isAutoOil) {
-        return false;
-    }
+//    bool isCollectDust = ParamManager::instance().getCollectDust();
+//    bool isAutoOil = ParamManager::instance().getAutoOil();
+//    if (!isCollectDust && !isAutoOil) {
+//        return false;
+//    }
     long maintenanceStartTime = ParamManager::instance().getMaintenanceStartTime();
-    if (isTimeInRange(maintenanceStartTime)) {
-        return false;
-    }
-    return true;
+    return isTimeInRange(maintenanceStartTime);
 }
 
 bool AutoMaintenanceModeManager::isTimeInRange(long maintenanceStartTime) {
@@ -123,7 +147,7 @@ bool AutoMaintenanceModeManager::isTimeInRange(long maintenanceStartTime) {
     std::tm now_tm = *std::localtime(&now_c);
 
     int start_minutes = maintenanceStartTime;
-    int end_minutes = maintenanceStartTime + 12 * 60;
+    int end_minutes = maintenanceStartTime + 4 * 60;
     int current_minutes = now_tm.tm_hour * 60 + now_tm.tm_min;
 
     if (start_minutes <= end_minutes) {

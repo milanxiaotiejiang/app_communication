@@ -299,7 +299,7 @@ void initDump() {
 }
 
 void initTest(int argc, char **argv) {
-    if (Environment::instance().isRealEnvironment) {
+    if (!Environment::instance().isRealEnvironment) {
         Catch::Session().run(argc, argv);
     }
 }
