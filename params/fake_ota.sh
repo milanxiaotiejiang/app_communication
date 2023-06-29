@@ -247,4 +247,5 @@ fi
 
   echo "Updating 2.0.2"
   update_cartographer_rplidar
+  update_cartographer_localization
   update_cartographer_launch
