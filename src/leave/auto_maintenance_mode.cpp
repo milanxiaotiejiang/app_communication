@@ -54,7 +54,7 @@ void AutoMaintenanceModeManager::run() {
                         LOG_IF(INFO, DEBUG_MAINTENANCE) << "持续检查是否返回基站了 " << count << " ...";
                         bool inBaseStation = ZooInnerStatus::instance().getIsCharging();
                         if (inBaseStation)
-                            count = 5;
+                            count = 10;
                     }
 
                     if (ZooInnerStatus::instance().getIsCharging()) {
