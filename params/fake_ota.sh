@@ -256,6 +256,7 @@ then
   update_cartographer_launch
 fi
 
-
+  echo "Updating 2.0.3"
+  update_move_base_params
 
 
