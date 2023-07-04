@@ -74,20 +74,20 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        generatePlanningPathFull(map, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
-                                 exploration_path, point_path, complex_path);
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        generatePlanningPathFull(map, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
+//                                 exploration_path, point_path, complex_path);
     }
 
     //4
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        try {
-            const cv::Mat &map = SegmentationCenter::instance().generateMat();
-            infinitelyNearBoundary(map, true, exploration_path, point_path, complex_path);
-            pathPublish(exploration_path);
-        } catch (...) {
-
-        }
+//        try {
+//            const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//            infinitelyNearBoundary(map, true, exploration_path, point_path, complex_path);
+//            pathPublish(exploration_path);
+//        } catch (...) {
+//
+//        }
     }
 
     //5
@@ -95,7 +95,7 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 //        tcr::coverageProportion();
     }
 
-    pathPublish(exploration_path);
+//    pathPublish(exploration_path);
 }
 
 void ExplorationCenter::uninstall() {
@@ -149,10 +149,10 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     if (addProhibition) {
         //禁区虚拟墙
         cv::Mat prohibition_image = prohibitionMat(map);
-        if (DISPLAY_TRAJECTORY_EFFECT) {
-            cv::imshow("prohibition_image", prohibition_image);
-            cv::waitKey();
-        }
+//        if (DISPLAY_TRAJECTORY_EFFECT) {
+//            cv::imshow("prohibition_image", prohibition_image);
+//            cv::waitKey();
+//        }
         cv::Mat andMat;
         cv::bitwise_and(map, prohibition_image, andMat);
         cv::bitwise_xor(map, andMat, map);
@@ -192,7 +192,8 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     //Minimum area of one cell for the boustrophedon explorator. 拆分各段分割地图后的面积最小值（16）
     double min_cell_area_ = std::max(area_px / 2000.0, plan.min_cell_area);
     //Minimal distance between two points on the generated path [pixel]. 覆盖路径中两点之间的最小距离，单位像素 px，例如 20，20 * 0.05 = 1m（8）
-    double path_eps_ = std::max(std::floor(grid_spacing_in_pixel), plan.path_eps);
+//    double path_eps_ = std::max(std::floor(grid_spacing_in_pixel), plan.path_eps);
+    double path_eps_ = plan.path_eps;
     //Allows to displace the grid by more than the standard half_grid_size from obstacles [m].（0.1）
     double grid_obstacle_offset_ = plan.grid_obstacle_offset;//0.0;
     //Maximal allowed shift off the ideal boustrophedon track for avoiding obstacles on track, in [pixel]. For negative values max_deviation_from_track is automatically set to grid_spacing.（-1）
@@ -446,7 +447,8 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, bool add
     int random_number_generation_ratio = plan.random_number_generation_ratio;
     int boundary_min_area = plan.boundary_min_area;
 
-    double path_eps_ = std::max(std::floor(grid_spacing_in_pixel), plan.path_eps);
+//    double path_eps_ = std::max(std::floor(grid_spacing_in_pixel), plan.path_eps);
+    double path_eps_ = plan.path_eps;
 
     LOG_IF(INFO, DEBUG_EXPLORATION)
     << "(infinitely near boundary) distance_from_obstacles: " << distance_from_obstacles;
