@@ -74,20 +74,20 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//        generatePlanningPathFull(map, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
-//                                 exploration_path, point_path, complex_path);
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        generatePlanningPathFull(map, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
+                                 exploration_path, point_path, complex_path);
     }
 
     //4
     if (DISPLAY_TRAJECTORY_EFFECT) {
-//        try {
-//            const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//            infinitelyNearBoundary(map, true, exploration_path, point_path, complex_path);
-//            pathPublish(exploration_path);
-//        } catch (...) {
-//
-//        }
+        try {
+            const cv::Mat &map = SegmentationCenter::instance().generateMat();
+            infinitelyNearBoundary(map, true, exploration_path, point_path, complex_path);
+            pathPublish(exploration_path);
+        } catch (...) {
+
+        }
     }
 
     //5
@@ -95,7 +95,7 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 //        tcr::coverageProportion();
     }
 
-//    pathPublish(exploration_path);
+    pathPublish(exploration_path);
 }
 
 void ExplorationCenter::uninstall() {
@@ -206,22 +206,27 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
                     << "RoomExplorationServer::exploreRoom: Warning: Obstacles around the base station.";
             throw app::exception(make_error_code(error::exploration_obstacles_around_the_base_station));
         }
+
+        cv::erode(map, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size * 2 - 1);
         explorationErode(map, map, cv::MORPH_CROSS, map_prohibition_expand_size_);
     } else if (model == ExplorationModel::SUB) {
-        cv::Mat generate_map = loadGenerateMap((int) std::floor(grid_spacing_in_pixel));
+        cv::Mat generate_map = loadGenerateMap(map_prohibition_expand_size_,
+                                               plan.map_correction_closing_neighborhood_size * 2 - 1);
         cv::Mat temp;
         cv::bitwise_xor(map, generate_map, temp);
         cv::bitwise_and(map, temp, temp);
         cv::bitwise_xor(map, temp, map);
     } else if (model == ExplorationModel::RECT) {
-        cv::Mat generate_map = loadGenerateMap((int) std::floor(grid_spacing_in_pixel));
+        cv::Mat generate_map = loadGenerateMap(map_prohibition_expand_size_,
+                                               plan.map_correction_closing_neighborhood_size * 2 - 1);
+
         min_cell_area_ = 0;
         cv::Mat temp;
         cv::bitwise_xor(map, generate_map, temp);
         cv::bitwise_and(map, temp, temp);
         cv::bitwise_xor(map, temp, map);
 
-        cv::dilate(map, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size * 2);
+        cv::dilate(map, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
 
         cv::Mat dst;
         cv::resize(map, dst, cv::Size(), 2.0, 2.0, CV_INTER_LINEAR);
@@ -347,7 +352,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
         planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT) {
-        planning_pose_path_display(room_map, map_origin, complex_path, 1, "optimizePlanningPath ");
+        planning_pose_path_display(room_map, map_origin, complex_path, 3, "optimizePlanningPath ");
     }
 
 //    std_msgs::Header header;
@@ -952,12 +957,14 @@ RoomCoverage ExplorationCenter::findRoomCoverage(const std::string &coverageId, 
     throw std::range_error("There is no find key : " + coverageId + " in coverageCache");
 }
 
-cv::Mat ExplorationCenter::loadGenerateMap(int grid_spacing_in_pixel) {
+cv::Mat ExplorationCenter::loadGenerateMap(int grid_spacing_in_pixel, int expansive_layer_pixel) {
     auto generate_map = SegmentationCenter::instance().generateMat();
     cv::Mat prohibition_image = prohibitionMat(generate_map);
     cv::Mat andMat;
     cv::bitwise_and(generate_map, prohibition_image, andMat);
     cv::bitwise_xor(generate_map, andMat, generate_map);
+
+    cv::erode(generate_map, generate_map, cv::Mat(), cv::Point(-1, -1), expansive_layer_pixel);
     explorationErode(generate_map, generate_map, cv::MORPH_CROSS, grid_spacing_in_pixel);
 
     return generate_map;

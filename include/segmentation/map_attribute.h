@@ -40,8 +40,8 @@ private:
     std::vector<std::vector<Point>> penaltyZoneList;
 
     const double robot_radius_ = 0.26;
-    const int map_correction_closing_neighborhood_size_ = 1;
-    const double grid_obstacle_offset_ = 0.16;
+    const int map_correction_closing_neighborhood_size_ = 2;
+    const double grid_obstacle_offset_ = 0.2;
     const double path_eps_ = 7.0;
     const double min_cell_area_ = 60.0;
     const int max_deviation_from_track_ = -1;

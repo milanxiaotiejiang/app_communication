@@ -68,7 +68,7 @@ private:
     void cvPoint2Pose(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &postList,
                       const std::vector<cv::Point> &pointList, const cv::Point2d &map_origin);
 
-    cv::Mat loadGenerateMap(int grid_spacing_in_pixel);
+    cv::Mat loadGenerateMap(int grid_spacing_in_pixel, int expansive_layer_pixel);
 
     bool detectionTooSmallRoom(const cv::Mat &map, int iterations) const;
 
