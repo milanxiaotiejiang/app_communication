@@ -10,15 +10,25 @@
 
 class ManualManager {
 private:
-    HeadTailPointCall *asyncTaskCall;
+    ManualManager() = default;
+
+    ManualManager(ManualManager &) = delete;
+
+    ManualManager &operator=(const ManualManager &) = delete;
+
+public:
+    ~ManualManager() = default;
+
+private:
+    std::shared_ptr<HeadTailPointCall> asyncTaskCall;
 public:
     static auto &instance() {
         static ManualManager obj;
         return obj;
     }
 
-    void setAsyncTaskCall(HeadTailPointCall *asyncTaskCall) {
-        ManualManager::asyncTaskCall = asyncTaskCall;
+    void setAsyncTaskCall(std::shared_ptr<HeadTailPointCall> asyncTaskCallPtr) {
+        ManualManager::asyncTaskCall = asyncTaskCallPtr;
     }
 
     void backToBase(bool force);

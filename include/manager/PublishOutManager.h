@@ -21,6 +21,16 @@
 
 class PublishOutManager {
 private:
+    PublishOutManager() = default;
+
+    PublishOutManager(PublishOutManager &) = delete;
+
+    PublishOutManager &operator=(const PublishOutManager &) = delete;
+
+public:
+    ~PublishOutManager() = default;
+
+private:
     ros::Publisher pub_response_,//原协议
     pub_response_json_,  //新协议
     pub_robot_status_,   //机器人状态

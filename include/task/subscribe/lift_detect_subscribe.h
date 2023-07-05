@@ -11,14 +11,14 @@
 
 class LiftDetectSubscribe {
     ros::Subscriber sub_lift_;
-    AsyncTaskCall *asyncTaskCall;
+    std::shared_ptr<AsyncTaskCall> asyncTaskCall;
 
     void subscribeCallback(const std_msgs::Int32 &carto_result);
 
 public:
     LiftDetectSubscribe(ros::NodeHandle handle);
 
-    void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
+    void setAsyncTaskCall(std::shared_ptr<AsyncTaskCall> asyncTaskCall) {
         LiftDetectSubscribe::asyncTaskCall = asyncTaskCall;
     }
 };

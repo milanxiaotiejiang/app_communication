@@ -21,6 +21,16 @@ const int MAXIMUM_NUMBER_OF_FORCED_ENTRY = 3;
 
 class NodeWorkModeManager {
 private:
+    NodeWorkModeManager() = default;
+
+    NodeWorkModeManager(NodeWorkModeManager &) = delete;
+
+    NodeWorkModeManager &operator=(const NodeWorkModeManager &) = delete;
+
+public:
+    ~NodeWorkModeManager() = default;
+
+private:
     ros::Publisher pub_node_;
 
     std::condition_variable cv;

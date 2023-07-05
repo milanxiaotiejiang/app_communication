@@ -10,6 +10,16 @@
 
 class VersionManager {
 private:
+    VersionManager() = default;
+
+    VersionManager(VersionManager &) = delete;
+
+    VersionManager &operator=(const VersionManager &) = delete;
+
+public:
+    ~VersionManager() = default;
+
+private:
     std::string air_code_version{"0.0.0.1"};
     std::string ds_hard_version{"0.0.0.1"};
     std::string ds_soft_version{"0.0.0.1"};

@@ -24,6 +24,15 @@ const bool isTimely = false;
 const bool isTestCrash = false;
 
 class Environment {
+private:
+    Environment() = default;
+
+    Environment(Environment &) = delete;
+
+    Environment &operator=(const Environment &) = delete;
+
+public:
+    ~Environment() = default;
 
 public:
     static auto &instance() {

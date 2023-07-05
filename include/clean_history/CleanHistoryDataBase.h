@@ -73,6 +73,16 @@ namespace clean_history_db {
 
     class CleanHistoryDataBase {
     private:
+        CleanHistoryDataBase() = default;
+
+        CleanHistoryDataBase(CleanHistoryDataBase &) = delete;
+
+        CleanHistoryDataBase &operator=(const CleanHistoryDataBase &) = delete;
+
+    public:
+        ~CleanHistoryDataBase() = default;
+
+    private:
         Storage clean_history_storage_ = SqliteDataBase::initStorage();
     public:
         static auto &instance() {

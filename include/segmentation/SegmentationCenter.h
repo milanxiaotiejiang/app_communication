@@ -15,6 +15,16 @@
 
 class SegmentationCenter {
 private:
+    SegmentationCenter() = default;
+
+    SegmentationCenter(SegmentationCenter &) = delete;
+
+    SegmentationCenter &operator=(const SegmentationCenter &) = delete;
+
+public:
+    ~SegmentationCenter() = default;
+
+private:
     bool initialize_finish = false;
 
     SegmentationSubscribe *segmentationSubscribe;

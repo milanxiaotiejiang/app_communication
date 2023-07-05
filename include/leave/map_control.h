@@ -10,6 +10,16 @@
 
 class MapControl {
 private:
+    MapControl() = default;
+
+    MapControl(MapControl &) = delete;
+
+    MapControl &operator=(const MapControl &) = delete;
+
+public:
+    ~MapControl() = default;
+
+private:
     ros::ServiceClient change_map_service_client;
 public:
     static auto &instance() {

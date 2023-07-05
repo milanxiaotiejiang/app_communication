@@ -12,6 +12,16 @@
 //发布模式选择
 class SwitchModePublish {
 private:
+    SwitchModePublish() = default;
+
+    SwitchModePublish(SwitchModePublish &) = delete;
+
+    SwitchModePublish &operator=(const SwitchModePublish &) = delete;
+
+public:
+    ~SwitchModePublish() = default;
+
+private:
     std::mutex cv_m;
     std::condition_variable cv;
 

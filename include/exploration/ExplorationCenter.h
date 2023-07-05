@@ -30,6 +30,16 @@ enum ExplorationModel {
 
 class ExplorationCenter {
 private:
+    ExplorationCenter() = default;
+
+    ExplorationCenter(ExplorationCenter &) = delete;
+
+    ExplorationCenter &operator=(const ExplorationCenter &) = delete;
+
+public:
+    ~ExplorationCenter() = default;
+
+private:
     bool initialize_finish = false;
     std::recursive_mutex cv_mut;
 

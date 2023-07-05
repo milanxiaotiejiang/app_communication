@@ -10,6 +10,16 @@
 
 class PointProgressPublish {
 private:
+    PointProgressPublish() = default;
+
+    PointProgressPublish(PointProgressPublish &) = delete;
+
+    PointProgressPublish &operator=(const PointProgressPublish &) = delete;
+
+public:
+    ~PointProgressPublish() = default;
+
+private:
     ros::Publisher pub_task_point_;
 
 public:

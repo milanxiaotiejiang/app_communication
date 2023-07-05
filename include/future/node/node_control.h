@@ -23,6 +23,16 @@
 
 class NodeControl {
 private:
+    NodeControl() = default;
+
+    NodeControl(NodeControl &) = delete;
+
+    NodeControl &operator=(const NodeControl &) = delete;
+
+public:
+    ~NodeControl() = default;
+
+private:
     ros::NodeHandle nodeHandle;
     async::ThreadPool pool_;
     NodeControlSubscribe *subscribe;

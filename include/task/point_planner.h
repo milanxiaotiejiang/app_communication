@@ -18,6 +18,16 @@ typedef actionlib::SimpleActionClient<replan_msgs::ReplanAction> ReplanAction;
 
 class PointPlanner {
 private:
+    PointPlanner() = default;
+
+    PointPlanner(PointPlanner &) = delete;
+
+    PointPlanner &operator=(const PointPlanner &) = delete;
+
+public:
+    ~PointPlanner() = default;
+
+private:
     bool initialize_finish = false;
 
     ros::NodeHandle handle;

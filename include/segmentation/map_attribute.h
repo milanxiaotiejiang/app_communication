@@ -25,6 +25,16 @@ const int PENALTY_ZONE_DUS_COUNT = 4;
 
 class MapAttribute {
 private:
+    MapAttribute() = default;
+
+    MapAttribute(MapAttribute &) = delete;
+
+    MapAttribute &operator=(const MapAttribute &) = delete;
+
+public:
+    ~MapAttribute() = default;
+
+private:
     bool initialize_finish = false;
 
     std::atomic<bool> creating_map{false};

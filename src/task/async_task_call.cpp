@@ -162,17 +162,17 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
 
     SwitchModePublish::instance().cancel();
 
-    if (isWaitTask(event_flow)) {
+    if (isWaitTask(currentFlow())) {
 
         handleExecuteTask(realTask);
     } else {
-        if (isManualTask(realTask) && isFlowingWater(event_flow)) {
+        if (isManualTask(realTask) && isFlowingWater(currentFlow())) {
             notify_one([this, &realTask]() {
                 waitTaskQueue.push_back(realTask);
                 pushManual(loop::manual_epoll::manual_task_over);
             });
         } else {
-            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : " << event_flow;
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : " << currentFlow();
         }
     }
 }
@@ -198,7 +198,7 @@ void AsyncTaskCall::handleBlock(const RealBlock &block) {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 切换新的任务中，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
-    recordEmergencyStop(event_flow, block);
+    recordEmergencyStop(currentFlow(), block);
     if (isManualControl()) {
         handleBlockManualControl(block);
     } else if (isSpecialDevice()) {
@@ -340,7 +340,7 @@ void AsyncTaskCall::garbage(event::SB sb) {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall epoll_error : " << epoll_error;
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall urgency_stop : " << urgency_stop;
 
-    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall event_flow: " << event_flow;
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall event_flow: " << currentFlow();
 
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall plannerQueue: " << plannerQueue.size();
 
@@ -545,22 +545,22 @@ void AsyncTaskCall::callSubsequentMode(int mode) {
 
 void AsyncTaskCall::callUrgencyStop() {
     if (!isPause()) {
-        if (isPreCompleted(event_flow)) {
+        if (isPreCompleted(currentFlow())) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
-            event_flow = event::flow::cleaning_mechanism_ready;
+            setFlow(event::flow::cleaning_mechanism_ready);
         }
-        if (isContinueWork(event_flow, true)) {
+        if (isContinueWork(currentFlow(), true)) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
             LOG_IF(INFO, DEBUG_TASK)
-            << "AsyncTaskCall : event_flow : " << event_flow << "   " << recoverableEmergencyStop();
+            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
             setEpollManual(loop::manual_epoll::manual_pause);
-            if (isRechargeFLow(event_flow)) {
+            if (isRechargeFLow(currentFlow())) {
                 LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
                 callCancelBackStation();
                 rechargeRetryCount = 0;
                 recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
             }
-            if (isMechanismReady(event_flow)) {
+            if (isMechanismReady(currentFlow())) {
                 recordEmergencyStop(event::flow::cleaning_mechanism_ready, flowOpenMechanismPoint);
             }
             callPause();
@@ -573,7 +573,7 @@ void AsyncTaskCall::callReleaseStop() {
         if (isPause()) {
             if (recoverableSuspend()) {
                 LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 急停可恢复暂停状态 ... ";
-//                if (!isReturningBase(event_flow)) {
+//                if (!isReturningBase(currentFlow())) {
                 MechanismManager::instance().forceControlWorkStatus(baseWorkStatus(), isKnife());
 //                }
             }
@@ -610,8 +610,8 @@ void AsyncTaskCall::callResume() {
 
 void AsyncTaskCall::callPause() {
     MechanismManager::instance().resetWorkStatus();
-    if (isContinueWork(event_flow, true)) {
-        makeSurePause(event_flow);
+    if (isContinueWork(currentFlow(), true)) {
+        makeSurePause(currentFlow());
         PointPlanner::instance().cancelPath();
         async::TimerCall::instance().baseLoop()->cancelAny();
         if (!plannerQueue.empty()) {
@@ -622,8 +622,8 @@ void AsyncTaskCall::callPause() {
 }
 
 void AsyncTaskCall::cancelTaskAndBack() {
-    if (!isReturningBase(event_flow)) {
-        if (isRegularTask(event_flow)) {
+    if (!isReturningBase(currentFlow())) {
+        if (isRegularTask(currentFlow())) {
             PointPlanner::instance().cancelPath();
             async::TimerCall::instance().baseLoop()->cancelAny();
             waitTaskQueue.clear();
@@ -638,7 +638,7 @@ void AsyncTaskCall::cancelTaskAndBack() {
 }
 
 void AsyncTaskCall::cancelTask() {
-    if (isRegularTask(event_flow)) {
+    if (isRegularTask(currentFlow())) {
         PointPlanner::instance().cancelPath();
         async::TimerCall::instance().baseLoop()->cancelAny();
         waitTaskQueue.clear();
@@ -646,9 +646,9 @@ void AsyncTaskCall::cancelTask() {
 }
 
 void AsyncTaskCall::forceInterruptTask(event::SB sb) {
-    if (event_flow != event::flow::waiting_for_task &&
-        event_flow != event::flow::hardware_interrupt_task &&
-        event_flow != event::flow::software_interrupt_task) {
+    if (currentFlow() != event::flow::waiting_for_task &&
+        currentFlow() != event::flow::hardware_interrupt_task &&
+        currentFlow() != event::flow::software_interrupt_task) {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 当前有任务取消任务 ... ";
         PointPlanner::instance().cancelPath();
         async::TimerCall::instance().baseLoop()->cancelAny();
@@ -687,9 +687,9 @@ void AsyncTaskCall::executeOneTask(const RealTask &task) {
 void AsyncTaskCall::executeOnPathDone(event::error error) {
     if (isCharging())
         return;
-    if (isWaitTask(event_flow))
+    if (isWaitTask(currentFlow()))
         return;
-    if (isPreparation(event_flow))
+    if (isPreparation(currentFlow()))
         return;
     if (isUnrecoverableError())
         return;
@@ -772,11 +772,11 @@ void AsyncTaskCall::manualBackToBase(bool force) {
     if (isManualMode()) {
         throw app::exception(make_error_code(error::machine_is_in_manual_mode_command_not_supported));
     }
-    if (isPreparation(event_flow)) {
+    if (isPreparation(currentFlow())) {
         throw app::exception(make_error_code(error::operation_not_allowed_in_outbound));
     }
     if (isPause()) {
-        if (isReturningBase(event_flow)) {
+        if (isReturningBase(currentFlow())) {
             notify_one([this]() {
                 pushManual(loop::manual_epoll::manual_resume);
             });
@@ -786,7 +786,7 @@ void AsyncTaskCall::manualBackToBase(bool force) {
             });
         }
     } else {
-        if (isReturningBase(event_flow)) {
+        if (isReturningBase(currentFlow())) {
             throw app::exception(make_error_code(error::already_returning_to_the_base_station));
         }
         if (force) {
@@ -794,7 +794,7 @@ void AsyncTaskCall::manualBackToBase(bool force) {
                 pushManual(loop::manual_epoll::manual_force_back);
             });
         } else {
-            if (isRegularTask(event_flow)) {
+            if (isRegularTask(currentFlow())) {
                 notify_one([this]() {
                     pushManual(loop::manual_epoll::manual_back);
                 });
@@ -841,7 +841,7 @@ void AsyncTaskCall::manualPause() {
     if (isPause()) {
         throw app::exception(make_error_code(error::it_is_currently_suspended));
     }
-    if (!isContinueWork(event_flow, true)) {
+    if (!isContinueWork(currentFlow(), true)) {
         throw app::exception(make_error_code(error::pause_is_not_supported));
     }
     notify_one([this]() {
@@ -934,10 +934,10 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
     if (isUnrecoverableError()) {
         return;
     }
-    if (isPlannerEmpty(event_flow)) {
+    if (isPlannerEmpty(currentFlow())) {
         return;
     }
-    if (isFlowingWater(event_flow)) {
+    if (isFlowingWater(currentFlow())) {
         notify_one([this, &operation]() {
             pushSpecial(operation);
         });
@@ -954,10 +954,10 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
     if (isUnrecoverableError()) {
         return;
     }
-    if (isPlannerEmpty(event_flow)) {
+    if (isPlannerEmpty(currentFlow())) {
         return;
     }
-    if (isFlowingWater(event_flow)) {
+    if (isFlowingWater(currentFlow())) {
 //        "1.仅在尘推和湿拖模式下识别到地毯后抬起清洁机构；
 //        2.识别到地毯后不关闭香氛或消杀。"
         if (baseWorkStatus().getPushStatus() > 0 || baseWorkStatus().getMopStatus() > 0) {
@@ -1007,13 +1007,13 @@ void AsyncTaskCall::executeLift(bool lift) {
     if (isUnrecoverableError()) {
         return;
     }
-    if (isPreparation(event_flow)) {
+    if (isPreparation(currentFlow())) {
         return;
     }
-    if (isReturningBase(event_flow)) {
+    if (isReturningBase(currentFlow())) {
         return;
     }
-    if (!isRegularTask(event_flow)) {
+    if (!isRegularTask(currentFlow())) {
         return;
     }
     if (lift) {
@@ -1030,7 +1030,7 @@ RealTask AsyncTaskCall::runningTask() const {
 
 std::vector<RealTask> AsyncTaskCall::runTaskList() {
     std::vector<RealTask> result;
-    if (isFlowingWater(event_flow)) {
+    if (isFlowingWater(currentFlow())) {
         result.push_back(runTask);
     }
     return result;
@@ -1038,7 +1038,7 @@ std::vector<RealTask> AsyncTaskCall::runTaskList() {
 
 std::vector<PointProgressVo> AsyncTaskCall::runTaskPointList() {
     std::vector<PointProgressVo> result;
-    if (isFlowingWater(event_flow)) {
+    if (isFlowingWater(currentFlow())) {
         for (const auto &item: finishedPoints) {
             result.push_back(item);
         }

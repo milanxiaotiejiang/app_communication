@@ -11,20 +11,32 @@
 #include "task/RealTask.h"
 #include <replan_msgs/ReplanAction.h>
 
+#include <utility>
+
 /**
  * 点位流转
  */
 class PointRoutine {
 private:
-    AsyncTaskCall *asyncTaskCall;
+    PointRoutine() = default;
+
+    PointRoutine(PointRoutine &) = delete;
+
+    PointRoutine &operator=(const PointRoutine &) = delete;
+
+public:
+    ~PointRoutine() = default;
+
+private:
+    std::shared_ptr<AsyncTaskCall> asyncTaskCall;
 public:
     static auto &instance() {
         static PointRoutine obj;
         return obj;
     }
 
-    void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
-        PointRoutine::asyncTaskCall = asyncTaskCall;
+    void setAsyncTaskCall(std::shared_ptr<AsyncTaskCall> asyncTaskCallPtr) {
+        PointRoutine::asyncTaskCall = asyncTaskCallPtr;
     }
 
     void pathActive();

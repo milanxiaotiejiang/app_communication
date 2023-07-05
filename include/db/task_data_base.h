@@ -11,6 +11,16 @@
 
 class TaskDataBase {
 private:
+    TaskDataBase() = default;
+
+    TaskDataBase(TaskDataBase &) = delete;
+
+    TaskDataBase &operator=(const TaskDataBase &) = delete;
+
+public:
+    ~TaskDataBase() = default;
+
+private:
     TaskStorage taskStorage = SqliteDataBase::initTaskStorage();
 
     void split(const std::string &s, std::vector<std::string> &tokens, char delim = ' ');

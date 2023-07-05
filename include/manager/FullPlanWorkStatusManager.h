@@ -11,6 +11,16 @@
 const std::string FULL_CLEANING_MODE = "full_cleaning_mode.txt";
 
 class FullPlanWorkStatusManager {
+private:
+    FullPlanWorkStatusManager() = default;
+
+    FullPlanWorkStatusManager(FullPlanWorkStatusManager &) = delete;
+
+    FullPlanWorkStatusManager &operator=(const FullPlanWorkStatusManager &) = delete;
+
+public:
+    ~FullPlanWorkStatusManager() = default;
+
 public:
     static auto &instance() {
         static FullPlanWorkStatusManager obj;
