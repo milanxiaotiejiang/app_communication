@@ -647,57 +647,58 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
     TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
 
     if (mode == TaskMode::Zoned) {
-        geometry_msgs::Pose map_origin_pose = MapAttribute::instance().getMapOriginPose();
-        ExplorationCenter &explorationCenter = ExplorationCenter::instance();
-        SegmentationCenter &segmentationCenter = SegmentationCenter::instance();
-        const cv::Mat &room_map = segmentationCenter.generateMat();
-        double rows = room_map.rows * map_resolution_from_subscription;
-        double cols = room_map.cols * map_resolution_from_subscription;
+        if (Environment::instance().rectangular_ambulatory_plane) {
+            geometry_msgs::Pose map_origin_pose = MapAttribute::instance().getMapOriginPose();
+            ExplorationCenter &explorationCenter = ExplorationCenter::instance();
+            SegmentationCenter &segmentationCenter = SegmentationCenter::instance();
+            const cv::Mat &room_map = segmentationCenter.generateMat();
+            double rows = room_map.rows * map_resolution_from_subscription;
+            double cols = room_map.cols * map_resolution_from_subscription;
 
-        std::vector<PoseVo> poseList;
-        std::vector<std::vector<PoseVo>> complexPoseList;
+            std::vector<PoseVo> poseList;
+            std::vector<std::vector<PoseVo>> complexPoseList;
 
-        std::vector<ZoneVo> zones = task.getZoned();
-        for (const auto &zone: zones) {
+            std::vector<ZoneVo> zones = task.getZoned();
+            for (const auto &zone: zones) {
 
-            std::vector<PointVo> points = zone.getPoints();
-            std::vector<Point> trs;
-            geometry_msgs::Polygon polygon;
-            for (const auto &point: points) {
-                Point p;
-                double x = point.getX() * map_resolution_from_subscription;
-                double y = point.getY() * map_resolution_from_subscription;
-                p.setY(cols - x + map_origin_pose.position.x);
-                p.setX(rows - y + map_origin_pose.position.y);
-                trs.push_back(p);
+                std::vector<PointVo> points = zone.getPoints();
+                std::vector<Point> trs;
+                geometry_msgs::Polygon polygon;
+                for (const auto &point: points) {
+                    Point p;
+                    double x = point.getX() * map_resolution_from_subscription;
+                    double y = point.getY() * map_resolution_from_subscription;
+                    p.setY(cols - x + map_origin_pose.position.x);
+                    p.setX(rows - y + map_origin_pose.position.y);
+                    trs.push_back(p);
 
-                geometry_msgs::Point32 point32;
-                point32.x = p.getY();
-                point32.y = p.getX();
-                polygon.points.push_back(point32);
+                    geometry_msgs::Point32 point32;
+                    point32.x = p.getY();
+                    point32.y = p.getX();
+                    polygon.points.push_back(point32);
+                }
+
+                std::vector<PoseVo> zonePoseList;
+                generateRecPointListForViewPart(trs, zonePoseList);
+
+                std::vector<PoseVo> subPoseList;
+                generateChildPointFlow(zonePoseList, subPoseList, 0.2);
+
+                for (const auto &item: subPoseList) {
+                    poseList.push_back(item);
+                }
+
+                complexPoseList.push_back(subPoseList);
             }
 
-            std::vector<PoseVo> zonePoseList;
-            generateRecPointListForViewPart(trs, zonePoseList);
-
-            std::vector<PoseVo> subPoseList;
-            generateChildPointFlow(zonePoseList, subPoseList, 0.2);
-
-            for (const auto &item: subPoseList) {
-                poseList.push_back(item);
+            std::vector<geometry_msgs::Pose2D> exploration_path;
+            for (const auto &item: poseList) {
+                geometry_msgs::Pose2D pose;
+                pose.x = item.getY();
+                pose.y = item.getX();
+                pose.theta = item.getTheta();
+                exploration_path.push_back(pose);
             }
-
-            complexPoseList.push_back(subPoseList);
-        }
-
-        std::vector<geometry_msgs::Pose2D> exploration_path;
-        for (const auto &item: poseList) {
-            geometry_msgs::Pose2D pose;
-            pose.x = item.getY();
-            pose.y = item.getX();
-            pose.theta = item.getTheta();
-            exploration_path.push_back(pose);
-        }
 //        std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
 //        std::vector<geometry_msgs::Pose2D> complex_exploration_path;
 //        for (const auto &complex: complexPoseList) {
@@ -710,11 +711,21 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
 //            }
 //            complex_path.push_back(complex_exploration_path);
 //        }
-        explorationCenter.pathPublish(exploration_path);
+            explorationCenter.pathPublish(exploration_path);
 
-        std::vector<RealBlock> blocks;
-        complexPathToRealBlock(task, complexPoseList, blocks);
-        return blocks;
+            std::vector<RealBlock> blocks;
+            complexPathToRealBlock(task, complexPoseList, blocks);
+            return blocks;
+        } else {
+            auto coverage = TaskExploration::explorationPlanningPath(task);
+
+            const std::vector<std::vector<PoseVo>> &complexList = coverage.getComplexList();
+            std::vector<RealBlock> blocks;
+            complexPathToRealBlock(task, complexList, blocks);
+
+            return blocks;
+        }
+
     } else {
         auto coverage = TaskExploration::explorationPlanningPath(task);
 

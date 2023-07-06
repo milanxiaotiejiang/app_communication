@@ -47,6 +47,7 @@ public:
     int explorer_mode = 2;
     int dry_accumulation = 0;
     int complex_path_num_splits = 0;
+    bool rectangular_ambulatory_plane = true;
 
     static bool will() {
         return (rand() % 10) > 5;
