@@ -194,6 +194,9 @@ bool CartographerServiceClient::callStartLocalization() {
     if (!Environment::instance().isRealEnvironment) {
         return true;
     }
+
+    LOG_IF(INFO, DEBUG_NODE) << "callStartLocalization  ready call ... ";
+
     back_charge_msgs::start_localization srv;
     bool result = start_localization.call(srv);
     if (result) {
