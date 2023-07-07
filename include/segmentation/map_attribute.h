@@ -25,6 +25,16 @@ const int PENALTY_ZONE_DUS_COUNT = 4;
 
 class MapAttribute {
 private:
+    MapAttribute() = default;
+
+    MapAttribute(MapAttribute &) = delete;
+
+    MapAttribute &operator=(const MapAttribute &) = delete;
+
+public:
+    ~MapAttribute() = default;
+
+private:
     bool initialize_finish = false;
 
     std::atomic<bool> creating_map{false};
@@ -40,9 +50,9 @@ private:
     std::vector<std::vector<Point>> penaltyZoneList;
 
     const double robot_radius_ = 0.26;
-    const int map_correction_closing_neighborhood_size_ = 1;
-    const double grid_obstacle_offset_ = 0.16;
-    const double path_eps_ = 7.0;
+    const int map_correction_closing_neighborhood_size_ = 2;
+    const double grid_obstacle_offset_ = 0.2;
+    const double path_eps_ = 4.0;
     const double min_cell_area_ = 60.0;
     const int max_deviation_from_track_ = -1;
     const int range_near_base_station_ = 5;

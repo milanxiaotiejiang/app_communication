@@ -151,6 +151,7 @@ bool NodeWorkModeManager::tryToWork() {
         }
         return true;
     }
+    LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager nowWorkMode " << nowWorkMode();
     return false;
 }
 

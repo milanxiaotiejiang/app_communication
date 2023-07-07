@@ -25,7 +25,8 @@ const int MAX_RECHARGE_RETRY_COUNT = 5;
 class AsyncTaskCall : public AsyncTaskRecord {
 private:
 
-    std::atomic<event::flow> event_flow;;
+    std::atomic<event::flow> event_flow;
+    std::mutex event_flow_mtx;  // 互斥量用于保护写操作
 
 protected:
 
@@ -34,12 +35,13 @@ protected:
     std::atomic<int> rechargeRetryCount;
 
     void setFlow(event::flow flow) {
-        event_flow = flow;
+        std::lock_guard<std::mutex> lock(event_flow_mtx);  // 自动加锁并在离开作用域时自动解锁
+        event_flow.store(flow);
         AsyncMachine::instance().setFlow(flow);
     }
 
     event::flow currentFlow() {
-        return event_flow;
+        return event_flow.load();
     }
 
     std::atomic<bool> isCarpetAndPack;

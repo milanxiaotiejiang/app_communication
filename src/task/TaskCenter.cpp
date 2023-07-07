@@ -148,7 +148,7 @@ std::string TaskCenter::realTask(RealTask task) {
 
 void TaskCenter::initialize(ros::NodeHandle handle) {
 
-    asyncTaskCall = new ReservedCall();
+    asyncTaskCall = std::make_shared<ReservedCall>();
 
     PointProgressPublish::instance().initialize(handle);
 
@@ -234,8 +234,6 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
 }
 
 void TaskCenter::uninstall() {
-    delete asyncTaskCall;
-    asyncTaskCall = nullptr;
     delete zooRobotStatusSubscribe;
     delete flagOutSubscribe;
     delete flagInSubscribe;

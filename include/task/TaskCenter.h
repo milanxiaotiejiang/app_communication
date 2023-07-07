@@ -24,9 +24,19 @@ const int LOW_RSOC = 10;
  */
 class TaskCenter {
 private:
+    TaskCenter() = default;
+
+    TaskCenter(TaskCenter &) = delete;
+
+    TaskCenter &operator=(const TaskCenter &) = delete;
+
+public:
+    ~TaskCenter() = default;
+
+private:
     ros::NodeHandle nodeHandle;
 
-    ReservedCall *asyncTaskCall = nullptr;
+    std::shared_ptr<ReservedCall> asyncTaskCall;
 
     ZooRobotStatusSubscribe *zooRobotStatusSubscribe;
     FlagOutSubscribe *flagOutSubscribe;

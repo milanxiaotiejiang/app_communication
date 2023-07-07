@@ -98,7 +98,7 @@ private:
     long update_time;
     long create_time;
 
-    bool rain_snow;
+    bool rain_snow = false;
 
 public:
     TaskVo();
@@ -202,7 +202,9 @@ public:
         j.at("launch_time").get_to(vo.launch_time);
         j.at("update_time").get_to(vo.update_time);
         j.at("create_time").get_to(vo.create_time);
-        j.at("rain_snow").get_to(vo.rain_snow);
+        if (j.contains("rain_snow")) {
+            j.at("rain_snow").get_to(vo.rain_snow);
+        }
     }
 
 };

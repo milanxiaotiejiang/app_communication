@@ -147,11 +147,13 @@ bool ModeValidate::validateMotorServer() {
     LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer 服务可用校验 ------------------------------ ";
 
     bool callReadyCheckFirst = CartographerServiceClient::instance().callReadyCheck();
+
+    LOG_IF(INFO, DEBUG_NODE)
+    << "ModeValidate  MotorServer 首次校验结果 " << callReadyCheckFirst << " ------------------------------ ";
+
     if (callReadyCheckFirst) {
         return true;
     }
-    LOG_IF(INFO, DEBUG_NODE)
-    << "ModeValidate  MotorServer 首次校验结果 " << callReadyCheckFirst << " ------------------------------ ";
 
     sleep(2);
 

@@ -45,6 +45,16 @@ namespace APP_COMMUNICATION_VERSION {
 }
 
 class WsServerManager {
+private:
+    WsServerManager() = default;
+
+    WsServerManager(WsServerManager &) = delete;
+
+    WsServerManager &operator=(const WsServerManager &) = delete;
+
+public:
+    ~WsServerManager() = default;
+
 public:
     static auto &instance() {
         static WsServerManager obj;

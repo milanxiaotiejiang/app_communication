@@ -341,6 +341,9 @@ void initNodeParams(const ros::NodeHandle &nh) {
     int complex_path_num_splits;
     nh.param<int>("complex_path_num_splits", complex_path_num_splits, 1000);
     Environment::instance().complex_path_num_splits = complex_path_num_splits;
+    bool rectangular_ambulatory_plane;
+    nh.param<bool>("rectangular_ambulatory_plane", rectangular_ambulatory_plane, true);
+    Environment::instance().rectangular_ambulatory_plane = rectangular_ambulatory_plane;
 
     LOG(INFO) << "core version : " << ros_version;
 }

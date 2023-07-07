@@ -13,6 +13,16 @@
 
 
 class UpgradeManager {
+private:
+    UpgradeManager() = default;
+
+    UpgradeManager(UpgradeManager &) = delete;
+
+    UpgradeManager &operator=(const UpgradeManager &) = delete;
+
+public:
+    ~UpgradeManager() = default;
+
 public:
     static auto &instance() {
         static UpgradeManager obj;

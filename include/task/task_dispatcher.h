@@ -17,7 +17,17 @@
  */
 class TaskDispatcher {
 private:
-    AsyncTaskCall *asyncTaskCall;
+    TaskDispatcher();
+
+    TaskDispatcher(TaskDispatcher &) = delete;
+
+    TaskDispatcher &operator=(const TaskDispatcher &) = delete;
+
+public:
+    ~TaskDispatcher() = default;
+
+private:
+    std::shared_ptr<AsyncTaskCall> asyncTaskCall;
     std::thread plan_transfer_thread;
     code_machina::BlockingCollection<RealTask> transferCollection;
 
@@ -41,15 +51,13 @@ private:
     void plan_transfer_thread_func();
 
 public:
-    TaskDispatcher();
-
     static auto &instance() {
         static TaskDispatcher obj;
         return obj;
     }
 
-    void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
-        TaskDispatcher::asyncTaskCall = asyncTaskCall;
+    void setAsyncTaskCall(std::shared_ptr<AsyncTaskCall> asyncTaskCallPtr) {
+        TaskDispatcher::asyncTaskCall = asyncTaskCallPtr;
         plan_transfer_thread.detach();
     }
 

@@ -31,6 +31,16 @@
 
 class CartographerPublisher {
 private:
+    CartographerPublisher() = default;
+
+    CartographerPublisher(CartographerPublisher &) = delete;
+
+    CartographerPublisher &operator=(const CartographerPublisher &) = delete;
+
+public:
+    ~CartographerPublisher() = default;
+
+private:
     ros::Publisher save_map;
     ros::Publisher update_map;
     ros::Publisher start_carto_mapping;
@@ -69,7 +79,17 @@ public:
 
 class CartographerSubscribe {
 private:
-    AsyncTaskCall *asyncTaskCall;
+    CartographerSubscribe() = default;
+
+    CartographerSubscribe(CartographerSubscribe &) = delete;
+
+    CartographerSubscribe &operator=(const CartographerSubscribe &) = delete;
+
+public:
+    ~CartographerSubscribe() = default;
+
+private:
+    std::shared_ptr<AsyncTaskCall> asyncTaskCall;
 
     ros::Subscriber update_finish;
     ros::Subscriber build_map_finish;
@@ -92,14 +112,24 @@ public:
 
     void initialize(ros::NodeHandle handle);
 
-    void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
-        CartographerSubscribe::asyncTaskCall = asyncTaskCall;
+    void setAsyncTaskCall(std::shared_ptr<AsyncTaskCall> asyncTaskCallPtr) {
+        CartographerSubscribe::asyncTaskCall = asyncTaskCallPtr;
     }
 
     void coverResult();
 };
 
 class CartographerServiceClient {
+private:
+    CartographerServiceClient() = default;
+
+    CartographerServiceClient(CartographerServiceClient &) = delete;
+
+    CartographerServiceClient &operator=(const CartographerServiceClient &) = delete;
+
+public:
+    ~CartographerServiceClient() = default;
+
 private:
 
     ros::ServiceClient sensor_status;

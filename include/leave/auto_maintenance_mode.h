@@ -11,6 +11,15 @@
 #include "chrono"
 
 class AutoMaintenanceModeManager {
+private:
+    AutoMaintenanceModeManager() = default;
+
+    AutoMaintenanceModeManager(AutoMaintenanceModeManager &) = delete;
+
+    AutoMaintenanceModeManager &operator=(const AutoMaintenanceModeManager &) = delete;
+
+public:
+    ~AutoMaintenanceModeManager() = default;
 
 private:
     std::mutex auto_maintenance_mutex;

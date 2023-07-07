@@ -379,6 +379,79 @@ bool PointGenerator::generateRecPointListForViewPart(std::vector<Point> zoned,
     return true;
 }
 
+bool PointGenerator::generateBowPointListForViewPart(std::vector<Point> zoned, std::vector<PoseVo> &pointList) {
+    if (zoned.empty() || zoned.size() != 4) {
+        return false;
+    }
+
+    auto pointDistance = [](Point A, Point B) {
+        return sqrt(pow(B.getX() - A.getX(), 2) + pow(B.getY() - A.getY(), 2));
+    };
+
+    auto addPoint = [](Point point, Line inc) {
+        Point new_point;
+        new_point.setX(point.getX() + inc.getX());
+        new_point.setY(point.getY() + inc.getY());
+        return new_point;
+    };
+
+    float path_width = 0.3;
+    float step = 0.2;
+
+    float length = pointDistance(zoned[0], zoned[1]);
+    float width = pointDistance(zoned[0], zoned[3]);
+
+    Line length_vector = zoned[1] - zoned[0];
+    Line width_vector = zoned[3] - zoned[0];
+
+    //保证x方向为长边方向
+    if (width > length) {
+        std::swap(length, width);
+        std::swap(length_vector, width_vector);
+    }
+
+    int length_size = ceil(length / step);
+    int width_size = ceil(width / path_width);
+
+
+    Line length_step_vector = length_vector / length_size;
+    Line width_step_vector = width_vector / width_size;
+
+    float origin_x = zoned[0].getX();
+    float origin_y = zoned[0].getY();
+
+
+    int width_cnt = 0;
+    int length_dir = 1;
+
+    PoseVo current_point;
+    current_point.setX(origin_x);
+    current_point.setY(origin_y);
+    pointList.push_back(current_point);
+    while (width_cnt < width_size) {
+        int length_cnt = 0;
+        while (length_cnt < length_size) {
+            current_point.setX(current_point.getX() + length_dir * length_step_vector.getX());
+            current_point.setY(current_point.getY() + length_dir * length_step_vector.getY());
+            pointList.push_back(current_point);
+            length_cnt++;
+        }
+        length_dir = -length_dir;
+        current_point.setX(current_point.getX() + width_step_vector.getX());
+        current_point.setY(current_point.getY() + width_step_vector.getY());
+        pointList.push_back(current_point);
+        width_cnt++;
+    }
+    int length_cnt = 0;
+    while (length_cnt < length_size) {
+        current_point.setX(current_point.getX() + length_dir * length_step_vector.getX());
+        current_point.setY(current_point.getY() + length_dir * length_step_vector.getY());
+        pointList.push_back(current_point);
+        length_cnt++;
+    }
+    return true;
+}
+
 void PointGenerator::generateChildPointFlow(const std::vector<PoseVo> &points, std::vector<PoseVo> &cpList,
                                             float resolution_) {
     if (points.empty()) {
@@ -647,6 +720,7 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
     TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
 
     if (mode == TaskMode::Zoned) {
+
         geometry_msgs::Pose map_origin_pose = MapAttribute::instance().getMapOriginPose();
         ExplorationCenter &explorationCenter = ExplorationCenter::instance();
         SegmentationCenter &segmentationCenter = SegmentationCenter::instance();
@@ -678,7 +752,11 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
             }
 
             std::vector<PoseVo> zonePoseList;
-            generateRecPointListForViewPart(trs, zonePoseList);
+            if (Environment::instance().rectangular_ambulatory_plane) {
+                generateRecPointListForViewPart(trs, zonePoseList);
+            } else {
+                generateBowPointListForViewPart(trs, zonePoseList);
+            }
 
             std::vector<PoseVo> subPoseList;
             generateChildPointFlow(zonePoseList, subPoseList, 0.2);
@@ -715,6 +793,7 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
         std::vector<RealBlock> blocks;
         complexPathToRealBlock(task, complexPoseList, blocks);
         return blocks;
+
     } else {
         auto coverage = TaskExploration::explorationPlanningPath(task);
 

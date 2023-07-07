@@ -39,6 +39,8 @@ public:
     static bool generateRecPointListForViewPart(std::vector<Point> zoned,
                                                 std::vector<PoseVo> &pointList);
 
+    static bool generateBowPointListForViewPart(std::vector<Point> zoned, std::vector<PoseVo> &pointList);
+
     static void
     generateChildPointFlow(const std::vector<PoseVo> &points, std::vector<PoseVo> &cpList, float resolution_);
 

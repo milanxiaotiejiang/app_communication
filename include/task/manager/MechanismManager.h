@@ -9,6 +9,16 @@
 #include "leave/HotWindNote.h"
 
 class MechanismManager {
+private:
+    MechanismManager() = default;
+
+    MechanismManager(MechanismManager &) = delete;
+
+    MechanismManager &operator=(const MechanismManager &) = delete;
+
+public:
+    ~MechanismManager() = default;
+
 public:
     static auto &instance() {
         static MechanismManager obj;

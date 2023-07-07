@@ -6,6 +6,16 @@
 #define APP_COMMUNICATION_PARAMMANAGER_H
 
 class ParamManager {
+private:
+    ParamManager() = default;
+
+    ParamManager(ParamManager &) = delete;
+
+    ParamManager &operator=(const ParamManager &) = delete;
+
+public:
+    ~ParamManager() = default;
+
 public:
     static auto &instance() {
         static ParamManager obj;

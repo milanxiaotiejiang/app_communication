@@ -9,7 +9,17 @@
 
 class StationManager {
 private:
-    AsyncTaskCall *asyncTaskCall;
+    StationManager() = default;
+
+    StationManager(StationManager &) = delete;
+
+    StationManager &operator=(const StationManager &) = delete;
+
+public:
+    ~StationManager() = default;
+
+private:
+    std::shared_ptr<AsyncTaskCall> asyncTaskCall;
 
     ros::Publisher pub_flag_in, pub_flag_out;
 public:
@@ -20,8 +30,8 @@ public:
 
     void initialize(ros::NodeHandle handle);
 
-    void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
-        StationManager::asyncTaskCall = asyncTaskCall;
+    void setAsyncTaskCall(std::shared_ptr<AsyncTaskCall> asyncTaskCallPtr) {
+        StationManager::asyncTaskCall = asyncTaskCallPtr;
     }
 
     void outStation();

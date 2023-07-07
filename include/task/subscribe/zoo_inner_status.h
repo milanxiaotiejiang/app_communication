@@ -8,6 +8,16 @@
 
 class ZooInnerStatus {
 private:
+    ZooInnerStatus() = default;
+
+    ZooInnerStatus(ZooInnerStatus &) = delete;
+
+    ZooInnerStatus &operator=(const ZooInnerStatus &) = delete;
+
+public:
+    ~ZooInnerStatus() = default;
+
+private:
 
     int sweep_status;
 

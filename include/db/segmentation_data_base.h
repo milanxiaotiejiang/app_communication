@@ -11,6 +11,16 @@
 
 class SegmentationDataBase {
 private:
+    SegmentationDataBase() = default;
+
+    SegmentationDataBase(SegmentationDataBase &) = delete;
+
+    SegmentationDataBase &operator=(const SegmentationDataBase &) = delete;
+
+public:
+    ~SegmentationDataBase() = default;
+
+private:
     MapPo mapPo;
     MapStorage segmentationStorage = SqliteDataBase::initMapStorage();
 public:

@@ -10,6 +10,16 @@
 
 class AlignmentCenter {
 private:
+    AlignmentCenter() = default;
+
+    AlignmentCenter(AlignmentCenter &) = delete;
+
+    AlignmentCenter &operator=(const AlignmentCenter &) = delete;
+
+public:
+    ~AlignmentCenter() = default;
+
+private:
     bool initialize_finish = false;
 public:
     static auto &instance() {

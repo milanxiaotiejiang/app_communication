@@ -18,6 +18,16 @@
 
 class PublishInnerManager {
 private:
+    PublishInnerManager() = default;
+
+    PublishInnerManager(PublishInnerManager &) = delete;
+
+    PublishInnerManager &operator=(const PublishInnerManager &) = delete;
+
+public:
+    ~PublishInnerManager() = default;
+
+private:
     ros::Publisher//
     pub_push_mode_, //尘推
     pub_self_clean_, //基站自清洁

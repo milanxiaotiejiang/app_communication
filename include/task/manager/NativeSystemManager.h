@@ -10,14 +10,24 @@
 
 class NativeSystemManager {
 private:
-    ReservedCall *asyncTaskCall;
+    NativeSystemManager() = default;
+
+    NativeSystemManager(NativeSystemManager &) = delete;
+
+    NativeSystemManager &operator=(const NativeSystemManager &) = delete;
+
+public:
+    ~NativeSystemManager() = default;
+
+private:
+    std::shared_ptr<ReservedCall> asyncTaskCall;
 public:
     static auto &instance() {
         static NativeSystemManager obj;
         return obj;
     }
 
-    void setAsyncTaskCall(ReservedCall *asyncTaskCall) {
+    void setAsyncTaskCall(std::shared_ptr<ReservedCall> asyncTaskCall) {
         NativeSystemManager::asyncTaskCall = asyncTaskCall;
     }
 

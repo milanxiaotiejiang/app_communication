@@ -15,6 +15,16 @@
 namespace clean_history_db {
     class CleanHistoryCenter {
     private:
+        CleanHistoryCenter() = default;
+
+        CleanHistoryCenter(CleanHistoryCenter &) = delete;
+
+        CleanHistoryCenter &operator=(const CleanHistoryCenter &) = delete;
+
+    public:
+        ~CleanHistoryCenter() = default;
+
+    private:
         CleanHistory current_history_;
         std::mutex history_update_mutex_;
     public:

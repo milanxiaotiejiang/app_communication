@@ -11,16 +11,16 @@
 
 class CarpetDetectSubscribe {
     ros::Subscriber sub_carpet_;
-    AsyncTaskCall *asyncTaskCall;
+    std::shared_ptr<AsyncTaskCall> asyncTaskCall;
 
     std::atomic<int> count;
 
     void subscribeCallback(const std_msgs::Int32 &carto_result);
 
 public:
-    CarpetDetectSubscribe(ros::NodeHandle handle);
+    explicit CarpetDetectSubscribe(ros::NodeHandle handle);
 
-    void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
+    void setAsyncTaskCall(std::shared_ptr<AsyncTaskCall> asyncTaskCall) {
         CarpetDetectSubscribe::asyncTaskCall = asyncTaskCall;
     }
 };

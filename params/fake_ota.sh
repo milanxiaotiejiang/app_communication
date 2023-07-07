@@ -166,9 +166,9 @@ function update_move_base_launch_include
 echo "Upgrade Aircore"
 version=$(rosparam get /ros_version)
 major=${version:0:5}
-old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9" "1.0.0" "1.0.1" "1.0.2" "2.0.0" "2.0.2")
+old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9" "1.0.0" "1.0.1" "1.0.2" "2.0.0" "2.0.2" "2.0.3" "2.0.4" "2.0.5")
 version_index=0
-for i in 1 2 3 4 5 6 7 8 9 10
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 
 do
   echo "${old_version[$i]}"
   if [[ $major = ${old_version[$i]} ]]
@@ -237,6 +237,8 @@ then
   update_local_costmap_params
 fi
 
+if [ $version_index -lt 9 ]
+then
   echo "Updating 2.0.0"
   update_costmap_common_params_zoo
   update_global_costmap_params
@@ -244,7 +246,17 @@ fi
   update_global_planner_params
   update_move_base_params
   update_move_base_launch_include
+fi
 
+if [ $version_index -lt 10 ]
+then
   echo "Updating 2.0.2"
   update_cartographer_rplidar
+  update_cartographer_localization
   update_cartographer_launch
+fi
+
+  echo "Updating 2.0.3"
+  update_move_base_params
+
+

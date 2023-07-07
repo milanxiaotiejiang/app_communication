@@ -11,6 +11,16 @@
 
 class AsyncMachine {
 private:
+    AsyncMachine() = default;
+
+    AsyncMachine(AsyncMachine &) = delete;
+
+    AsyncMachine &operator=(const AsyncMachine &) = delete;
+
+public:
+    ~AsyncMachine() = default;
+
+private:
 
     loop::manual_epoll epoll_manual = loop::manual_epoll::manual_normal;
     loop::special_epoll epoll_special = loop::special_epoll::special_normal;

@@ -74,9 +74,9 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-//        generatePlanningPathFull(map, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
-//                                 exploration_path, point_path, complex_path);
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        generatePlanningPathFull(map, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
+                                 exploration_path, point_path, complex_path);
     }
 
     //4
@@ -149,10 +149,10 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     if (addProhibition) {
         //禁区虚拟墙
         cv::Mat prohibition_image = prohibitionMat(map);
-        if (DISPLAY_TRAJECTORY_EFFECT) {
-            cv::imshow("prohibition_image", prohibition_image);
-            cv::waitKey();
-        }
+//        if (DISPLAY_TRAJECTORY_EFFECT) {
+//            cv::imshow("prohibition_image", prohibition_image);
+//            cv::waitKey();
+//        }
         cv::Mat andMat;
         cv::bitwise_and(map, prohibition_image, andMat);
         cv::bitwise_xor(map, andMat, map);
@@ -192,7 +192,8 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
     //Minimum area of one cell for the boustrophedon explorator. 拆分各段分割地图后的面积最小值（16）
     double min_cell_area_ = std::max(area_px / 2000.0, plan.min_cell_area);
     //Minimal distance between two points on the generated path [pixel]. 覆盖路径中两点之间的最小距离，单位像素 px，例如 20，20 * 0.05 = 1m（8）
-    double path_eps_ = std::max(std::floor(grid_spacing_in_pixel), plan.path_eps);
+//    double path_eps_ = std::max(std::floor(grid_spacing_in_pixel), plan.path_eps);
+    double path_eps_ = plan.path_eps;
     //Allows to displace the grid by more than the standard half_grid_size from obstacles [m].（0.1）
     double grid_obstacle_offset_ = plan.grid_obstacle_offset;//0.0;
     //Maximal allowed shift off the ideal boustrophedon track for avoiding obstacles on track, in [pixel]. For negative values max_deviation_from_track is automatically set to grid_spacing.（-1）
@@ -206,22 +207,27 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
                     << "RoomExplorationServer::exploreRoom: Warning: Obstacles around the base station.";
             throw app::exception(make_error_code(error::exploration_obstacles_around_the_base_station));
         }
+
+        cv::erode(map, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size * 2 - 1);
         explorationErode(map, map, cv::MORPH_CROSS, map_prohibition_expand_size_);
     } else if (model == ExplorationModel::SUB) {
-        cv::Mat generate_map = loadGenerateMap((int) std::floor(grid_spacing_in_pixel));
+        cv::Mat generate_map = loadGenerateMap(map_prohibition_expand_size_,
+                                               plan.map_correction_closing_neighborhood_size * 2 - 1);
         cv::Mat temp;
         cv::bitwise_xor(map, generate_map, temp);
         cv::bitwise_and(map, temp, temp);
         cv::bitwise_xor(map, temp, map);
     } else if (model == ExplorationModel::RECT) {
-        cv::Mat generate_map = loadGenerateMap((int) std::floor(grid_spacing_in_pixel));
+        cv::Mat generate_map = loadGenerateMap(map_prohibition_expand_size_,
+                                               plan.map_correction_closing_neighborhood_size * 2 - 1);
+
         min_cell_area_ = 0;
         cv::Mat temp;
         cv::bitwise_xor(map, generate_map, temp);
         cv::bitwise_and(map, temp, temp);
         cv::bitwise_xor(map, temp, map);
 
-        cv::dilate(map, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size * 2);
+        cv::dilate(map, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
 
         cv::Mat dst;
         cv::resize(map, dst, cv::Size(), 2.0, 2.0, CV_INTER_LINEAR);
@@ -347,7 +353,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
         planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT) {
-        planning_pose_path_display(room_map, map_origin, complex_path, 1, "optimizePlanningPath ");
+        planning_pose_path_display(room_map, map_origin, complex_path, 3, "optimizePlanningPath ");
     }
 
 //    std_msgs::Header header;
@@ -441,7 +447,8 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, bool add
     int random_number_generation_ratio = plan.random_number_generation_ratio;
     int boundary_min_area = plan.boundary_min_area;
 
-    double path_eps_ = std::max(std::floor(grid_spacing_in_pixel), plan.path_eps);
+//    double path_eps_ = std::max(std::floor(grid_spacing_in_pixel), plan.path_eps);
+    double path_eps_ = plan.path_eps;
 
     LOG_IF(INFO, DEBUG_EXPLORATION)
     << "(infinitely near boundary) distance_from_obstacles: " << distance_from_obstacles;
@@ -952,12 +959,14 @@ RoomCoverage ExplorationCenter::findRoomCoverage(const std::string &coverageId, 
     throw std::range_error("There is no find key : " + coverageId + " in coverageCache");
 }
 
-cv::Mat ExplorationCenter::loadGenerateMap(int grid_spacing_in_pixel) {
+cv::Mat ExplorationCenter::loadGenerateMap(int grid_spacing_in_pixel, int expansive_layer_pixel) {
     auto generate_map = SegmentationCenter::instance().generateMat();
     cv::Mat prohibition_image = prohibitionMat(generate_map);
     cv::Mat andMat;
     cv::bitwise_and(generate_map, prohibition_image, andMat);
     cv::bitwise_xor(generate_map, andMat, generate_map);
+
+    cv::erode(generate_map, generate_map, cv::Mat(), cv::Point(-1, -1), expansive_layer_pixel);
     explorationErode(generate_map, generate_map, cv::MORPH_CROSS, grid_spacing_in_pixel);
 
     return generate_map;
