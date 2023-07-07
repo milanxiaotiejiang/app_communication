@@ -431,21 +431,21 @@ bool PointGenerator::generateBowPointListForViewPart(std::vector<Point> zoned , 
     while (width_cnt < width_size) {
         int length_cnt = 0;
         while (length_cnt < length_size) {
-            current_point.setX(current_point.getX() + length_dir * x_step_vector.getX());
-            current_point.setY(current_point.getY() + length_dir * x_step_vector.getY());
+            current_point.setX(current_point.getX() + length_dir * length_step_vector.getX());
+            current_point.setY(current_point.getY() + length_dir * length_step_vector.getY());
             pointList.push_back(current_point);
             length_cnt++;
         }
         length_dir = -length_dir;
-        current_point.setX(current_point.getX() +  y_step_vector.getX());
-        current_point.setY(current_point.getY() + y_step_vector.getY());
+        current_point.setX(current_point.getX() +  width_step_vector.getX());
+        current_point.setY(current_point.getY() + width_step_vector.getY());
         pointList.push_back(current_point);
         width_cnt++;
     }
     int length_cnt = 0;
     while (length_cnt < length_size) {
-        current_point.setX(current_point.getX() + length_dir * x_step_vector.getX());
-        current_point.setY(current_point.getY() + length_dir * x_step_vector.getY());
+        current_point.setX(current_point.getX() + length_dir * length_step_vector.getX());
+        current_point.setY(current_point.getY() + length_dir * length_step_vector.getY());
         pointList.push_back(current_point);
         length_cnt++;
     }
