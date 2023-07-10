@@ -418,7 +418,7 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
             point.currentStep, block.totalStep,
             block.currentFrequency, block.totalFrequency,
             block.work_status, block.mode, block.inClean,
-            taskId, block.renew, block.oldTaskId, block.newTaskId,
+            runTaskId(), block.renew, block.oldTaskId, block.newTaskId,
             (double((double) point.id / block.totalStep))
     );
 
