@@ -190,6 +190,7 @@ bool NodeWorkModeManager::tryToMap() {
         }
         return true;
     }
+    LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager nowWorkMode " << nowWorkMode();
     return false;
 }
 
@@ -278,6 +279,7 @@ bool NodeWorkModeManager::tryToSleep() {
         }
         return true;
     }
+    LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager nowWorkMode " << nowWorkMode();
     return false;
 
 

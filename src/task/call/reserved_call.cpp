@@ -112,7 +112,7 @@ void ReservedCall::handleStop() {
 }
 
 void ReservedCall::handleExecuteTask(const RealTask &task) {
-    fbPtr->triggerStart(task.getId(), task.getPlanBlocks());
+    notifier.triggerTaskStart(task);
     InternalEventPubManager::get_instance()->taskStart(task.getId());
     CleanHistoryCenter::instance().executeTask(task);
     AsyncTaskCall::handleExecuteTask(task);
@@ -165,6 +165,10 @@ void ReservedCall::handlePlannerBlock(const RealBlock &block) {
     AsyncTaskCall::handlePlannerBlock(block);
 }
 
+void ReservedCall::feedBackPose(const geometry_msgs::Pose &pose) {
+    notifier.triggerTaskProgress(pose);
+}
+
 void ReservedCall::forceInterruptTask(event::SB sb) {
     int errorId = FLOW_ERROR_UNRECOVERABLE;
     switch (epoll_error) {
@@ -192,7 +196,7 @@ void ReservedCall::softwareInterruptTask(const RealBlock &block) {
 }
 
 void ReservedCall::goodGame(event::GG gg) {
-    fbPtr->triggerEnd();
+    notifier.triggerTaskEnd();
     runTask;
     InternalEventPubManager::get_instance()->taskStop(runTaskId());
     CleanHistoryCenter::instance().complete();
@@ -333,5 +337,6 @@ void ReservedCall::recordLaserError(std::string error_event) {
         InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_SUCCEED);
     }
 }
+
 
 

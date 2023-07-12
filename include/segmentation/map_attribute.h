@@ -106,6 +106,8 @@ public:
 
     cv::Point getRobotPositionPoint(const cv::Mat &room_map) const;
 
+    cv::Point getRobotPositionPoint(int rows, int cols) const;
+
     void loadStation();
 
     void resetProhibition();
@@ -123,7 +125,7 @@ public:
 
     cv::Point rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const;
 
-    cv::Point rosPoint2MapPoint(double rows, double cols, const Point &point) const;
+    cv::Point rosPoint2MapPoint(int rows, int cols, const Point &point) const;
 
     bool saveMap();
 

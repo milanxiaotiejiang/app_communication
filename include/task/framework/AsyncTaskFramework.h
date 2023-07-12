@@ -44,8 +44,6 @@ public:
 
 protected:
 
-    std::unique_ptr<TaskFeedback> fbPtr;
-
     std::atomic<loop::manual_epoll> epoll_manual;
     std::atomic<loop::special_epoll> epoll_special;
     std::atomic<loop::error_epoll> epoll_error;

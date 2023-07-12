@@ -37,6 +37,8 @@ protected:
 
     void handlePlannerBlock(const RealBlock &block) override;
 
+    void feedBackPose(const geometry_msgs::Pose &pose) override;
+
 public:
 
 

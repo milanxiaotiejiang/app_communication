@@ -16,166 +16,208 @@
 #include "cppfs/FileHandle.h"
 #include "cppfs/FilePath.h"
 
+#define APPROX_EPSILON_INFINITELY 0.5
+
 TaskFeedback::TaskFeedback() {
-    TaskFeedback::make_thread(run, this);
+    task_feedback_thread = std::thread(&TaskFeedback::task_feedback_thread_func, this);
+
+    record = false;
 }
 
-void TaskFeedback::execute() {
-    for (;;) {
-        std::unique_lock<std::mutex> lock(cv_mut);
-        cv.wait(lock, [this] {
-            return !orderDeque.empty() || !dataDeque.empty();
-        });
+void TaskFeedback::run() {
 
-        if (!orderDeque.empty()) {
-            if (orderDeque.back() == 0) {//end
-                end();
-            } else if (orderDeque.back() == 1) {//start
-                start();
-            }
-            orderDeque.clear();
-        } else if (!dataDeque.empty()) {
-            geometry_msgs::Pose2D data = dataDeque.back();
-            dataDeque.clear();
-            feedback(data);
-        }
-
-    }
-}
-
-void TaskFeedback::start() {
-    points.clear();
-
-    map_origin = MapAttribute::instance().getMapOrigin();
-
-    const cv::Mat room_map = SegmentationCenter::instance().generateMat();
-    rows = room_map.rows;
-    cols = room_map.cols;
-
-    std::string local_path = path::data_base_config_dir() + "local/";
+    local_path = path::robot_slam_map_dir() + "local/";
     cppfs::FileHandle dir = cppfs::fs::open(local_path);
     if (!dir.isDirectory()) {
         dir.createDirectory();
     }
-    savePath = local_path + run_task_id + ".pgm";
 
-    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
-    double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//网格正方形的边长
-    double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
-    LOG_IF(INFO, DEBUG_TASK) << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
-    spacing_half = (int) std::floor(0.5 * grid_spacing_in_pixel);
+    const cv::Mat &map = SegmentationCenter::instance().generateMat();
 
-    auto map = room_map.clone();
-    area_px = 0;
-    for (int v = 0; v < map.rows; ++v) {
-        for (int u = 0; u < map.cols; ++u) {
-            if (map.at<uchar>(v, u) >= 250)
-                area_px++;
-        }
-    }
+    rows = map.rows;
+    cols = map.cols;
 
-    geometry_msgs::Pose2D robot_position = MapAttribute::instance().getRobotPositionPose();
-    const cv::Point &start_point = poseTransferPoint(robot_position.x, robot_position.y);
-    cv::Point p0 = poseTransferPoint(planPoseVos[0].getX(), planPoseVos[0].getY());
-    cv::line(map, start_point, p0, cv::Scalar(100), spacing_half * 2);
-    for (int i = 1; i < planPoseVos.size(); ++i) {
-        cv::Point ps = poseTransferPoint(planPoseVos[i - 1].getX(), planPoseVos[i - 1].getY());
-        cv::Point pe = poseTransferPoint(planPoseVos[i].getX(), planPoseVos[i].getY());
-        cv::line(map, ps, pe, cv::Scalar(100), spacing_half * 2);
-    }
-    cv::Point pl = poseTransferPoint(planPoseVos[planPoseVos.size() - 1].getX(),
-                                     planPoseVos[planPoseVos.size() - 1].getY());
-    cv::line(map, pl, start_point, cv::Scalar(100), spacing_half * 2);
-    plan_px = 0;
-    for (int v = 0; v < map.rows; ++v) {
-        for (int u = 0; u < map.cols; ++u) {
-            if (map.at<uchar>(v, u) == 100)
-                plan_px++;
-        }
-    }
-
-}
-
-void TaskFeedback::end() {
-    if (!points.empty()) {
-        planPoseVos.clear();
-        points.clear();
-    }
-}
-
-void TaskFeedback::feedback(geometry_msgs::Pose2D data) {
-
-    cv::Point point = poseTransferPoint(data.x, data.y);
-
-    auto pair = points.insert(PointVo(point.x, point.y));
-    if (pair.second) {
-        auto generateMat = SegmentationCenter::instance().generateMat();
-        auto count_mat = generateMat.clone();
-        auto local_mat = generateMat.clone();
-
-        if (points.size() > 2) {
-            std::vector<PointVo> vector;
-            vector.assign(points.begin(), points.end());
-            for (int i = 1; i < vector.size(); ++i) {
-                cv::Point ps = cv::Point(vector[i - 1].getX(), vector[i - 1].getY());
-                cv::Point pe = cv::Point(vector[i].getX(), vector[i].getY());
-                cv::line(count_mat, ps, pe, cv::Scalar(200), spacing_half * 2);
+    for (int y = 0; y < map.rows; y++) {
+        for (int x = 0; x < map.cols; x++) {
+            if (map.at<unsigned char>(y, x) == 255) {
+                MMapExtend::writeByteToByteArray(mapArray, 15);
+            } else {
+                MMapExtend::writeByteToByteArray(mapArray, 0);
             }
         }
+    }
 
-        int clear_px = 0;
-        for (int v = 0; v < count_mat.rows; ++v) {
-            for (int u = 0; u < count_mat.cols; ++u) {
-                if (count_mat.at<uchar>(v, u) == 200)
-                    clear_px++;
+    const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(rows, cols, Point(0, 0));
+    rrMapCharger.setCharger(stationPoint.x + 10, stationPoint.y + 20, 0);
+
+    auto penaltyZoneList = MapAttribute::instance().getPenaltyZoneList();
+    std::vector<MZone> areas;
+    for (const auto &vector: penaltyZoneList) {
+        const cv::Point &point0 = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[0]);
+        const cv::Point &point1 = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[1]);
+        const cv::Point &point2 = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[2]);
+        const cv::Point &point3 = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[3]);
+
+        MPoint p0(point0.x, point0.y);
+        MPoint p1(point1.x, point1.y);
+        MPoint p2(point2.x, point2.y);
+        MPoint p3(point3.x, point3.y);
+        MZone zone(p0, p1, p2, p3);
+        areas.push_back(zone);
+    }
+    rrMapArea.setProhibitions(areas);
+
+    auto virtualWallList = MapAttribute::instance().getVirtualWallList();
+    std::vector<MLine> walls;
+    for (const auto &vector: virtualWallList) {
+        const cv::Point &pointStart = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[0]);
+        const cv::Point &pointEnd = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[1]);
+        MPoint p0(pointStart.x, pointStart.y);
+        MPoint p1(pointEnd.x, pointEnd.y);
+        MLine rrLine(p0, p1);
+        walls.push_back(rrLine);
+    }
+    rrMapWall.setVirtuallys(walls);
+
+    rrMapTarget.setTarget(cols / 3, rows / 3);
+
+    task_feedback_thread.detach();
+}
+
+void TaskFeedback::task_feedback_thread_func() {
+
+    for (;;) {
+        {
+            std::unique_lock<std::mutex> lock(cv_mut);
+            if (record)
+                generateRRMap();
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+}
+
+void TaskFeedback::generateRRMap() {
+
+    MMapResource rrMapSize(rows, cols);
+    rrMapSize.setMapArray(mapArray);
+
+    MMapRobot rrMapRobot;
+    rrMapRobot.setRobot(currentPoint.getX(), currentPoint.getY(), -87);
+
+    std::vector<MPoint> paths;
+    if (pointList.size() > 3) {
+        std::vector<cv::Point2f> cvPointList;
+        for (const auto &point: pointList) {
+            cvPointList.emplace_back(point.getX(), point.getY());
+        }
+        std::vector<cv::Point2f> list;
+        cv::approxPolyDP(cvPointList, list, APPROX_EPSILON_INFINITELY, false);
+        for (const auto &point: list) {
+            paths.emplace_back(point.x, point.y);
+        }
+    } else {
+        for (const auto &point: pointList) {
+            paths.emplace_back(point.getX(), point.getY());
+        }
+    }
+
+//    rrMapPath.setPoints(paths);
+
+//    rrMapCover.setCovers(paths);
+
+    RRMap rrMap;
+    rrMap.addArray(std::make_unique<MMapResource>(rrMapSize));
+    rrMap.addArray(std::make_unique<MMapCharger>(rrMapCharger));
+    rrMap.addArray(std::make_unique<MMapRobot>(rrMapRobot));
+    rrMap.addArray(std::make_unique<MMapTarget>(rrMapTarget));
+    rrMap.addArray(std::make_unique<MMapPath>(rrMapPath));
+    rrMap.addArray(std::make_unique<MMapProhibition>(rrMapArea));
+    rrMap.addArray(std::make_unique<MMapVirtually>(rrMapWall));
+    rrMap.addArray(std::make_unique<MMapZone>(rrMapZone));
+//    rrMap.addArray(std::make_unique<MMapCover>(rrMapCover));
+    rrMap.addArray(std::make_unique<MMapValid>(rrMapValid));
+
+    const std::vector<int8_t> byteArray = rrMap.toByteArray();
+
+    std::stringstream input;
+    for (int8_t b: byteArray) {
+        input << b;
+    }
+
+    //save file
+    std::ofstream file(savePath, std::ios_base::out | std::ios_base::binary);
+    boost::iostreams::filtering_streambuf<boost::iostreams::output> outbuf;
+
+    outbuf.push(boost::iostreams::gzip_compressor());
+    outbuf.push(file);
+
+    boost::iostreams::copy(input, outbuf);
+
+    boost::iostreams::close(outbuf);
+    file.close();
+
+}
+
+void TaskFeedback::onTaskStart(const RealTask &task) {
+    {
+        std::unique_lock<std::mutex> lock(cv_mut);
+
+        pointList.clear();
+        savePath = local_path + task.getId() + ".rrmap";
+
+        if (task.isRenew()) {
+            std::vector<MPoint> covers;
+            for (const auto &block: task.getPlanBlocks()) {
+                for (const auto &point: block.plannerPoints) {
+                    const cv::Point cvPoint = MapAttribute::instance().rosPoint2MapPoint(
+                            rows, cols, Point(point.realPosition.x, point.realPosition.y)
+                    );
+                    covers.emplace_back(cvPoint.x, cvPoint.y);
+                }
             }
+            rrMapCover.setCovers(covers);
+            rrMapPath.setPoints(covers);
+
+            TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
+            if (mode == TaskMode::Zoned) {
+                std::vector<MZone> zones;
+                std::vector<ZoneVo> taskZones = task.getZoned();
+                for (const auto &tzp: taskZones) {
+                    std::vector<PointVo> points = tzp.getPoints();
+                    MPoint p0(points[0].getX(), points[0].getY());
+                    MPoint p1(points[1].getX(), points[1].getY());
+                    MPoint p2(points[2].getX(), points[2].getY());
+                    MPoint p3(points[3].getX(), points[3].getY());
+                    MZone zone(p0, p1, p2, p3);
+                    zones.push_back(zone);
+                }
+                rrMapZone.setZones(zones);
+            }
+        } else {
+            std::vector<MZone> zones;
+            rrMapZone.setZones(zones);
         }
 
-        if (!Environment::instance().isRealEnvironment) {
-            LOG_IF(INFO, DEBUG_TASK) << "### area_px : " << area_px << " , plan_px : " << plan_px << "  "
-                                     << run_task_id << " 真实面积/总面积 = " << (clear_px * 1.0 / area_px)
-                                     << " , 真实面积/规划面积 = " << (clear_px * 1.0 / plan_px);
-        }
-
-        for (const auto &item: points) {
-            cv::circle(local_mat, cv::Point(item.getX(), item.getY()), 1, cv::Scalar(200), CV_FILLED);
-        }
-
-        CvUtils::savePgm(savePath, local_mat.clone());
+        record = true;
     }
 }
 
-cv::Point TaskFeedback::poseTransferPoint(float x, float y) {
-    cv::Point point(cols - (y - map_origin.x) / map_resolution_from_subscription,
-                    rows - (x - map_origin.y) / map_resolution_from_subscription);
-    return point;
+void TaskFeedback::onTaskProgress(const geometry_msgs::Pose &pose) {
+    {
+        std::unique_lock<std::mutex> lock(cv_mut);
+
+        Point point(pose.position.x, pose.position.y);
+        cv::Point cvPoint = MapAttribute::instance().rosPoint2MapPoint(rows, cols, point);
+        currentPoint.setX(cvPoint.x);
+        currentPoint.setY(cvPoint.y);
+        pointList.insert(currentPoint);
+    }
 }
 
-void TaskFeedback::triggerStart(std::string taskId, const std::vector<RealBlock> &blocks) {
-//    {
-//        std::unique_lock<std::mutex> lock(cv_mut);
-//        TaskFeedback::run_task_id = taskId;
-//        planPoseVos.clear();
-//        for (const auto &point: points) {
-//            planPoseVos.emplace_back(point.realPosition.x, point.realPosition.y, .0);
-//        }
-//        orderDeque.push_back(1);
-//    }
-//    cv.notify_one();
-}
-
-void TaskFeedback::triggerEnd() {
-//    {
-//        std::unique_lock<std::mutex> lock(cv_mut);
-//        orderDeque.push_back(2);
-//    }
-//    cv.notify_one();
-}
-
-void TaskFeedback::triggerFeedback(geometry_msgs::Pose2D data) {
-//    {
-//        std::unique_lock<std::mutex> lock(cv_mut);
-//        dataDeque.push_back(data);
-//    }
-//    cv.notify_one();
+void TaskFeedback::onTaskEnd() {
+    {
+        std::unique_lock<std::mutex> lock(cv_mut);
+        record = false;
+    }
 }

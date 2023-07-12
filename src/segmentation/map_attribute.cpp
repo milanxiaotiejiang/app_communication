@@ -30,6 +30,17 @@ cv::Point MapAttribute::getRobotPositionPoint(const cv::Mat &room_map) const {
     return starting_position;
 }
 
+cv::Point MapAttribute::getRobotPositionPoint(int rows, int cols) const {
+    cv::Point starting_position;
+    starting_position.x =
+            cols - (starting_position_pose.y - map_origin_pose.position.x) / map_resolution_from_subscription;
+    starting_position.y =
+            rows - (starting_position_pose.x - map_origin_pose.position.y) / map_resolution_from_subscription;
+    LOG_IF(INFO, DEBUG_SEGMENTATION)
+    << "current robot position (" << starting_position.x << ", " << starting_position.y << ")";
+    return starting_position;
+}
+
 void MapAttribute::loadStation() {
     if (access(path::map_yaml_path().c_str(), F_OK) != 0) {//存在
         return;
@@ -163,9 +174,9 @@ cv::Point MapAttribute::rosPoint2MapPoint(const cv::Mat &room_map, const Point &
     return position;
 }
 
-cv::Point MapAttribute::rosPoint2MapPoint(double rows, double cols, const Point &point) const {
-    double x = cols - (point.getY() - map_origin_pose.position.x);
-    double y = rows - (point.getX() - map_origin_pose.position.y);
+cv::Point MapAttribute::rosPoint2MapPoint(int rows, int cols, const Point &point) const {
+    double x = cols * map_resolution_from_subscription - (point.getY() - map_origin_pose.position.x);
+    double y = rows * map_resolution_from_subscription - (point.getX() - map_origin_pose.position.y);
     cv::Point position;
     position.x = x / map_resolution_from_subscription;
     position.y = y / map_resolution_from_subscription;

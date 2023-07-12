@@ -13,6 +13,7 @@
 #include "task/status/state_machine.h"
 #include "task/subscribe/async_machine.h"
 #include "task/model/PointProgressVo.h"
+#include "task/callback/EventNotifier.h"
 
 const int MAX_FIRST_RETRY_COUNT = 2;
 const int MAX_BASE_POINT_RETRY_COUNT = 3;
@@ -27,6 +28,8 @@ private:
 
     std::atomic<event::flow> event_flow;
     std::mutex event_flow_mtx;  // 互斥量用于保护写操作
+
+    std::shared_ptr<TaskFeedback> feedback;
 
 protected:
 
@@ -47,6 +50,8 @@ protected:
     std::atomic<bool> isCarpetAndPack;
 
     std::deque<PointProgressVo> finishedPoints;
+
+    TaskEventNotifier notifier;
 
 protected:
 
@@ -84,6 +89,8 @@ protected:
     virtual void processControl(const RealBlock &block) = 0;
 
     virtual void handlePlannerBlock(const RealBlock &block);
+
+    virtual void feedBackPose(const geometry_msgs::Pose &pose) = 0;
 
     RealBlock findFrontBlock();
 
@@ -131,7 +138,7 @@ public:
 
     void executeOnPathDone(event::error error);
 
-    void executeOnPathFeedBack(int step, geometry_msgs::Pose pose);
+    void executeOnPathFeedBack(int step, const geometry_msgs::Pose &pose);
 
     void executeOutStation(bool result);
 
@@ -171,6 +178,10 @@ public:
     std::vector<RealTask> runTaskList();
 
     std::vector<PointProgressVo> runTaskPointList();
+
+    TaskEventNotifier getNotifier() {
+        return notifier;
+    }
 
 };
 

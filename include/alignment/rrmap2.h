@@ -35,6 +35,7 @@ enum MMapType {
     M_MAP_PROHIBITION = 9,
     M_MAP_VIRTUALLY = 10,
     M_MAP_ZONE = 12,
+    M_MAP_COVER = 14,
     M_MAP_VALID = 1024,
     M_MAP_OUTER = 29298
 };
@@ -451,6 +452,38 @@ public:
         std::vector<int8_t> byteArray;
         writeHeadToByteArray(byteArray);
         MMapExtend::appendToByteArray(byteArray, objectsToByteArray(zones));
+        return byteArray;
+    }
+};
+
+class MMapCover : public MMapHead {
+private:
+    int32_t coverLength = 0;
+    int32_t coverSize = 0;
+
+    std::vector<MPoint> covers;
+public:
+    ~MMapCover() override = default;
+
+    MMapCover() : MMapHead(MMapType::M_MAP_COVER) {
+        setCovers(covers);
+    }
+
+    void setCovers(const std::vector<MPoint> &covers) {
+        MMapCover::covers = covers;
+
+        coverLength = covers.size();
+        coverSize = MPoint::toSize();
+
+        setAdditionalHeader(MMapExtend::generateIntToByteArray(std::vector<int>{coverLength, coverSize}));
+        setHeaderLength(buildHeaderLength());
+        setDataLength(covers.size() * MPoint::toSize());
+    }
+
+    std::vector<int8_t> toByteArray() const override {
+        std::vector<int8_t> byteArray;
+        writeHeadToByteArray(byteArray);
+        MMapExtend::appendToByteArray(byteArray, objectsToByteArray(covers));
         return byteArray;
     }
 };

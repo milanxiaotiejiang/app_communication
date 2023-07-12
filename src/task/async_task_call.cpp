@@ -23,8 +23,9 @@
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
  */
-AsyncTaskCall::AsyncTaskCall() {
-    fbPtr = std::make_unique<TaskFeedback>();
+AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()) {
+    notifier.setOnTaskCallback(std::dynamic_pointer_cast<ITaskCallback>(feedback));
+    feedback->run();
 
     setFlow(event::flow::waiting_for_task);
     setEpollManual(loop::manual_epoll::manual_normal);
@@ -418,7 +419,7 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
             point.currentStep, block.totalStep,
             block.currentFrequency, block.totalFrequency,
             block.work_status, block.mode, block.inClean,
-            taskId, block.renew, block.oldTaskId, block.newTaskId,
+            runTaskId(), block.renew, block.oldTaskId, block.newTaskId,
             (double((double) point.id / block.totalStep))
     );
 
@@ -507,7 +508,7 @@ void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
         if (ParamManager::instance().getDry() == -1) {
             return;
         }
-        time_t now = time(0);
+        time_t now = std::time(0);
         tm *ltm = localtime(&now);
         LOG_IF(INFO, DEBUG_TASK) << "年: " << 1900 + ltm->tm_year;
         LOG_IF(INFO, DEBUG_TASK) << "月: " << 1 + ltm->tm_mon;
@@ -716,7 +717,7 @@ void AsyncTaskCall::executeOnPathDone(event::error error) {
     }
 }
 
-void AsyncTaskCall::executeOnPathFeedBack(int step, geometry_msgs::Pose pose) {
+void AsyncTaskCall::executeOnPathFeedBack(int step, const geometry_msgs::Pose &pose) {
     lock([this, &step]() {
         if (!plannerQueue.empty()) {
             RealBlock &block = plannerQueue.front();
@@ -733,6 +734,7 @@ void AsyncTaskCall::executeOnPathFeedBack(int step, geometry_msgs::Pose pose) {
             block.timely_step = step;
         }
     });
+    feedBackPose(pose);
 }
 
 void AsyncTaskCall::executeOutStation(bool result) {

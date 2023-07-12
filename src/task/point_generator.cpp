@@ -720,7 +720,6 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
     TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
 
     if (mode == TaskMode::Zoned) {
-
         geometry_msgs::Pose map_origin_pose = MapAttribute::instance().getMapOriginPose();
         ExplorationCenter &explorationCenter = ExplorationCenter::instance();
         SegmentationCenter &segmentationCenter = SegmentationCenter::instance();
@@ -793,7 +792,6 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
         std::vector<RealBlock> blocks;
         complexPathToRealBlock(task, complexPoseList, blocks);
         return blocks;
-
     } else {
         auto coverage = TaskExploration::explorationPlanningPath(task);
 
