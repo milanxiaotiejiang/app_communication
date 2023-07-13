@@ -18,7 +18,10 @@
 #include "thread"
 #include "db/segmentation_data_base.h"
 #include "exploration/ExplorationCenter.h"
+#include "cppfs/FileHandle.h"
 #include <type_traits>
+
+#include <opencv2/opencv.hpp>
 
 #define SIZE_OF_HEAD_TYPE 2
 #define SIZE_OF_HEAD_LENGTH 2
@@ -184,6 +187,18 @@ public:
     std::vector<int8_t> toByteArray() const override {
         return MMapExtend::generateShortToByteArray(std::vector<int>{x * NUMERICAL_EXPANSION, y * NUMERICAL_EXPANSION});
     }
+
+    int32_t getX() const {
+        return x / NUMERICAL_EXPANSION;
+    }
+
+    int32_t getY() const {
+        return y / NUMERICAL_EXPANSION;
+    }
+
+    cv::Point toCvPoint() const {
+        return cv::Point(getX(), getY());
+    }
 };
 
 class MLine : public MMapObject {
@@ -222,6 +237,23 @@ public:
     std::vector<int8_t> toByteArray() const override {
         return objectsToByteArray(std::vector<MPoint>{p0, p1, p2, p3});
     }
+
+    const MPoint &getP0() const {
+        return p0;
+    }
+
+    const MPoint &getP1() const {
+        return p1;
+    }
+
+    const MPoint &getP2() const {
+        return p2;
+    }
+
+    const MPoint &getP3() const {
+        return p3;
+    }
+
 };
 
 class MMapResource : public MMapHead {
@@ -555,11 +587,271 @@ public:
 class RRMapTest {
 public:
     static void v() {
-        std::thread t([]() {
-            sleep(10);
-            generate();
-        });
-        t.detach();
+//        std::thread t([]() {
+//            sleep(10);
+//            generate();
+//        });
+//        t.detach();
+
+        parse();
+    }
+
+    static void parse() {
+
+        std::string local_path = path::robot_slam_map_dir() + "local/";
+
+        std::ifstream file(local_path + "4436eb6f-c6ea-4e71-9e7e-42b8bc69ee8a.rrmap",
+                           std::ios_base::in | std::ios_base::binary);
+        boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
+
+        inbuf.push(boost::iostreams::gzip_decompressor());
+        inbuf.push(file);
+
+        std::istream instream(&inbuf);
+
+        std::stringstream output;
+        boost::iostreams::copy(instream, output);
+
+        boost::iostreams::close(inbuf);
+        file.close();
+
+        std::string contents = output.str();
+        std::vector<int8_t> byteArray(contents.begin(), contents.end());
+
+
+        int mapHeaderLength = MMapExtend::readShortFromByteArray(byteArray, 2);
+        int mapDataLength = MMapExtend::readIntFromByteArray(byteArray, 4);
+        int16_t majorVersion = MMapExtend::readShortFromByteArray(byteArray, 8);//1
+        int16_t minorVersion = MMapExtend::readShortFromByteArray(byteArray, 10);//0
+        int mapIndex = MMapExtend::readIntFromByteArray(byteArray, 12);//1
+        int mapSequence = MMapExtend::readIntFromByteArray(byteArray, 16);//1
+
+        std::vector<int8_t> mapArray;
+
+        int32_t unknown = 0;
+        int32_t top = 0;
+        int32_t left = 0;
+        int32_t imgHeight;
+        int32_t imgWidth;
+
+        int32_t chargerX;
+        int32_t chargerY;
+        int32_t chargerA;
+
+        int32_t robotX;
+        int32_t robotY;
+        int32_t robotA;
+
+        int32_t targetX;
+        int32_t targetY;
+
+        std::vector<MPoint> paths;
+
+        std::vector<MZone> prohibitions;
+        std::vector<MLine> virtuallys;
+        std::vector<MZone> zones;
+
+        std::vector<MPoint> covers;
+
+        int blockHeaderLength = 0;
+        int blockDataLength = 0;
+        for (int blockStartPos = mapHeaderLength; blockStartPos < byteArray.size();
+             blockStartPos = blockStartPos + blockHeaderLength + blockDataLength) {
+
+            blockHeaderLength = MMapExtend::readShortFromByteArray(byteArray, blockStartPos + 2);
+            std::vector<int8_t> headerArray(byteArray.begin() + blockStartPos,
+                                            byteArray.begin() + blockStartPos + blockHeaderLength);
+            int blockType = MMapExtend::readShortFromByteArray(headerArray, 0);
+            blockDataLength = MMapExtend::readIntFromByteArray(headerArray, 4);
+            int blockDataStart = blockStartPos + blockHeaderLength;
+            std::vector<int8_t> dataArray(byteArray.begin() + blockDataStart,
+                                          byteArray.begin() + blockDataStart + blockDataLength);
+            std::cout << dataArray.size() << std::endl;
+
+            switch (blockType) {
+                case M_MAP_CHARGER:
+                    chargerX = MMapExtend::readIntFromByteArray(dataArray, 0);
+                    chargerY = MMapExtend::readIntFromByteArray(dataArray, 4);
+                    break;
+                case M_MAP_RESOURCE:
+                    top = MMapExtend::readIntFromByteArray(headerArray, blockHeaderLength - 16);
+                    left = MMapExtend::readIntFromByteArray(headerArray, blockHeaderLength - 12);
+                    imgHeight = MMapExtend::readIntFromByteArray(headerArray, blockHeaderLength - 8);
+                    imgWidth = MMapExtend::readIntFromByteArray(headerArray, blockHeaderLength - 4);
+                    for (const auto &value: dataArray) {
+                        mapArray.push_back(value);
+                    }
+                    break;
+                case M_MAP_PATH: {
+                    int pairs = MMapExtend::readIntFromByteArray(headerArray, 4) / 4;
+                    int32_t pointLength = MMapExtend::readIntFromByteArray(headerArray, 8);
+                    int32_t pointSize = MMapExtend::readIntFromByteArray(headerArray, 12);
+                    int32_t angle = MMapExtend::readIntFromByteArray(headerArray, 16);
+                    for (int pathPair = 0; pathPair < pairs; ++pathPair) {
+                        int x = MMapExtend::readShortFromByteArray(dataArray, pathPair * 4);
+                        int y = MMapExtend::readShortFromByteArray(dataArray, pathPair * 4 + 2);
+                        paths.emplace_back(x, y);
+                    }
+                    break;
+                }
+                case M_MAP_TARGET:
+                    targetX = MMapExtend::readIntFromByteArray(dataArray, 0);
+                    targetY = MMapExtend::readIntFromByteArray(dataArray, 2);
+                    break;
+                case M_MAP_ROBOT:
+                    robotX = MMapExtend::readIntFromByteArray(dataArray, 0);
+                    robotY = MMapExtend::readIntFromByteArray(dataArray, 4);
+                    robotA = MMapExtend::readIntFromByteArray(dataArray, 8);
+                    break;
+                case M_MAP_PROHIBITION: {
+                    int prohibitionPairs = MMapExtend::readIntFromByteArray(headerArray, 8);
+                    for (int prohibitionPair = 0; prohibitionPair < prohibitionPairs; ++prohibitionPair) {
+                        int x0 = MMapExtend::readShortFromByteArray(dataArray, prohibitionPair * 16);
+                        int y0 = MMapExtend::readShortFromByteArray(dataArray, prohibitionPair * 16 + 2);
+                        int x1 = MMapExtend::readShortFromByteArray(dataArray, prohibitionPair * 16 + 4);
+                        int y1 = MMapExtend::readShortFromByteArray(dataArray, prohibitionPair * 16 + 6);
+                        int x2 = MMapExtend::readShortFromByteArray(dataArray, prohibitionPair * 16 + 8);
+                        int y2 = MMapExtend::readShortFromByteArray(dataArray, prohibitionPair * 16 + 10);
+                        int x3 = MMapExtend::readShortFromByteArray(dataArray, prohibitionPair * 16 + 12);
+                        int y3 = MMapExtend::readShortFromByteArray(dataArray, prohibitionPair * 16 + 14);
+                        MPoint p0(x0, y0);
+                        MPoint p1(x1, y1);
+                        MPoint p2(x2, y2);
+                        MPoint p3(x3, y3);
+                        prohibitions.emplace_back(p0, p1, p2, p3);
+                    }
+                    break;
+                }
+                case M_MAP_VIRTUALLY: {
+                    int virtuallyPairs = MMapExtend::readIntFromByteArray(headerArray, 8);
+                    for (int virtuallyPair = 0; virtuallyPair < virtuallyPairs; ++virtuallyPair) {
+                        int x0 = MMapExtend::readShortFromByteArray(dataArray, virtuallyPair * 16);
+                        int y0 = MMapExtend::readShortFromByteArray(dataArray, virtuallyPair * 16 + 2);
+                        int x1 = MMapExtend::readShortFromByteArray(dataArray, virtuallyPair * 16 + 4);
+                        int y1 = MMapExtend::readShortFromByteArray(dataArray, virtuallyPair * 16 + 6);
+                        MPoint p0(x0, y0);
+                        MPoint p1(x1, y1);
+                        virtuallys.emplace_back(p0, p1);
+                    }
+                    break;
+                }
+                case M_MAP_ZONE: {
+                    int zonePairs = MMapExtend::readIntFromByteArray(headerArray, 8);
+                    for (int zonePair = 0; zonePair < zonePairs; ++zonePair) {
+                        int x0 = MMapExtend::readShortFromByteArray(dataArray, zonePair * 16);
+                        int y0 = MMapExtend::readShortFromByteArray(dataArray, zonePair * 16 + 2);
+                        int x1 = MMapExtend::readShortFromByteArray(dataArray, zonePair * 16 + 4);
+                        int y1 = MMapExtend::readShortFromByteArray(dataArray, zonePair * 16 + 6);
+                        int x2 = MMapExtend::readShortFromByteArray(dataArray, zonePair * 16 + 8);
+                        int y2 = MMapExtend::readShortFromByteArray(dataArray, zonePair * 16 + 10);
+                        int x3 = MMapExtend::readShortFromByteArray(dataArray, zonePair * 16 + 12);
+                        int y3 = MMapExtend::readShortFromByteArray(dataArray, zonePair * 16 + 14);
+                        MPoint p0(x0, y0);
+                        MPoint p1(x1, y1);
+                        MPoint p2(x2, y2);
+                        MPoint p3(x3, y3);
+                        zones.emplace_back(p0, p1, p2, p3);
+                    }
+                    break;
+                }
+                case M_MAP_COVER: {
+                    int coverLength = MMapExtend::readIntFromByteArray(headerArray, 8);
+                    int coverSize = MMapExtend::readIntFromByteArray(headerArray, 12);
+                    for (int pathPair = 0; pathPair < coverLength; ++pathPair) {
+                        int x = MMapExtend::readShortFromByteArray(dataArray, pathPair * 4);
+                        int y = MMapExtend::readShortFromByteArray(dataArray, pathPair * 4 + 2);
+                        covers.emplace_back(x, y);
+                    }
+                    break;
+                }
+                case M_MAP_VALID:
+
+                    break;
+                case M_MAP_OUTER:
+
+                    break;
+            }
+
+            std::cout << "blockType : " << blockType << std::endl;
+        }
+
+        cv::Mat map = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC1);
+        std::cout << mapArray.size() << std::endl;
+        for (int y = 0; y < map.rows; y++) {
+            for (int x = 0; x < map.cols; x++) {
+                //& 0xff
+                auto value = mapArray[y * imgWidth + x] & 0xff;
+                if (value == 15) {
+                    map.at<unsigned char>(y, x) = 255;
+                } else {
+                    map.at<unsigned char>(y, x) = 0;
+                }
+            }
+        }
+
+        for (const auto &zone: zones) {
+            MPoint p0 = zone.getP0();
+            MPoint p1 = zone.getP1();
+            MPoint p2 = zone.getP2();
+            MPoint p3 = zone.getP3();
+            std::vector<std::vector<cv::Point>> polygon_array;
+
+            std::vector<cv::Point> cvPoints;
+            cv::Point c0(p0.getX(), p0.getY());
+            cv::Point c1(p1.getX(), p1.getY());
+            cv::Point c2(p2.getX(), p2.getY());
+            cv::Point c3(p3.getX(), p3.getY());
+
+            polygon_array.push_back(cvPoints);
+
+            cv::line(map, c0, c1, cv::Scalar(50), 1, cv::LINE_8);
+            cv::line(map, c1, c2, cv::Scalar(50), 1, cv::LINE_8);
+            cv::line(map, c2, c3, cv::Scalar(50), 1, cv::LINE_8);
+            cv::line(map, c3, c0, cv::Scalar(50), 1, cv::LINE_8);
+        }
+
+        if (!covers.empty()) {
+            std::vector<cv::Point> point_path;
+            for (const auto &cover: covers) {
+                point_path.push_back(cover.toCvPoint());
+            }
+
+            cv::circle(map, point_path[0], 2, cv::Scalar(200), CV_FILLED);
+
+            for (size_t step = 1; step < point_path.size(); ++step) {
+                cv::Point p1(point_path[step - 1].x, point_path[step - 1].y);
+                cv::Point p2(point_path[step].x, point_path[step].y);
+                cv::circle(map, p2, 1, cv::Scalar(200), CV_FILLED);
+                cv::line(map, p1, p2, cv::Scalar(150), 1);
+            }
+        }
+
+        if (!paths.empty()) {
+            std::vector<cv::Point> point_path;
+            for (const auto &path: paths) {
+                point_path.push_back(path.toCvPoint());
+            }
+
+            cv::circle(map, point_path[0], 2, cv::Scalar(200), CV_FILLED);
+
+            for (size_t step = 1; step < point_path.size(); ++step) {
+                cv::Point p1(point_path[step - 1].x, point_path[step - 1].y);
+                cv::Point p2(point_path[step].x, point_path[step].y);
+                cv::circle(map, p2, 1, cv::Scalar(200), CV_FILLED);
+                cv::line(map, p1, p2, cv::Scalar(150), 1);
+            }
+        }
+
+        cv::Point cvCharger(chargerX / NUMERICAL_EXPANSION, chargerY / NUMERICAL_EXPANSION);
+        cv::circle(map, cvCharger, 3, cv::Scalar(200), CV_FILLED);
+
+        cv::Point cvRobot(robotX / NUMERICAL_EXPANSION, robotY / NUMERICAL_EXPANSION);
+        cv::circle(map, cvRobot, 3, cv::Scalar(200), CV_FILLED);
+
+        cv::resize(map, map, cv::Size(), 3, 3, cv::INTER_LINEAR);
+        cv::imshow("1", map);
+        cv::waitKey();
+        std::cout << "finish" << std::endl;
     }
 
     static void generate() {

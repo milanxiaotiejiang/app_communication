@@ -79,7 +79,7 @@ void TaskFeedback::run() {
     }
     rrMapWall.setVirtuallys(walls);
 
-    rrMapTarget.setTarget(cols / 3, rows / 3);
+//    rrMapTarget.setTarget(cols / 3, rows / 3);
 
     task_feedback_thread.detach();
 }
@@ -135,7 +135,7 @@ void TaskFeedback::generateRRMap() {
     rrMap.addArray(std::make_unique<MMapProhibition>(rrMapArea));
     rrMap.addArray(std::make_unique<MMapVirtually>(rrMapWall));
     rrMap.addArray(std::make_unique<MMapZone>(rrMapZone));
-//    rrMap.addArray(std::make_unique<MMapCover>(rrMapCover));
+    rrMap.addArray(std::make_unique<MMapCover>(rrMapCover));
     rrMap.addArray(std::make_unique<MMapValid>(rrMapValid));
 
     const std::vector<int8_t> byteArray = rrMap.toByteArray();
