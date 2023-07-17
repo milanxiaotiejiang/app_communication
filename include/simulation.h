@@ -19,6 +19,7 @@
 #define DEBUG_MAINTENANCE true
 #define DEBUG_OTA false
 #define DEBUG_DUMP true
+#define DEBUG_SENSOR true
 
 const bool isTimely = false;
 const bool isTestCrash = false;

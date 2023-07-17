@@ -197,6 +197,7 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
             sleep(5);
             NodeControl::instance().emulate();
             int last_machine_code = 10006;
+            long ii = 0;
             while (1) {
                 sleep(1);
                 NativeSystemManager::instance().urgencyStop(ZooInnerStatus::instance().getUrgencyStopStatus());
@@ -222,6 +223,10 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
                     SwitchModePublish::instance().publish();
                     ZooInnerStatus::instance().setNeedSleep(false);
                 }
+
+                std_msgs::Int32 message;
+                message.data = ii++;
+                PublishOutManager::instance().publishCarpet(message);
             }
         });
         moveBaseThread.detach();

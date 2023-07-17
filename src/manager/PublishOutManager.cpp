@@ -21,6 +21,8 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
     acceptAppCommunication = handle.advertise<std_msgs::String>(APP_COMMUNICATION, 1);
 
     pub_knob_ = handle.advertise<std_msgs::String>(KNOB_APP, 10);
+
+    pubCarpet = handle.advertise<std_msgs::Int32>("/sub_carpet", 10);
 }
 
 void PublishOutManager::publishJson(const std::string &message) const {
@@ -117,4 +119,8 @@ void PublishOutManager::publishKnob(const VersionSubscribe<KnobStatus> &versionS
 
 void PublishOutManager::publishInternalEvent(const std_msgs::String &message) const {
     pub_internal_event_.publish(message);
+}
+
+void PublishOutManager::publishCarpet(const std_msgs::Int32 &message) const {
+    pubCarpet.publish(message);
 }

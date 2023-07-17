@@ -18,6 +18,7 @@
 #include "leave/HotWindNote.h"
 #include "leave/auto_maintenance_mode.h"
 #include "leave/ParamManager.h"
+#include "leave/sensor/sensor_center.h"
 
 SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
     sub_node_control_ = handle.subscribe("/segmentation_task", 1, &SegmentationSubscribe::segmentationSubscribeCallback,
@@ -33,18 +34,25 @@ SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
 void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 &flag_result) {
     auto flag = flag_result.data;
 
-    MapPo map = SegmentationDataBase::instance().getDbMap();
-    auto generateMat = SegmentationCenter::instance().generateMat();
+//    MapPo map = SegmentationDataBase::instance().getDbMap();
+//    auto generateMat = SegmentationCenter::instance().generateMat();
+//
+//    try {
+//        TaskCenter::instance().performTask(flag, TaskSource::Cloud, 2);
+//    } catch (app::exception const &e) {
+//        LOG(ERROR) << e.what();
+//    } catch (const std::exception &e) {
+//        LOG(ERROR) << e.what();
+//    } catch (...) {
+//        LOG(ERROR) << "MessageStrategy other start exception";
+//    }
 
-    try {
-        TaskCenter::instance().performTask(flag, TaskSource::Cloud, 2);
-    } catch (app::exception const &e) {
-        LOG(ERROR) << e.what();
-    } catch (const std::exception &e) {
-        LOG(ERROR) << e.what();
-    } catch (...) {
-        LOG(ERROR) << "MessageStrategy other start exception";
+    if (flag == 1) {
+        SensorCenter::instance().startInspect();
+    } else if (flag == 0) {
+        SensorCenter::instance().stopInspect();
     }
+
 }
 
 void SegmentationSubscribe::segmentationOrderSubscribeCallback(const std_msgs::Int32 &flag_result) {

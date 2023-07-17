@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
         return 0;
     }
 
+    SensorCenter::instance().initialize(handle);
     AutoMaintenanceModeManager::instance().run();
     SegmentationCenter::instance().initialize(handle);
     ExplorationCenter::instance().initialize(handle);

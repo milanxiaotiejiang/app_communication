@@ -18,6 +18,7 @@
 #include "net/base/VersionSubscribe.h"
 #include "model/KnobStatus.h"
 #include "model/InternalEvent.h"
+#include "std_msgs/Int32.h"
 
 class PublishOutManager {
 private:
@@ -41,6 +42,7 @@ private:
     pub_internal_event_;//发送给云端
     ros::Publisher acceptAppJsonV1;
     ros::Publisher acceptAppCommunication;
+    ros::Publisher pubCarpet;
 public:
     static auto &instance() {
         static PublishOutManager obj;
@@ -68,6 +70,8 @@ public:
     void publishKnob(const VersionSubscribe<KnobStatus> &versionSubscribe) const;
 
     void publishInternalEvent(const std_msgs::String &message) const;
+
+    void publishCarpet(const std_msgs::Int32 &message) const;
 };
 
 
