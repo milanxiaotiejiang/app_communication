@@ -19,6 +19,7 @@
 #include "model/KnobStatus.h"
 #include "model/InternalEvent.h"
 #include "std_msgs/Int32.h"
+#include "net/ros/SensorSelfModel.h"
 
 class PublishOutManager {
 private:
@@ -38,6 +39,7 @@ private:
     pub_map_,            //地图
     pub_self_check_,     //目标点
     pub_notice_,         //notice
+    pub_sensor_check_,  //
     pub_knob_,           //knob
     pub_internal_event_;//发送给云端
     ros::Publisher acceptAppJsonV1;
@@ -60,6 +62,8 @@ public:
     void publishSelfCheck(const VersionSubscribe<SelfCheckStatus> &versionSubscribe) const;
 
     void publishNotice(const Notice &notice) const;
+
+    void publishSensorCheck(const SensorSelf &model) const;
 
     void publishAppJson(int version, const std_msgs::String &message) const;
 

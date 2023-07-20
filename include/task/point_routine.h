@@ -45,6 +45,8 @@ public:
 
     void pathDone(const actionlib::SimpleClientGoalState &state);
 
+    void crash();
+
 };
 
 

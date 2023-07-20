@@ -25,6 +25,7 @@ const std::string INTERNAL_EVENT = "/robot_internal_event";
 const std::string ALARM_EVENT = "/alarm_event";
 const std::string RESPONSE = "/response";
 const std::string RESPONSE_JSON = "/response_json";
+const std::string SENSOR_CHECK = "/sensor_check";
 
 const std::string MESSAGE_BUS_TOPIC = "message_bus_topic";
 

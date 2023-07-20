@@ -122,14 +122,8 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             break;
         }
         case event::flow::flowing_water_production: {
-            if (plannerQueue.size() == 1) {
-                //最后一个已经走完，移除最后一个再次执行一次，走收拖头
-                LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 清扫结束，准备回基站点 ...";
-                callBlockComplete([this]() {
-                    callBackBasePoint();
-                });
-            } else {
-                auto nextBlock = findFrontNextBlock();
+            if (block.retry) {
+                auto nextBlock = findFrontBlock();
                 if (nextBlock.inClean) {
                     if (nextBlock.timely_step > 0) {
                         nextBlock.already_step = nextBlock.already_step + nextBlock.timely_step + 1;
@@ -138,6 +132,24 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
                     }
                 }
                 callGoNextBlock(nextBlock);
+            } else {
+                if (plannerQueue.size() == 1) {
+                    //最后一个已经走完，移除最后一个再次执行一次，走收拖头
+                    LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 清扫结束，准备回基站点 ...";
+                    callBlockComplete([this]() {
+                        callBackBasePoint();
+                    });
+                } else {
+                    auto nextBlock = findFrontNextBlock();
+                    if (nextBlock.inClean) {
+                        if (nextBlock.timely_step > 0) {
+                            nextBlock.already_step = nextBlock.already_step + nextBlock.timely_step + 1;
+                            nextBlock.timely_step = 0;
+                            exchangeFrontPoint(nextBlock);
+                        }
+                    }
+                    callGoNextBlock(nextBlock);
+                }
             }
             break;
         }

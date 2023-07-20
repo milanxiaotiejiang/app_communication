@@ -11,6 +11,7 @@
 #include "leave/reconfigure.h"
 #include <replan_msgs/ReplanAction.h>
 #include <nav_msgs/Path.h>
+#include "std_msgs/Int32.h"
 
 const float RETURN_POINT_X_ = -1.3;
 
@@ -30,6 +31,8 @@ public:
 private:
     bool initialize_finish = false;
 
+    ros::Subscriber subscriber;
+
     ros::NodeHandle handle;
     DR xyGoalTolerance = DR("/move_base/DWAPlannerROS", "xy_goal_tolerance");
     DR yawGoalTolerance = DR("/move_base/DWAPlannerROS", "yaw_goal_tolerance");
@@ -47,6 +50,8 @@ private:
     static void feedBackCB(const replan_msgs::ReplanFeedbackConstPtr &feed_back);
 
     static void doneCB(const actionlib::SimpleClientGoalState &state, const replan_msgs::ReplanResultConstPtr &result);
+
+    void subscribeCallback(const std_msgs::Int32 &data);
 
 public:
     static auto &instance() {

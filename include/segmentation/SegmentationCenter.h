@@ -12,6 +12,7 @@
 #include "segmentation_subscribe.h"
 #include <opencv2/opencv.hpp>
 #include <ros/node_handle.h>
+#include <mutex>
 
 class SegmentationCenter {
 private:
@@ -26,6 +27,7 @@ public:
 
 private:
     bool initialize_finish = false;
+    std::recursive_mutex cv_mut;
 
     SegmentationSubscribe *segmentationSubscribe;
 
@@ -93,7 +95,7 @@ public:
      */
     cv::Mat choiceOneRoom(cv::Mat &segmented_map, std::vector<Room> &rooms, long targetId);
 
-    cv::Mat generateMat() const;
+    cv::Mat generateMat();
 
     bool checkPartition() const;
 

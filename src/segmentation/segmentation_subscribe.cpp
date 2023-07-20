@@ -36,21 +36,22 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
 
 //    MapPo map = SegmentationDataBase::instance().getDbMap();
 //    auto generateMat = SegmentationCenter::instance().generateMat();
-//
-//    try {
-//        TaskCenter::instance().performTask(flag, TaskSource::Cloud, 2);
-//    } catch (app::exception const &e) {
-//        LOG(ERROR) << e.what();
-//    } catch (const std::exception &e) {
-//        LOG(ERROR) << e.what();
-//    } catch (...) {
-//        LOG(ERROR) << "MessageStrategy other start exception";
-//    }
 
-    if (flag == 1) {
-        SensorCenter::instance().startInspect();
-    } else if (flag == 0) {
-        SensorCenter::instance().stopInspect();
+    try {
+//        TaskCenter::instance().performTask(flag, TaskSource::Cloud, 2);
+
+        if (flag == 1) {
+            SensorCenter::instance().startInspect();
+        } else if (flag == 0) {
+            SensorCenter::instance().stopInspect();
+        }
+
+    } catch (app::exception const &e) {
+        LOG(ERROR) << e.what();
+    } catch (const std::exception &e) {
+        LOG(ERROR) << e.what();
+    } catch (...) {
+        LOG(ERROR) << "MessageStrategy other start exception";
     }
 
 }

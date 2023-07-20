@@ -6,20 +6,20 @@
 #define APP_COMMUNICATION_CARPET_H
 
 #include "sensor.h"
+#include "std_msgs/Int32.h"
+#include "leave/sensor/sensor_center.h"
 
 /**
  * 地毯
  * /mrrobot/carpet_detect
  */
-class Carpet : public Sensor<std_msgs::Int32, int> {
+class Carpet : public Sensor<std_msgs::Int32> {
 public:
     explicit Carpet(const ros::NodeHandle &handle);
 
     ~Carpet() override;
 
-    int transformRosModel(std_msgs::Int32 model) override;
-
-    void dateProgressing(int data) override;
+    void dateProgressing(std_msgs::Int32 data) override;
 };
 
 

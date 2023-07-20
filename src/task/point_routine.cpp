@@ -11,9 +11,8 @@ void PointRoutine::pathActive() {
 }
 
 void PointRoutine::pathFeedback(const replan_msgs::ReplanFeedbackConstPtr &replan) {
-    unsigned int step = replan->current_step;
     replan_msgs::ReplanFeedback_<std::allocator<void>>::_base_position_type stamped = replan->base_position;
-    asyncTaskCall->executeOnPathFeedBack(step, stamped.pose);
+    asyncTaskCall->executeOnPathFeedBack(replan->current_step, replan->goal_step, replan->current_goal, stamped.pose);
 }
 
 void PointRoutine::pathDone(const actionlib::SimpleClientGoalState &state) {
@@ -36,4 +35,8 @@ void PointRoutine::pathDone(const actionlib::SimpleClientGoalState &state) {
         status = event::error::LOST;
     }
     asyncTaskCall->executeOnPathDone(status);
+}
+
+void PointRoutine::crash() {
+    asyncTaskCall->executeOnPathDone(event::error::CRASH);
 }

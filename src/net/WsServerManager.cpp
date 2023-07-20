@@ -146,7 +146,7 @@ void on_fail(server *s, websocketpp::connection_hdl hdl) {
     LOG(WARNING) << "Fail handler: " << con->get_ec() << " " << con->get_ec().message();
 }
 
-void on_close(const websocketpp::connection_hdl& hdl) {
+void on_close(const websocketpp::connection_hdl &hdl) {
     LOG(WARNING) << "Close handler";
     {
         std::unique_lock<std::mutex> lock(askMutex);
@@ -154,7 +154,7 @@ void on_close(const websocketpp::connection_hdl& hdl) {
     }
 }
 
-void on_open(server *s, const websocketpp::connection_hdl& hdl) {
+void on_open(server *s, const websocketpp::connection_hdl &hdl) {
     LOG(WARNING) << "Open handler" << std::endl;
 
     auto con = s->get_con_from_hdl(hdl);
@@ -193,6 +193,7 @@ void on_open(server *s, const websocketpp::connection_hdl& hdl) {
     ask.subMap[ODOM_APP] = false;
     ask.subMap[ROBOT_STATUS] = false;
     ask.subMap[NOTICE_APP] = false;
+    ask.subMap[SENSOR_CHECK] = false;
     ask.subMap[TASK_POINT] = false;
     ask.subMap[CHECK_APP] = false;
     ask.subMap[KNOB_APP] = false;
@@ -306,6 +307,7 @@ public:
         dataMap[ODOM_APP] = "";
         dataMap[ROBOT_STATUS] = "";
         dataMap[NOTICE_APP] = "";
+        dataMap[SENSOR_CHECK] = "";
         dataMap[TASK_POINT] = "";
         dataMap[CHECK_APP] = "";
         dataMap[KNOB_APP] = "";
@@ -372,6 +374,12 @@ public:
                                     dataMap[key] = "";
                                 }
                             } else if (key == TASK_POINT) {
+                                auto realData = dataMap[key];
+                                if (!realData.empty()) {
+                                    wsServerSend(server, ask.second.hdl, realData, key);
+                                    dataMap[key] = "";
+                                }
+                            } else if (key == SENSOR_CHECK) {
                                 auto realData = dataMap[key];
                                 if (!realData.empty()) {
                                     wsServerSend(server, ask.second.hdl, realData, key);

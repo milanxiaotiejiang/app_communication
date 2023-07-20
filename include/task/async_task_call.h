@@ -138,7 +138,7 @@ public:
 
     void executeOnPathDone(event::error error);
 
-    void executeOnPathFeedBack(int step, const geometry_msgs::Pose &pose);
+    void executeOnPathFeedBack(int current_step, int goal_step, int current_goal, const geometry_msgs::Pose &pose);
 
     void executeOutStation(bool result);
 

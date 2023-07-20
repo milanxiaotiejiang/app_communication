@@ -704,11 +704,20 @@ void AsyncTaskCall::executeOnPathDone(event::error error) {
     }
 
     if (!plannerQueue.empty()) {
-        notify_one([this, &error]() {
-            auto currentPoint = findFrontBlock();
-            currentPoint.arrive = error == event::error::SUCCEEDED;
-            pushBlock(currentPoint);
-        });
+        if (error == event::error::LOST) {
+            notify_one([this, &error]() {
+                auto currentPoint = findFrontBlock();
+                currentPoint.arrive = error == event::error::SUCCEEDED;
+                currentPoint.retry = true;
+                pushBlock(currentPoint);
+            });
+        } else {
+            notify_one([this, &error]() {
+                auto currentPoint = findFrontBlock();
+                currentPoint.arrive = error == event::error::SUCCEEDED;
+                pushBlock(currentPoint);
+            });
+        }
     } else {
         notify_one([this, &error]() {
             flowInBasePoint.arrive = error == event::error::SUCCEEDED;
@@ -717,11 +726,12 @@ void AsyncTaskCall::executeOnPathDone(event::error error) {
     }
 }
 
-void AsyncTaskCall::executeOnPathFeedBack(int step, const geometry_msgs::Pose &pose) {
-    lock([this, &step]() {
+void AsyncTaskCall::executeOnPathFeedBack(int current_step, int goal_step, int current_goal,
+                                          const geometry_msgs::Pose &pose) {
+    lock([this, &current_step, &goal_step, &current_goal]() {
         if (!plannerQueue.empty()) {
             RealBlock &block = plannerQueue.front();
-            if (step > block.timely_step) {
+            if (current_step > block.timely_step) {
 //                LOG(ERROR) << "AsyncTaskCall : executeOnPathFeedBack : "
 //                           << "  step " << step
 //                           << "  plannerQueue.size " << plannerQueue.size()
@@ -731,7 +741,10 @@ void AsyncTaskCall::executeOnPathFeedBack(int step, const geometry_msgs::Pose &p
 //                           << "  block.plannerPoints.size " << block.plannerPoints.size();
                 handlePlannerBlock(block);
             }
-            block.timely_step = step;
+            block.timely_step = current_step;
+            block.current_step = current_step;
+            block.goal_step = goal_step;
+            block.current_goal = current_goal;
         }
     });
     feedBackPose(pose);

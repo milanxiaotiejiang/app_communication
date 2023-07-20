@@ -186,6 +186,9 @@ enum MESSAGE_ID {
     SET_BASE_STATION,
     GET_BASE_STATION,
 
+    OPEN_SELF_CHECK,
+    CLOSE_SELF_CHECK,
+
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };
 

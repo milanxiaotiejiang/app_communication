@@ -468,5 +468,12 @@ int switch_ID(const std::string &str) {
     if (str == "get_base_station") {
         return GET_BASE_STATION;
     }
+
+    if (str == "open_self_check") {
+        return OPEN_SELF_CHECK;
+    }
+    if (str == "close_self_check") {
+        return CLOSE_SELF_CHECK;
+    }
     return -1;
 }

@@ -472,6 +472,13 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case GET_BASE_STATION:
             messageStrategy = new GetBaseStationStrategy();
             break;
+
+        case OPEN_SELF_CHECK:
+            messageStrategy = new OpenSelfCheckStrategy();
+            break;
+        case CLOSE_SELF_CHECK:
+            messageStrategy = new CloseSelfCheckStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);

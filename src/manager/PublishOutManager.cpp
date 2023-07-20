@@ -14,6 +14,7 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
 
     pub_self_check_ = handle.advertise<std_msgs::String>(CHECK_APP, 1);
     pub_notice_ = handle.advertise<std_msgs::String>(NOTICE_APP, 1);
+    pub_sensor_check_ = handle.advertise<std_msgs::String>(SENSOR_CHECK, 1);
     pub_internal_event_ = handle.advertise<std_msgs::String>(INTERNAL_EVENT, 10);
 
     acceptAppJsonV1 = handle.advertise<std_msgs::String>(APP_JSON, 1);
@@ -81,6 +82,21 @@ void PublishOutManager::publishNotice(const Notice &notice) const {
     std_msgs::String result;
     result.data.append(jsonResult.dump());
     pub_notice_.publish(result);
+}
+
+void PublishOutManager::publishSensorCheck(const SensorSelf &model) const {
+    RequestModel<SensorSelf> requestModel;
+    requestModel.setOp("publish");
+    requestModel.setTopic(SENSOR_CHECK);
+    requestModel.setMsg(model);
+
+    json jsonResult = requestModel;
+
+    WsServerManager::instance().sendRequestData(SENSOR_CHECK, jsonResult.dump());
+
+    std_msgs::String result;
+    result.data.append(jsonResult.dump());
+    pub_sensor_check_.publish(result);
 }
 
 void PublishOutManager::publishAppJson(int version, const std_msgs::String &message) const {

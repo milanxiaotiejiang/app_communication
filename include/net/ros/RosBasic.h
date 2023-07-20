@@ -141,7 +141,7 @@ public:
     }
 
     friend std::ostream &operator<<(std::ostream &os, const RosHeader &header) {
-        os << "frame_id: " << header.frame_id << " seq: " << header.seq << " stamp: " << header.stamp;
+//        os << "frame_id: " << header.frame_id << " seq: " << header.seq << " stamp: " << header.stamp;
         return os;
     }
 
@@ -709,8 +709,10 @@ public:
     }
 
     friend std::ostream &operator<<(std::ostream &os, const RosOdom &odom) {
-        os << "child_frame_id: " << odom.child_frame_id << " header: " << odom.header << " pose: " << odom.pose
-           << " twist: " << odom.twist;
+        os << "child_frame_id: " << odom.child_frame_id << " header: "
+            //           << odom.header << " pose: " << odom.pose
+            //           << " twist: " << odom.twist
+                ;
         return os;
     }
 

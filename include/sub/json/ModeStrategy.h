@@ -28,4 +28,14 @@ public:
     std::string handler(std::string params) override;
 };
 
+class OpenSelfCheckStrategy : public MessageStrategy<std::string, std::string> {
+public:
+    std::string handler(std::string params) override;
+};
+
+class CloseSelfCheckStrategy : public MessageStrategy<std::string, std::string> {
+public:
+    std::string handler(std::string params) override;
+};
+
 #endif //APP_COMMUNICATION_MODESTRATEGY_H

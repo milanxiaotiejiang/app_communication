@@ -139,7 +139,8 @@ namespace error {
         the_rain_snow_task_is_not_set,
         the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled,
         please_exit_the_rain_and_snow_mode_first,
-        during_the_automatic_maintenance_period_the_task_cannot_be_started
+        during_the_automatic_maintenance_period_the_task_cannot_be_started,
+        please_ensure_to_start_end_the_self_at_the_base_station
     };// enum value
 
     class category : public std::error_category {
@@ -398,6 +399,8 @@ namespace error {
                     return "请先退出雨雪天模式";
                 case error::during_the_automatic_maintenance_period_the_task_cannot_be_started:
                     return "自动维护时段内，任务无法启动";
+                case error::please_ensure_to_start_end_the_self_at_the_base_station:
+                    return "开始 / 结束自检请保证在基站";
                 default:
                     return "Unknown";
             }

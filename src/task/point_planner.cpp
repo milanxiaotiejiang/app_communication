@@ -51,6 +51,8 @@ PointPlanner::doneCB(const actionlib::SimpleClientGoalState &state, const replan
 void PointPlanner::initialize(ros::NodeHandle handle) {
     PointPlanner::handle = handle;
     LOG_IF(INFO, DEBUG_FIRING) << "PointPlanner initialize ...";
+
+    subscriber = handle.subscribe("/move_base_crash", 1, &PointPlanner::subscribeCallback, this);
     initialize_finish = true;
 }
 
@@ -96,8 +98,11 @@ void PointPlanner::goToPath(const RealBlock &block) {
         localInflationRadius.d(default_inflation_radius);
     }
 
+    LOG(WARNING) << "PointPlanner block step --  current_step : " << block.current_step
+                 << "  , goal_step : " << block.goal_step
+                 << "  , current_goal : " << block.current_goal;
     replan_msgs::ReplanGoal path;
-    cpToPath(std::vector<RealPoint>{block.plannerPoints.begin() + block.already_step, block.plannerPoints.end()},
+    cpToPath(std::vector<RealPoint>{block.plannerPoints.begin() + block.goal_step, block.plannerPoints.end()},
              path,
              block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE,
              SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
@@ -124,4 +129,10 @@ RealPoint PointPlanner::createBackBasePoint() {
     realPoint.realPosition = std::move(realPosition);
     realPoint.realOrientation = std::move(realOrientation);
     return realPoint;
+}
+
+void PointPlanner::subscribeCallback(const std_msgs::Int32 &data) {
+    if (data.data == 1) {
+        PointRoutine::instance().crash();
+    }
 }

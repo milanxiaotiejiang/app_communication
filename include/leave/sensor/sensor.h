@@ -6,15 +6,25 @@
 #define APP_COMMUNICATION_SENSOR_H
 
 #include "ros/ros.h"
-#include "std_msgs/Int32.h"
 #include <mutex>
 #include <condition_variable>
 #include <thread>
 #include "atomic"
 #include "simulation.h"
 
-template<class RosModel, class Model>
-class Sensor {
+class SensorBase {
+protected:
+    bool outLog = false;
+public:
+    virtual ~SensorBase() = default;
+
+    virtual void startInspect() = 0;
+
+    virtual void stopInspect() = 0;
+};
+
+template<class RosModel>
+class Sensor : public SensorBase {
 private:
     ros::NodeHandle handle;
 
@@ -29,22 +39,20 @@ private:
     std::atomic<bool> processingEnabled;
     std::atomic<bool> finished;
 
-    std::atomic<Model> sensorData;
+    RosModel sensorData;
 
     void subscribeCallback(const RosModel &data) {
-        dataTransmission(transformRosModel(data));
+        dataTransmission(data);
     }
 
-    void dataTransmission(Model data) {
-        std::unique_lock<std::mutex> lock(mtx);
+    void dataTransmission(RosModel data) {
+        std::lock_guard<std::mutex> lock(mtx);
         sensorData = data;
         dataAvailable = true;
         cv.notify_one();
     }
 
     void sensor_inspect_thread_func() {
-        LOG_IF(INFO, DEBUG_DUMP) << "自检线程启动了...";
-
         while (!finished) {
 
             std::unique_lock<std::mutex> lock(mtx);
@@ -55,16 +63,13 @@ private:
             }
 
             if (dataAvailable && processingEnabled) {
-                int value = sensorData;
+                RosModel value = sensorData;
                 dataAvailable = false;
                 lock.unlock();
 
-                LOG_IF(INFO, DEBUG_DUMP) << "模拟检测中 " << value << "...";
-                std::this_thread::sleep_for(std::chrono::milliseconds(100)); // simulate data processing
+                dateProgressing(value);
             }
         }
-
-        LOG_IF(INFO, DEBUG_DUMP) << "自检线程结束了...";
     }
 
 public:
@@ -85,19 +90,15 @@ public:
         cv.notify_all();
     }
 
-    void startInspect() {
-        LOG_IF(INFO, DEBUG_DUMP) << "启动检测...";
+    void startInspect() override {
         processingEnabled = true;
     }
 
-    void stopInspect() {
-        LOG_IF(INFO, DEBUG_DUMP) << "结束检测...";
+    void stopInspect() override {
         processingEnabled = false;
     }
 
-    virtual Model transformRosModel(RosModel) = 0;
-
-    virtual void dateProgressing(Model data) = 0;
+    virtual void dateProgressing(RosModel data) = 0;
 };
 
 

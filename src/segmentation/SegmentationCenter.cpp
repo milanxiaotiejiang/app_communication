@@ -409,6 +409,8 @@ void SegmentationCenter::memory2Storage(cv::Mat &segmented_map, std::vector<Room
 }
 
 void SegmentationCenter::storage2Memory(cv::Mat &segmented_map, std::vector<Room> &rooms) {
+    std::unique_lock<std::recursive_mutex> lock(cv_mut);
+
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
@@ -474,7 +476,10 @@ cv::Mat SegmentationCenter::choiceOneRoom(cv::Mat &segmented_map, std::vector<Ro
     return image;
 }
 
-cv::Mat SegmentationCenter::generateMat() const {
+cv::Mat SegmentationCenter::generateMat() {
+
+    std::unique_lock<std::recursive_mutex> lock(cv_mut);
+
     auto dbMap = SegmentationDataBase::instance().getDbMap();
     cv::Mat map = cv::imread(path::map_pgm_path().c_str(), cv::ImreadModes::IMREAD_GRAYSCALE);
 

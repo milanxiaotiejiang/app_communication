@@ -7,6 +7,7 @@
 #include "task/manager/manual.h"
 #include "task/manager/NodeWorkModeManager.h"
 #include "future/node/node_control.h"
+#include "leave/sensor/sensor_center.h"
 
 std::string RobotTryEnterModeStrategy::handler(int params) {
     if (ManualManager::instance().taskRunning()) {
@@ -40,5 +41,15 @@ std::string RobotPreparetoWorkStrategy::handler(std::string params) {
 
 std::string MapPreparetoWorkStrategy::handler(std::string params) {
     PublishOutManager::instance().publishMap(Variable::get_instance()->getMapApp());
+    return "";
+}
+
+std::string OpenSelfCheckStrategy::handler(std::string params) {
+    SensorCenter::instance().startInspect();
+    return "";
+}
+
+std::string CloseSelfCheckStrategy::handler(std::string params) {
+    SensorCenter::instance().stopInspect();
     return "";
 }

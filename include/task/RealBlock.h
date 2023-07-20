@@ -10,6 +10,7 @@
 
 #include "model/WorkStatus.h"
 #include "task/RealPoint.h"
+#include "task/status/state_machine.h"
 
 class RealError {
 public:
@@ -39,6 +40,7 @@ public:
     WorkStatus work_status;//清洁模式状态，应当和风刀 knife 并行
 
     bool arrive{false};//当前点为是否达到指定目标
+    bool retry{false};;
     long timeout = 0;//运行中超时时间
 
     int totalStep{0};
@@ -52,6 +54,10 @@ public:
 
     int timely_step{0};
     int already_step{0};
+
+    int current_step{0};
+    int goal_step{0};
+    int current_goal{0};
 
     friend std::ostream &operator<<(std::ostream &os, const RealBlock &block) {
         os << "id: " << block.id;
