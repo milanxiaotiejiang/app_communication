@@ -617,7 +617,12 @@ void AsyncTaskCall::callPause() {
         async::TimerCall::instance().baseLoop()->cancelAny();
         if (!plannerQueue.empty()) {
             auto currentPoint = findFrontBlock();
-            plannerQueue.push_front(currentPoint);
+            if (currentPoint.goal_step == INT_MAX) {
+                auto nextPoint = findFrontNextBlock();
+                plannerQueue.push_front(nextPoint);
+            } else {
+                plannerQueue.push_front(currentPoint);
+            }
         }
     }
 }
