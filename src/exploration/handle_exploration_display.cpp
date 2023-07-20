@@ -20,7 +20,7 @@ void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origi
     if (complex_path.empty()) {
         return;
     }
-    const cv::Point &startPoint = MapAttribute::instance().getRobotPositionPoint(map);
+    const cv::Point &startPoint = MapAttributeSingleton::instance().getRobotPositionPoint(map);
 
     int cols = map.cols;
     int rows = map.rows;
@@ -68,7 +68,7 @@ void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origi
     if (exploration_path.empty()) {
         return;
     }
-    const cv::Point &startPoint = MapAttribute::instance().getRobotPositionPoint(map);
+    const cv::Point &startPoint = MapAttributeSingleton::instance().getRobotPositionPoint(map);
 
     int cols = map.cols;
     int rows = map.rows;

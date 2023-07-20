@@ -101,8 +101,46 @@ void CartographerSubscribe::initialize(ros::NodeHandle handle) {
 
 void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_result) {
     if (carto_result.data == 1) {
+
+        MapAttribute currentAttr = MapAttributeSingleton::instance().getCurrentMapAttribute();
+
+        MapAttribute changeAttr(path::map_yaml_path());
+        MapAttributeSingleton::instance().readAnyMapInfo(changeAttr);
+
+        const cv::Point2d diffPoint = changeAttr.originPoint - currentAttr.originPoint;
+
+        MapPo map = SegmentationDataBase::instance().getDbMap();
+        const std::vector<TaskVo> &tasks = TaskDataBase::instance().loadTaskFoMap(map.id);
+
+        for (auto task: tasks) {
+            TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
+            if (mode == TaskMode::Zoned) {
+
+                std::vector<ZoneVo> replaceZones;
+                std::vector<ZoneVo> zones = task.getZones();
+
+                for (const auto &zone: zones) {
+
+                    std::vector<PointVo> replacePoints;
+                    for (const auto &point: zone.getPoints()) {
+                        cv::Point2d cvPoint(point.getX(), point.getY());
+                        auto changePoint = cvPoint + diffPoint;
+
+                        replacePoints.emplace_back(changePoint.x, changePoint.y);
+                    }
+                    ZoneVo replaceZone(zone.getZoneId(), replacePoints);
+
+                    replaceZones.push_back(replaceZone);
+                }
+
+                task.setZones(replaceZones);
+                TaskDataBase::instance().modifyTask(task);
+            }
+        }
+
         MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
-        MapAttribute::instance().loadStation();
+
+        MapAttributeSingleton::instance().loadStation();
         SegmentationCenter::instance().resetSegmentation();
         ExplorationCenter::instance().repaintCoveragePath();
         CartographerSubscribe::instance().coverResult();
@@ -111,7 +149,7 @@ void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_re
 
 void CartographerSubscribe::buildMapFinishCallback(const std_msgs::Int32 &carto_result) {
     if (carto_result.data == 1) {
-        MapAttribute::instance().notifySaveMap();
+        MapAttributeSingleton::instance().notifySaveMap();
     }
 }
 

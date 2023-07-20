@@ -118,7 +118,7 @@ bool PlanParamSetStrategy::handler(PlanParam params) {
 }
 
 PlanParam PlanParamResetStrategy::handler(std::string params) {
-    MapAttribute::instance().loadDefaultPlanParam();
+    MapAttributeSingleton::instance().loadDefaultPlanParam();
     auto planPo = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
     return PlanParam(planPo.robot_radius, planPo.map_correction_closing_neighborhood_size,
                      planPo.grid_obstacle_offset, planPo.path_eps, planPo.min_cell_area,
@@ -160,7 +160,7 @@ RoomCoverage ExplorationTaskStrategy::handler(long params) {
     TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
 
     if (mode == TaskMode::Zoned) {
-        geometry_msgs::Pose map_origin_pose = MapAttribute::instance().getMapOriginPose();
+        auto originPoint = MapAttributeSingleton::instance().getMapOrigin();
         ExplorationCenter &explorationCenter = ExplorationCenter::instance();
         SegmentationCenter &segmentationCenter = SegmentationCenter::instance();
         const cv::Mat &room_map = segmentationCenter.generateMat();
@@ -180,8 +180,8 @@ RoomCoverage ExplorationTaskStrategy::handler(long params) {
                 Point p;
                 double x = point.getX() * map_resolution_from_subscription;
                 double y = point.getY() * map_resolution_from_subscription;
-                p.setY(cols - x + map_origin_pose.position.x);
-                p.setX(rows - y + map_origin_pose.position.y);
+                p.setY(cols - x + originPoint.x);
+                p.setX(rows - y + originPoint.y);
                 trs.push_back(p);
 
                 geometry_msgs::Point32 point32;

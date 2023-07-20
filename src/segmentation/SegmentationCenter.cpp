@@ -97,8 +97,7 @@ bool SegmentationCenter::lineThroughRoom(const cv::Mat &segmented_map, Room room
     return or_member_size > 0;
 }
 
-void SegmentationCenter::initialize(const ros::NodeHandle &handle) {
-    ros::Time::init();
+bool SegmentationCenter::initialize(const ros::NodeHandle &handle) {
     // 1.加载需要的地图的信息（仅地图信息）
     // MapControl::instance().initialize()
     // 2.根据地图的信息检查分区地图的数据完整性
@@ -106,13 +105,15 @@ void SegmentationCenter::initialize(const ros::NodeHandle &handle) {
         resetSegmentation();
     }
     // 3.基站位置
-    MapAttribute::instance().loadStation();
+    if (!MapAttributeSingleton::instance().loadStation()) {
+        return false;
+    }
     // 4.虚拟墙（与基站位置结合判断连通域）
-    MapAttribute::instance().loadVirtualWall();
+    MapAttributeSingleton::instance().loadVirtualWall();
     // 5.禁区（生成全覆盖路径时需要）
-    MapAttribute::instance().loadPenaltyZone();
+    MapAttributeSingleton::instance().loadPenaltyZone();
     // 6.加载参数
-    MapAttribute::instance().loadPlanParam();
+    MapAttributeSingleton::instance().loadPlanParam();
 
     segmentationSubscribe = new SegmentationSubscribe(handle);
 
@@ -139,6 +140,7 @@ void SegmentationCenter::initialize(const ros::NodeHandle &handle) {
 //    cv::Mat segmented_map;
 //    std::vector<Room> rooms;
 //    automaticSegmentation(segmented_map, rooms);
+    return true;
 }
 
 void SegmentationCenter::resetSegmentation() {
@@ -155,7 +157,7 @@ void SegmentationCenter::originalSegmentation(cv::Mat &segmented_map, std::vecto
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
-    if (MapAttribute::instance().isCreatingMap()) {
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
     // 1.加载原始地图
@@ -225,7 +227,7 @@ void SegmentationCenter::handSegmentation(cv::Mat &segmented_map, std::vector<Ro
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
-    if (MapAttribute::instance().isCreatingMap()) {
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
     if (target_index < 0 || target_index >= rooms.size()) {
@@ -330,7 +332,7 @@ void SegmentationCenter::mergeRoom(cv::Mat &segmented_map, std::vector<Room> &ro
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
-    if (MapAttribute::instance().isCreatingMap()) {
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
     if (target_index < 0 || target_index >= rooms.size() ||
@@ -401,7 +403,7 @@ void SegmentationCenter::memory2Storage(cv::Mat &segmented_map, std::vector<Room
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
-    if (MapAttribute::instance().isCreatingMap()) {
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
     SegmentationDataBase::instance().memory2Storage(segmented_map, rooms);
@@ -414,7 +416,7 @@ void SegmentationCenter::storage2Memory(cv::Mat &segmented_map, std::vector<Room
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
-    if (MapAttribute::instance().isCreatingMap()) {
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
     SegmentationDataBase::instance().storage2Memory(segmented_map, rooms, map_resolution_from_subscription);
@@ -427,7 +429,7 @@ void SegmentationCenter::automaticSegmentation(cv::Mat &segmented_map, std::vect
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
-    if (MapAttribute::instance().isCreatingMap()) {
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
 
@@ -503,7 +505,7 @@ cv::Mat SegmentationCenter::generateMat() {
     auto cols = map.cols;//width
     auto rows = map.rows;//height
 
-    const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
+    const cv::Point &stationPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(map, Point(0, 0));
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
     drawBaseStation(map, stationPoint, plan.range_near_base_station, cv::Scalar(255));
 

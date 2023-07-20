@@ -46,7 +46,7 @@ public:
     /**
      * 初始化
      */
-    void initialize(const ros::NodeHandle &handle);
+    bool initialize(const ros::NodeHandle &handle);
 
     /**
      * 重置所有分区的设置

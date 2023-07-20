@@ -23,26 +23,36 @@ const double map_resolution_from_subscription = 0.05;
 const int VIRTUAL_WALL_DUS_COUNT = 2;
 const int PENALTY_ZONE_DUS_COUNT = 4;
 
-class MapAttribute {
-private:
+struct MapAttribute {
+    std::string attrPath;
+    geometry_msgs::Pose originPose;
+    std::string mapPath;
+    int mapCols;//width
+    int mapRows;//height
+    cv::Point2d originPoint;
+
     MapAttribute() = default;
 
-    MapAttribute(MapAttribute &) = delete;
+    MapAttribute(const std::string &attrPath) : attrPath(attrPath) {}
+};
 
-    MapAttribute &operator=(const MapAttribute &) = delete;
+class MapAttributeSingleton {
+private:
+    MapAttributeSingleton() = default;
+
+    MapAttributeSingleton(MapAttributeSingleton &) = delete;
+
+    MapAttributeSingleton &operator=(const MapAttributeSingleton &) = delete;
 
 public:
-    ~MapAttribute() = default;
+    ~MapAttributeSingleton() = default;
 
 private:
-    bool initialize_finish = false;
-
     std::atomic<bool> creating_map{false};
     std::condition_variable wait_cv;
     std::mutex wait_mutex;
 
-    geometry_msgs::Pose map_origin_pose;
-    cv::Point2d map_origin;
+    MapAttribute currentMapAttribute;
 
     geometry_msgs::Pose2D starting_position_pose;
 
@@ -72,26 +82,26 @@ private:
 
 public:
     static auto &instance() {
-        static MapAttribute obj;
+        static MapAttributeSingleton obj;
         return obj;
-    }
-
-    bool isInitializeFinish() const {
-        return initialize_finish;
     }
 
     bool isCreatingMap() const;
 
     const geometry_msgs::Pose &getMapOriginPose() const {
-        return map_origin_pose;
+        return currentMapAttribute.originPose;
     }
 
-    const cv::Point2d &getMapOrigin() const {
-        return map_origin;
+    cv::Point2d getMapOrigin() const {
+        return {currentMapAttribute.originPose.position.x, currentMapAttribute.originPose.position.y};
     }
 
     const std::vector<std::vector<Point>> &getVirtualWallList() const {
         return virtualWallList;
+    }
+
+    const MapAttribute &getCurrentMapAttribute() const {
+        return currentMapAttribute;
     }
 
     const std::vector<std::vector<Point>> &getPenaltyZoneList() const {
@@ -108,7 +118,7 @@ public:
 
     cv::Point getRobotPositionPoint(int rows, int cols) const;
 
-    void loadStation();
+    bool loadStation();
 
     void resetProhibition();
 
@@ -130,6 +140,8 @@ public:
     bool saveMap();
 
     void notifySaveMap();
+
+    static bool readAnyMapInfo(MapAttribute &mapAttribute);
 };
 
 

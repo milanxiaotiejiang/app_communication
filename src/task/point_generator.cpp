@@ -52,7 +52,7 @@ RealBlock PointGenerator::buildBlock(int id, const RealTask &task) {
 void PointGenerator::complexPathToRealBlock(RealTask &realTask,
                                             const std::vector<std::vector<PoseVo>> &complexList,
                                             std::vector<RealBlock> &blockList) {
-    auto originPose = MapAttribute::instance().getMapOriginPose();
+    auto originPoint = MapAttributeSingleton::instance().getMapOrigin();
 
     std::vector<std::vector<PoseVo>> splitVectors;
     for (const auto &vec: complexList) {
@@ -73,7 +73,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
 
     std::vector<std::vector<PoseVo>> complexAngleList;
     for (const auto &complex: splitVectors) {
-        std::vector<PoseVo> poseList = recalculateAngle(originPose, complex);
+        std::vector<PoseVo> poseList = recalculateAngle(originPoint, complex);
         complexAngleList.push_back(poseList);
     }
 
@@ -173,7 +173,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
 
 }
 
-std::vector<PoseVo> PointGenerator::recalculateAngle(const geometry_msgs::Pose &originPose,
+std::vector<PoseVo> PointGenerator::recalculateAngle(const cv::Point2d &point2D,
                                                      const std::vector<PoseVo> &poseList) {
     std::vector<PoseVo> results(poseList.size());
     for (size_t point_index = 0; point_index < poseList.size(); ++point_index) {
@@ -189,7 +189,7 @@ std::vector<PoseVo> PointGenerator::recalculateAngle(const geometry_msgs::Pose &
                 theta = atan2(vector.y, vector.x);
             }
         } else {
-            auto next_point = cv::Point2f(originPose.position.x, originPose.position.y);
+            auto next_point = cv::Point2f(point2D.x, point2D.y);
             vector = next_point - current_point;
             if (vector.x != 0 || vector.y != 0) {
                 theta = atan2(vector.y, vector.x);
@@ -720,7 +720,7 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
     TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
 
     if (mode == TaskMode::Zoned) {
-        geometry_msgs::Pose map_origin_pose = MapAttribute::instance().getMapOriginPose();
+        auto originPoint = MapAttributeSingleton::instance().getMapOrigin();
         ExplorationCenter &explorationCenter = ExplorationCenter::instance();
         SegmentationCenter &segmentationCenter = SegmentationCenter::instance();
         const cv::Mat &room_map = segmentationCenter.generateMat();
@@ -740,8 +740,8 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
                 Point p;
                 double x = point.getX() * map_resolution_from_subscription;
                 double y = point.getY() * map_resolution_from_subscription;
-                p.setY(cols - x + map_origin_pose.position.x);
-                p.setX(rows - y + map_origin_pose.position.y);
+                p.setY(cols - x + originPoint.x);
+                p.setX(rows - y + originPoint.y);
                 trs.push_back(p);
 
                 geometry_msgs::Point32 point32;

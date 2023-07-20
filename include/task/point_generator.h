@@ -20,8 +20,7 @@ class PointGenerator {
 protected:
     static RealBlock buildBlock(int id, const RealTask &task);
 
-    static std::vector<PoseVo> recalculateAngle(const geometry_msgs::Pose &originPose,
-                                                const std::vector<PoseVo> &poseList);
+    static std::vector<PoseVo> recalculateAngle(const cv::Point2d& point2D, const std::vector<PoseVo> &poseList);
 
     static std::vector<geometry_msgs::PoseStamped> convertToGeometry(const std::vector<PoseVo> &complex);
 

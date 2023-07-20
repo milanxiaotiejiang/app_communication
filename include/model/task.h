@@ -113,7 +113,6 @@ public:
            const std::string &launchPeople,
            long launchTime, long updateTime, long createTime, bool rain_snow);
 
-
     void setId(long id);
 
     void setWorkStatus(const WorkStatus &workStatus);

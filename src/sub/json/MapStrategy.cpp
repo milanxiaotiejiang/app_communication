@@ -66,7 +66,7 @@ MapScore EndMapStrategy::handler(MapParam params) {
             throw app::exception(make_error_code(error::area_too_small));
         }
         //关键 保存地图
-        if (!MapAttribute::instance().saveMap()) {
+        if (!MapAttributeSingleton::instance().saveMap()) {
             bool isToSleep = NodeWorkModeManager::instance().tryToSleep();
             MapControl::instance().loadInformation(SegmentationDataBase::instance().getDbMap().id);
             MapControl::instance().changeMapServer();
@@ -94,7 +94,7 @@ MapScore EndMapStrategy::handler(MapParam params) {
         // 删除多个分区的相关信息
         SegmentationCenter::instance().resetSegmentation();
         // 重新加载基站信息
-        MapAttribute::instance().loadStation();
+        MapAttributeSingleton::instance().loadStation();
         // 使用全覆盖算法快速验证地图质量
         double proportion = tcr::coverageProportion();
         // 设置返回的结果
@@ -131,7 +131,7 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
         throw app::exception(make_error_code(error::the_map_needs_to_be_saved_at_the_base_station_location));
     }
     // todo 此版本为单地图
-    if (MapAttribute::instance().saveMap()) {
+    if (MapAttributeSingleton::instance().saveMap()) {
 
         SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id,
                                                        params.getMapName());
@@ -153,7 +153,7 @@ MapInfo SaveMapStrategy::handler(MapInfo params) {
         }
 
         MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
-        MapAttribute::instance().loadStation();
+        MapAttributeSingleton::instance().loadStation();
         SegmentationCenter::instance().resetSegmentation();
 
         double proportion = tcr::coverageProportion();
@@ -274,9 +274,9 @@ std::string EditMapStrategy::handler(std::vector<std::vector<float>> params) {
     }
     PublishInnerManager::instance().publishResetProhibition();
 
-    MapAttribute::instance().resetProhibition();
-    MapAttribute::instance().loadVirtualWall();
-    MapAttribute::instance().loadPenaltyZone();
+    MapAttributeSingleton::instance().resetProhibition();
+    MapAttributeSingleton::instance().loadVirtualWall();
+    MapAttributeSingleton::instance().loadPenaltyZone();
     MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false);
     ExplorationCenter::instance().repaintCoveragePath();
     return "";

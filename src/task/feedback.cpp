@@ -47,16 +47,16 @@ void TaskFeedback::run() {
         }
     }
 
-    const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(rows, cols, Point(0, 0));
+    const cv::Point &stationPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(rows, cols, Point(0, 0));
     rrMapCharger.setCharger(stationPoint.x + 10, stationPoint.y + 20, 0);
 
-    auto penaltyZoneList = MapAttribute::instance().getPenaltyZoneList();
+    auto penaltyZoneList = MapAttributeSingleton::instance().getPenaltyZoneList();
     std::vector<MZone> areas;
     for (const auto &vector: penaltyZoneList) {
-        const cv::Point &point0 = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[0]);
-        const cv::Point &point1 = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[1]);
-        const cv::Point &point2 = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[2]);
-        const cv::Point &point3 = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[3]);
+        const cv::Point &point0 = MapAttributeSingleton::instance().rosPoint2MapPoint(rows, cols, vector[0]);
+        const cv::Point &point1 = MapAttributeSingleton::instance().rosPoint2MapPoint(rows, cols, vector[1]);
+        const cv::Point &point2 = MapAttributeSingleton::instance().rosPoint2MapPoint(rows, cols, vector[2]);
+        const cv::Point &point3 = MapAttributeSingleton::instance().rosPoint2MapPoint(rows, cols, vector[3]);
 
         MPoint p0(point0.x, point0.y);
         MPoint p1(point1.x, point1.y);
@@ -67,11 +67,11 @@ void TaskFeedback::run() {
     }
     rrMapArea.setProhibitions(areas);
 
-    auto virtualWallList = MapAttribute::instance().getVirtualWallList();
+    auto virtualWallList = MapAttributeSingleton::instance().getVirtualWallList();
     std::vector<MLine> walls;
     for (const auto &vector: virtualWallList) {
-        const cv::Point &pointStart = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[0]);
-        const cv::Point &pointEnd = MapAttribute::instance().rosPoint2MapPoint(rows, cols, vector[1]);
+        const cv::Point &pointStart = MapAttributeSingleton::instance().rosPoint2MapPoint(rows, cols, vector[0]);
+        const cv::Point &pointEnd = MapAttributeSingleton::instance().rosPoint2MapPoint(rows, cols, vector[1]);
         MPoint p0(pointStart.x, pointStart.y);
         MPoint p1(pointEnd.x, pointEnd.y);
         MLine rrLine(p0, p1);
@@ -170,7 +170,7 @@ void TaskFeedback::onTaskStart(const RealTask &task) {
             std::vector<MPoint> covers;
             for (const auto &block: task.getPlanBlocks()) {
                 for (const auto &point: block.plannerPoints) {
-                    const cv::Point cvPoint = MapAttribute::instance().rosPoint2MapPoint(
+                    const cv::Point cvPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(
                             rows, cols, Point(point.realPosition.x, point.realPosition.y)
                     );
                     covers.emplace_back(cvPoint.x, cvPoint.y);
@@ -208,7 +208,7 @@ void TaskFeedback::onTaskProgress(const geometry_msgs::Pose &pose) {
         std::unique_lock<std::mutex> lock(cv_mut);
 
         Point point(pose.position.x, pose.position.y);
-        cv::Point cvPoint = MapAttribute::instance().rosPoint2MapPoint(rows, cols, point);
+        cv::Point cvPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(rows, cols, point);
         currentPoint.setX(cvPoint.x);
         currentPoint.setY(cvPoint.y);
         pointList.insert(currentPoint);

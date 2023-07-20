@@ -43,9 +43,9 @@ public:
         int rows = room_map.rows;
         int cols = room_map.cols;
 
-        auto map_origin = MapAttribute::instance().getMapOrigin();
+        auto map_origin = MapAttributeSingleton::instance().getMapOrigin();
 
-        geometry_msgs::Pose2D robot_position = MapAttribute::instance().getRobotPositionPose();
+        geometry_msgs::Pose2D robot_position = MapAttributeSingleton::instance().getRobotPositionPose();
 //        const cv::Point &start_point = poseTransferPoint(robot_position.x, robot_position.y);
 
 

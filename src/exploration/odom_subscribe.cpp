@@ -26,7 +26,7 @@ void OdomSubscribe::subscribeCallback(const nav_msgs::OdometryConstPtr &msg) {
     pose2D.x = point.x;
     pose2D.y = point.y;
     pose2D.theta = tf::getYaw(orientation);
-    MapAttribute::instance().setRobotPositionPose(pose2D);
+    MapAttributeSingleton::instance().setRobotPositionPose(pose2D);
 
     nav_msgs::Path passed_path;
     passed_path.header = msg->header;

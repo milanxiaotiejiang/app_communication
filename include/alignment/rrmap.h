@@ -214,8 +214,8 @@ struct RRMap {
         const cv::Mat &map = SegmentationCenter::instance().generateMat();
         int rows = map.rows;//387
         int cols = map.cols;//236
-        cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
-        cv::Point robotPosition = MapAttribute::instance().getRobotPositionPoint(map);
+        cv::Point2d map_origin = MapAttributeSingleton::instance().getMapOrigin();
+        cv::Point robotPosition = MapAttributeSingleton::instance().getRobotPositionPoint(map);
 
 
         int default_0 = 114;

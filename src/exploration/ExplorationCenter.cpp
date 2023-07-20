@@ -135,10 +135,10 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, Exploratio
                                              std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
     cv::Mat map = room_map.clone();
 
-    cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
-    const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
+    cv::Point2d map_origin = MapAttributeSingleton::instance().getMapOrigin();
+    const cv::Point &stationPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(map, Point(0, 0));
 
-    cv::Point robotPosition = MapAttribute::instance().getRobotPositionPoint(room_map);
+    cv::Point robotPosition = MapAttributeSingleton::instance().getRobotPositionPoint(room_map);
     if (!DISPLAY_TRAJECTORY_EFFECT) {
         if (ordain_start) {
             robotPosition.x = start_position.x;
@@ -289,7 +289,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
 
-    cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
+    cv::Point2d map_origin = MapAttributeSingleton::instance().getMapOrigin();
 
     LOG_IF(INFO, DEBUG_EXPLORATION) << "exploration_path front point size : " << exploration_path.size();
     if (exploration_path.size() < 3) {
@@ -396,7 +396,7 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, bool add
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
     }
-    if (MapAttribute::instance().isCreatingMap()) {
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
 
@@ -404,8 +404,8 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, bool add
 
     cv::Mat map = room_map.clone();
 
-    cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
-    const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
+    cv::Point2d map_origin = MapAttributeSingleton::instance().getMapOrigin();
+    const cv::Point &stationPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(map, Point(0, 0));
 
     if (addProhibition) {
         //禁区虚拟墙
@@ -515,7 +515,7 @@ void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, int ex
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
     }
-    if (MapAttribute::instance().isCreatingMap()) {
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
 
@@ -548,7 +548,7 @@ void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, int exp
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
     }
-    if (MapAttribute::instance().isCreatingMap()) {
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
 
@@ -581,7 +581,7 @@ void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, int ex
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
     }
-    if (MapAttribute::instance().isCreatingMap()) {
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
 
@@ -616,12 +616,12 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::exploration_initialize_fail));
     }
-    if (MapAttribute::instance().isCreatingMap()) {
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
 
     cv::Mat map = SegmentationCenter::instance().generateMat();
-    auto robotPosition = MapAttribute::instance().getRobotPositionPoint(map);
+    auto robotPosition = MapAttributeSingleton::instance().getRobotPositionPoint(map);
 
     std::vector<cv::Point> polygon_centers;
     std::vector<GeneralizedPolygon> cell_polygons;
@@ -875,25 +875,25 @@ bool ExplorationCenter::removeUnconnectedRoomParts(cv::Mat &room_map) {
 cv::Mat ExplorationCenter::prohibitionMat(const cv::Mat &room_map) const {
     cv::Mat prohibition_image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
 
-    auto penaltyZoneList = MapAttribute::instance().getPenaltyZoneList();
+    auto penaltyZoneList = MapAttributeSingleton::instance().getPenaltyZoneList();
 
     for (int i = 0; i < penaltyZoneList.size(); ++i) {
         std::vector<std::vector<cv::Point>> polygon_array;
         std::vector<cv::Point> cvPoints;
         auto vector = penaltyZoneList[i];
         for (int j = 0; j < vector.size(); ++j) {
-            const cv::Point &point = MapAttribute::instance().rosPoint2MapPoint(prohibition_image, vector[j]);
+            const cv::Point &point = MapAttributeSingleton::instance().rosPoint2MapPoint(prohibition_image, vector[j]);
             cvPoints.push_back(point);
         }
         polygon_array.push_back(cvPoints);
         cv::fillPoly(prohibition_image, polygon_array, cv::Scalar(255));
     }
 
-    auto virtualWallList = MapAttribute::instance().getVirtualWallList();
+    auto virtualWallList = MapAttributeSingleton::instance().getVirtualWallList();
     for (const auto &vector: virtualWallList) {
         if (vector.size() == 2) {
-            const cv::Point &pointStart = MapAttribute::instance().rosPoint2MapPoint(prohibition_image, vector[0]);
-            const cv::Point &pointEnd = MapAttribute::instance().rosPoint2MapPoint(prohibition_image, vector[1]);
+            const cv::Point &pointStart = MapAttributeSingleton::instance().rosPoint2MapPoint(prohibition_image, vector[0]);
+            const cv::Point &pointEnd = MapAttributeSingleton::instance().rosPoint2MapPoint(prohibition_image, vector[1]);
             cv::line(prohibition_image, pointStart, pointEnd, cv::Scalar(255), 2);
         }
     }

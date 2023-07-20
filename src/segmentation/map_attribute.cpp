@@ -9,67 +9,52 @@
 #include "BaseThrowable.h"
 #include "leave/cartographer_node.h"
 #include "simulation.h"
+#include "cppfs/FilePath.h"
+#include <cppfs/fs.h>
+#include <cppfs/FileHandle.h>
 
 /**
  * map_origin_pose.position (0,0) 为显示地图的左下角，即 starting_position_pose.x 越大，机器人越靠右；starting_position_pose.y 越大，机器人越考上
  */
-void MapAttribute::setRobotPositionPose(geometry_msgs::Pose2D positionPose) {
+void MapAttributeSingleton::setRobotPositionPose(geometry_msgs::Pose2D positionPose) {
     this->starting_position_pose = positionPose;
 }
 
-cv::Point MapAttribute::getRobotPositionPoint(const cv::Mat &room_map) const {
+cv::Point MapAttributeSingleton::getRobotPositionPoint(const cv::Mat &room_map) const {
     auto cols = room_map.cols;//width
     auto rows = room_map.rows;//height
     cv::Point starting_position;
     starting_position.x =
-            cols - (starting_position_pose.y - map_origin_pose.position.x) / map_resolution_from_subscription;
+            cols - (starting_position_pose.y - getMapOrigin().x) / map_resolution_from_subscription;
     starting_position.y =
-            rows - (starting_position_pose.x - map_origin_pose.position.y) / map_resolution_from_subscription;
+            rows - (starting_position_pose.x - getMapOrigin().y) / map_resolution_from_subscription;
     LOG_IF(INFO, DEBUG_SEGMENTATION)
     << "current robot position (" << starting_position.x << ", " << starting_position.y << ")";
     return starting_position;
 }
 
-cv::Point MapAttribute::getRobotPositionPoint(int rows, int cols) const {
+cv::Point MapAttributeSingleton::getRobotPositionPoint(int rows, int cols) const {
     cv::Point starting_position;
     starting_position.x =
-            cols - (starting_position_pose.y - map_origin_pose.position.x) / map_resolution_from_subscription;
+            cols - (starting_position_pose.y - getMapOrigin().x) / map_resolution_from_subscription;
     starting_position.y =
-            rows - (starting_position_pose.x - map_origin_pose.position.y) / map_resolution_from_subscription;
+            rows - (starting_position_pose.x - getMapOrigin().y) / map_resolution_from_subscription;
     LOG_IF(INFO, DEBUG_SEGMENTATION)
     << "current robot position (" << starting_position.x << ", " << starting_position.y << ")";
     return starting_position;
 }
 
-void MapAttribute::loadStation() {
-    if (access(path::map_yaml_path().c_str(), F_OK) != 0) {//存在
-        return;
-    }
-    YAML::Node config = YAML::LoadFile(path::map_yaml_path());
-    const YAML::Node &originNode = config["origin"];
-    if (!originNode.IsDefined()) {
-        return;
-    }
-    if (originNode.size() != 3) {
-        return;
-    }
-
-    map_origin_pose.position.x = originNode[1].as<double>();
-    map_origin_pose.position.y = originNode[0].as<double>();
-    map_origin_pose.position.z = originNode[2].as<double>();
-
-    map_origin.x = map_origin_pose.position.x;
-    map_origin.y = map_origin_pose.position.y;
-
-    initialize_finish = true;
+bool MapAttributeSingleton::loadStation() {
+    currentMapAttribute.attrPath = path::map_yaml_path();
+    return readAnyMapInfo(currentMapAttribute);
 }
 
-void MapAttribute::resetProhibition() {
+void MapAttributeSingleton::resetProhibition() {
     virtualWallList.clear();
     penaltyZoneList.clear();
 }
 
-void MapAttribute::loadVirtualWall() {
+void MapAttributeSingleton::loadVirtualWall() {
     if (access(path::prohibition_areas_path().c_str(), F_OK) != 0) {//存在
         return;
     }
@@ -89,7 +74,7 @@ void MapAttribute::loadVirtualWall() {
     }
 }
 
-void MapAttribute::loadPenaltyZone() {
+void MapAttributeSingleton::loadPenaltyZone() {
     if (access(path::prohibition_areas_path().c_str(), F_OK) != 0) {//存在
         return;
     }
@@ -109,7 +94,7 @@ void MapAttribute::loadPenaltyZone() {
     }
 }
 
-void MapAttribute::loadPlanParam() {
+void MapAttributeSingleton::loadPlanParam() {
     std::string &map_id = SegmentationDataBase::instance().getDbMap().id;
     auto planPo = SegmentationDataBase::instance().getDbPlan(map_id);
     if (planPo.map_id.empty()) {
@@ -122,7 +107,7 @@ void MapAttribute::loadPlanParam() {
     }
 }
 
-void MapAttribute::loadDefaultPlanParam() {
+void MapAttributeSingleton::loadDefaultPlanParam() {
     std::string &map_id = SegmentationDataBase::instance().getDbMap().id;
     SegmentationDataBase::instance().setPlanParam(map_id,
                                                   robot_radius_,
@@ -146,7 +131,8 @@ void MapAttribute::loadDefaultPlanParam() {
 }
 
 void
-MapAttribute::handleProhibition(std::vector<std::vector<Point>> &list, const YAML::Node &node, int dusCount) const {
+MapAttributeSingleton::handleProhibition(std::vector<std::vector<Point>> &list, const YAML::Node &node,
+                                         int dusCount) const {
     std::vector<Point> pointList;
     for (int j = 0; j < node.size(); j++) {
         const YAML::Node &childNode = node[j];
@@ -163,31 +149,31 @@ MapAttribute::handleProhibition(std::vector<std::vector<Point>> &list, const YAM
     }
 }
 
-cv::Point MapAttribute::rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const {
+cv::Point MapAttributeSingleton::rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const {
     double rows = room_map.rows * map_resolution_from_subscription;
     double cols = room_map.cols * map_resolution_from_subscription;
-    double x = cols - (point.getY() - map_origin_pose.position.x);
-    double y = rows - (point.getX() - map_origin_pose.position.y);
+    double x = cols - (point.getY() - getMapOrigin().x);
+    double y = rows - (point.getX() - getMapOrigin().y);
     cv::Point position;
     position.x = x / map_resolution_from_subscription;
     position.y = y / map_resolution_from_subscription;
     return position;
 }
 
-cv::Point MapAttribute::rosPoint2MapPoint(int rows, int cols, const Point &point) const {
-    double x = cols * map_resolution_from_subscription - (point.getY() - map_origin_pose.position.x);
-    double y = rows * map_resolution_from_subscription - (point.getX() - map_origin_pose.position.y);
+cv::Point MapAttributeSingleton::rosPoint2MapPoint(int rows, int cols, const Point &point) const {
+    double x = cols * map_resolution_from_subscription - (point.getY() - getMapOrigin().x);
+    double y = rows * map_resolution_from_subscription - (point.getX() - getMapOrigin().y);
     cv::Point position;
     position.x = x / map_resolution_from_subscription;
     position.y = y / map_resolution_from_subscription;
     return position;
 }
 
-bool MapAttribute::isCreatingMap() const {
+bool MapAttributeSingleton::isCreatingMap() const {
     return creating_map;
 }
 
-bool MapAttribute::saveMap() {
+bool MapAttributeSingleton::saveMap() {
     //防止二次进入
     if (creating_map) {
         throw app::exception(make_error_code(error::in_creating_map));
@@ -209,6 +195,51 @@ bool MapAttribute::saveMap() {
     }
 }
 
-void MapAttribute::notifySaveMap() {
+void MapAttributeSingleton::notifySaveMap() {
     wait_cv.notify_all();
+}
+
+bool MapAttributeSingleton::readAnyMapInfo(MapAttribute &mapAttribute) {
+    std::string yamlPath = mapAttribute.attrPath;
+
+    auto mapAttr = cppfs::FilePath(yamlPath);
+    if (!cppfs::fs::open(mapAttr.fullPath()).exists()) {
+        return false;
+    }
+
+    YAML::Node config = YAML::LoadFile(yamlPath);
+    const YAML::Node &originNode = config["origin"];
+    if (!originNode.IsDefined()) {
+        return false;
+    }
+    if (originNode.size() != 3) {
+        return false;
+    }
+
+    const YAML::Node &imageNode = config["image"];
+    if (!imageNode.IsDefined()) {
+        return false;
+    }
+
+    auto mapPath = imageNode.as<std::string>();
+    auto mapFile = cppfs::FilePath(mapPath);
+    if (!cppfs::fs::open(mapFile.fullPath()).exists()) {
+        return false;
+    }
+
+    mapAttribute.originPose.position.x = originNode[1].as<double>();
+    mapAttribute.originPose.position.y = originNode[0].as<double>();
+    mapAttribute.originPose.position.z = originNode[2].as<double>();
+
+    cv::Mat map = cv::imread(mapPath, cv::ImreadModes::IMREAD_GRAYSCALE);
+    cv::rotate(map, map, cv::RotateFlags::ROTATE_90_COUNTERCLOCKWISE);
+
+    mapAttribute.mapPath = mapPath;
+    mapAttribute.mapRows = map.rows;
+    mapAttribute.mapCols = map.cols;
+
+    mapAttribute.originPoint.x = map.cols + mapAttribute.originPose.position.x / map_resolution_from_subscription;
+    mapAttribute.originPoint.y = map.rows + mapAttribute.originPose.position.y / map_resolution_from_subscription;
+
+    return true;
 }

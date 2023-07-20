@@ -450,7 +450,7 @@ RealBlock AsyncTaskCall::findFrontNextBlock() {
 }
 
 bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
-    geometry_msgs::Pose2D current_point = MapAttribute::instance().getRobotPositionPose();
+    geometry_msgs::Pose2D current_point = MapAttributeSingleton::instance().getRobotPositionPose();
     float robot_yaw = current_point.theta;
     float robot_x = current_point.x;
     float robot_y = current_point.y;

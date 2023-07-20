@@ -65,10 +65,14 @@ int main(int argc, char **argv) {
         LOG(ERROR) << "data DB Map load fail !";
         return 0;
     }
+    ros::Time::init();
 
     SensorCenter::instance().initialize(handle);
     AutoMaintenanceModeManager::instance().run();
-    SegmentationCenter::instance().initialize(handle);
+    if (!SegmentationCenter::instance().initialize(handle)) {
+        LOG(ERROR) << "data Map File load fail !";
+        return 0;
+    }
     ExplorationCenter::instance().initialize(handle);
 //    AlignmentCenter::instance().initialize(handle);
     TaskCenter::instance().initialize(handle);

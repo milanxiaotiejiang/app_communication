@@ -50,7 +50,8 @@ void PublishOutManager::publishStatus(const VersionSubscribe<ShowWorkStatus> &ve
 }
 
 void PublishOutManager::publishMap(const nav_msgs::OccupancyGrid &message) const {
-    WsServerManager::instance().setMapApp(message);
+//    WsServerManager::instance().setMapApp(message);
+    WsServerManager::instance().setMapApp2(message);
     pub_map_.publish(message);
 }
 

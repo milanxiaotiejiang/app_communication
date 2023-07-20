@@ -871,15 +871,15 @@ public:
         rrMapSize.setMapArray(mapArray);
 
         const RoomCoverage &coverage = ExplorationCenter::instance().obtainCoveragePath();
-        auto penaltyZoneList = MapAttribute::instance().getPenaltyZoneList();
-        auto virtualWallList = MapAttribute::instance().getVirtualWallList();
+        auto penaltyZoneList = MapAttributeSingleton::instance().getPenaltyZoneList();
+        auto virtualWallList = MapAttributeSingleton::instance().getVirtualWallList();
 
-        cv::Point2d map_origin = MapAttribute::instance().getMapOrigin();
-        const cv::Point &stationPoint = MapAttribute::instance().rosPoint2MapPoint(map, Point(0, 0));
+        cv::Point2d map_origin = MapAttributeSingleton::instance().getMapOrigin();
+        const cv::Point &stationPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(map, Point(0, 0));
         MMapCharger rrMapCharger;
         rrMapCharger.setCharger(stationPoint.x + 10, stationPoint.y + 20, 0);
 
-        cv::Point robotPosition = MapAttribute::instance().getRobotPositionPoint(map);
+        cv::Point robotPosition = MapAttributeSingleton::instance().getRobotPositionPoint(map);
         MMapRobot rrMapRobot;
         rrMapRobot.setRobot(robotPosition.x, robotPosition.y, -87);
 
@@ -898,10 +898,10 @@ public:
         for (int i = 0; i < penaltyZoneList.size(); ++i) {
             auto vector = penaltyZoneList[i];
 
-            const cv::Point &point0 = MapAttribute::instance().rosPoint2MapPoint(map, vector[0]);
-            const cv::Point &point1 = MapAttribute::instance().rosPoint2MapPoint(map, vector[1]);
-            const cv::Point &point2 = MapAttribute::instance().rosPoint2MapPoint(map, vector[2]);
-            const cv::Point &point3 = MapAttribute::instance().rosPoint2MapPoint(map, vector[3]);
+            const cv::Point &point0 = MapAttributeSingleton::instance().rosPoint2MapPoint(map, vector[0]);
+            const cv::Point &point1 = MapAttributeSingleton::instance().rosPoint2MapPoint(map, vector[1]);
+            const cv::Point &point2 = MapAttributeSingleton::instance().rosPoint2MapPoint(map, vector[2]);
+            const cv::Point &point3 = MapAttributeSingleton::instance().rosPoint2MapPoint(map, vector[3]);
 
             MPoint p0(point0.x, point0.y);
             MPoint p1(point1.x, point1.y);
@@ -915,8 +915,8 @@ public:
 
         std::vector<MLine> walls;
         for (const auto &vector: virtualWallList) {
-            const cv::Point &pointStart = MapAttribute::instance().rosPoint2MapPoint(map, vector[0]);
-            const cv::Point &pointEnd = MapAttribute::instance().rosPoint2MapPoint(map, vector[1]);
+            const cv::Point &pointStart = MapAttributeSingleton::instance().rosPoint2MapPoint(map, vector[0]);
+            const cv::Point &pointEnd = MapAttributeSingleton::instance().rosPoint2MapPoint(map, vector[1]);
             MPoint p0(pointStart.x, pointStart.y);
             MPoint p1(pointEnd.x, pointEnd.y);
             MLine rrLine(p0, p1);
