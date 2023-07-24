@@ -11,6 +11,8 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "simulation.h"
+#include "db/segmentation_data_base.h"
+#include "db/task_data_base.h"
 
 void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origin,
                                 const std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path,
@@ -267,4 +269,41 @@ void save_planning_point_segmentation_path(const cv::Mat &map, cv::Mat segmented
     auto randomPngPath = path::robot_slam_map_dir() + uuid + ".png";
     auto depth = segmented_map.clone();
     CvUtils::savePng(randomPngPath, depth);
+}
+
+void save_dynamic_map(const std::string& save_name) {
+    auto generateMat = SegmentationCenter::instance().generateMat();
+    auto circle_map = generateMat.clone();
+
+    MapAttribute currentAttr = MapAttributeSingleton::instance().getCurrentMapAttribute();
+    cv::circle(circle_map, cv::Point(currentAttr.originPoint), 4, cv::Scalar(200), CV_FILLED);
+
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    const std::vector<TaskVo> &tasks = TaskDataBase::instance().loadTaskFoMap(map.id);
+
+    for (const auto &task: tasks) {
+        TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
+        if (mode == TaskMode::Zoned) {
+
+            std::vector<ZoneVo> zones = task.getZones();
+
+            for (const auto &zone: zones) {
+
+                std::vector<cv::Point2d> replacePoints;
+                for (const auto &point: zone.getPoints()) {
+                    cv::Point2d cvPoint(point.getX(), point.getY());
+
+                    cv::circle(circle_map, cvPoint, 2, cv::Scalar(200), CV_FILLED);
+                    replacePoints.push_back(cvPoint);
+                }
+
+                cv::line(circle_map, replacePoints[0], replacePoints[1], cv::Scalar(200), 1, cv::LINE_8);
+                cv::line(circle_map, replacePoints[1], replacePoints[2], cv::Scalar(200), 1, cv::LINE_8);
+                cv::line(circle_map, replacePoints[2], replacePoints[3], cv::Scalar(200), 1, cv::LINE_8);
+                cv::line(circle_map, replacePoints[3], replacePoints[0], cv::Scalar(200), 1, cv::LINE_8);
+            }
+        }
+    }
+
+    cv::imwrite(path::robot_slam_map_dir() + "local/" + save_name + ".pgm", circle_map);
 }

@@ -12,6 +12,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <opencv2/opencv.hpp>
 #include <condition_variable>
+#include <ostream>
 #include "yaml-cpp/yaml.h"
 
 #include "simulation.h"
@@ -34,6 +35,14 @@ struct MapAttribute {
     MapAttribute() = default;
 
     MapAttribute(const std::string &attrPath) : attrPath(attrPath) {}
+
+    friend std::ostream &operator<<(std::ostream &os, const MapAttribute &attribute) {
+        os << "attrPath: " << attribute.attrPath << " originPoseX: " << attribute.originPose.position.x
+           << " originPoseY: " << attribute.originPose.position.y << " mapPath: "
+           << attribute.mapPath << " mapCols: " << attribute.mapCols << " mapRows: " << attribute.mapRows
+           << " originPoint: " << attribute.originPoint;
+        return os;
+    }
 };
 
 class MapAttributeSingleton {

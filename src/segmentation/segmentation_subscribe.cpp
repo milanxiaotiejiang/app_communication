@@ -38,7 +38,7 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
 //    auto generateMat = SegmentationCenter::instance().generateMat();
 
     try {
-        TaskCenter::instance().performTask(flag, TaskSource::Cloud, 2);
+//        TaskCenter::instance().performTask(flag, TaskSource::Cloud, 2);
 
     } catch (app::exception const &e) {
         LOG(ERROR) << e.what();

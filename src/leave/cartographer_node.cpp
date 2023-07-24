@@ -14,6 +14,7 @@
 #include "db/segmentation_data_base.h"
 #include "segmentation/SegmentationCenter.h"
 #include "leave/map_control.h"
+#include "exploration/handle_exploration_display.h"
 
 void CartographerPublisher::initialize(ros::NodeHandle handle) {
     save_map = handle.advertise<std_msgs::Int32>("/save_map", 1);
@@ -35,6 +36,8 @@ void CartographerPublisher::publishSaveMap() const {
 }
 
 void CartographerPublisher::publishUpdateMap() const {
+    save_dynamic_map("dynamic_before");
+
     std_msgs::Int32 message;
     message.data = 1;
     update_map.publish(message);
@@ -103,11 +106,14 @@ void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_re
     if (carto_result.data == 1) {
 
         MapAttribute currentAttr = MapAttributeSingleton::instance().getCurrentMapAttribute();
+        LOG_IF(INFO, DEBUG_NODE) << "currentAttr  " << currentAttr;
 
         MapAttribute changeAttr(path::map_yaml_path());
         MapAttributeSingleton::instance().readAnyMapInfo(changeAttr);
+        LOG_IF(INFO, DEBUG_NODE) << "changeAttr  " << changeAttr;
 
         const cv::Point2d diffPoint = changeAttr.originPoint - currentAttr.originPoint;
+        LOG_IF(INFO, DEBUG_NODE) << "diffPoint  " << diffPoint;
 
         MapPo map = SegmentationDataBase::instance().getDbMap();
         const std::vector<TaskVo> &tasks = TaskDataBase::instance().loadTaskFoMap(map.id);
@@ -144,6 +150,8 @@ void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_re
         SegmentationCenter::instance().resetSegmentation();
         ExplorationCenter::instance().repaintCoveragePath();
         CartographerSubscribe::instance().coverResult();
+
+        save_dynamic_map("dynamic_after");
     }
 }
 

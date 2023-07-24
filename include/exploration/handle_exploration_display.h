@@ -36,4 +36,6 @@ void save_planning_point_segmentation_path(const cv::Mat &map, cv::Mat segmented
                                            std::map<int, std::vector<cv::Point>> each_map,
                                            std::map<int, std::vector<std::vector<cv::Point>>> each_contours_map);
 
+void save_dynamic_map(const std::string& save_name);
+
 #endif //APP_COMMUNICATION_HANDLE_EXPLORATION_DISPLAY_H
