@@ -222,7 +222,6 @@ bool CartographerServiceClient::callReadyCheck() {
                                  << " , camera1Status : " << camera1Status
                                  << " , camera2Status : " << camera2Status;
         return hlsStatus && imuStatus && laserStatus && !bumpTriggeredStatus && camera1Status && camera2Status;
-        return true;
     } else {
         LOG(ERROR) << "Failed to call service ready_check ...";
         return result;

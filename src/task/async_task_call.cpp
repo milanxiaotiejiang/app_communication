@@ -299,6 +299,15 @@ void AsyncTaskCall::initTaskBlock(const RealTask &realTask) {
 
 void AsyncTaskCall::goodGame(event::GG gg) {
     LOG(WARNING) << "AsyncTaskCall : goodGame " << gg;
+    finishedPoints;
+
+    double cleanedRatio = 0.0;
+    if (!finishedPoints.empty()) {
+        PointProgressVo &back = finishedPoints.back();
+        if (back.isRenew()) {
+            cleanedRatio = back.getValue() * back.getTotalFrequency();
+        }
+    }
 
     setEpollManual(loop::manual_epoll::manual_normal);
     setEpollSpecial(loop::special_epoll::special_normal);
@@ -321,7 +330,7 @@ void AsyncTaskCall::goodGame(event::GG gg) {
         if (gg == event::GG::gg_normal_flow) {
             callSubsequentSelfClean(baseWorkStatus());
         }
-        callSubsequentMode(baseTaskMode());
+        callSubsequentMode(baseTaskMode(), cleanedRatio);
     }
 }
 
@@ -531,11 +540,10 @@ void AsyncTaskCall::callSelfCleanClose() {
 
 }
 
-void AsyncTaskCall::callSubsequentMode(int mode) {
+void AsyncTaskCall::callSubsequentMode(int mode, double cleanedRatio) {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 处理 mode " << mode << " ...";
 
-    if (mode == 1 && /*realPoints().size() == planBlocks().size() &&*/
-        Environment::instance().update_map) {
+    if (mode == 1 && cleanedRatio > 0.8 && Environment::instance().update_map) {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 全覆盖清洁后需要更新地图信息 ...";
         CartographerPublisher::instance().publishUpdateMap();
     } else {

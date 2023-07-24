@@ -100,7 +100,8 @@ public:
            << " taskId: " << vo.taskId
            << " renew: " << vo.renew
            << " x: " << vo.x << " y: " << vo.y
-           << " value: " << vo.value;
+           << " value: " << vo.value
+           << " newTaskId: " << vo.newTaskId;
         return os;
     }
 
@@ -110,6 +111,34 @@ public:
 
     float getY() const {
         return y;
+    }
+
+    int getCurrentStep() const {
+        return currentStep;
+    }
+
+    int getTotalStep() const {
+        return totalStep;
+    }
+
+    int getCurrentFrequency() const {
+        return currentFrequency;
+    }
+
+    int getTotalFrequency() const {
+        return totalFrequency;
+    }
+
+    bool isRenew() const {
+        return renew;
+    }
+
+    long getNewTaskId() const {
+        return newTaskId;
+    }
+
+    double getValue() const {
+        return value;
     }
 };
 

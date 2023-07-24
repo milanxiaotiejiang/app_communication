@@ -111,7 +111,7 @@ protected:
 
     void callSelfCleanClose();
 
-    void callSubsequentMode(int mode);
+    void callSubsequentMode(int mode, double cleanedRatio);
 
     void callUrgencyStop();
 
