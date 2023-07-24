@@ -534,7 +534,7 @@ void AsyncTaskCall::callSelfCleanClose() {
 void AsyncTaskCall::callSubsequentMode(int mode) {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 处理 mode " << mode << " ...";
 
-    if (mode == 6 && realPoints().size() == planBlocks().size() &&
+    if (mode == 1 && /*realPoints().size() == planBlocks().size() &&*/
         Environment::instance().update_map) {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 全覆盖清洁后需要更新地图信息 ...";
         CartographerPublisher::instance().publishUpdateMap();
