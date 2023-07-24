@@ -256,7 +256,12 @@ then
   update_cartographer_launch
 fi
 
+if [ $version_index -lt 11 ]
+then
   echo "Updating 2.0.3"
   update_move_base_params
+fi
 
-
+  echo "Updating 2.0.4"
+  update_cartographer_rplidar
+  update_cartographer_localization
