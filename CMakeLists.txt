@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(app_communication)
-#SET(CMAKE_BUILD_TYPE Debug)
-SET(CMAKE_BUILD_TYPE "Release")
-SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC")
+SET(CMAKE_BUILD_TYPE Debug)
+#SET(CMAKE_BUILD_TYPE "Release")
+#SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC")
 
 ## --------------------------------------------
 SET(MAJOR_VERSION 1)
