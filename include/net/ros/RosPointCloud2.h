@@ -77,7 +77,7 @@ public:
                 {"is_bigendian", model.is_bigendian},
                 {"point_step",   model.point_step},
                 {"row_step",     model.row_step},
-                {"data",         model.data},
+//                {"data",         model.data},
                 {"is_dense",     model.is_dense},
         };
     }
@@ -90,7 +90,7 @@ public:
         j.at("is_bigendian").get_to(model.is_bigendian);
         j.at("point_step").get_to(model.point_step);
         j.at("row_step").get_to(model.row_step);
-        j.at("data").get_to(model.data);
+//        j.at("data").get_to(model.data);
         j.at("is_dense").get_to(model.is_dense);
     }
 

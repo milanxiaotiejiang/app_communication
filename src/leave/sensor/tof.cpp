@@ -5,7 +5,8 @@
 #include "leave/sensor/tof.h"
 #include "net/ros/RosRange.h"
 
-TofLeft::TofLeft(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ls_front_left") { outLog = false; }
+TofLeft::TofLeft(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ls_front_left",
+                                                         false, false, true) { outLog = false; }
 
 TofLeft::~TofLeft() = default;
 
@@ -18,10 +19,19 @@ void TofLeft::dateProgressing(sensor_msgs::Range data) {
 
     RosRange rosRange(header, data.radiation_type, data.field_of_view, data.min_range, data.max_range, data.range);
 
-    SensorCenter::instance().setTofLeftData(rosRange);
+    if (deliveryCenter) {
+        SensorCenter::instance().setTofLeftData(rosRange);
+    } else {
+        RequestModel<RosRange> requestModel(
+                "publish", APP_MRROBOT_LS_FRONT_LEFT, rosRange
+        );
+        json jsonResult = requestModel;
+        WsServerManager::instance().sendRequestData(APP_MRROBOT_LS_FRONT_LEFT, jsonResult.dump());
+    }
 }
 
-TofRight::TofRight(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ls_front_right") { outLog = false; }
+TofRight::TofRight(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ls_front_right",
+                                                           false, false, true) { outLog = false; }
 
 TofRight::~TofRight() = default;
 
@@ -34,5 +44,13 @@ void TofRight::dateProgressing(sensor_msgs::Range data) {
 
     RosRange rosRange(header, data.radiation_type, data.field_of_view, data.min_range, data.max_range, data.range);
 
-    SensorCenter::instance().setTofRightData(rosRange);
+    if (deliveryCenter) {
+        SensorCenter::instance().setTofRightData(rosRange);
+    } else {
+        RequestModel<RosRange> requestModel(
+                "publish", APP_MRROBOT_LS_FRONT_RIGHT, rosRange
+        );
+        json jsonResult = requestModel;
+        WsServerManager::instance().sendRequestData(APP_MRROBOT_LS_FRONT_RIGHT, jsonResult.dump());
+    }
 }

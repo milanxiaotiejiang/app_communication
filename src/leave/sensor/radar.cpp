@@ -6,7 +6,11 @@
 #include "net/ros/RosLaserScan.h"
 #include "net/ros/RosBasic.h"
 
-Radar::Radar(const ros::NodeHandle &handle) : Sensor(handle, "/scan_raw") { outLog = false; }
+void Radar::subscribeCallback(const sensor_msgs::LaserScan &data) {
+    Sensor::subscribeCallback(data);
+}
+
+Radar::Radar(const ros::NodeHandle &handle) : Sensor(handle, "/scan_raw", true, false, false) { outLog = false; }
 
 Radar::~Radar() = default;
 
@@ -26,7 +30,18 @@ void Radar::dateProgressing(sensor_msgs::LaserScan data) {
                       data.range_min,
                       data.range_max,
                       data.ranges,
-                      data.intensities);
+                      data.intensities,
+                      data.ranges.size(),
+                      data.intensities.size());
 
-    SensorCenter::instance().setScanData(scan);
+    if (deliveryCenter) {
+        SensorCenter::instance().setScanData(scan);
+    } else {
+        RequestModel<RosLaserScan> requestModel(
+                "publish", APP_SCAN_RAW, scan
+        );
+        json jsonResult = requestModel;
+//        LOG_IF(INFO, DEBUG_DUMP) << "自检 雷达 " << jsonResult.dump() << "...";
+        WsServerManager::instance().sendRequestData(APP_SCAN_RAW, jsonResult.dump());
+    }
 }

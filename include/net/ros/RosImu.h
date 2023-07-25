@@ -72,11 +72,11 @@ public:
         j = json{
                 {"header",                         model.header},
                 {"orientation",                    model.orientation},
-                {"orientation_covariance",         model.orientation_covariance},
-                {"angular_velocity",               model.angular_velocity},
-                {"angular_velocity_covariance",    model.angular_velocity_covariance},
-                {"linear_acceleration",            model.linear_acceleration},
-                {"linear_acceleration_covariance", model.linear_acceleration_covariance},
+//                {"orientation_covariance",         model.orientation_covariance},
+//                {"angular_velocity",               model.angular_velocity},
+//                {"angular_velocity_covariance",    model.angular_velocity_covariance},
+//                {"linear_acceleration",            model.linear_acceleration},
+//                {"linear_acceleration_covariance", model.linear_acceleration_covariance},
         };
     }
 

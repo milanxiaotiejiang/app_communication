@@ -5,7 +5,8 @@
 #include "leave/sensor/odometer.h"
 #include "net/ros/RosBasic.h"
 
-Odometer::Odometer(const ros::NodeHandle &handle) : Sensor(handle, "/wheel_odom") { outLog = false; }
+Odometer::Odometer(const ros::NodeHandle &handle) : Sensor(handle, "/wheel_odom",
+                                                           false, true, true) { outLog = false; }
 
 Odometer::~Odometer() = default;
 
@@ -45,5 +46,13 @@ void Odometer::dateProgressing(nav_msgs::Odometry data) {
 
     RosOdom odom(data.child_frame_id, header, pose, twist);
 
-    SensorCenter::instance().setOdomData(odom);
+    if (deliveryCenter) {
+        SensorCenter::instance().setOdomData(odom);
+    } else {
+        RequestModel<RosOdom> requestModel(
+                "publish", APP_WHEEL_ODOM, odom
+        );
+        json jsonResult = requestModel;
+        WsServerManager::instance().sendRequestData(APP_WHEEL_ODOM, jsonResult.dump());
+    }
 }

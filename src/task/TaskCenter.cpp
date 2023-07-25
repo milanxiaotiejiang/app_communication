@@ -41,6 +41,7 @@
 #include "leave/ParamManager.h"
 #include "db/task_data_base.h"
 #include "db/segmentation_data_base.h"
+#include "leave/sensor/sensor_center.h"
 
 std::string TaskCenter::preTask(const RealTask &task) {
     //拦截手动下发的任务且前期出站后期进站
@@ -111,6 +112,10 @@ std::string TaskCenter::proTask(const RealTask &task) {
     if (AutoMaintenanceModeManager::instance().isMaintenanceMode()) {
         throw app::exception(
                 make_error_code(error::during_the_automatic_maintenance_period_the_task_cannot_be_started));
+    }
+    if (SensorCenter::instance().isSensorSelfMode()) {
+        throw app::exception(
+                make_error_code(error::during_self_check_the_task_cannot_be_started));
     }
 
     //没有传感器数据的情况下，不能够分发任务

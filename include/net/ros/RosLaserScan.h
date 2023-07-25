@@ -21,30 +21,45 @@ private:
     float range_max;
     std::vector<float> ranges;
     std::vector<float> intensities;
+    int rangesLength;
+    int intensitiesLength;
 public:
     RosLaserScan() {}
 
     RosLaserScan(const RosHeader &header, float angleMin, float angleMax, float angleIncrement, float timeIncrement,
                  float scanTime, float rangeMin, float rangeMax, const std::vector<float> &ranges,
-                 const std::vector<float> &intensities) : header(header), angle_min(angleMin), angle_max(angleMax),
-                                                          angle_increment(angleIncrement),
-                                                          time_increment(timeIncrement), scan_time(scanTime),
-                                                          range_min(rangeMin), range_max(rangeMax), ranges(ranges),
-                                                          intensities(intensities) {}
-
+                 const std::vector<float> &intensities, int rangesLength, int intensitiesLength) : header(header),
+                                                                                                   angle_min(angleMin),
+                                                                                                   angle_max(angleMax),
+                                                                                                   angle_increment(
+                                                                                                           angleIncrement),
+                                                                                                   time_increment(
+                                                                                                           timeIncrement),
+                                                                                                   scan_time(scanTime),
+                                                                                                   range_min(rangeMin),
+                                                                                                   range_max(rangeMax),
+                                                                                                   ranges(ranges),
+                                                                                                   intensities(
+                                                                                                           intensities),
+                                                                                                   rangesLength(
+                                                                                                           rangesLength),
+                                                                                                   intensitiesLength(
+                                                                                                           intensitiesLength) {}
 
     friend void to_json(json &j, const RosLaserScan &model) {
         j = json{
-                {"header",          model.header},
-                {"angle_min",       model.angle_min},
-                {"angle_max",       model.angle_max},
-                {"angle_increment", model.angle_increment},
-                {"time_increment",  model.time_increment},
-                {"scan_time",       model.scan_time},
-                {"range_min",       model.range_min},
-                {"range_max",       model.range_max},
-                {"ranges",          model.ranges},
-                {"intensities",     model.intensities},
+                {"header",            model.header},
+                {"angle_min",         model.angle_min},
+                {"angle_max",         model.angle_max},
+                {"angle_increment",   model.angle_increment},
+                {"time_increment",    model.time_increment},
+                {"scan_time",         model.scan_time},
+                {"range_min",         model.range_min},
+                {"range_max",         model.range_max},
+//                {"ranges",          model.ranges},
+//                {"intensities",     model.intensities},
+                {"rangesLength",      model.rangesLength},
+                {"intensitiesLength", model.intensitiesLength},
         };
     }
 
@@ -57,8 +72,10 @@ public:
         j.at("scan_time").get_to(model.scan_time);
         j.at("range_min").get_to(model.range_min);
         j.at("range_max").get_to(model.range_max);
-        j.at("ranges").get_to(model.ranges);
-        j.at("intensities").get_to(model.intensities);
+//        j.at("ranges").get_to(model.ranges);
+//        j.at("intensities").get_to(model.intensities);
+        j.at("rangesLength").get_to(model.rangesLength);
+        j.at("intensitiesLength").get_to(model.intensitiesLength);
     }
 
     friend std::ostream &operator<<(std::ostream &os, const RosLaserScan &scan) {

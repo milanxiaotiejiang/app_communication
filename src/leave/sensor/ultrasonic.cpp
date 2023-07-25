@@ -5,7 +5,8 @@
 #include "leave/sensor/ultrasonic.h"
 #include "net/ros/RosRange.h"
 
-Ultrasonic1::Ultrasonic1(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ul_sensor1") { outLog = false; }
+Ultrasonic1::Ultrasonic1(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ul_sensor1",
+                                                                 false, false, true) { outLog = false; }
 
 void Ultrasonic1::dateProgressing(sensor_msgs::Range data) {
     if (outLog)
@@ -16,10 +17,19 @@ void Ultrasonic1::dateProgressing(sensor_msgs::Range data) {
 
     RosRange rosRange(header, data.radiation_type, data.field_of_view, data.min_range, data.max_range, data.range);
 
-    SensorCenter::instance().setUltrasonic1Data(rosRange);
+    if (deliveryCenter) {
+        SensorCenter::instance().setUltrasonic1Data(rosRange);
+    } else {
+        RequestModel<RosRange> requestModel(
+                "publish", APP_MRROBOT_UL_SENSOR1, rosRange
+        );
+        json jsonResult = requestModel;
+        WsServerManager::instance().sendRequestData(APP_MRROBOT_UL_SENSOR1, jsonResult.dump());
+    }
 }
 
-Ultrasonic2::Ultrasonic2(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ul_sensor2") { outLog = false; }
+Ultrasonic2::Ultrasonic2(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ul_sensor2",
+                                                                 false, false, true) { outLog = false; }
 
 void Ultrasonic2::dateProgressing(sensor_msgs::Range data) {
     if (outLog)
@@ -30,10 +40,19 @@ void Ultrasonic2::dateProgressing(sensor_msgs::Range data) {
 
     RosRange rosRange(header, data.radiation_type, data.field_of_view, data.min_range, data.max_range, data.range);
 
-    SensorCenter::instance().setUltrasonic2Data(rosRange);
+    if (deliveryCenter) {
+        SensorCenter::instance().setUltrasonic2Data(rosRange);
+    } else {
+        RequestModel<RosRange> requestModel(
+                "publish", APP_MRROBOT_UL_SENSOR2, rosRange
+        );
+        json jsonResult = requestModel;
+        WsServerManager::instance().sendRequestData(APP_MRROBOT_UL_SENSOR2, jsonResult.dump());
+    }
 }
 
-Ultrasonic3::Ultrasonic3(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ul_sensor3") { outLog = false; }
+Ultrasonic3::Ultrasonic3(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ul_sensor3",
+                                                                 false, false, true) { outLog = false; }
 
 void Ultrasonic3::dateProgressing(sensor_msgs::Range data) {
     if (outLog)
@@ -44,10 +63,19 @@ void Ultrasonic3::dateProgressing(sensor_msgs::Range data) {
 
     RosRange rosRange(header, data.radiation_type, data.field_of_view, data.min_range, data.max_range, data.range);
 
-    SensorCenter::instance().setUltrasonic3Data(rosRange);
+    if (deliveryCenter) {
+        SensorCenter::instance().setUltrasonic3Data(rosRange);
+    } else {
+        RequestModel<RosRange> requestModel(
+                "publish", APP_MRROBOT_UL_SENSOR3, rosRange
+        );
+        json jsonResult = requestModel;
+        WsServerManager::instance().sendRequestData(APP_MRROBOT_UL_SENSOR3, jsonResult.dump());
+    }
 }
 
-Ultrasonic4::Ultrasonic4(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ul_sensor4") { outLog = false; }
+Ultrasonic4::Ultrasonic4(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/ul_sensor4",
+                                                                 false, false, true) { outLog = false; }
 
 void Ultrasonic4::dateProgressing(sensor_msgs::Range data) {
     if (outLog)
@@ -58,5 +86,13 @@ void Ultrasonic4::dateProgressing(sensor_msgs::Range data) {
 
     RosRange rosRange(header, data.radiation_type, data.field_of_view, data.min_range, data.max_range, data.range);
 
-    SensorCenter::instance().setUltrasonic4Data(rosRange);
+    if (deliveryCenter) {
+        SensorCenter::instance().setUltrasonic4Data(rosRange);
+    } else {
+        RequestModel<RosRange> requestModel(
+                "publish", APP_MRROBOT_UL_SENSOR4, rosRange
+        );
+        json jsonResult = requestModel;
+        WsServerManager::instance().sendRequestData(APP_MRROBOT_UL_SENSOR4, jsonResult.dump());
+    }
 }

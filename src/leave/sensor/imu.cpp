@@ -6,7 +6,8 @@
 #include "net/ros/RosBasic.h"
 #include "net/ros/RosImu.h"
 
-Imu::Imu(const ros::NodeHandle &handle) : Sensor(handle, "/handsfree/imu") { outLog = false; }
+Imu::Imu(const ros::NodeHandle &handle) : Sensor(handle, "/handsfree/imu",
+                                                 false, true, true) { outLog = false; }
 
 Imu::~Imu() = default;
 
@@ -40,6 +41,13 @@ void Imu::dateProgressing(sensor_msgs::Imu data) {
     RosImu rosImu(header, orientation, orientationCovariance, angularVelocity,
                   angularVelocityCovariance, linearAcceleration, linearAccelerationCovariance);
 
-    SensorCenter::instance().setImuData(rosImu);
-
+    if (deliveryCenter) {
+        SensorCenter::instance().setImuData(rosImu);
+    } else {
+        RequestModel<RosImu> requestModel(
+                "publish", APP_HANDSFREE_IMU, rosImu
+        );
+        json jsonResult = requestModel;
+        WsServerManager::instance().sendRequestData(APP_HANDSFREE_IMU, jsonResult.dump());
+    }
 }

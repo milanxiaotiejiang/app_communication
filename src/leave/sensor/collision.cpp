@@ -4,7 +4,8 @@
 
 #include "leave/sensor/collision.h"
 
-Collision::Collision(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/bump_sensor") { outLog = false; }
+Collision::Collision(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/bump_sensor",
+                                                             false, false, true) { outLog = false; }
 
 Collision::~Collision() = default;
 
@@ -22,5 +23,13 @@ void Collision::dateProgressing(std_msgs::UInt8MultiArray data) {
     for (const auto &item: data.data) {
         collisionData.push_back(item);
     }
-    SensorCenter::instance().setCollisionData(collisionData);
+    if (deliveryCenter) {
+        SensorCenter::instance().setCollisionData(collisionData);
+    } else {
+        RequestModel<std::vector<int>> requestModel(
+                "publish", APP_MRROBOT_BUMP_SENSOR, collisionData
+        );
+        json jsonResult = requestModel;
+        WsServerManager::instance().sendRequestData(APP_MRROBOT_BUMP_SENSOR, jsonResult.dump());
+    }
 }

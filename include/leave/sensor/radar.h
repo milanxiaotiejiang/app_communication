@@ -21,6 +21,8 @@ public:
     ~Radar() override;
 
     void dateProgressing(sensor_msgs::LaserScan data) override;
+
+    void subscribeCallback(const sensor_msgs::LaserScan &data) override;
 };
 
 

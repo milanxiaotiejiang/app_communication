@@ -193,13 +193,29 @@ void on_open(server *s, const websocketpp::connection_hdl &hdl) {
     ask.subMap[ODOM_APP] = false;
     ask.subMap[ROBOT_STATUS] = false;
     ask.subMap[NOTICE_APP] = false;
-    ask.subMap[SENSOR_CHECK] = false;
     ask.subMap[TASK_POINT] = false;
     ask.subMap[CHECK_APP] = false;
     ask.subMap[KNOB_APP] = false;
     ask.subMap[ALARM_EVENT] = false;
     ask.subMap[RESPONSE] = false;
     ask.subMap[RESPONSE_JSON] = false;
+
+    ask.subMap[SENSOR_CHECK] = false;
+    ask.subMap[APP_MRROBOT_UL_SENSOR1] = false;
+    ask.subMap[APP_MRROBOT_UL_SENSOR2] = false;
+    ask.subMap[APP_MRROBOT_UL_SENSOR3] = false;
+    ask.subMap[APP_MRROBOT_UL_SENSOR4] = false;
+    ask.subMap[APP_MRROBOT_LS_FRONT_LEFT] = false;
+    ask.subMap[APP_MRROBOT_LS_FRONT_RIGHT] = false;
+    ask.subMap[APP_1_DEPTH_DEPTH2PC] = false;
+    ask.subMap[APP_2_DEPTH_DEPTH2PC] = false;
+    ask.subMap[APP_SCAN_RAW] = false;
+    ask.subMap[APP_WHEEL_ODOM] = false;
+    ask.subMap[APP_MRROBOT_ON_LADDER] = false;
+    ask.subMap[APP_HANDSFREE_IMU] = false;
+    ask.subMap[APP_MRROBOT_BUMP_SENSOR] = false;
+    ask.subMap[APP_MRROBOT_CARPET_DETECT] = false;
+
     {
         std::unique_lock<std::mutex> lock(askMutex);
         mMap[hdl.lock().get()] = ask;
@@ -314,6 +330,22 @@ public:
         dataMap[ALARM_EVENT] = "";
         dataMap[RESPONSE] = "";
         dataMap[RESPONSE_JSON] = "";
+
+        dataMap[SENSOR_CHECK] = "";
+        dataMap[APP_MRROBOT_UL_SENSOR1] = "";
+        dataMap[APP_MRROBOT_UL_SENSOR2] = "";
+        dataMap[APP_MRROBOT_UL_SENSOR3] = "";
+        dataMap[APP_MRROBOT_UL_SENSOR4] = "";
+        dataMap[APP_MRROBOT_LS_FRONT_LEFT] = "";
+        dataMap[APP_MRROBOT_LS_FRONT_RIGHT] = "";
+        dataMap[APP_1_DEPTH_DEPTH2PC] = "";
+        dataMap[APP_2_DEPTH_DEPTH2PC] = "";
+        dataMap[APP_SCAN_RAW] = "";
+        dataMap[APP_WHEEL_ODOM] = "";
+        dataMap[APP_MRROBOT_ON_LADDER] = "";
+        dataMap[APP_HANDSFREE_IMU] = "";
+        dataMap[APP_MRROBOT_BUMP_SENSOR] = "";
+        dataMap[APP_MRROBOT_CARPET_DETECT] = "";
     }
 
     void setMapApp(const std::string &data) {
@@ -379,7 +411,21 @@ public:
                                     wsServerSend(server, ask.second.hdl, realData, key);
                                     dataMap[key] = "";
                                 }
-                            } else if (key == SENSOR_CHECK) {
+                            } else if (key == SENSOR_CHECK
+                                       || key == APP_MRROBOT_UL_SENSOR1
+                                       || key == APP_MRROBOT_UL_SENSOR2
+                                       || key == APP_MRROBOT_UL_SENSOR3
+                                       || key == APP_MRROBOT_UL_SENSOR4
+                                       || key == APP_MRROBOT_LS_FRONT_LEFT
+                                       || key == APP_MRROBOT_LS_FRONT_RIGHT
+                                       || key == APP_1_DEPTH_DEPTH2PC
+                                       || key == APP_2_DEPTH_DEPTH2PC
+                                       || key == APP_SCAN_RAW
+                                       || key == APP_WHEEL_ODOM
+                                       || key == APP_MRROBOT_ON_LADDER
+                                       || key == APP_HANDSFREE_IMU
+                                       || key == APP_MRROBOT_BUMP_SENSOR
+                                       || key == APP_MRROBOT_CARPET_DETECT) {
                                 auto realData = dataMap[key];
                                 if (!realData.empty()) {
                                     wsServerSend(server, ask.second.hdl, realData, key);

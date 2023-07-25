@@ -249,7 +249,9 @@ namespace clean_history_db {
             case error::dispatcher_maintenance_mode:
                 return std::make_tuple(3182, "维护模式不能启动任务", "CCR_182");
             case error::during_the_automatic_maintenance_period_the_task_cannot_be_started:
-                return std::make_tuple(3182, "自动维护时段内，任务无法启动", "CCR_183");
+                return std::make_tuple(3183, "自动维护时段内，任务无法启动", "CCR_183");
+            case error::during_self_check_the_task_cannot_be_started:
+                return std::make_tuple(3184, "自检中，任务无法启动", "CCR_184");
             default:
                 std::string base_string = "CCR_";
                 std::string ex_string = std::to_string(100 + e.code().value());

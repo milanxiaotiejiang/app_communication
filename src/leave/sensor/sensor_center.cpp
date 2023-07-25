@@ -40,6 +40,9 @@ void SensorCenter::startInspect() {
     if (!ZooInnerStatus::instance().getIsCharging()) {
         throw app::exception(make_error_code(error::please_ensure_to_start_end_the_self_at_the_base_station));
     }
+    if (ZooInnerStatus::instance().getUrgencyStopStatus()) {
+        throw app::exception(make_error_code(error::please_ensure_to_start_end_the_self_non_emergency_stop_status));
+    }
 
     std_msgs::Int32 map_start;
     map_start.data = 2;
@@ -66,12 +69,12 @@ void SensorCenter::stopInspect() {
 
     MotorServerSingleton::instance().stop();
 
-    if (sensorSelfMode) {
-        sensorSelfMode = false;
-        for (const auto &sensor: sensors) {
-            sensor->stopInspect();
-        }
+//    if (sensorSelfMode) {
+    sensorSelfMode = false;
+    for (const auto &sensor: sensors) {
+        sensor->stopInspect();
     }
+//    }
 }
 
 void SensorCenter::sensor_polymerization_thread_func() {
