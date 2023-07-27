@@ -5,6 +5,7 @@
 #include "manager/PublishOutManager.h"
 #include "net/WsServerManager.h"
 #include "net/base/RequestModel.h"
+#include "simulation.h"
 
 void PublishOutManager::initialize(ros::NodeHandle handle) {
     pub_response_ = handle.advertise<std_msgs::String>(RESPONSE, 1);
@@ -50,8 +51,11 @@ void PublishOutManager::publishStatus(const VersionSubscribe<ShowWorkStatus> &ve
 }
 
 void PublishOutManager::publishMap(const nav_msgs::OccupancyGrid &message) const {
-    WsServerManager::instance().setMapApp(message);
-    WsServerManager::instance().setMapApp2(message);
+    if (Environment::instance().gzip_map) {
+        WsServerManager::instance().setMapApp2(message);
+    } else {
+        WsServerManager::instance().setMapApp(message);
+    }
     pub_map_.publish(message);
 }
 

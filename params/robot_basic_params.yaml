@@ -13,3 +13,4 @@ explorer_mode: 2
 dry_accumulation: 0
 complex_path_num_splits: 1000
 rectangular_ambulatory_plane: true
+gzip_map: false

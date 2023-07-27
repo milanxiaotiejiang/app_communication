@@ -92,16 +92,17 @@ public:
     }
 
     friend std::ostream &operator<<(std::ostream &os, const PointProgressVo &vo) {
-        os << " currentStep: " << vo.currentStep
-           << " totalStep: " << vo.totalStep
-           << " currentFrequency: " << vo.currentFrequency
-           << " totalFrequency: " << vo.totalFrequency
-           << " is_cleaning: " << vo.is_cleaning
+        os << " cs: " << vo.currentStep
+           << " ts: " << vo.totalStep
+           << " cf: " << vo.currentFrequency
+           << " tf: " << vo.totalFrequency
+           //<< " is_cleaning: " << vo.is_cleaning
            << " taskId: " << vo.taskId
-           << " renew: " << vo.renew
+           //<< " renew: " << vo.renew
            << " x: " << vo.x << " y: " << vo.y
            << " value: " << vo.value
-           << " newTaskId: " << vo.newTaskId;
+            //<< " newTaskId: " << vo.newTaskId
+                ;
         return os;
     }
 
