@@ -393,6 +393,12 @@ public:
                                     dataMap[key] = "";
                                 }
                             }
+                            if (key == GZIP_MAP_APP) {
+                                if (!mapData.empty()) {
+                                    wsServerSend(server, ask.second.hdl, mapData, key);
+                                    dataMap[key] = "";
+                                }
+                            }
                             if (key == NOTICE_APP) {
                                 auto realData = dataMap[key];
                                 if (!realData.empty()) {
