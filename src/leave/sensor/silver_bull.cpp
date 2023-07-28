@@ -27,14 +27,15 @@ void SilverBullUp::dateProgressing(sensor_msgs::PointCloud2 data) {
     }
     RosPointCloud2 rosPointCloud2(header, data.height, data.width, fields,
                                   data.is_bigendian, data.point_step, data.row_step, datas, data.is_dense);
-
-//    SensorCenter::instance().setSilverUpData(rosPointCloud2);
-
-    RequestModel<RosPointCloud2> requestModel(
-            "publish", APP_2_DEPTH_DEPTH2PC, rosPointCloud2
-    );
-    json jsonResult = requestModel;
-    WsServerManager::instance().sendRequestData(APP_2_DEPTH_DEPTH2PC, jsonResult.dump());
+    if (deliveryCenter) {
+        SensorCenter::instance().setSilverUpData(rosPointCloud2);
+    } else {
+        RequestModel<RosPointCloud2> requestModel(
+                "publish", APP_2_DEPTH_DEPTH2PC, rosPointCloud2
+        );
+        json jsonResult = requestModel;
+        WsServerManager::instance().sendRequestData(APP_2_DEPTH_DEPTH2PC, jsonResult.dump());
+    }
 }
 
 SilverBullDown::SilverBullDown(const ros::NodeHandle &handle) : Sensor(handle, "/1/depth/depth2pc",
