@@ -158,10 +158,13 @@ bool ModeValidate::validateMotorServer() {
     sleep(2);
 
     bool callReadyCheckAgain = CartographerServiceClient::instance().callReadyCheck();
+
+    LOG_IF(INFO, DEBUG_NODE)
+    << "ModeValidate  MotorServer 再次校验结果 " << callReadyCheckAgain << " ------------------------------ ";
+
     if (callReadyCheckAgain) {
         return true;
     }
-    LOG_IF(INFO, DEBUG_NODE)
-    << "ModeValidate  MotorServer 再次校验结果 " << callReadyCheckAgain << " ------------------------------ ";
+
     return false;
 }

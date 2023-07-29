@@ -308,6 +308,9 @@ void AsyncTaskCall::goodGame(event::GG gg) {
             cleanedRatio = back.getValue() * back.getTotalFrequency();
         }
     }
+    if (gg != event::GG::gg_normal_flow) {
+        cleanedRatio = 0.0;
+    }
 
     setEpollManual(loop::manual_epoll::manual_normal);
     setEpollSpecial(loop::special_epoll::special_normal);
