@@ -70,9 +70,9 @@ namespace async {
 
         }
 
-        DurationMs TimerManager::nearestTimer() const {
+        DurationMs TimerManager::nearestTimer() {
             {
-//                std::unique_lock<std::mutex> lock(cv_mut);
+                std::unique_lock<std::mutex> lock(cv_mut);
 
                 if (timers_.empty())
                     return DurationMs::max();

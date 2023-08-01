@@ -3,6 +3,7 @@
 //
 
 #include <thread>
+#include <utility>
 #include "future/event_loop.h"
 #include "future/async_defer.h"
 #include "future/timer_call.h"
@@ -47,7 +48,7 @@ namespace async {
             scheduleAfterWithRepeat<1>(duration, std::move(f));
         } else {
             execute([=]() {
-                scheduleAfterWithRepeat<1>(duration, std::move(f));
+                scheduleAfterWithRepeat<1>(duration, f);
             });
         }
     }
@@ -57,7 +58,7 @@ namespace async {
     }
 
     bool EventLoop::cancel(TimerId id) {
-        return timers_.cancel(id);
+        return timers_.cancel(std::move(id));
     }
 
     void EventLoop::cancelAny() {

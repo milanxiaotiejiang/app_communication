@@ -9,7 +9,7 @@
 
 class HeadTailPointCall : public AsyncTaskCall {
 private:
-    void callGoFirstPoint(RealBlock block);
+    void callGoFirstPoint(const RealBlock& block);
 
     void exchangeFrontPoint(const RealBlock &block);
 

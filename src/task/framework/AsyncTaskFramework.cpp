@@ -271,14 +271,14 @@ void AsyncTaskFramework::callOpenMechanism(const WorkStatus &status, bool knife,
     MechanismManager::instance().controlWorkStatus(status, knife);
     auto fun = std::move(f);
     if (!Environment::instance().isRealEnvironment) {
-        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this, &fun]() {
+        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this, fun]() {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
             LOG_IF(INFO, DEBUG_TASK) << "thread " << pthread_self();
             notify_one(fun);
         });
     } else {
         async::TimerCall::instance().baseLoop()->scheduleLater(
-                std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this, &fun]() {
+                std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this, fun]() {
                     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
                     notify_one(fun);
                 });
@@ -292,13 +292,13 @@ void AsyncTaskFramework::callCloseMechanism(std::function<void()> f) {
     auto fun = std::move(f);
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::seconds(1), [this, &fun]() {
+                ->scheduleLater(std::chrono::seconds(1), [this, fun]() {
                     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
                     notify_one(fun);
                 });
     } else {
         async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this, &fun]() {
+                ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this, fun]() {
                     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
                     notify_one(fun);
                 });

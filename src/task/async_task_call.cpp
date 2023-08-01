@@ -478,7 +478,7 @@ void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock) {
     int timeout = nextBlock.timeout;
     if (timeout > 0) {
         async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::seconds(timeout), [this, &id]() {
+                ->scheduleLater(std::chrono::seconds(timeout), [this, id]() {
                     auto currentPoint = findFrontBlock();
                     if (currentPoint.id == id) {
                         executeOnPathDone(event::error::TIMEOUT);
