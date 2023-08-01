@@ -16,7 +16,7 @@ enum WorkMode {
 };
 
 const int MAXIMUM_TIME_LIMIT_FOR_QUICK_EXIT = 20;
-const long MAXIMUM_LIMIT_TIME_OF_TIMEOUT = 30;
+const long MAXIMUM_LIMIT_TIME_OF_TIMEOUT = 45;
 const int MAXIMUM_NUMBER_OF_FORCED_ENTRY = 3;
 
 class NodeWorkModeManager {

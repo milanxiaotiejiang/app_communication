@@ -545,6 +545,7 @@ void AsyncTaskCall::callSelfCleanClose() {
 
 void AsyncTaskCall::callSubsequentMode(int mode, double cleanedRatio) {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 处理 mode " << mode << " ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 处理 cleanedRatio " << cleanedRatio << " ...";
 
     if (mode == 1 && cleanedRatio > 0.8 && Environment::instance().update_map) {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 全覆盖清洁后需要更新地图信息 ...";
