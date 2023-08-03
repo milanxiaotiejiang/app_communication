@@ -27,20 +27,20 @@ const std::string RESPONSE = "/response";
 const std::string RESPONSE_JSON = "/response_json";
 
 const std::string SENSOR_CHECK = "/sensor_check";
-//const std::string APP_MRROBOT_UL_SENSOR1 = "/app/mrrobot/ul_sensor1";
-//const std::string APP_MRROBOT_UL_SENSOR2 = "/app/mrrobot/ul_sensor2";
-//const std::string APP_MRROBOT_UL_SENSOR3 = "/app/mrrobot/ul_sensor3";
-//const std::string APP_MRROBOT_UL_SENSOR4 = "/app/mrrobot/ul_sensor4";
-//const std::string APP_MRROBOT_LS_FRONT_LEFT = "/app/mrrobot/ls_front_left";
-//const std::string APP_MRROBOT_LS_FRONT_RIGHT = "/app/mrrobot/ls_front_right";
-//const std::string APP_1_DEPTH_DEPTH2PC = "/app/1/depth/depth2pc";
-//const std::string APP_2_DEPTH_DEPTH2PC = "/app/2/depth/depth2pc";
+const std::string APP_MRROBOT_UL_SENSOR1 = "/app/mrrobot/ul_sensor1";
+const std::string APP_MRROBOT_UL_SENSOR2 = "/app/mrrobot/ul_sensor2";
+const std::string APP_MRROBOT_UL_SENSOR3 = "/app/mrrobot/ul_sensor3";
+const std::string APP_MRROBOT_UL_SENSOR4 = "/app/mrrobot/ul_sensor4";
+const std::string APP_MRROBOT_LS_FRONT_LEFT = "/app/mrrobot/ls_front_left";
+const std::string APP_MRROBOT_LS_FRONT_RIGHT = "/app/mrrobot/ls_front_right";
+const std::string APP_1_DEPTH_DEPTH2PC = "/app/1/depth/depth2pc";
+const std::string APP_2_DEPTH_DEPTH2PC = "/app/2/depth/depth2pc";
 const std::string APP_SCAN_RAW = "/app/scan_raw";
-//const std::string APP_WHEEL_ODOM = "/app/wheel_odom";
-//const std::string APP_MRROBOT_ON_LADDER = "/app/mrrobot/on_ladder";
-//const std::string APP_HANDSFREE_IMU = "/app/handsfree/imu";
-//const std::string APP_MRROBOT_BUMP_SENSOR = "/app/mrrobot/bump_sensor";
-//const std::string APP_MRROBOT_CARPET_DETECT = "/app/mrrobot/carpet_detect";
+const std::string APP_WHEEL_ODOM = "/app/wheel_odom";
+const std::string APP_MRROBOT_ON_LADDER = "/app/mrrobot/on_ladder";
+const std::string APP_HANDSFREE_IMU = "/app/handsfree/imu";
+const std::string APP_MRROBOT_BUMP_SENSOR = "/app/mrrobot/bump_sensor";
+const std::string APP_MRROBOT_CARPET_DETECT = "/app/mrrobot/carpet_detect";
 
 
 const std::string MESSAGE_BUS_TOPIC = "message_bus_topic";
