@@ -386,6 +386,9 @@ public:
                     for (const auto &item: subMap) {
                         std::string key = item.first;
                         bool send = item.second;
+                        LOG(INFO) << "WsServerManager run  key " << key
+                                  << "   send " << send
+                                  << "   dataMap " << dataMap[key];
                         if (send) {
                             if (key == MAP_APP) {
                                 if (!mapData.empty()) {
@@ -844,9 +847,15 @@ void WsServerManager::setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr) {
 }
 
 void WsServerManager::sendRequestData(const std::string &key, const std::string &data) {
-    if (wsServerThread != nullptr)
-        if (wsServerThread->getWsServerSubThread() != nullptr)
+    LOG(INFO) << "WsServerManager wsServerThread " << (wsServerThread != nullptr);
+    if (wsServerThread != nullptr) {
+        if (wsServerThread->getWsServerSubThread() != nullptr) {
+            LOG(INFO) << "WsServerManager sendRequestData  key " << key
+                      << "   data " << data;
             wsServerThread->getWsServerSubThread()->sendRequestData(key, data);
+        }
+    }
+
 }
 
 void WsServerManager::sendMessageBusTopic(const std::string &message) {

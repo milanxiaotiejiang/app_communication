@@ -142,7 +142,7 @@ bool ModeValidate::validateMotorServer() {
         return false;
     }
 
-    sleep(2);
+    sleep(4);
 
     LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer 服务可用校验 ------------------------------ ";
 
