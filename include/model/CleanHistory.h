@@ -26,7 +26,9 @@ private:
     std::vector<int> m_oper_event;
     // Ewen change end
 
-
+    bool renew;//新旧任务标志位
+    std::string old_task_id;//旧任务id
+    long new_task_id;//关联的新任务id
 
 public:
     friend void to_json(json &j, const CleanHistory &b) {
@@ -44,7 +46,12 @@ public:
                 {"error_code",    b.m_error_code},
                 {"error_message", b.m_error_message},
                 {"task_type",     b.m_task_type},
-                {"oper_event",    b.m_oper_event}};
+                {"oper_event",    b.m_oper_event},
+
+                {"renew",         b.renew},
+                {"old_task_id",   b.old_task_id},
+                {"new_task_id",   b.new_task_id},
+        };
     }
 
     friend void from_json(const json &j, CleanHistory &b) {
@@ -71,6 +78,10 @@ public:
             b.m_task_type = 1;
             b.m_oper_event.clear();
         }
+
+        j.at("renew").get_to(b.renew);
+        j.at("old_task_id").get_to(b.old_task_id);
+        j.at("new_task_id").get_to(b.new_task_id);
     }
 
     CleanHistory();
@@ -87,7 +98,11 @@ public:
                  int m_clean_time,
                  int m_error_code,
                  std::string m_error_message,
-                 int tasktype);
+                 int tasktype,
+
+                 bool renew,
+                 std::string old_task_id,
+                 long new_task_id);
 
     virtual ~CleanHistory();
 

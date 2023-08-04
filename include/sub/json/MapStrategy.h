@@ -20,6 +20,11 @@
 
 using json = nlohmann::json;
 
+class FactoryResetStrategy: public MessageStrategy<std::string, std::string> {
+public:
+    std::string handler(std::string params) override;
+};
+
 class StartMapStrategy : public MessageStrategy<std::string, std::string> {
 public:
     std::string handler(std::string params) override;

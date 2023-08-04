@@ -479,6 +479,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case CLOSE_SELF_CHECK:
             messageStrategy = new CloseSelfCheckStrategy();
             break;
+        case FACTORY_RESET:
+            messageStrategy = new FactoryResetStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);

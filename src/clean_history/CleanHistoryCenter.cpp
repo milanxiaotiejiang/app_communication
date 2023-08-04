@@ -44,6 +44,7 @@ namespace clean_history_db {
         //根据当前任务生成一个CleanHistory
         std::string launch_people = task.getLaunchPeople();
         int mode = 0;
+        std::string oldTaskId;
         if (task.isRenew()) {
             launch_people = task.getOnSource();
             if (task.getMode() == 0) {
@@ -57,10 +58,16 @@ namespace clean_history_db {
             }
         } else {
             mode = task.getMode();
+            if (task.getMode() == 7) {
+                oldTaskId = task.getCombination().getCombinationID();
+            }
         }
         CleanHistory new_clean_history(task.getId(), mode,
                                        task.getRate(), launch_people,
-                                       task.getTimeMode(), launch_time);
+                                       task.getTimeMode(), launch_time,
+                                       task.isRenew(),
+                                       oldTaskId,
+                                       task.getTaskId());
         CleanHistoryDataBase::instance().addCleanHistory(new_clean_history);
 
         return true;

@@ -100,6 +100,10 @@ void SegmentationDataBase::removeAllRoom(const std::string &mapId) {
     TaskDataBase::instance().deleteTaskFoMode(mapId, TaskMode::Subregion, true);
 }
 
+void SegmentationDataBase::removeAllRoom() {
+    segmentationStorage.remove_all<RoomPo>();
+}
+
 void SegmentationDataBase::memory2Storage(cv::Mat &mat, std::vector<Room> &rooms) {
 //    cv::imshow("memory2Storage", mat);
 //    cv::waitKey();

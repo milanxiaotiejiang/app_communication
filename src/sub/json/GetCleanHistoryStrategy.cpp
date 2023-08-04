@@ -41,7 +41,8 @@ std::vector<CleanHistory> GetCleanHistoryStrategy::handler(std::string params) {
             task_type = 1;
         }
         CleanHistory clean_history_vo(is_complete, base_complete, launch_time, execute_time, end_time, task_mode,
-                                      task_id, work_status, clean_area, clean_time, error_code, error_msg, task_type);
+                                      task_id, work_status, clean_area, clean_time, error_code, error_msg, task_type,
+                                      item.renew, item.old_task_id, item.new_task_id);
         result.push_back(clean_history_vo);
     }
     if (result.size() > 0) {
@@ -120,7 +121,8 @@ std::vector<CleanHistoryUpgrade> GetCloudCleanHistoryStrategy::handler(std::stri
                                              total_step, total_frequency, history_state, current_flow, urgency_stop,
                                              pause_num, manual_back, low_power_back, force_back, out_station, end_sleep,
                                              back_base_retries, back_base_point_arrived, station_arrived,
-                                             recharge_retries, close_mechanism, open_mechanism);
+                                             recharge_retries, close_mechanism, open_mechanism,
+                                             item.renew, item.old_task_id, item.new_task_id);
 
         result.push_back(clean_history_vo);
     }

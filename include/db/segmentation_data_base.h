@@ -49,6 +49,8 @@ public:
 
     void removeAllRoom(const std::string &mapId);
 
+    void removeAllRoom();
+
     void memory2Storage(cv::Mat &mat, std::vector<Room> &rooms);
 
     void storage2Memory(cv::Mat &mat, std::vector<Room> &rooms, double map_resolution_from_subscription);

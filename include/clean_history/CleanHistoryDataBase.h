@@ -65,7 +65,12 @@ namespace clean_history_db {
                                            make_column("oper_event", &CleanHistory::oper_event_),
                                            make_column("error_code", &CleanHistory::error_code_),
                                            make_column("error_code2", &CleanHistory::error_code2_),
-                                           make_column("error_msg", &CleanHistory::error_msg_)));
+                                           make_column("error_msg", &CleanHistory::error_msg_),
+                                           make_column("renew", &CleanHistory::renew, default_value(true)),
+                                           make_column("old_task_id", &CleanHistory::old_task_id, default_value("")),
+                                           make_column("new_task_id", &CleanHistory::new_task_id, default_value(0))
+                                )
+            );
         }
     };
 

@@ -189,6 +189,8 @@ enum MESSAGE_ID {
     OPEN_SELF_CHECK,
     CLOSE_SELF_CHECK,
 
+    FACTORY_RESET,
+
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };
 

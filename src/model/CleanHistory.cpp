@@ -24,7 +24,11 @@ CleanHistory::CleanHistory(bool is_complete, bool base_complete,
                            int error_code,
                            std::string error_message,
 
-                           int task_type) {
+                           int task_type,
+
+                           bool renew,
+                           std::string old_task_id,
+                           long new_task_id) {
     m_is_complete = is_complete;
     m_base_complete = base_complete;
     m_launch_time = launch_time;
@@ -38,6 +42,10 @@ CleanHistory::CleanHistory(bool is_complete, bool base_complete,
     m_error_code = error_code;
     m_error_message = error_message;
     m_task_type = task_type;
+
+    this->renew = renew;
+    this->old_task_id = old_task_id;
+    this->new_task_id = new_task_id;
 }
 
 CleanHistory::~CleanHistory() {}

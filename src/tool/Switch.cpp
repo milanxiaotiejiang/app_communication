@@ -475,5 +475,9 @@ int switch_ID(const std::string &str) {
     if (str == "close_self_check") {
         return CLOSE_SELF_CHECK;
     }
+
+    if (str == "factory_reset") {
+        return FACTORY_RESET;
+    }
     return -1;
 }

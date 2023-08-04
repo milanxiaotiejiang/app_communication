@@ -234,6 +234,13 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case PERFORM_TASK:
             messageStrategy = new PerformTaskStrategy();
             break;
+
+        case GET_RAIN_SNOW:
+            messageStrategy = new GetRainSnowStrategy();
+            break;
+        case SET_RAIN_SNOW:
+            messageStrategy = new SetRainSnowStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
 

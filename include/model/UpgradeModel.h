@@ -294,6 +294,10 @@ private:
     int close_mechanism_;
     int open_mechanism_;
 
+    bool renew;
+    std::string old_task_id;
+    long new_task_id;
+
 public:
     CleanHistoryUpgrade();
 
@@ -308,7 +312,8 @@ public:
                         int currentFrquency, int totalStep, int totalFrequency, int historyState, int currentFlow,
                         int urgencyStop, int pauseNum, int manualBack, int lowPowerBack, int forceBack, int outStation,
                         int endSleep, int backBaseRetries, int backBasePointArrived, int stationArrived,
-                        int rechargeRetries, int closeMechanism, int openMechanism);
+                        int rechargeRetries, int closeMechanism, int openMechanism,
+                        bool renew, const std::string &old_task_id, long new_task_id);
 
     bool isBaseComplete() const;
 
@@ -403,7 +408,12 @@ public:
                 {"station_arrived",         b.station_arrived_},
                 {"recharge_retries",        b.recharge_retries_},
                 {"close_mechanism",         b.close_mechanism_},
-                {"open_mechanism",          b.open_mechanism_}};
+                {"open_mechanism",          b.open_mechanism_},
+
+                {"renew",                   b.renew},
+                {"old_task_id",             b.old_task_id},
+                {"new_task_id",             b.new_task_id}
+        };
     }
 
     friend void from_json(const json &j, CleanHistoryUpgrade &b) {
@@ -452,6 +462,10 @@ public:
         j.at("recharge_retries").get_to(b.recharge_retries_);
         j.at("close_mechanism").get_to(b.close_mechanism_);
         j.at("open_mechanism").get_to(b.open_mechanism_);
+
+        j.at("renew").get_to(b.renew);
+        j.at("old_task_id").get_to(b.old_task_id);
+        j.at("new_task_id").get_to(b.new_task_id);
     }
 };
 

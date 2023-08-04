@@ -22,6 +22,27 @@
 #include "tool/Variable.h"
 #include "leave/ParamManager.h"
 
+
+std::string FactoryResetStrategy::handler(std::string params) {
+    // 在此地图下，移除分区、与分区关联的任务
+    SegmentationDataBase::instance().removeAllRoom();
+    // 在此地图下，移除所有任务，包含定时任务
+    TaskDataBase::instance().deleteOwnTask();
+    // 在此地图下，重置禁行区域，并备份
+    MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true);
+    // 删除掉早期过期文件信息
+    cppfs::FileHandle file_timer_info_json = cppfs::fs::open(
+            path::data_base_config_dir() + "timer_info_json.txt");
+    file_timer_info_json.remove();
+    cppfs::FileHandle file_view_part_principal_json = cppfs::fs::open(
+            path::data_base_config_dir() + "view_part_principal_json.txt");
+    file_view_part_principal_json.remove();
+    cppfs::FileHandle file_combination_list_principal_json_work = cppfs::fs::open(
+            path::data_base_config_dir() + "combination_list_principal_json_work.txt");
+    file_combination_list_principal_json_work.remove();
+    return "";
+}
+
 std::string StartMapStrategy::handler(std::string params) {
     if (ParamManager::instance().getRainSnow()) {
         throw app::exception(make_error_code(error::please_exit_the_rain_and_snow_mode_first));
