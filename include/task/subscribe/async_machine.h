@@ -43,21 +43,21 @@ public:
         mHandle = handle;
 
         int node_work_mode = 0;
-        mHandle.param(NODE_CONTROLLER_WORK_MODE, node_work_mode);
+        mHandle.getParam(NODE_CONTROLLER_WORK_MODE, node_work_mode);
         int carto_mode = 0;
-        ros::param::get(CARTOGRAPHER_WORK_MODE, carto_mode);
+        mHandle.getParam(CARTOGRAPHER_WORK_MODE, carto_mode);
 
         int async_task_flow = 0;
-        mHandle.param(ASYNC_TASK_FLOW, async_task_flow);
+        mHandle.getParam(ASYNC_TASK_FLOW, async_task_flow);
 
         int async_task_epoll_manual = 0;
-        mHandle.param(ASYNC_TASK_EPOLL_MANUAL, async_task_epoll_manual);
+        mHandle.getParam(ASYNC_TASK_EPOLL_MANUAL, async_task_epoll_manual);
         int async_task_epoll_special = 0;
-        mHandle.param(ASYNC_TASK_EPOLL_SPECIAL, async_task_epoll_special);
+        mHandle.getParam(ASYNC_TASK_EPOLL_SPECIAL, async_task_epoll_special);
         int async_task_epoll_error = 0;
-        mHandle.param(ASYNC_TASK_EPOLL_ERROR, async_task_epoll_error);
+        mHandle.getParam(ASYNC_TASK_EPOLL_ERROR, async_task_epoll_error);
         int async_task_urgency_stop = 0;
-        mHandle.param(ASYNC_TASK_URGENCY_STOP, async_task_urgency_stop);
+        mHandle.getParam(ASYNC_TASK_URGENCY_STOP, async_task_urgency_stop);
 
         enterStatus = EnterStatus(async_task_epoll_manual,
                                   async_task_epoll_special,
@@ -74,10 +74,10 @@ public:
                   loop::error_epoll epoll_error,
                   loop::urgency_stop urgency_stop
     ) {
-        mHandle.setParam(ASYNC_TASK_EPOLL_MANUAL, epoll_manual);
-        mHandle.setParam(ASYNC_TASK_EPOLL_SPECIAL, epoll_special);
-        mHandle.setParam(ASYNC_TASK_EPOLL_ERROR, epoll_error);
-        mHandle.setParam(ASYNC_TASK_URGENCY_STOP, urgency_stop);
+        mHandle.setParam(ASYNC_TASK_EPOLL_MANUAL, static_cast<int>(epoll_manual));
+        mHandle.setParam(ASYNC_TASK_EPOLL_SPECIAL, static_cast<int>(epoll_special));
+        mHandle.setParam(ASYNC_TASK_EPOLL_ERROR, static_cast<int>(epoll_error));
+        mHandle.setParam(ASYNC_TASK_URGENCY_STOP, static_cast<int>(urgency_stop));
 
         AsyncMachine::epoll_manual = epoll_manual;
         AsyncMachine::epoll_special = epoll_special;
@@ -94,7 +94,7 @@ public:
     }
 
     void setFlow(event::flow flow) {
-        mHandle.setParam(ASYNC_TASK_FLOW, flow);
+        mHandle.setParam(ASYNC_TASK_FLOW, static_cast<int>(flow));
 
         clean_history_db::CleanHistoryCenter::instance().setCurrentFlow(flow);
         AsyncMachine::flow = flow;

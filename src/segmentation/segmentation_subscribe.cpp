@@ -79,6 +79,10 @@ void SegmentationSubscribe::segmentationOrderSubscribeCallback(const std_msgs::I
 
 void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::Int32 &flag_result) {
     auto flag = flag_result.data;
-    ParamManager::instance().setMaintenanceStartTime(flag);
-    AutoMaintenanceModeManager::instance().reset();
+    if (flag == 0) {
+        volatile int *a = (int *) (NULL);
+        *a = 1;
+    } else if (flag == 1) {
+        throw app::exception(make_error_code(error::the_current_state_is_uncontrollable));
+    }
 }

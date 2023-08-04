@@ -202,6 +202,8 @@ void initLog(char *const *argv) {
 //    minidump_stackwalk b0b3ee65-051a-414a-84065a83-9c8461c2.dmp symbols > b0b3ee65-051a-414a-84065a83-9c8461c2.txt
  */
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, void *context, bool succeeded) {
+    std::system("rosparam set /rec_app_node_crash true");
+
     std::string crash_file_path = descriptor.path();
     unsigned long start = crash_file_path.find("app_dump/") + 9;
     auto crash_file = crash_file_path.substr(start);
@@ -357,6 +359,11 @@ void initNodeParams(const ros::NodeHandle &nh) {
     Environment::instance().gzip_map = gzip_map;
 
     LOG(INFO) << "core version : " << ros_version;
+
+    bool crash = false;
+    ros::param::get("/rec_app_node_crash", crash);
+    Environment::instance().rec_app_node_crash = crash;
+    nh.setParam("/rec_app_node_crash", false);
 }
 
 void release() {

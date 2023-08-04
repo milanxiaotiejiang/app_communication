@@ -62,6 +62,8 @@ public:
     bool rectangular_ambulatory_plane = true;
     bool gzip_map = false;
 
+    bool rec_app_node_crash = false;
+
     static bool will() {
         return (rand() % 10) > 5;
     }

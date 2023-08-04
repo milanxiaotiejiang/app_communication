@@ -19,6 +19,7 @@
 #include "leave/cartographer_node.h"
 #include "leave/HotWindNote.h"
 #include "exploration/ExplorationCenter.h"
+#include "future/node/mode_validate.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -1079,12 +1080,17 @@ std::vector<PointProgressVo> AsyncTaskCall::runTaskPointList() {
 }
 
 void AsyncTaskCall::restore() {
+    if (!Environment::instance().rec_app_node_crash) {
+        return;
+    }
+    LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "检测到崩溃后的重启了 ";
     const EnterStatus &enterStatus = AsyncMachine::instance().getEnterStatus();
     event::flow restore_flow = enterStatus.task_flow;
     loop::manual_epoll restore_manual = enterStatus.epoll_manual;
     loop::special_epoll restore_special = enterStatus.epoll_special;
     loop::error_epoll restore_error = enterStatus.epoll_error;
     loop::urgency_stop restore_urgency_stop = enterStatus.urgency_stop;
+    LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "enterStatus " << enterStatus;
     if (enterStatus.node_mode != 2) {
         LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "/node_controller/work_mode 检测为非工作模式，无法确认定位，不能处理返回基站 "
                                     << enterStatus.node_mode;
@@ -1125,7 +1131,15 @@ void AsyncTaskCall::restore() {
         LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "任务的前期准备工作，如工作模式切换、出站等，无法处理返回基站";
         return;
     }
+    if (!Environment::instance().direct_start_move_base) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "direct_start_move_base为false, move_base暂不支持";
+    }
+    bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
+    if (!baseAvailable) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "move_base 服务不可可用, 无法处理返回基站";
+    }
     notify_one([this]() {
+        setFlow(event::flow::flowing_water_production);
         pushManual(loop::manual_epoll::manual_force_back);
     });
 }
