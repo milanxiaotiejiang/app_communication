@@ -1077,3 +1077,55 @@ std::vector<PointProgressVo> AsyncTaskCall::runTaskPointList() {
     }
     return result;
 }
+
+void AsyncTaskCall::restore() {
+    const EnterStatus &enterStatus = AsyncMachine::instance().getEnterStatus();
+    event::flow restore_flow = enterStatus.task_flow;
+    loop::manual_epoll restore_manual = enterStatus.epoll_manual;
+    loop::special_epoll restore_special = enterStatus.epoll_special;
+    loop::error_epoll restore_error = enterStatus.epoll_error;
+    loop::urgency_stop restore_urgency_stop = enterStatus.urgency_stop;
+    if (enterStatus.node_mode != 2) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "/node_controller/work_mode 检测为非工作模式，无法确认定位，不能处理返回基站 "
+                                    << enterStatus.node_mode;
+        return;
+    }
+    if (enterStatus.carto_mode != 0) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "/cartographer_work_mode 检测为非定位模式，无法确认定位，不能处理返回基站 "
+                                    << enterStatus.carto_mode;
+        return;
+    }
+    if (isWaitTask(restore_flow)) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "不是任务中的崩溃，无法确认定位，不能处理返回基站";
+        return;
+    }
+    if (isCharging()) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "已经在充电，无需返回基站";
+        return;
+    }
+    if (restore_error == loop::error_epoll::error_unrecoverable ||
+        restore_error == loop::error_epoll::error_lift ||
+        restore_manual == loop::manual_epoll::manual_unknown ||
+        restore_special == loop::special_epoll::special_unknown ||
+        restore_error == loop::error_epoll::error_unknown) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "原因多数未知，无法处理返回基站 ";
+        return;
+    }
+    if (restore_urgency_stop == loop::urgency_stop::trigger_urgency_stop ||
+        restore_urgency_stop == loop::urgency_stop::recovery_urgency_stop) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "急停，无法处理返回基站";
+        return;
+    }
+    if (restore_error == loop::error_epoll::error_manual_clean_start ||
+        restore_error == loop::error_epoll::error_manual_clean_end) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "手动模式触发，无法处理返回基站";
+        return;
+    }
+    if (isPreparation(restore_flow)) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "任务的前期准备工作，如工作模式切换、出站等，无法处理返回基站";
+        return;
+    }
+    notify_one([this]() {
+        pushManual(loop::manual_epoll::manual_force_back);
+    });
+}

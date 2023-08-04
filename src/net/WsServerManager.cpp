@@ -36,6 +36,7 @@
 #include "manager/PublishInnerManager.h"
 
 #include <opencv2/opencv.hpp>
+#include <utility>
 
 #include "tool/map_compress.h"
 
@@ -95,7 +96,7 @@ PolyM::Queue transformQueue;
 
 void wsServerSend(server *server, websocketpp::connection_hdl hdl, std::string const &payload, std::string tag) {
     try {
-        server->send(hdl, payload, websocketpp::frame::opcode::text);
+        server->send(std::move(hdl), payload, websocketpp::frame::opcode::text);
 //        server->get_alog().write(websocketpp::log::alevel::app, data);
     } catch (const std::exception &e) {
         LOG(ERROR) << "WsServerManager : " << tag << " " << e.what();
@@ -253,7 +254,6 @@ void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr m
                 std::string topic = entrance.getTopic();
 
                 if (op == "subscribe") {
-                    LOG(INFO) << "on_message subscribe remote : " << remoteEndPoint << " , payload : " << payload;
                     ask->subMap[topic] = true;
                 } else if (op == "publish") {
                     if (topic == APP_JSON) {
@@ -378,79 +378,53 @@ public:
         LOG_IF(INFO, DEBUG_FIRING) << "WsServerSubThread : " << syscall(SYS_gettid);
 
         while (ros::ok()) {
-            sleep(2);
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
             {
                 std::unique_lock<std::mutex> lock(askMutex);
                 for (const auto &ask: mMap) {
                     auto hdl = ask.second.hdl;
                     auto subMap = ask.second.subMap;
                     for (const auto &item: subMap) {
+                        bool isSend = false;
                         std::string key = item.first;
                         bool send = item.second;
                         if (send) {
-                            if (key == MAP_APP) {
-                                if (!mapData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, mapData, key);
-                                    dataMap[key] = "";
-                                }
-                            }
-                            if (key == GZIP_MAP_APP) {
-                                if (!mapData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, mapData, key);
-                                    dataMap[key] = "";
-                                }
-                            }
-                            if (key == NOTICE_APP) {
-                                auto realData = dataMap[key];
-                                if (!realData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, realData, key);
-                                    dataMap[key] = "";
-                                }
-                            } else if (key == ALARM_EVENT) {
-                                auto realData = dataMap[key];
-                                if (!realData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, realData, key);
-                                    dataMap[key] = "";
-                                }
-                            } else if (key == TASK_POINT) {
-                                auto realData = dataMap[key];
-                                if (!realData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, realData, key);
-                                    dataMap[key] = "";
-                                }
-                            } else if (key == SENSOR_CHECK
-                                       || key == APP_MRROBOT_UL_SENSOR1
-                                       || key == APP_MRROBOT_UL_SENSOR2
-                                       || key == APP_MRROBOT_UL_SENSOR3
-                                       || key == APP_MRROBOT_UL_SENSOR4
-                                       || key == APP_MRROBOT_LS_FRONT_LEFT
-                                       || key == APP_MRROBOT_LS_FRONT_RIGHT
-                                       || key == APP_1_DEPTH_DEPTH2PC
-                                       || key == APP_2_DEPTH_DEPTH2PC
-                                       || key == APP_SCAN_RAW
-                                       || key == APP_WHEEL_ODOM
-                                       || key == APP_MRROBOT_ON_LADDER
-                                       || key == APP_HANDSFREE_IMU
-                                       || key == APP_MRROBOT_BUMP_SENSOR
-                                       || key == APP_MRROBOT_CARPET_DETECT) {
-                                auto realData = dataMap[key];
-                                if (!realData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, realData, key);
-                                    dataMap[key] = "";
-                                }
+                            if (key == MAP_APP || key == GZIP_MAP_APP) {
+                                isSend = sendMap(ask, key);
+                            } else if (key == NOTICE_APP || key == ALARM_EVENT || key == TASK_POINT ||
+                                       key == SENSOR_CHECK || key == APP_SCAN_RAW) {
+                                isSend = sendData(ask, key);
                             } else {
-                                auto realData = dataMap[key];
-                                if (!realData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, realData, key);
-//                                dataMap[key] = "";
-                                }
+                                isSend = sendData(ask, key, false);
                             }
                         }
+                        if (isSend)
+                            std::this_thread::sleep_for(std::chrono::milliseconds(200));
                     }
-                    //                    server->get_alog().write(websocketpp::log::alevel::app, data);
                 }
             }
         }
+    }
+
+    bool sendMap(const std::pair<void *const, Ask> &ask, std::string &key) {
+        if (!mapData.empty()) {
+            wsServerSend(server, ask.second.hdl, mapData, key);
+            dataMap[key] = "";
+            return true;
+        }
+        return false;
+    }
+
+    bool sendData(const std::pair<void *const, Ask> &ask, std::string &key, bool clear = true) {
+        auto realData = dataMap[key];
+        if (!realData.empty()) {
+            LOG(INFO) << "sendData  key : " << key << " , value : " << realData;
+            wsServerSend(server, ask.second.hdl, realData, key);
+            if (clear)
+                dataMap[key] = "";
+            return true;
+        }
+        return false;
     }
 };
 

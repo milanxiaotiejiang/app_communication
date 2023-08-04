@@ -20,6 +20,17 @@
 #define DEBUG_OTA false
 #define DEBUG_DUMP true
 #define DEBUG_SENSOR true
+#define DEBUG_RESTORE true
+
+
+#define NODE_CONTROLLER_WORK_MODE "/node_controller/work_mode"
+#define CARTOGRAPHER_WORK_MODE "/cartographer_work_mode"
+
+#define ASYNC_TASK_FLOW "/async_task/flow"
+#define ASYNC_TASK_EPOLL_MANUAL "/async_task/epoll_manual"
+#define ASYNC_TASK_EPOLL_SPECIAL "/async_task/epoll_special"
+#define ASYNC_TASK_EPOLL_ERROR "/async_task/epoll_error"
+#define ASYNC_TASK_URGENCY_STOP "/async_task/urgency_stop"
 
 const bool isTimely = false;
 const bool isTestCrash = false;

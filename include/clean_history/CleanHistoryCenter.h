@@ -36,6 +36,8 @@ namespace clean_history_db {
         //初始化
         bool initialize();
 
+        void removeCleanHistory();
+
         //下任务时新增一条历史
         bool addCleanHistory(const RealTask &task);
 

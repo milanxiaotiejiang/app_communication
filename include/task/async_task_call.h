@@ -179,6 +179,8 @@ public:
 
     std::vector<PointProgressVo> runTaskPointList();
 
+    void restore();
+
     TaskEventNotifier getNotifier() {
         return notifier;
     }

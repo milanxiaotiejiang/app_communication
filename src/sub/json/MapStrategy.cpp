@@ -22,8 +22,8 @@
 #include "tool/Variable.h"
 #include "leave/ParamManager.h"
 
-
 std::string FactoryResetStrategy::handler(std::string params) {
+    clean_history_db::CleanHistoryCenter::instance().removeCleanHistory();
     // 在此地图下，移除分区、与分区关联的任务
     SegmentationDataBase::instance().removeAllRoom();
     // 在此地图下，移除所有任务，包含定时任务

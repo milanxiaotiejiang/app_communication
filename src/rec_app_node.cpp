@@ -55,6 +55,7 @@ int main(int argc, char **argv) {
 
     initNodeParams(handle);
 
+    AsyncMachine::instance().initialize(handle);
     PublishInnerManager::instance().initialize(handle);
     PublishOutManager::instance().initialize(handle);
 
@@ -102,6 +103,8 @@ int main(int argc, char **argv) {
     sThd = new ScheduleThread(handle);
     sThd->start();
     sThd->detach();
+
+    ManualManager::instance().restore();
 
     ros::MultiThreadedSpinner spinner;
     spinner.spin();

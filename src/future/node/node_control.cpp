@@ -306,11 +306,11 @@ void NodeControl::trySleep() {
 
 void NodeControl::setWorkMode(node::State state) {
     if (state == node::State::work) {
-        nodeHandle.setParam("/node_controller/work_mode", 2);
+        nodeHandle.setParam(NODE_CONTROLLER_WORK_MODE, 2);
     } else if (state == node::State::map) {
-        nodeHandle.setParam("/node_controller/work_mode", 0);
+        nodeHandle.setParam(NODE_CONTROLLER_WORK_MODE, 0);
     } else {
-        nodeHandle.setParam("/node_controller/work_mode", 1);
+        nodeHandle.setParam(NODE_CONTROLLER_WORK_MODE, 1);
     }
 }
 
@@ -390,7 +390,7 @@ void NodeControl::changeSleepMode() {
 
 int NodeControl::cartoMode() {
     int cartoMode = 0;
-    ros::param::get("/cartographer_work_mode", cartoMode);
+    ros::param::get(CARTOGRAPHER_WORK_MODE, cartoMode);
     return cartoMode;
 }
 

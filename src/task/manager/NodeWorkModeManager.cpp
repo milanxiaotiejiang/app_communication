@@ -254,7 +254,7 @@ bool NodeWorkModeManager::tryToSleep() {
                 } else if (nowWorkMode() == WorkMode::WORKING) {
                     work_mode = 2;
                 }
-                ros::param::get("/node_controller/work_mode", work_mode);
+                ros::param::get(NODE_CONTROLLER_WORK_MODE, work_mode);
                 if (work_mode == 1) {
                     LOG_IF(INFO, DEBUG_TASK) << "NodeWorkModeManager 检测到已经切换为 sleep 模式了 ... ";
                     counter = MAXIMUM_TIME_LIMIT_FOR_QUICK_EXIT;
@@ -274,7 +274,7 @@ bool NodeWorkModeManager::tryToSleep() {
             } else if (nowWorkMode() == WorkMode::WORKING) {
                 work_mode = 2;
             }
-            ros::param::get("/node_controller/work_mode", work_mode);
+            ros::param::get(NODE_CONTROLLER_WORK_MODE, work_mode);
             return work_mode == 1;
         }
         return true;

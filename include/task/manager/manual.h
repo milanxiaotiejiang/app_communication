@@ -53,6 +53,7 @@ public:
 
     void reboot();
 
+    void restore();
 };
 
 

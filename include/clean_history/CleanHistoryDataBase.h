@@ -100,6 +100,10 @@ namespace clean_history_db {
             clean_history_storage_.sync_schema();
         }
 
+        void removeCleanHistory(){
+            clean_history_storage_.remove_all<CleanHistory>();
+        }
+
         //添加一条清洁历史
         void addCleanHistory(CleanHistory clean_history) {
             clean_history_storage_.replace(clean_history);

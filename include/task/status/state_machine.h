@@ -5,6 +5,7 @@
 #ifndef APP_COMMUNICATION_STATE_MACHINE_H
 #define APP_COMMUNICATION_STATE_MACHINE_H
 
+#include <ostream>
 #include "unordered_map"
 
 namespace event {
@@ -106,5 +107,34 @@ namespace loop {
 
 }
 
+struct EnterStatus {
+
+    loop::manual_epoll epoll_manual = loop::manual_epoll::manual_normal;
+    loop::special_epoll epoll_special = loop::special_epoll::special_normal;
+    loop::error_epoll epoll_error = loop::error_epoll::error_normal;
+    loop::urgency_stop urgency_stop = loop::urgency_stop::trigger_urgency_stop;
+    event::flow task_flow = event::flow::waiting_for_task;
+    int node_mode = 0;
+    int carto_mode = 0;
+
+    EnterStatus() = default;
+
+    EnterStatus(int manual, int special, int error, int stop, int flow, int node_mode, int carto_mode) :
+            node_mode(node_mode), carto_mode(carto_mode) {
+        epoll_manual = loop::manual_epoll(manual);
+        epoll_special = loop::special_epoll(special);
+        epoll_error = loop::error_epoll(error);
+        urgency_stop = loop::urgency_stop(stop);
+        task_flow = event::flow(flow);
+
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const EnterStatus &status) {
+        os << "epoll_manual: " << status.epoll_manual << " epoll_special: " << status.epoll_special << " epoll_error: "
+           << status.epoll_error << " urgency_stop: " << status.urgency_stop << " task_flow: " << status.task_flow
+           << " node_mode: " << status.node_mode << " carto_mode: " << status.carto_mode;
+        return os;
+    }
+};
 
 #endif //APP_COMMUNICATION_STATE_MACHINE_H

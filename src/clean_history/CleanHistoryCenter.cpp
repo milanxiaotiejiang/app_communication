@@ -35,6 +35,10 @@ namespace clean_history_db {
         return true;
     }
 
+    void CleanHistoryCenter::removeCleanHistory() {
+        CleanHistoryCenter::instance().removeCleanHistory();
+    }
+
     bool CleanHistoryCenter::addCleanHistory(const RealTask &task) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
         long launch_time;//记录时间
