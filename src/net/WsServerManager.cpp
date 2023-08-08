@@ -418,9 +418,6 @@ public:
     bool sendData(const std::pair<void *const, Ask> &ask, std::string &key, bool clear = true) {
         auto realData = dataMap[key];
         if (!realData.empty()) {
-            if(key == SENSOR_CHECK || key == APP_SCAN_RAW){
-                LOG(INFO) << "sendData  key : " << key << " , value : " << realData;
-            }
             wsServerSend(server, ask.second.hdl, realData, key);
             if (clear)
                 dataMap[key] = "";
