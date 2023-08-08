@@ -1139,7 +1139,7 @@ void AsyncTaskCall::restore() {
         LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "move_base 服务不可可用, 无法处理返回基站";
     }
     notify_one([this]() {
-        setFlow(event::flow::flowing_water_production);
+        setFlow(event::flow::ensure_move_to_start_point);
         pushManual(loop::manual_epoll::manual_force_back);
     });
 }
