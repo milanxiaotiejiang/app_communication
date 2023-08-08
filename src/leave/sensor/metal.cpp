@@ -5,7 +5,7 @@
 #include "leave/sensor/metal.h"
 
 Metal::Metal(const ros::NodeHandle &handle) : Sensor(handle, "/mrrobot/on_ladder",
-                                                     false, false, true) { outLog = false; }
+                                                     true, false, true) { outLog = false; }
 
 Metal::~Metal() = default;
 
