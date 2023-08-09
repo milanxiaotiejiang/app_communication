@@ -149,6 +149,9 @@ void ReservedCall::handlePlannerBlock(const RealBlock &block) {
     if (block.id < 0) {
         return;
     }
+    if (block.taskId.empty()) {
+        return;
+    }
     auto plannerPoints = block.plannerPoints;
     if (plannerPoints.empty()) {
         return;

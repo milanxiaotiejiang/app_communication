@@ -416,7 +416,6 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
     if (block.taskId.empty()) {
         return;
     }
-    std::string taskId = block.taskId;
     auto plannerPoints = block.plannerPoints;
     if (plannerPoints.empty()) {
         return;
@@ -436,7 +435,7 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
             (double((double) point.id / block.totalStep))
     );
 
-    LOG_IF(INFO, DEBUG_TASK) << pointProgressVo << " " << finishedPoints.size();
+    LOG_IF(INFO, DEBUG_TASK) << pointProgressVo << " " << finishedPoints.size() << " " << point.timeout;
     finishedPoints.push_back(pointProgressVo);
 
 //    std::vector<geometry_msgs::Pose2D> exploration_path;
