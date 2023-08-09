@@ -59,6 +59,8 @@ public:
     int goal_step{0};
     int current_goal{0};
 
+    float totalDistance;
+
     friend std::ostream &operator<<(std::ostream &os, const RealBlock &block) {
         os << "id: " << block.id;
         return os;

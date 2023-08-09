@@ -449,6 +449,13 @@ namespace clean_history_db {
         current_history_.current_step_ = realPoint.id;
         //更新清洁面积
         current_history_.clean_area_ += (abs((double) realPoint.timeout - 5.0) / 20 * 0.35);
+        if (realBlock.totalDistance != 0) {
+            float totalArea = realBlock.totalDistance * 0.35;
+            if (current_history_.clean_area_ > totalArea) {
+                current_history_.clean_area_ = totalArea;
+            }
+        }
+
         //更新到数据库
         CleanHistoryDataBase::instance().updateHistory(current_history_);
         return true;

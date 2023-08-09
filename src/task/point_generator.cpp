@@ -52,6 +52,7 @@ RealBlock PointGenerator::buildBlock(int id, const RealTask &task) {
 void PointGenerator::complexPathToRealBlock(RealTask &realTask,
                                             const std::vector<std::vector<PoseVo>> &complexList,
                                             std::vector<RealBlock> &blockList) {
+    float totalDistance = 0;
     auto originPoint = MapAttributeSingleton::instance().getMapOrigin();
 
     std::vector<std::vector<PoseVo>> splitVectors;
@@ -150,18 +151,24 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
             currentPose.x = pose.realPosition.x;
             currentPose.y = pose.realPosition.y;
             currentPose.z = pose.realPosition.z;
-            long timeout = conversion::cal_distance(lastPose, currentPose) * 20 + 6;//掉头5s
+            auto distance = conversion::cal_distance(lastPose, currentPose);
+            long timeout = distance * 20 + 5;//掉头5s
             pose.timeout = timeout;
             timeout_accumulation += timeout;
+            totalDistance += distance;
 
             lastPose.x = pose.realPosition.x;
             lastPose.y = pose.realPosition.y;
             lastPose.z = pose.realPosition.z;
         }
 
-        block.timeout = timeout_accumulation;
+        block.timeout = timeout_accumulation * 2;
         block.totalStep = point_accumulation;
         block.plannerPoints = plannerPoints;
+    }
+
+    for (auto &block: wholeBlockList) {
+        block.totalDistance = totalDistance;
     }
 
     realTask.setTotalStep(point_accumulation);
