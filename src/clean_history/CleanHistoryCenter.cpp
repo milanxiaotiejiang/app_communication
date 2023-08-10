@@ -36,7 +36,7 @@ namespace clean_history_db {
     }
 
     void CleanHistoryCenter::removeCleanHistory() {
-        CleanHistoryCenter::instance().removeCleanHistory();
+        CleanHistoryDataBase::instance().removeCleanHistory();
     }
 
     bool CleanHistoryCenter::addCleanHistory(const RealTask &task) {
