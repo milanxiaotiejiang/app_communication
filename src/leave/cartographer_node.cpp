@@ -30,6 +30,7 @@ void CartographerPublisher::initialize(ros::NodeHandle handle) {
 }
 
 void CartographerPublisher::publishSaveMap() const {
+    LOG(INFO) << "rec to carto save map";
     std_msgs::Int32 message;
     message.data = 1;
     save_map.publish(message);
@@ -156,6 +157,7 @@ void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_re
 }
 
 void CartographerSubscribe::buildMapFinishCallback(const std_msgs::Int32 &carto_result) {
+    LOG(INFO) << "carto to rec finish map " << carto_result.data;
     if (carto_result.data == 1) {
         MapAttributeSingleton::instance().notifySaveMap();
     }

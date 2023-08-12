@@ -187,6 +187,7 @@ bool MapAttributeSingleton::saveMap() {
     std::unique_lock<std::mutex> lck(wait_mutex);
     if (wait_cv.wait_for(lck, std::chrono::seconds(20)) == std::cv_status::timeout) {
         //timeout
+        LOG(INFO) << "save map timeout";
         creating_map = false;
         return false;
     } else {
