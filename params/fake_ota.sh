@@ -273,3 +273,4 @@ fi
   update_cartographer_rplidar
   update_cartographer_localization
   update_libcartographer
+  update_move_base_launch_include
