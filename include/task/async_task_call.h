@@ -123,6 +123,8 @@ protected:
 
     void callPause();
 
+    void callManualPause();
+
     void cancelTaskAndBack();
 
     void cancelTask();
@@ -155,7 +157,7 @@ public:
 
     void enterManual();
 
-    void quitManual();
+    ManualModel quitManual();
 
 
     void executeUrgencyStop(bool isUrgencyStop);

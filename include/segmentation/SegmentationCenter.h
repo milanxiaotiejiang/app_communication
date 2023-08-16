@@ -10,6 +10,7 @@
 #include "CvUtils.h"
 #include "db/segmentation_model.h"
 #include "segmentation_subscribe.h"
+#include "exploration/A_star_pathplanner.h"
 #include <opencv2/opencv.hpp>
 #include <ros/node_handle.h>
 #include <mutex>
@@ -100,6 +101,11 @@ public:
     bool checkPartition() const;
 
     MapRoomVo resultMapRoomVo() const;
+
+    void isRestrictedZone(const cv::Mat &room_map, bool &isOffMap, bool &isRestrictedZone,
+                          bool &isMaxPassable, bool &isPlanPath);
+
+    bool pointInArea(const cv::Mat &area_map, const cv::Point &point, bool largest) const;
 };
 
 

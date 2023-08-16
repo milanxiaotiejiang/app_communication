@@ -7,6 +7,7 @@
 
 
 #include "task/call/head_tail_call.h"
+#include "model/ManualModel.h"
 
 class ManualManager {
 private:
@@ -37,9 +38,9 @@ public:
 
     void pause();
 
-    void enter_manul_mode();
+    void enter_manual_mode();
 
-    void quit_manual_mode();
+    ManualModel quit_manual_mode();
 
     bool taskRunning();
 

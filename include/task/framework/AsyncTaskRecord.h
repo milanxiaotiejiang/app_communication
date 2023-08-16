@@ -78,7 +78,7 @@ protected:
 
     bool isReturningBase(event::flow flow);
 
-    bool isContinueWork(event::flow flow, bool suspend);
+    bool isContinueWork(event::flow flow, bool suspend, bool skipManual = false);
 
     bool isRegularTask(event::flow flow);
 

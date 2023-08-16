@@ -42,11 +42,12 @@ bool AsyncTaskRecord::isReturningBase(event::flow flow) {
            isPlannerEmpty(flow);
 }
 
-bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend) {
+bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend, bool skipManual) {
 //    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskRecord : lastEmergencyStop : " << lastEmergencyStop();
-    if (isManualMode()) {
-        return false;
-    }
+    if (!skipManual)
+        if (isManualMode()) {
+            return false;
+        }
     if (isUnrecoverableError()) {
         return false;
     }

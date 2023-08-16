@@ -18,12 +18,14 @@ void ManualManager::pause() {
     asyncTaskCall->manualPause();
 }
 
-void ManualManager::enter_manul_mode() {
+void ManualManager::enter_manual_mode() {
     asyncTaskCall->enterManual();
 }
 
-void ManualManager::quit_manual_mode() {
-    asyncTaskCall->quitManual();
+ManualModel ManualManager::quit_manual_mode() {
+    auto result = asyncTaskCall->quitManual();
+    LOG(INFO) << result;
+    return result;
 }
 
 void ManualManager::shutdown() {

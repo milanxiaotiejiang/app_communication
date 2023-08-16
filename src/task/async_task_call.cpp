@@ -20,6 +20,7 @@
 #include "leave/HotWindNote.h"
 #include "exploration/ExplorationCenter.h"
 #include "future/node/mode_validate.h"
+#include "model/ManualModel.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -494,10 +495,7 @@ void AsyncTaskCall::callBlockComplete(const std::function<void()> &f) {
 
 void AsyncTaskCall::callManualCleanStart() {
     HotWindNoteSingleton::instance().closeHotWind();
-    if (!isWaitTask(currentFlow())) {
-        cancelTask();
-        goodGame(event::GG::gg_manual_mode);
-    }
+    callManualPause();
     //电机失能
     MechanismManager::instance().enterManualControl();
 }
@@ -624,6 +622,24 @@ void AsyncTaskCall::callResume() {
 void AsyncTaskCall::callPause() {
     MechanismManager::instance().resetWorkStatus();
     if (isContinueWork(currentFlow(), true)) {
+        makeSurePause(currentFlow());
+        PointPlanner::instance().cancelPath();
+        async::TimerCall::instance().baseLoop()->cancelAny();
+        if (!plannerQueue.empty()) {
+            auto currentPoint = findFrontBlock();
+            if (currentPoint.goal_step == INT_MAX) {
+                auto nextPoint = findFrontNextBlock();
+                plannerQueue.push_front(nextPoint);
+            } else {
+                plannerQueue.push_front(currentPoint);
+            }
+        }
+    }
+}
+
+void AsyncTaskCall::callManualPause() {
+    MechanismManager::instance().resetWorkStatus();
+    if (isContinueWork(currentFlow(), true, true)) {
         makeSurePause(currentFlow());
         PointPlanner::instance().cancelPath();
         async::TimerCall::instance().baseLoop()->cancelAny();
@@ -899,25 +915,76 @@ void AsyncTaskCall::enterManual() {//进入手动模式接口
     });
 }
 
-void AsyncTaskCall::quitManual() {//退出手动模式接口
-    if (isUnrecoverableError()) {
-        throw app::exception(make_error_code(error::the_current_state_is_uncontrollable));
-    }
-    if (isUrgencyStop()) {
-        throw app::exception(make_error_code(error::machine_is_in_emergency_stop_command_not_supported));
-    }
-    if (isSpecialDevice()) {
-        throw app::exception(make_error_code(error::the_current_state_is_uncontrollable));
-    }
+ManualModel AsyncTaskCall::quitManual() {//退出手动模式接口
+    ManualModel manualModel;
+
+    manualModel.setIsManualMode(isManualMode());
     if (!isManualMode()) {//不在手动模式下
-        throw app::exception(make_error_code(error::not_in_manual_clean_mode));
+        LOG(INFO) << "ManualModel 不在手动模式下，不支持退出手动模式 ";
+        return manualModel;
     }
-    if (!isCharging()) {
-        throw app::exception(make_error_code(error::manual_in_the_base_station));
+
+    manualModel.setIsUnrecoverableError(isUnrecoverableError());
+    if (isUnrecoverableError()) {
+        LOG(INFO) << "ManualModel 程序异常，不能处理退出手动模式的命令 ";
+        return manualModel;
     }
-    notify_one([this]() {
-        pushError(loop::error_epoll::error_manual_clean_end);
-    });
+
+    manualModel.setIsUrgencyStop(isUrgencyStop());
+    if (isUrgencyStop()) {
+        LOG(INFO) << "ManualModel 机器处于急停状态中，不支持退出手动模式 ";
+        return manualModel;
+    }
+
+    manualModel.setIsCharging(isCharging());
+    manualModel.setIsWaitTask(isWaitTask(currentFlow()));
+    if (isCharging()) {
+        notify_one([this]() {
+            pushError(loop::error_epoll::error_manual_clean_end);
+        });
+
+        LOG(INFO) << "ManualModel 充电中，触发退出手动模式指令 ";
+        return manualModel;
+    } else {
+        manualModel.setIsContinueWork(isContinueWork(currentFlow(), true, true));
+
+        bool isOffMap = false;
+        bool isRestrictedZone = false;
+        bool isMaxPassable = false;
+        bool isPlanPath = false;
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        SegmentationCenter::instance()
+                .isRestrictedZone(map, isOffMap, isRestrictedZone, isMaxPassable, isPlanPath);
+        manualModel.setIsOffMap(isOffMap);
+        manualModel.setIsRestrictedZone(isRestrictedZone);
+        manualModel.setIsMaxPassable(isMaxPassable);
+        manualModel.setIsPlanPath(isPlanPath);
+
+        if (isOffMap) {
+            LOG(INFO) << "ManualModel 机器不在地图内 ";
+            return manualModel;
+        }
+        if (isRestrictedZone) {
+            LOG(INFO) << "ManualModel 机器在禁区内 ";
+            return manualModel;
+        }
+        if (!isMaxPassable) {
+            LOG(INFO) << "ManualModel 机器不在最大的可通行区域内 ";
+            return manualModel;
+        }
+        if (!isPlanPath) {
+            LOG(INFO) << "ManualModel 机器位置与基站无法规划出有效路径 ";
+            return manualModel;
+        }
+
+        notify_one([this]() {
+            pushError(loop::error_epoll::error_manual_clean_end);
+        });
+
+        LOG(INFO) << "ManualModel 初步确定定位未丢，触发退出手动模式指令 ";
+        return manualModel;
+    }
+
 }
 
 void AsyncTaskCall::executeUrgencyStop(bool isUrgencyStop) {
@@ -967,6 +1034,9 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
         return;
     }
     if (isPlannerEmpty(currentFlow())) {
+        return;
+    }
+    if (isManualMode()) {
         return;
     }
     if (isFlowingWater(currentFlow())) {

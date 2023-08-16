@@ -563,3 +563,113 @@ MapRoomVo SegmentationCenter::resultMapRoomVo() const {
 
     return MapRoomVo(segmented_map.cols, segmented_map.rows, roomVos);
 }
+
+void
+SegmentationCenter::isRestrictedZone(const cv::Mat &room_map, bool &isOffMap, bool &isRestrictedZone,
+                                     bool &isMaxPassable, bool &isPlanPath) {
+    cv::Point2d map_origin = MapAttributeSingleton::instance().getMapOrigin();
+    const cv::Point stationPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(room_map, Point(0, 0));
+    cv::Point robotPosition = MapAttributeSingleton::instance().getRobotPositionPoint(room_map);
+
+    isOffMap = !pointInArea(room_map, robotPosition, false);
+
+
+    cv::Mat prohibition_image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
+
+    auto penaltyZoneList = MapAttributeSingleton::instance().getPenaltyZoneList();
+    for (int i = 0; i < penaltyZoneList.size(); ++i) {
+        std::vector<std::vector<cv::Point>> polygon_array;
+        std::vector<cv::Point> cvPoints;
+        auto vector = penaltyZoneList[i];
+        for (int j = 0; j < vector.size(); ++j) {
+            const cv::Point &point = MapAttributeSingleton::instance().rosPoint2MapPoint(prohibition_image, vector[j]);
+            cvPoints.push_back(point);
+        }
+        polygon_array.push_back(cvPoints);
+        cv::fillPoly(prohibition_image, polygon_array, cv::Scalar(255));
+    }
+
+    auto virtualWallList = MapAttributeSingleton::instance().getVirtualWallList();
+    for (const auto &vector: virtualWallList) {
+        if (vector.size() == 2) {
+            const cv::Point &pointStart = MapAttributeSingleton::instance().rosPoint2MapPoint(prohibition_image,
+                                                                                              vector[0]);
+            const cv::Point &pointEnd = MapAttributeSingleton::instance().rosPoint2MapPoint(prohibition_image,
+                                                                                            vector[1]);
+            cv::line(prohibition_image, pointStart, pointEnd, cv::Scalar(255), 2);
+        }
+    }
+
+    isRestrictedZone = pointInArea(prohibition_image, robotPosition, false);
+
+
+    cv::Mat passable_map = room_map.clone();
+
+    cv::Mat andMat;
+    cv::bitwise_and(passable_map, prohibition_image, andMat);
+    cv::bitwise_xor(passable_map, andMat, passable_map);
+    isMaxPassable = pointInArea(passable_map, robotPosition, true);
+
+    cv::imshow("room_map", room_map);
+    cv::waitKey();
+    cv::imshow("prohibition_image", prohibition_image);
+    cv::waitKey();
+    cv::imshow("passable_map", passable_map);
+    cv::waitKey();
+
+
+    AStarPlanner path_planner;
+    auto original_map = passable_map.clone();
+    cv::Mat downsampled_map;
+    path_planner.downsampleMap(original_map, downsampled_map, 1.0, 0.0, map_resolution_from_subscription);
+
+    std::vector<cv::Point> current_path;
+    double length = path_planner.planPath(original_map, downsampled_map, robotPosition,
+                                          stationPoint, 1.0, 0.,
+                                          map_resolution_from_subscription, 0, nullptr, &current_path);
+    isPlanPath = length <= 1e90;
+
+    LOG(INFO) << "  isOffMap : " << isOffMap
+              << "  isRestrictedZone : " << isRestrictedZone
+              << "  isMaxPassable : " << isMaxPassable
+              << "  isPlanPath : " << isPlanPath;
+}
+
+bool SegmentationCenter::pointInArea(const cv::Mat &area_map, const cv::Point &point, bool largest) const {
+    bool inArea = false;
+    auto map = area_map.clone();
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+
+    std::vector<std::pair<int, double>> records;
+
+    for (auto &contour: contours) {
+        double d = cv::pointPolygonTest(contour, point, true);
+        records.emplace_back(contour.size(), d);
+    }
+
+    if (largest) {
+        auto maxArea = 0;
+        auto maxAreaDistance = 0;
+        for (const auto &record: records) {
+            int area = record.first;
+            int distance = record.second;
+            if (area > maxArea) {
+                maxArea = area;
+                maxAreaDistance = distance;
+            }
+        }
+
+        if (maxAreaDistance > 0) {
+            inArea = true;
+        }
+    } else {
+        for (const auto &record: records) {
+            if (record.second >= 0) {
+                inArea = true;
+                break;
+            }
+        }
+    }
+    return inArea;
+}

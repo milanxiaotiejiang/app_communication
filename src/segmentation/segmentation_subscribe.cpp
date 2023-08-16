@@ -67,6 +67,10 @@ void SegmentationSubscribe::segmentationOrderSubscribeCallback(const std_msgs::I
             ZooInnerStatus::instance().setIsCharging(true);
         } else if (flag == 1011) {
             ZooInnerStatus::instance().setIsCharging(false);
+        } else if (flag == 10000) {
+            ManualManager::instance().quit_manual_mode();
+        } else if (flag == 10001) {
+            ManualManager::instance().enter_manual_mode();
         }
     } catch (app::exception const &e) {
         LOG(ERROR) << e.what();
@@ -85,4 +89,15 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
 //    } else if (flag == 1) {
 //        throw app::exception(make_error_code(error::the_current_state_is_uncontrollable));
 //    }
+    const cv::Mat &map = SegmentationCenter::instance().generateMat();
+    bool isOffMap = false;
+    bool isRestrictedZone = false;
+    bool isMaxPassable = false;
+    bool isPlanPath = false;
+    SegmentationCenter::instance()
+            .isRestrictedZone(map, isOffMap, isRestrictedZone, isMaxPassable, isPlanPath);
+    LOG(INFO) << "  isOffMap : " << isOffMap
+              << "  isRestrictedZone : " << isRestrictedZone
+              << "  isMaxPassable : " << isMaxPassable
+              << "  isPlanPath : " << isPlanPath;
 }

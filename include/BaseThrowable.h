@@ -143,6 +143,7 @@ namespace error {
         please_ensure_to_start_end_the_self_at_the_base_station,
         please_ensure_to_start_end_the_self_non_emergency_stop_status,
         during_self_check_the_task_cannot_be_started,
+        secondary_detection,
     };// enum value
 
     class category : public std::error_category {
@@ -407,6 +408,8 @@ namespace error {
                     return "开始自检请保证非急停状态";
                 case error::during_self_check_the_task_cannot_be_started:
                     return "自检中，任务无法启动";
+                case error::secondary_detection:
+                    return "secondary_detection";
                 default:
                     return "Unknown";
             }
