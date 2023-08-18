@@ -84,6 +84,7 @@ message("glog_libraries=${GLOG_LIBRARIES}")
 message("zlib_libraries=${ZLIB_LIBRARIES}")
 message("break_pad_libraries=${BREAK_PAD_LIBRARIES}")
 message("boost_iostreams_dirs=${BOOST_IOSTREAMS_DIRS}")
+message("opencv_include_dirs=${OpenCV_INCLUDE_DIRS}")
 
 include_directories(include /usr/local/include/yaml-cpp)
 include_directories(${GLOG_INCLUDE_DIRS})

@@ -22,6 +22,7 @@ private:
     bool isWaitTask = false;//是否等到任务，false则是有任务
     bool isContinueWork = false;//是否可触发暂停逻辑
 
+    bool isWorkMode = false;
     bool isOffMap = false;//是否在地图外
     bool isRestrictedZone = false;//是否在禁区内
     bool isMaxPassable = false;//是否在最大可通行区域内
@@ -54,6 +55,10 @@ public:
         ManualModel::isContinueWork = isContinueWork;
     }
 
+    void setIsWorkMode(bool isWorkMode) {
+        ManualModel::isWorkMode = isWorkMode;
+    }
+
     void setIsOffMap(bool isOffMap) {
         ManualModel::isOffMap = isOffMap;
     }
@@ -70,6 +75,15 @@ public:
         ManualModel::isPlanPath = isPlanPath;
     }
 
+    friend std::ostream &operator<<(std::ostream &os, const ManualModel &model) {
+        os << "isCharging: " << model.isCharging << " isManualMode: " << model.isManualMode << " isUnrecoverableError: "
+           << model.isUnrecoverableError << " isUrgencyStop: " << model.isUrgencyStop << " isWaitTask: "
+           << model.isWaitTask << " isContinueWork: " << model.isContinueWork << " isWorkMode: " << model.isWorkMode
+           << " isOffMap: " << model.isOffMap << " isRestrictedZone: " << model.isRestrictedZone << " isMaxPassable: "
+           << model.isMaxPassable << " isPlanPath: " << model.isPlanPath;
+        return os;
+    }
+
     friend void to_json(json &j, const ManualModel &b) {
         j = json{
                 {"isCharging",           b.isCharging},
@@ -78,6 +92,7 @@ public:
                 {"isUrgencyStop",        b.isUrgencyStop},
                 {"isWaitTask",           b.isWaitTask},
                 {"isContinueWork",       b.isContinueWork},
+                {"isWorkMode",           b.isWorkMode},
                 {"isOffMap",             b.isOffMap},
                 {"isRestrictedZone",     b.isRestrictedZone},
                 {"isMaxPassable",        b.isMaxPassable},
@@ -92,6 +107,7 @@ public:
         j.at("isUrgencyStop").get_to(b.isUrgencyStop);
         j.at("isWaitTask").get_to(b.isWaitTask);
         j.at("isContinueWork").get_to(b.isContinueWork);
+        j.at("isWorkMode").get_to(b.isWorkMode);
         j.at("isOffMap").get_to(b.isOffMap);
         j.at("isRestrictedZone").get_to(b.isRestrictedZone);
         j.at("isMaxPassable").get_to(b.isMaxPassable);

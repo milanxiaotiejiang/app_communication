@@ -610,12 +610,12 @@ SegmentationCenter::isRestrictedZone(const cv::Mat &room_map, bool &isOffMap, bo
     cv::bitwise_xor(passable_map, andMat, passable_map);
     isMaxPassable = pointInArea(passable_map, robotPosition, true);
 
-    cv::imshow("room_map", room_map);
-    cv::waitKey();
-    cv::imshow("prohibition_image", prohibition_image);
-    cv::waitKey();
-    cv::imshow("passable_map", passable_map);
-    cv::waitKey();
+//    cv::imshow("room_map", room_map);
+//    cv::waitKey();
+//    cv::imshow("prohibition_image", prohibition_image);
+//    cv::waitKey();
+//    cv::imshow("passable_map", passable_map);
+//    cv::waitKey();
 
 
     AStarPlanner path_planner;

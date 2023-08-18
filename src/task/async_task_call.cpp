@@ -175,14 +175,16 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
                 pushManual(loop::manual_epoll::manual_task_over);
             });
         } else {
-            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : " << currentFlow();
+            LOG_IF(INFO, DEBUG_TASK)
+            << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : " << currentFlow();
         }
     }
 }
 
 void AsyncTaskCall::handleBlock(const RealBlock &block) {
     if (isUnrecoverableError()) {
-        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 程序运行异常，抛弃 " << output_interpolation_block(block.id) << " ...";
+        LOG_IF(INFO, DEBUG_TASK)
+        << "AsyncTaskCall : 程序运行异常，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     if (isUrgencyStop()) {
@@ -198,7 +200,8 @@ void AsyncTaskCall::handleBlock(const RealBlock &block) {
         return;
     }
     if (isExchangeTask()) {
-        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 切换新的任务中，抛弃 " << output_interpolation_block(block.id) << " ...";
+        LOG_IF(INFO, DEBUG_TASK)
+        << "AsyncTaskCall : 切换新的任务中，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     recordEmergencyStop(currentFlow(), block);
@@ -281,7 +284,8 @@ void AsyncTaskCall::handleBlockSpecialDevice(const RealBlock &block) {
             processControl(block);
             break;
         default:
-            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 强制模式下不必要接受 " << output_interpolation_block(block.id) << " ...";
+            LOG_IF(INFO, DEBUG_TASK)
+            << "AsyncTaskCall : 强制模式下不必要接受 " << output_interpolation_block(block.id) << " ...";
             break;
     }
 }
@@ -504,8 +508,13 @@ void AsyncTaskCall::callManualCleanEnd() {//退出手动模式
     setEpollError(loop::error_epoll::error_normal);
     //电机使能
     MechanismManager::instance().quitManualControl();
-    //睡眠模式标志设置
-    callNeedPublishSleep();
+    if (isContinueWork(currentFlow(), true, true)) {
+        LOG(INFO) << "CONTINUE WORKING ... ";
+    } else {
+        //睡眠模式标志设置
+        callNeedPublishSleep();
+
+    }
 }
 
 void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
@@ -557,7 +566,8 @@ void AsyncTaskCall::callSubsequentMode(int mode, double cleanedRatio) {
 void AsyncTaskCall::callUrgencyStop() {
     if (!isPause()) {
         if (isPreCompleted(currentFlow())) {
-            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
+            LOG_IF(INFO, DEBUG_TASK)
+            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
             setFlow(event::flow::cleaning_mechanism_ready);
         }
         if (isContinueWork(currentFlow(), true)) {
@@ -566,7 +576,8 @@ void AsyncTaskCall::callUrgencyStop() {
             << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
             setEpollManual(loop::manual_epoll::manual_pause);
             if (isRechargeFLow(currentFlow())) {
-                LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
+                LOG_IF(INFO, DEBUG_TASK)
+                << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
                 callCancelBackStation();
                 rechargeRetryCount = 0;
                 recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
@@ -640,6 +651,7 @@ void AsyncTaskCall::callPause() {
 void AsyncTaskCall::callManualPause() {
     MechanismManager::instance().resetWorkStatus();
     if (isContinueWork(currentFlow(), true, true)) {
+        setEpollManual(loop::manual_epoll::manual_pause);
         makeSurePause(currentFlow());
         PointPlanner::instance().cancelPath();
         async::TimerCall::instance().baseLoop()->cancelAny();
@@ -947,6 +959,26 @@ ManualModel AsyncTaskCall::quitManual() {//退出手动模式接口
         return manualModel;
     } else {
         manualModel.setIsContinueWork(isContinueWork(currentFlow(), true, true));
+
+        bool isWorkMode = false;
+        int work_mode = 0;
+        ros::param::get(NODE_CONTROLLER_WORK_MODE, work_mode);
+        int carto_mode = 0;
+        ros::param::get(CARTOGRAPHER_WORK_MODE, carto_mode);
+        if (work_mode != 2) {
+            LOG_IF(INFO, DEBUG_RESTORE) << "ManualModel " << "/node_controller/work_mode 检测为非工作模式，无法确认定位，不能退出手动模式指令 "
+                                        << work_mode;
+            manualModel.setIsWorkMode(isWorkMode);
+            return manualModel;
+        }
+        if (carto_mode != 0) {
+            LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "/cartographer_work_mode 检测为非定位模式，无法确认定位，不能退出手动模式指令 "
+                                        << carto_mode;
+            manualModel.setIsWorkMode(isWorkMode);
+            return manualModel;
+        }
+        isWorkMode = true;
+        manualModel.setIsWorkMode(isWorkMode);
 
         bool isOffMap = false;
         bool isRestrictedZone = false;

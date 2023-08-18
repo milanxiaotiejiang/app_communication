@@ -56,13 +56,3 @@ std::ostream &operator<<(std::ostream &os, const Notice &notice) {
        << notice.notice_title << " notice_message: " << notice.notice_message << " solution: " << notice.solution;
     return os;
 }
-
-ManualMode::ManualMode() {}
-
-std::ostream &operator<<(std::ostream &os, const ManualMode &mode) {
-    os << "isCharging: " << mode.isCharging << " isUnrecoverableError: " << mode.isUnrecoverableError
-       << " isUrgencyStop: " << mode.isUrgencyStop << " isWaitTask: " << mode.isWaitTask << " isContinueWork: "
-       << mode.isContinueWork << " isOffMap: " << mode.isOffMap << " isRestrictedZone: " << mode.isRestrictedZone
-       << " isMaxPassable: " << mode.isMaxPassable << " isPlanPath: " << mode.isPlanPath;
-    return os;
-}

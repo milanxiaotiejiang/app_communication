@@ -14,6 +14,7 @@
 #include "task/subscribe/async_machine.h"
 #include "task/model/PointProgressVo.h"
 #include "task/callback/EventNotifier.h"
+#include "model/ManualModel.h"
 
 const int MAX_FIRST_RETRY_COUNT = 2;
 const int MAX_BASE_POINT_RETRY_COUNT = 3;
