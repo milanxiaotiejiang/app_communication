@@ -806,6 +806,6 @@ namespace clean_history_db {
     }
 
     std::string CleanHistoryCenter::make_error_msg(int error_code) {
-        return std::__cxx11::string();
+        return std::string();
     }
 }// namespace clean_history_db

@@ -10,7 +10,6 @@
 #include "net/base/BaseMethod.h"
 #include "net/base/BaseResult.h"
 #include <manager/NoticeManager.h>
-#include "Python.h"
 #include <fstream>
 
 using json = nlohmann::json;

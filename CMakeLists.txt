@@ -72,7 +72,6 @@ find_package(Boost COMPONENTS iostreams)
 
 file(GLOB GLOG_LIBRARIES /usr/lib/x86_64-linux-gnu/libglog.so)
 set(GLOG_INCLUDE_DIRS /usr/include)
-#set(ZLIB_LIBRARIES /usr/local/lib/libz.so)
 set(PYTHON_INCLUDE_DIRS "/usr/include/python2.7")
 set(BREAK_PAD_LIBRARIES /usr/local/lib/libbreakpad_client.a)
 set(BOOST_IOSTREAMS_DIRS ${Boost_INCLUDE_DIRS}/boost/iostreams)
@@ -81,7 +80,6 @@ link_directories(/usr/local/lib)
 
 message("glog_include_dirs=${GLOG_INCLUDE_DIRS}")
 message("glog_libraries=${GLOG_LIBRARIES}")
-message("zlib_libraries=${ZLIB_LIBRARIES}")
 message("break_pad_libraries=${BREAK_PAD_LIBRARIES}")
 message("boost_iostreams_dirs=${BOOST_IOSTREAMS_DIRS}")
 message("opencv_include_dirs=${OpenCV_INCLUDE_DIRS}")
@@ -148,8 +146,7 @@ target_link_libraries(rec_app_node
         ${catkin_LIBRARIES}
         ${OpenCV_LIBRARIES}
         ${GLOG_LIBRARIES}
-        python2.7
-        #                ${ZLIB_LIBRARIES}
+#        python2.7
         eventpp::eventpp
         sqlite_orm::sqlite_orm sqlite3
         ${BREAK_PAD_LIBRARIES}
