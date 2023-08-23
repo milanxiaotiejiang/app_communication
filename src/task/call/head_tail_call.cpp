@@ -40,8 +40,8 @@ void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
             } else {
 //                setFlow(event::flow::software_interrupt_task);
                 LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 多次返回摆渡点失败， 直接记为“任务执行完成且返回了基站点”， " <<
-                                         "backBaseRetryCount : " << backBaseRetryCount <<
-                                         "rechargeRetryCount : " << rechargeRetryCount << " ...";
+                                         "  backBaseRetryCount : " << backBaseRetryCount <<
+                                         "  rechargeRetryCount : " << rechargeRetryCount << " ...";
                 setFlow(event::flow::flowing_water_execution_completed);
             }
         }
