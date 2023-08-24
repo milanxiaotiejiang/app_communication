@@ -511,12 +511,19 @@ void AsyncTaskCall::callManualCleanEnd() {//退出手动模式
     setEpollError(loop::error_epoll::error_normal);
     //电机使能
     MechanismManager::instance().quitManualControl();
-    if (isContinueWork(currentFlow(), true, true)) {
-        LOG(INFO) << "CONTINUE WORKING ... ";
-    } else {
-        //睡眠模式标志设置
-        callNeedPublishSleep();
 
+    if (isCharging()) {
+        if (!isWaitTask(currentFlow())) {
+            cancelTask();
+            goodGame(event::GG::gg_manual_mode);
+        }
+    } else {
+        if (isContinueWork(currentFlow(), true, true)) {
+            LOG(INFO) << "CONTINUE WORKING ... ";
+        } else {
+            //睡眠模式标志设置
+            callNeedPublishSleep();
+        }
     }
 }
 
