@@ -21,8 +21,12 @@
 #include "task/manager/NodeWorkModeManager.h"
 #include "tool/Variable.h"
 #include "leave/ParamManager.h"
+#include "db/property_data_base.h"
 
 std::string FactoryResetStrategy::handler(std::string params) {
+    PropertyDataBase::instance().resetConsumable(true, true, true, true, true, true);
+    ParamManager::instance().reset();
+    // 清除历史记录
     clean_history_db::CleanHistoryCenter::instance().removeCleanHistory();
     // 在此地图下，移除分区、与分区关联的任务
     SegmentationDataBase::instance().removeAllRoom();

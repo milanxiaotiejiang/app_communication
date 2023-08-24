@@ -24,6 +24,8 @@ public:
 
     void loadDefaultParam();
 
+    void reset();
+
     int getTof();
 
     void setTof(int tof);

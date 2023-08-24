@@ -65,6 +65,17 @@ void ParamManager::loadDefaultParam() {
     }
 }
 
+void ParamManager::reset() {
+    setSilver(true);
+    setDry(-1);
+    setEnergy(false);
+    setTxtUpgrade(false);
+    setRainSnow(false);
+    setCollectDust(false);
+    setAutoOil(false);
+    setMaintenanceStartTime(0);
+}
+
 int ParamManager::getTof() {
     if (access(zoo_param_imu_path.c_str(), F_OK) != 0) {
         throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
