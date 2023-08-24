@@ -74,9 +74,9 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        generatePlanningPathFull(map, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
-                                 exploration_path, point_path, complex_path);
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        generatePlanningPathFull(map, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
+//                                 exploration_path, point_path, complex_path);
     }
 
     //4
@@ -353,7 +353,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
         planning_point_path_display(room_map, point_path, 1, "optimizePlanningPath");
 
     if (DISPLAY_TRAJECTORY || DISPLAY_TRAJECTORY_EFFECT) {
-        planning_pose_path_display(room_map, map_origin, complex_path, 1, "optimizePlanningPath ");
+        planning_pose_path_display(room_map, map_origin, complex_path, 3, "optimizePlanningPath ");
     }
 
 //    std_msgs::Header header;
