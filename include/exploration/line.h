@@ -7,6 +7,7 @@
 
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/Pose.h>
+#include <opencv2/core/types.hpp>
 #include "model/Point.h"
 
 namespace conversion {
@@ -18,6 +19,8 @@ namespace conversion {
     float cal_distance(const geometry_msgs::Pose::_position_type &ps, const geometry_msgs::Pose::_position_type &pe);
 
     float cal_distance(const Point &ps, const Point &pe);
+
+    float cal_distance(const cv::Point &ps, const cv::Point &pe);
 
 }
 

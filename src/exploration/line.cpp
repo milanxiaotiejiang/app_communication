@@ -19,4 +19,8 @@ namespace conversion {
     float cal_distance(const Point &ps, const Point &pe) {
         return sqrt(pow(ps.getX() - pe.getX(), 2) + pow(ps.getY() - pe.getY(), 2));
     }
+
+    float cal_distance(const cv::Point &ps, const cv::Point &pe) {
+        return sqrt(pow(ps.x - pe.x, 2) + pow(ps.y - pe.y, 2));
+    }
 }

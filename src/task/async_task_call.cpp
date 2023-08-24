@@ -839,35 +839,17 @@ void AsyncTaskCall::manualBackToBase(bool force) {
     if (isPreparation(currentFlow())) {
         throw app::exception(make_error_code(error::operation_not_allowed_in_outbound));
     }
-    if (isPause()) {
-        if (isReturningBase(currentFlow())) {
-            notify_one([this]() {
-                pushManual(loop::manual_epoll::manual_resume);
-            });
-        } else {
-            notify_one([this]() {
-                pushManual(loop::manual_epoll::manual_force_back);
-            });
-        }
+//    if (isReturningBase(currentFlow())) {
+//        throw app::exception(make_error_code(error::already_returning_to_the_base_station));
+//    }
+    if (force) {
+        notify_one([this]() {
+            pushManual(loop::manual_epoll::manual_force_back);
+        });
     } else {
-        if (isReturningBase(currentFlow())) {
-            throw app::exception(make_error_code(error::already_returning_to_the_base_station));
-        }
-        if (force) {
-            notify_one([this]() {
-                pushManual(loop::manual_epoll::manual_force_back);
-            });
-        } else {
-            if (isRegularTask(currentFlow())) {
-                notify_one([this]() {
-                    pushManual(loop::manual_epoll::manual_back);
-                });
-            } else {
-                notify_one([this]() {
-                    pushManual(loop::manual_epoll::manual_force_back);
-                });
-            }
-        }
+        notify_one([this]() {
+            pushManual(loop::manual_epoll::manual_back);
+        });
     }
 
 }

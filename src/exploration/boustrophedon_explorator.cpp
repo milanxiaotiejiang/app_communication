@@ -13,6 +13,7 @@
 #include "exploration/voronoi/voronoi.hpp"
 #include "exploration/ExplorationCenter.h"
 #include "simulation.h"
+#include "exploration/line.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 static bool DISPLAY_TRAJECTORY_RESULT = false;
@@ -109,12 +110,12 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         LOG_IF(INFO, DEBUG_EXPLORATION) << "GeneticTSPSolver .. ";
         GeneticTSPSolver genetic_tsp_solver;
         optimal_order = genetic_tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 0.25, 0.0, map_resolution,
-                                                   start_cell_index, nullptr);
+                                                           start_cell_index, nullptr);
         if (optimal_order.size() != polygon_centers.size()) {
             LOG_IF(INFO, DEBUG_EXPLORATION)
-            << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
+                            << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
             optimal_order = genetic_tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
-                                                       map_resolution, start_cell_index, nullptr);
+                                                               map_resolution, start_cell_index, nullptr);
         }
     } else if (tsp_solver == TSP_NEAREST_NEIGHBOR) {
         // 一种通过计算最临近区域求出TSP近似解的方式，不追求下方的遗传学 TSP 的最优解，只求近似解为止（比下方步缺少一步）
@@ -125,7 +126,7 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
                                                             map_resolution, start_cell_index, nullptr);
         if (optimal_order.size() != polygon_centers.size()) {
             LOG_IF(INFO, DEBUG_EXPLORATION)
-            << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
+                            << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
             optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
                                                                 map_resolution, start_cell_index, nullptr);
         }
@@ -144,7 +145,7 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
     }
 
     LOG_IF(INFO, DEBUG_EXPLORATION)
-    << "Starting to get the paths for each cell, number of cells: " << (int) cell_polygons.size();
+                    << "Starting to get the paths for each cell, number of cells: " << (int) cell_polygons.size();
     LOG_IF(INFO, DEBUG_EXPLORATION) << "Boustrophedon grid_spacing_as_int = " << grid_spacing_as_int;
     cv::Point robot_pos = rotated_starting_point;
 
@@ -677,25 +678,63 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
         cv::waitKey();
     }
 
-    std::vector<cv::Point> approx_list;
-    cv::approxPolyDP(current_fov_path, approx_list, APPROX_EPSILON_BOUSTROPHEDON, false);
+    std::vector<std::vector<cv::Point>> distance_fov_path_list;
 
-    std::vector<cv::Point> split_list;
-    if (interpolation_operation) {
-        splitPointsIfNeeded(approx_list, split_list, static_cast<int>(std::floor(path_eps)));
+    if (current_fov_path.size() > 1) {
+        std::vector<cv::Point> temp_points;
+        temp_points.push_back(current_fov_path[0]);
+
+        for (int i = 1; i < current_fov_path.size(); i++) {
+            auto font_point = current_fov_path[i - 1];
+            auto current_point = current_fov_path[i];
+            auto distance = conversion::cal_distance(font_point, current_point);
+
+            if (distance < path_eps * 2) {
+                temp_points.push_back(current_point);
+            } else {
+                auto add_points = std::vector<cv::Point>{temp_points.begin(), temp_points.end()};
+                distance_fov_path_list.push_back(add_points);
+                temp_points.clear();
+                temp_points.push_back(current_point);
+            }
+        }
+        if (!temp_points.empty()) {
+            distance_fov_path_list.push_back(temp_points);
+        }
+
     } else {
-        split_list.insert(split_list.end(), approx_list.begin(), approx_list.end());
+        distance_fov_path_list.push_back(current_fov_path);
     }
 
-    std::vector<cv::Point2f> fov_middlepoint_path_part;
-    for (std::vector<cv::Point>::iterator point = split_list.begin(); point != split_list.end(); ++point)
-        fov_middlepoint_path_part.push_back(cv::Point2f(point->x, point->y));
-    cv::transform(fov_middlepoint_path_part, fov_middlepoint_path_part, R_cell_inv);
+    for (const auto &pointLists: distance_fov_path_list) {
 
-    fov_middlepoint_path.insert(fov_middlepoint_path.end(), fov_middlepoint_path_part.begin(),
-                                fov_middlepoint_path_part.end());
+        std::vector<cv::Point> approx_list;
+        cv::approxPolyDP(pointLists, approx_list, APPROX_EPSILON_BOUSTROPHEDON, false);
 
-    complex_middle_path.push_back(fov_middlepoint_path_part);
+        std::vector<cv::Point> split_list;
+        if (interpolation_operation) {
+            splitPointsIfNeeded(approx_list, split_list, static_cast<int>(std::floor(path_eps)));
+        } else {
+            split_list.insert(split_list.end(), approx_list.begin(), approx_list.end());
+        }
+
+        std::vector<cv::Point> inside_list;
+        for (const auto &point: split_list) {
+            if (rotated_cell_map.at<unsigned char>(point) >= 254) {
+                inside_list.push_back(point);
+            }
+        }
+
+        std::vector<cv::Point2f> fov_middlepoint_path_part;
+        for (std::vector<cv::Point>::iterator point = inside_list.begin(); point != inside_list.end(); ++point)
+            fov_middlepoint_path_part.push_back(cv::Point2f(point->x, point->y));
+        cv::transform(fov_middlepoint_path_part, fov_middlepoint_path_part, R_cell_inv);
+
+        fov_middlepoint_path.insert(fov_middlepoint_path.end(), fov_middlepoint_path_part.begin(),
+                                    fov_middlepoint_path_part.end());
+
+        complex_middle_path.push_back(fov_middlepoint_path_part);
+    }
 
     if (DISPLAY_TRAJECTORY) {
         cv::Mat cell_fov_path_disp = cell_map.clone();
@@ -784,7 +823,7 @@ void BoustrophedonExplorer::computeRectangularAmbulatoryPlanePath(const cv::Mat 
             break;
     }
     LOG_IF(INFO, DEBUG_EXPLORATION)
-    << "地图 " << mat.cols << "x" << mat.rows << ", 起始点为 (" << start_x << ", " << start_y << ")";
+                    << "地图 " << mat.cols << "x" << mat.rows << ", 起始点为 (" << start_x << ", " << start_y << ")";
     vm.generatePath(mat, voronoi_path, cv::Mat(), start_x, start_y);
 
     std::vector<cv::Point> approx_list;
@@ -884,7 +923,7 @@ int BoustrophedonExplorer::mergeCells(cv::Mat &cell_map, cv::Mat &cell_map_label
     }
 
     LOG_IF(INFO, DEBUG_EXPLORATION)
-    << "BoustrophedonExplorer::mergeCells: found " << label_index - 1 << " cells before merging.";
+                    << "BoustrophedonExplorer::mergeCells: found " << label_index - 1 << " cells before merging.";
 
     //配对响应的邻居
     for (int v = 1; v < cell_map_labels.rows - 1; ++v) {
