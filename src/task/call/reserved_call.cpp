@@ -70,7 +70,7 @@ void ReservedCall::handleErrorOperation() {
         case loop::error_epoll::error_manual_clean_start:
             if (isRegularTask(currentFlow())) {
                 InternalEventPubManager::get_instance()->pubOper(ENTER_MANUAL_CLEAN_MODE);
-                CleanHistoryCenter::instance().enterManualCleanMode();
+//                CleanHistoryCenter::instance().enterManualCleanMode();
             }
             break;
         case loop::error_epoll::error_manual_clean_end:

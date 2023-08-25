@@ -62,7 +62,7 @@ void SegmentationSubscribe::segmentationOrderSubscribeCallback(const std_msgs::I
         } else if (flag == 3) {
             ZooInnerStatus::instance().setUrgencyStopStatus(false);
         } else if (flag == 100) {
-            ManualManager::instance().backToBase(false);
+            ManualManager::instance().backToBase(true);
         } else if (flag == 1010) {
             ZooInnerStatus::instance().setIsCharging(true);
         } else if (flag == 1011) {

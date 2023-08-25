@@ -21,8 +21,8 @@ std::string RobotTryEnterModeStrategy::handler(int params) {
 }
 
 std::string RobotForceEnterModeStrategy::handler(int params) {
-    ManualManager::instance().backToBase(true);
-    NodeWorkModeManager::instance().forceEnterWorkMode(params);
+//    ManualManager::instance().backToBase(true);
+//    NodeWorkModeManager::instance().forceEnterWorkMode(params);
     return "";
 }
 

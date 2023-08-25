@@ -50,6 +50,8 @@ protected:
 
     std::atomic<bool> isCarpetAndPack;
 
+    std::atomic<bool> cancelTaskUpdateMap;
+
     std::deque<PointProgressVo> finishedPoints;
 
     TaskEventNotifier notifier;
@@ -122,11 +124,11 @@ protected:
 
     void callResume();
 
-    void callPause();
+    void callPause(bool skipManual);
 
     void callManualPause();
 
-    void cancelTaskAndBack();
+    void cancelTaskAndBack(bool force);
 
     void cancelTask();
 

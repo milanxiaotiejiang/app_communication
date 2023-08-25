@@ -15,7 +15,7 @@ void StatusResumeStrategy::handler() {
 }
 
 void StatusChargeStrategy::handler() {
-    ManualManager::instance().backToBase(false);
+    ManualManager::instance().backToBase(true);
 }
 
 void EnterManualStrategy::handler() {

@@ -38,7 +38,7 @@ void AutoMaintenanceModeManager::run() {
             } else {
                 back_base_thread = std::thread([this]() {
                     try {
-                        ManualManager::instance().backToBase(false);
+                        ManualManager::instance().backToBase(true);
                     } catch (app::exception const &e) {
                         LOG(ERROR) << e.what();
                     } catch (const std::exception &e) {
