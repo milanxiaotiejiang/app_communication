@@ -177,8 +177,8 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
             });
         } else {
             LOG_IF(INFO, DEBUG_TASK)
-                            << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : "
-                            << currentFlow();
+            << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : "
+            << currentFlow();
         }
     }
 }
@@ -186,7 +186,7 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
 void AsyncTaskCall::handleBlock(const RealBlock &block) {
     if (isUnrecoverableError()) {
         LOG_IF(INFO, DEBUG_TASK)
-                        << "AsyncTaskCall : 程序运行异常，抛弃 " << output_interpolation_block(block.id) << " ...";
+        << "AsyncTaskCall : 程序运行异常，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     if (isUrgencyStop()) {
@@ -203,7 +203,7 @@ void AsyncTaskCall::handleBlock(const RealBlock &block) {
     }
     if (isExchangeTask()) {
         LOG_IF(INFO, DEBUG_TASK)
-                        << "AsyncTaskCall : 切换新的任务中，抛弃 " << output_interpolation_block(block.id) << " ...";
+        << "AsyncTaskCall : 切换新的任务中，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     recordEmergencyStop(currentFlow(), block);
@@ -272,8 +272,8 @@ void AsyncTaskCall::handleBlockManualControl(const RealBlock &block) {
             break;
         default:
             LOG_IF(INFO, DEBUG_TASK)
-                            << "AsyncTaskCall : 手动接管期间不必要接受 " << output_interpolation_block(block.id)
-                            << " ...";
+            << "AsyncTaskCall : 手动接管期间不必要接受 " << output_interpolation_block(block.id)
+            << " ...";
             break;
     }
 }
@@ -288,8 +288,8 @@ void AsyncTaskCall::handleBlockSpecialDevice(const RealBlock &block) {
             break;
         default:
             LOG_IF(INFO, DEBUG_TASK)
-                            << "AsyncTaskCall : 强制模式下不必要接受 " << output_interpolation_block(block.id)
-                            << " ...";
+            << "AsyncTaskCall : 强制模式下不必要接受 " << output_interpolation_block(block.id)
+            << " ...";
             break;
     }
 }
@@ -587,17 +587,17 @@ void AsyncTaskCall::callUrgencyStop() {
     if (!isPause()) {
         if (isPreCompleted(currentFlow())) {
             LOG_IF(INFO, DEBUG_TASK)
-                            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
+            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
             setFlow(event::flow::cleaning_mechanism_ready);
         }
         if (isContinueWork(currentFlow(), true)) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
             LOG_IF(INFO, DEBUG_TASK)
-                            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
+            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
             setEpollManual(loop::manual_epoll::manual_pause);
             if (isRechargeFLow(currentFlow())) {
                 LOG_IF(INFO, DEBUG_TASK)
-                                << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
+                << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
                 callCancelBackStation();
                 rechargeRetryCount = 0;
                 recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
@@ -615,17 +615,17 @@ void AsyncTaskCall::callManualPause() {
     if (!isPause()) {
         if (isPreCompleted(currentFlow())) {
             LOG_IF(INFO, DEBUG_TASK)
-                            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
+            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
             setFlow(event::flow::cleaning_mechanism_ready);
         }
         if (isContinueWork(currentFlow(), true, true)) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
             LOG_IF(INFO, DEBUG_TASK)
-                            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
+            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
             setEpollManual(loop::manual_epoll::manual_pause);
             if (isRechargeFLow(currentFlow())) {
                 LOG_IF(INFO, DEBUG_TASK)
-                                << "AsyncTaskCall : 回充中触发手动模式为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
+                << "AsyncTaskCall : 回充中触发手动模式为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
                 callCancelBackStation();
                 rechargeRetryCount = 0;
                 recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
@@ -956,15 +956,15 @@ void AsyncTaskCall::enterManual() {//进入手动模式接口
 ManualModel AsyncTaskCall::quitManual() {//退出手动模式接口
     ManualModel manualModel;
 
-    manualModel.setIsManualMode(isManualMode());
-    if (!isManualMode()) {//不在手动模式下
-        LOG(INFO) << "ManualModel 不在手动模式下，不支持退出手动模式 ";
-        return manualModel;
-    }
-
     manualModel.setIsUnrecoverableError(isUnrecoverableError());
     if (isUnrecoverableError()) {
         LOG(INFO) << "ManualModel 程序异常，不能处理退出手动模式的命令 ";
+        return manualModel;
+    }
+
+    manualModel.setIsManualMode(isManualMode());
+    if (!isManualMode()) {//不在手动模式下
+        LOG(INFO) << "ManualModel 不在手动模式下，不支持退出手动模式 ";
         return manualModel;
     }
 
@@ -1012,7 +1012,7 @@ ManualModel AsyncTaskCall::quitManual() {//退出手动模式接口
         bool isPlanPath = false;
         const cv::Mat &map = SegmentationCenter::instance().generateMat();
         SegmentationCenter::instance()
-                .isRestrictedZone(map, isOffMap, isRestrictedZone, isMaxPassable, isPlanPath);
+                .isRestrictedZone(map, isOffMap, isRestrictedZone, isMaxPassable, isPlanPath, false);
         manualModel.setIsOffMap(isOffMap);
         manualModel.setIsRestrictedZone(isRestrictedZone);
         manualModel.setIsMaxPassable(isMaxPassable);
@@ -1165,6 +1165,9 @@ void AsyncTaskCall::executeLift(bool lift) {
         return;
     }
     if (isUnrecoverableError()) {
+        return;
+    }
+    if (isManualMode()) {
         return;
     }
     if (isPreparation(currentFlow())) {

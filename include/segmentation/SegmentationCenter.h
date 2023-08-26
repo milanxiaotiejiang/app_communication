@@ -103,9 +103,10 @@ public:
     MapRoomVo resultMapRoomVo() const;
 
     void isRestrictedZone(const cv::Mat &room_map, bool &isOffMap, bool &isRestrictedZone,
-                          bool &isMaxPassable, bool &isPlanPath);
+                          bool &isMaxPassable, bool &isPlanPath, bool debug);
 
-    bool pointInArea(const cv::Mat &area_map, const cv::Point &point, bool largest) const;
+    bool
+    pointInArea(const cv::Mat &area_map, const cv::Point &stationPoint, const cv::Point &point, bool largest) const;
 };
 
 

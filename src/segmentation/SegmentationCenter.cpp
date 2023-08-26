@@ -566,12 +566,12 @@ MapRoomVo SegmentationCenter::resultMapRoomVo() const {
 
 void
 SegmentationCenter::isRestrictedZone(const cv::Mat &room_map, bool &isOffMap, bool &isRestrictedZone,
-                                     bool &isMaxPassable, bool &isPlanPath) {
+                                     bool &isMaxPassable, bool &isPlanPath, bool debug) {
     cv::Point2d map_origin = MapAttributeSingleton::instance().getMapOrigin();
     const cv::Point stationPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(room_map, Point(0, 0));
     cv::Point robotPosition = MapAttributeSingleton::instance().getRobotPositionPoint(room_map);
 
-    isOffMap = !pointInArea(room_map, robotPosition, false);
+    isOffMap = !pointInArea(room_map, stationPoint, robotPosition, false);
 
 
     cv::Mat prohibition_image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
@@ -600,7 +600,7 @@ SegmentationCenter::isRestrictedZone(const cv::Mat &room_map, bool &isOffMap, bo
         }
     }
 
-    isRestrictedZone = pointInArea(prohibition_image, robotPosition, false);
+    isRestrictedZone = pointInArea(prohibition_image, stationPoint, robotPosition, false);
 
 
     cv::Mat passable_map = room_map.clone();
@@ -608,15 +608,16 @@ SegmentationCenter::isRestrictedZone(const cv::Mat &room_map, bool &isOffMap, bo
     cv::Mat andMat;
     cv::bitwise_and(passable_map, prohibition_image, andMat);
     cv::bitwise_xor(passable_map, andMat, passable_map);
-    isMaxPassable = pointInArea(passable_map, robotPosition, true);
+    isMaxPassable = pointInArea(passable_map, stationPoint, robotPosition, true);
 
-//    cv::imshow("room_map", room_map);
-//    cv::waitKey();
-//    cv::imshow("prohibition_image", prohibition_image);
-//    cv::waitKey();
-//    cv::imshow("passable_map", passable_map);
-//    cv::waitKey();
-
+    if (debug) {
+        cv::imshow("room_map", room_map);
+        cv::waitKey();
+        cv::imshow("prohibition_image", prohibition_image);
+        cv::waitKey();
+        cv::imshow("passable_map", passable_map);
+        cv::waitKey();
+    }
 
     AStarPlanner path_planner;
     auto original_map = passable_map.clone();
@@ -635,37 +636,54 @@ SegmentationCenter::isRestrictedZone(const cv::Mat &room_map, bool &isOffMap, bo
               << "  isPlanPath : " << isPlanPath;
 }
 
-bool SegmentationCenter::pointInArea(const cv::Mat &area_map, const cv::Point &point, bool largest) const {
+struct TempPolygon {
+    int contourSize;
+    double stationPolygon;
+    double pointPolygon;
+};
+
+bool SegmentationCenter::pointInArea(const cv::Mat &area_map, const cv::Point &stationPoint, const cv::Point &point,
+                                     bool largest) const {
     bool inArea = false;
     auto map = area_map.clone();
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
-    std::vector<std::pair<int, double>> records;
+    std::vector<TempPolygon> records;
 
     for (auto &contour: contours) {
-        double d = cv::pointPolygonTest(contour, point, true);
-        records.emplace_back(contour.size(), d);
+        TempPolygon tempPolygon{};
+        tempPolygon.contourSize = contour.size();
+        tempPolygon.stationPolygon = cv::pointPolygonTest(contour, stationPoint, true);;
+        tempPolygon.pointPolygon = cv::pointPolygonTest(contour, point, true);;
+        records.emplace_back(tempPolygon);
     }
 
     if (largest) {
         auto maxArea = 0;
         auto maxAreaDistance = 0;
         for (const auto &record: records) {
-            int area = record.first;
-            int distance = record.second;
-            if (area > maxArea) {
-                maxArea = area;
-                maxAreaDistance = distance;
+            if (record.pointPolygon > maxArea) {
+                maxArea = record.pointPolygon;
+                maxAreaDistance = record.pointPolygon;
             }
         }
 
         if (maxAreaDistance > 0) {
             inArea = true;
         }
+
+        if (!inArea) {
+            for (const auto &record: records) {
+                if (record.pointPolygon >= 0 || record.stationPolygon >= 0) {
+                    inArea = true;
+                    break;
+                }
+            }
+        }
     } else {
         for (const auto &record: records) {
-            if (record.second >= 0) {
+            if (record.pointPolygon >= 0) {
                 inArea = true;
                 break;
             }

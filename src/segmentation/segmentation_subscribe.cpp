@@ -95,7 +95,7 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
     bool isMaxPassable = false;
     bool isPlanPath = false;
     SegmentationCenter::instance()
-            .isRestrictedZone(map, isOffMap, isRestrictedZone, isMaxPassable, isPlanPath);
+            .isRestrictedZone(map, isOffMap, isRestrictedZone, isMaxPassable, isPlanPath, true);
     LOG(INFO) << "  isOffMap : " << isOffMap
               << "  isRestrictedZone : " << isRestrictedZone
               << "  isMaxPassable : " << isMaxPassable
