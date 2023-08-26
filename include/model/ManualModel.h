@@ -28,6 +28,8 @@ private:
     bool isMaxPassable = false;//是否在最大可通行区域内
     bool isPlanPath = false;//是否可规划出回基站的路径
 
+    int unrecoverableError;
+
 public:
     ManualModel() = default;
 
@@ -75,6 +77,10 @@ public:
         ManualModel::isPlanPath = isPlanPath;
     }
 
+    void setUnrecoverableError(int unrecoverableError) {
+        ManualModel::unrecoverableError = unrecoverableError;
+    }
+
     friend std::ostream &operator<<(std::ostream &os, const ManualModel &model) {
         os << "isCharging: " << model.isCharging << " isManualMode: " << model.isManualMode << " isUnrecoverableError: "
            << model.isUnrecoverableError << " isUrgencyStop: " << model.isUrgencyStop << " isWaitTask: "
@@ -89,6 +95,7 @@ public:
                 {"isCharging",           b.isCharging},
                 {"isManualMode",         b.isManualMode},
                 {"isUnrecoverableError", b.isUnrecoverableError},
+                {"unrecoverableError",   b.unrecoverableError},
                 {"isUrgencyStop",        b.isUrgencyStop},
                 {"isWaitTask",           b.isWaitTask},
                 {"isContinueWork",       b.isContinueWork},
@@ -104,6 +111,7 @@ public:
         j.at("isCharging").get_to(b.isCharging);
         j.at("isManualMode").get_to(b.isManualMode);
         j.at("isUnrecoverableError").get_to(b.isUnrecoverableError);
+        j.at("unrecoverableError").get_to(b.unrecoverableError);
         j.at("isUrgencyStop").get_to(b.isUrgencyStop);
         j.at("isWaitTask").get_to(b.isWaitTask);
         j.at("isContinueWork").get_to(b.isContinueWork);

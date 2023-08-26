@@ -958,6 +958,7 @@ ManualModel AsyncTaskCall::quitManual() {//退出手动模式接口
 
     manualModel.setIsUnrecoverableError(isUnrecoverableError());
     if (isUnrecoverableError()) {
+        manualModel.setUnrecoverableError(epoll_error);
         LOG(INFO) << "ManualModel 程序异常，不能处理退出手动模式的命令 ";
         return manualModel;
     }
