@@ -40,23 +40,28 @@ void ReservedCall::handleSpecialOperation() {
         }
         case loop::special_epoll::special_branch_water: {
             InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(true, false, false);
+            CleanHistoryCenter::instance().equipmentErrorBack(true, false, false, false);
             break;
         }
         case loop::special_epoll::special_sewage_water: {
             InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(false, true, false);
+            CleanHistoryCenter::instance().equipmentErrorBack(false, true, false, false);
             break;
         }
         case loop::special_epoll::special_branch_sewage_water: {
             InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
             InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(true, true, false);
+            CleanHistoryCenter::instance().equipmentErrorBack(true, true, false, false);
             break;
         }
         case loop::special_epoll::special_dust_push_anomaly: {
             InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(false, false, true);
+            CleanHistoryCenter::instance().equipmentErrorBack(false, false, true, false);
+            break;
+        }
+        case loop::special_epoll::special_wet_tow_anomaly: {
+            InternalEventPubManager::get_instance()->pubOper(MOP_ERROR_RECOVERY_SCCEED);
+            CleanHistoryCenter::instance().equipmentErrorBack(false, false, false, true);
             break;
         }
         default:
@@ -77,6 +82,8 @@ void ReservedCall::handleErrorOperation() {
             break;
         case loop::error_epoll::error_lift:
             InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LIFT_FAILED);
+            break;
+        case loop::error_epoll::error_electric_move:
             break;
         case loop::error_epoll::error_unrecoverable:
             InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_FAILED);
@@ -178,6 +185,9 @@ void ReservedCall::forceInterruptTask(event::SB sb) {
         case loop::error_epoll::error_lift:
             errorId = FLOW_ERROR_LIFT;
             break;
+        case loop::error_epoll::error_electric_move:
+            errorId = FLOW_ELECTRIC_MOVE;
+            break;
     }
     auto error_pair = generateErrorByRealPoint(errorId);
     CleanHistoryCenter::instance().errorComplete(
@@ -257,6 +267,11 @@ std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint
             error_code = 3332;
             error_code2 = "CCR_332";
             break;
+        case FLOW_ELECTRIC_MOVE:
+            error_string = "电机失能";
+            error_code = 3333;
+            error_code2 = "CCR_333";
+            break;
         case FLOW_ERROR_UNRECOVERABLE:
             error_string = "未知错误";
             error_code = 3220;
@@ -273,73 +288,3 @@ std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint
     }
     return make_tuple(error_code, error_string, error_code2);
 }
-
-void ReservedCall::recordMotorError() {
-    InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_SCCEED);
-}
-
-void ReservedCall::recordMopError() {
-    InternalEventPubManager::get_instance()->pubOper(MOP_ERROR_RECOVERY_SCCEED);
-}
-
-void ReservedCall::recordHlsError(int error_event) {
-    switch (error_event) {
-        case 1:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_1);
-            break;
-        case 2:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_2);
-            break;
-        case 3:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_3);
-            break;
-        case 4:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_4);
-            break;
-        case 5:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_5);
-            break;
-        case 6:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_6);
-            break;
-        case 7:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_7);
-            break;
-        case 8:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_8);
-            break;
-        case 9:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_9);
-            break;
-        case 10:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_10);
-            break;
-        case 11:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_11);
-            break;
-        case 12:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_12);
-            break;
-        case 13:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_13);
-            break;
-        case 14:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_14);
-            break;
-        case 15:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_15);
-            break;
-    }
-//    InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR);
-}
-
-void ReservedCall::recordLaserError(std::string error_event) {
-    if (error_event == "laser_scan_4014") {
-        InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_START);
-    } else if (error_event == "laser_scan_4015") {
-        InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_SUCCEED);
-    }
-}
-
-
-

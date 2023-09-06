@@ -52,6 +52,7 @@ namespace event {
     enum SB {
         sb_software,
         sb_lift,
+        sb_electric_move,
         sb_unrecoverable,
     };
 
@@ -85,7 +86,8 @@ namespace loop {
         special_branch_water,//清水箱空回充
         special_sewage_water,//污水箱满回充
         special_branch_sewage_water,//清水箱污水箱满回充
-        special_dust_push_anomaly,//尘推滚异常返回基站
+        special_dust_push_anomaly,//尘推堵转，任务提前结束
+        special_wet_tow_anomaly,//湿拖堵转，任务提前结束
         special_unknown,
     };
 
@@ -94,6 +96,7 @@ namespace loop {
         error_manual_clean_start,//手动模式开启
         error_manual_clean_end,//手动模式结束
         error_lift,//电梯
+        error_electric_move,
         error_unrecoverable,//不可恢复的错误（需要拆分）当前暂时为激光雷达错误
         error_unknown
     };

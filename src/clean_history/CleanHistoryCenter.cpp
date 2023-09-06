@@ -374,7 +374,8 @@ namespace clean_history_db {
     bool CleanHistoryCenter::equipmentErrorBack(
             bool clean_water_level_check_failed_,
             bool dirty_water_level_check_failed_,
-            bool motor_error_
+            bool motor_error_,
+            bool mop_error_
     ) {
         std::unique_lock<std::mutex> lock(history_update_mutex_);
         if (current_history_.task_id_.empty()) {
@@ -388,6 +389,9 @@ namespace clean_history_db {
         }
         if (motor_error_) {
             current_history_.oper_event_.push_back(internal_event::MOTOR_ERROR_RECOVERY_FAILED);
+        }
+        if (mop_error_) {
+            current_history_.oper_event_.push_back(internal_event::MOP_ERROR_RECOVERY_SCCEED);
         }
         CleanHistoryDataBase::instance().updateHistory(current_history_);
         return true;
@@ -534,6 +538,11 @@ namespace clean_history_db {
                 current_history_.error_code_ = 3218;
                 current_history_.error_msg_ = "尘推堵转，任务提前结束";
                 current_history_.error_code2_ = "CCR_218";
+                current_history_.history_state_ = history_state::error;
+            } else if (item == internal_event::MOP_ERROR_RECOVERY_SCCEED) {
+                current_history_.error_code_ = 4431;
+                current_history_.error_msg_ = "湿拖堵转，任务提前结束";
+                current_history_.error_code2_ = "COR_431";
                 current_history_.history_state_ = history_state::error;
             }
         }

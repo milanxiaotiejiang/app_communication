@@ -88,7 +88,11 @@ void AsyncTaskCall::handleSpecialOperation() {
             break;
         }
         case loop::special_epoll::special_dust_push_anomaly: {
-            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 电机堵转，尘推滚异常导致需要强制返回基站点 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 尘推电机堵转，导致需要强制返回基站点 ...";
+            break;
+        }
+        case loop::special_epoll::special_wet_tow_anomaly: {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 湿拖电机堵转，导致需要强制返回基站点 ...";
             break;
         }
         default:
@@ -111,6 +115,11 @@ void AsyncTaskCall::handleErrorOperation() {
         case loop::error_epoll::error_lift:
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 走到电梯上了 ... ";
             forceInterruptTask(event::SB::sb_lift);
+            break;
+        case loop::error_epoll::error_electric_move:
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 电机失能了 ... ";
+            forceInterruptTask(event::SB::sb_electric_move);
+            break;
             break;
         case loop::error_epoll::error_unrecoverable:
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 出现不可恢复的错误 ... ";
@@ -177,8 +186,8 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
             });
         } else {
             LOG_IF(INFO, DEBUG_TASK)
-            << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : "
-            << currentFlow();
+                            << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : "
+                            << currentFlow();
         }
     }
 }
@@ -186,7 +195,7 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
 void AsyncTaskCall::handleBlock(const RealBlock &block) {
     if (isUnrecoverableError()) {
         LOG_IF(INFO, DEBUG_TASK)
-        << "AsyncTaskCall : 程序运行异常，抛弃 " << output_interpolation_block(block.id) << " ...";
+                        << "AsyncTaskCall : 程序运行异常，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     if (isUrgencyStop()) {
@@ -203,7 +212,7 @@ void AsyncTaskCall::handleBlock(const RealBlock &block) {
     }
     if (isExchangeTask()) {
         LOG_IF(INFO, DEBUG_TASK)
-        << "AsyncTaskCall : 切换新的任务中，抛弃 " << output_interpolation_block(block.id) << " ...";
+                        << "AsyncTaskCall : 切换新的任务中，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     recordEmergencyStop(currentFlow(), block);
@@ -272,8 +281,8 @@ void AsyncTaskCall::handleBlockManualControl(const RealBlock &block) {
             break;
         default:
             LOG_IF(INFO, DEBUG_TASK)
-            << "AsyncTaskCall : 手动接管期间不必要接受 " << output_interpolation_block(block.id)
-            << " ...";
+                            << "AsyncTaskCall : 手动接管期间不必要接受 " << output_interpolation_block(block.id)
+                            << " ...";
             break;
     }
 }
@@ -288,8 +297,8 @@ void AsyncTaskCall::handleBlockSpecialDevice(const RealBlock &block) {
             break;
         default:
             LOG_IF(INFO, DEBUG_TASK)
-            << "AsyncTaskCall : 强制模式下不必要接受 " << output_interpolation_block(block.id)
-            << " ...";
+                            << "AsyncTaskCall : 强制模式下不必要接受 " << output_interpolation_block(block.id)
+                            << " ...";
             break;
     }
 }
@@ -587,17 +596,17 @@ void AsyncTaskCall::callUrgencyStop() {
     if (!isPause()) {
         if (isPreCompleted(currentFlow())) {
             LOG_IF(INFO, DEBUG_TASK)
-            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
+                            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
             setFlow(event::flow::cleaning_mechanism_ready);
         }
         if (isContinueWork(currentFlow(), true)) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
             LOG_IF(INFO, DEBUG_TASK)
-            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
+                            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
             setEpollManual(loop::manual_epoll::manual_pause);
             if (isRechargeFLow(currentFlow())) {
                 LOG_IF(INFO, DEBUG_TASK)
-                << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
+                                << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
                 callCancelBackStation();
                 rechargeRetryCount = 0;
                 recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
@@ -615,17 +624,17 @@ void AsyncTaskCall::callManualPause() {
     if (!isPause()) {
         if (isPreCompleted(currentFlow())) {
             LOG_IF(INFO, DEBUG_TASK)
-            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
+                            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
             setFlow(event::flow::cleaning_mechanism_ready);
         }
         if (isContinueWork(currentFlow(), true, true)) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
             LOG_IF(INFO, DEBUG_TASK)
-            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
+                            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
             setEpollManual(loop::manual_epoll::manual_pause);
             if (isRechargeFLow(currentFlow())) {
                 LOG_IF(INFO, DEBUG_TASK)
-                << "AsyncTaskCall : 回充中触发手动模式为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
+                                << "AsyncTaskCall : 回充中触发手动模式为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
                 callCancelBackStation();
                 rechargeRetryCount = 0;
                 recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
@@ -1187,6 +1196,23 @@ void AsyncTaskCall::executeLift(bool lift) {
     }
 }
 
+void AsyncTaskCall::executeElectricMove() {
+    if (isCharging()) {
+        return;
+    }
+    if (isUrgencyStop()) {
+        return;
+    }
+    if (isUnrecoverableError()) {
+        return;
+    }
+    if (isManualMode()) {
+        return;
+    }
+    notify_one([this]() {
+        pushError(loop::error_epoll::error_electric_move);
+    });
+}
 
 RealTask AsyncTaskCall::runningTask() const {
     return runTask;
@@ -1242,6 +1268,7 @@ void AsyncTaskCall::restore() {
     }
     if (restore_error == loop::error_epoll::error_unrecoverable ||
         restore_error == loop::error_epoll::error_lift ||
+        restore_error == loop::error_epoll::error_electric_move ||
         restore_manual == loop::manual_epoll::manual_unknown ||
         restore_special == loop::special_epoll::special_unknown ||
         restore_error == loop::error_epoll::error_unknown) {

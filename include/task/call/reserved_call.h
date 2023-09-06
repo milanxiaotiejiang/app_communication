@@ -41,16 +41,8 @@ protected:
 
 public:
 
-
     std::tuple<int, std::string, std::string> generateErrorByRealPoint(int errorId);
 
-    void recordMotorError();
-
-    void recordMopError();
-
-    void recordHlsError(int error_event);
-
-    void recordLaserError(std::string error_event);
 };
 
 

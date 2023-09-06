@@ -177,6 +177,8 @@ public:
 
     void executeLift(bool lift);
 
+    void executeElectricMove();
+
 
     RealTask runningTask() const;
 

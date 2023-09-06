@@ -18,6 +18,7 @@ const int FLOW_IN_STATION = -16;
 
 const int FLOW_ERROR_UNRECOVERABLE = -20;
 const int FLOW_ERROR_LIFT = -21;
+const int FLOW_ELECTRIC_MOVE = -22;
 
 const int MAX_RECORD_TASK_STACK_SIZE = 3;
 

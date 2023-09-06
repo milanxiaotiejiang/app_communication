@@ -71,7 +71,8 @@ namespace clean_history_db {
         //水箱返回基站
         bool equipmentErrorBack(bool clean_water_level_check_failed_,
                                 bool dirty_water_level_check_failed_,
-                                bool motor_error_);
+                                bool motor_error_,
+                                bool mop_error_);
 
         //强制返回基站
         bool forceBack();

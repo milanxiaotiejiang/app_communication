@@ -241,6 +241,16 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case SET_RAIN_SNOW:
             messageStrategy = new SetRainSnowStrategy();
             break;
+
+        case START_MAP:
+            messageStrategy = new StartMapStrategy();
+            break;
+        case END_MAP:
+            messageStrategy = new EndMapStrategy();
+            break;
+        case MAP_FEASIBLE_ZONE:
+            messageStrategy = new MapFeasibleZoneStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
 

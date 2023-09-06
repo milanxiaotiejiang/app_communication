@@ -140,6 +140,9 @@ loop::execute_handle AsyncTaskFramework::function_special_epoll() {
         case loop::special_epoll::special_dust_push_anomaly:
             epoll_special = loop::special_epoll::special_dust_push_anomaly;
             break;
+        case loop::special_epoll::special_wet_tow_anomaly:
+            epoll_special = loop::special_epoll::special_wet_tow_anomaly;
+            break;
         default:
             epoll_special = loop::special_epoll::special_unknown;
             break;
@@ -163,6 +166,9 @@ loop::execute_handle AsyncTaskFramework::function_error_epoll() {
             break;
         case loop::error_epoll::error_lift:
             epoll_error = loop::error_epoll::error_lift;
+            break;
+        case loop::error_epoll::error_electric_move:
+            epoll_error = loop::error_epoll::error_electric_move;
             break;
         case loop::error_epoll::error_unrecoverable:
             epoll_error = loop::error_epoll::error_unrecoverable;
@@ -322,6 +328,7 @@ bool AsyncTaskFramework::isManualMode() {
 bool AsyncTaskFramework::isUnrecoverableError() {
     return epoll_error == loop::error_epoll::error_unrecoverable ||
            epoll_error == loop::error_epoll::error_lift ||
+           epoll_error == loop::error_epoll::error_electric_move ||
            epoll_manual == loop::manual_epoll::manual_unknown ||
            epoll_special == loop::special_epoll::special_unknown ||
            epoll_error == loop::error_epoll::error_unknown;
@@ -343,7 +350,8 @@ bool AsyncTaskFramework::isSpecialDevice() {
            epoll_special == loop::special_epoll::special_branch_water ||
            epoll_special == loop::special_epoll::special_sewage_water ||
            epoll_special == loop::special_epoll::special_branch_sewage_water ||
-           epoll_special == loop::special_epoll::special_dust_push_anomaly;
+           epoll_special == loop::special_epoll::special_dust_push_anomaly ||
+           epoll_special == loop::special_epoll::special_wet_tow_anomaly;
 }
 
 bool AsyncTaskFramework::isCharging() {
