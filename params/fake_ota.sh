@@ -278,7 +278,16 @@ then
   update_move_base_launch_include
 fi
 
+if [ $version_index -lt 14 ]
+then
   echo "Updating 2.0.6"
+  update_cartographer_rplidar
+  update_cartographer_localization
+  update_libcartographer
+  update_move_base_launch_include
+fi
+
+  echo "Updating 2.0.7"
   update_cartographer_rplidar
   update_cartographer_localization
   update_libcartographer
