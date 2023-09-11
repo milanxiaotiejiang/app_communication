@@ -107,6 +107,13 @@ public:
 
     bool
     pointInArea(const cv::Mat &area_map, const cv::Point &stationPoint, const cv::Point &point, bool largest) const;
+
+    /**
+     * 将原始地图进行首次分割
+     */
+    void gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms,
+                          const cv::Point &ps, const cv::Point &pe);
+
 };
 
 

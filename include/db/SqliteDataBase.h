@@ -131,6 +131,29 @@ public:
                                        make_column("random_ratio", &PlanPo::random_number_generation_ratio),
                                        make_column("boundary_min_area", &PlanPo::boundary_min_area),
                                        make_column("version", &PlanPo::version, default_value(CURRENT_PLAN_VERSION))
+                            ),
+                            make_table("gate",
+                                       make_column("id", &Gate::id, primary_key()),
+                                       make_column("o_map_id", &Gate::o_map_id),
+                                       make_column("start_x", &Gate::start_x),
+                                       make_column("start_y", &Gate::start_y),
+                                       make_column("end_x", &Gate::end_x),
+                                       make_column("end_y", &Gate::end_y),
+                                       make_column("left_position_x", &Gate::left_position_x),
+                                       make_column("left_position_y", &Gate::left_position_y),
+                                       make_column("left_position_z", &Gate::left_position_z),
+                                       make_column("left_orientation_x", &Gate::left_orientation_x),
+                                       make_column("left_orientation_y", &Gate::left_orientation_y),
+                                       make_column("left_orientation_z", &Gate::left_orientation_z),
+                                       make_column("left_orientation_w", &Gate::left_orientation_w),
+                                       make_column("right_position_x", &Gate::right_position_x),
+                                       make_column("right_position_y", &Gate::right_position_y),
+                                       make_column("right_position_z", &Gate::right_position_z),
+                                       make_column("right_orientation_x", &Gate::right_orientation_x),
+                                       make_column("right_orientation_y", &Gate::right_orientation_y),
+                                       make_column("right_orientation_z", &Gate::right_orientation_z),
+                                       make_column("right_orientation_w", &Gate::right_orientation_w),
+                                       make_column("version", &Gate::version, default_value(CURRENT_GATE_VERSION))
                             )
         );
 

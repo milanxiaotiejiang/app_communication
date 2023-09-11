@@ -140,6 +140,8 @@ bool SegmentationCenter::initialize(const ros::NodeHandle &handle) {
 //    cv::Mat segmented_map;
 //    std::vector<Room> rooms;
 //    automaticSegmentation(segmented_map, rooms);
+
+    initialize_finish = true;
     return true;
 }
 
@@ -690,4 +692,60 @@ bool SegmentationCenter::pointInArea(const cv::Mat &area_map, const cv::Point &s
         }
     }
     return inArea;
+}
+
+void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms,
+                                          const cv::Point &ps, const cv::Point &pe) {
+    if (!initialize_finish) {
+        throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
+
+    // 1.加载原始地图
+    cv::Mat map = generateMat();
+    map.convertTo(segmented_map, CV_32SC1, 256, 0);// rescale to 32 int, 255 --> 255*256 = 65280
+
+    // 2.构建无分区的room
+    Room base_room(rand() % 52224 + 13056);
+
+    std::vector<cv::Point> new_members;
+    for (int y = 0; y < map.rows; y++) {
+        for (int x = 0; x < map.cols; x++) {
+            if (map.at<unsigned char>(y, x) == 255) {
+                new_members.emplace_back(x, y);
+            }
+        }
+    }
+    //寓意为第一次添加，可以添加所有，速度快
+    base_room.directInsertMemberPoints(new_members, map_resolution_from_subscription);
+
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+
+
+    Room roomStart(rand() % 52224 + 13056);
+    Room roomEnd(rand() % 52224 + 13056);
+    std::vector<cv::Point> membersStart;
+    std::vector<cv::Point> membersEnd;
+    for (const auto &point: base_room.getMembers()) {
+        int f = CvUtils::sideInLine(ps, pe, point);
+        if (f > 0) {
+            segmented_map.at<int>(point) = roomStart.getID();
+            membersStart.push_back(point);
+        } else {
+            segmented_map.at<int>(point) = roomEnd.getID();
+            membersEnd.push_back(point);
+        }
+    }
+
+    // 同上
+    roomStart.directInsertMemberPoints(membersStart, map_resolution_from_subscription);
+    roomEnd.directInsertMemberPoints(membersEnd, map_resolution_from_subscription);
+
+    rooms.push_back(roomStart);
+    rooms.push_back(roomEnd);
+
+    if (DEBUG_DISPLAYS_SHOW)
+        whole_display(segmented_map, rooms, "handSegmentation");
 }

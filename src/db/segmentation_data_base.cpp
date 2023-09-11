@@ -245,5 +245,11 @@ PlanPo SegmentationDataBase::getDbPlan(std::string map_id) {
         return {};
 }
 
+void SegmentationDataBase::saveGate(const Gate &gate) {
+    segmentationStorage.replace(gate);
+}
 
+std::vector<Gate> SegmentationDataBase::loadGate(const std::string &mapId) {
+    return segmentationStorage.get_all<Gate>(where(c(&Gate::o_map_id) == mapId));
+}
 

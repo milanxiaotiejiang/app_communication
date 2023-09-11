@@ -82,6 +82,10 @@ public:
     void removePlanParam(const std::string &mapId);
 
     PlanPo getDbPlan(std::string map_id);
+
+    void saveGate(const Gate &gate);
+
+    std::vector<Gate> loadGate(const std::string &mapId);
 };
 
 

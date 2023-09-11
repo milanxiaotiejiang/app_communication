@@ -281,3 +281,55 @@ void whole_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms,
     cv::imshow(winname, cloneMat);
     cv::waitKey();
 }
+
+void whole_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms, cv::Point pl, cv::Point pr,
+                   const std::string &winname) {
+    cv::Mat roomMat = cv::Mat::zeros(segmented_map.rows, segmented_map.cols, CV_8UC3);
+    for (int i = 0; i < rooms.size(); ++i) {
+        int blue = (rand() % 250) + 2;
+        int green = (rand() % 250) + 2;
+        int red = (rand() % 250) + 2;
+
+        auto current_room = rooms[i];
+        std::map<int, int, std::greater<int> > neighbor_room_statistics_inverse;    // common border length, room_id
+        current_room.getNeighborStatisticsInverse(neighbor_room_statistics_inverse);
+        auto statistics = current_room.getNeighborStatistics();
+
+        auto members = current_room.getMembers();
+        for (const auto &item: members) {
+            roomMat.at<cv::Vec3b>(item)[0] = blue;
+            roomMat.at<cv::Vec3b>(item)[1] = green;
+            roomMat.at<cv::Vec3b>(item)[2] = red;
+        }
+
+        auto center = current_room.getCenter();
+        auto neighborIDs = current_room.getNeighborIDs();
+        int id = current_room.getID();
+
+        std::string idStr;
+        std::string neighborStr;
+        cv::Point point1(center.x - 10, center.y - 10);
+        cv::Point point2(center.x - 10, center.y + 10);
+
+        idStr.append(std::to_string(i) + "." + std::to_string(id));
+        cv::putText(roomMat, idStr, point1, cv::FONT_HERSHEY_TRIPLEX, 0.4,
+                    cv::Scalar(255, 200, 200), 1, CV_AA);
+
+        for (const auto &item: neighborIDs) {
+            neighborStr.append(std::to_string(item) + ",");
+        }
+        cv::putText(roomMat, neighborStr, point2, cv::FONT_HERSHEY_TRIPLEX, 0.3,
+                    cv::Scalar(255, 200, 200), 1, CV_AA);
+    }
+
+    cv::circle(roomMat, pl, 5, cv::Scalar(0, 200, 0), CV_FILLED);
+    cv::circle(roomMat, pr, 5, cv::Scalar(200, 0, 0), CV_FILLED);
+
+    cv::imshow(winname, roomMat);
+    cv::waitKey();
+
+//    auto cloneMat = roomMat.clone();
+//    cv::resize(cloneMat, cloneMat, cv::Size(), 0.5, 0.5, cv::INTER_LINEAR);
+//    cv::imshow(winname, cloneMat);
+//    cv::waitKey();
+}

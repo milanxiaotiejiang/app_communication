@@ -29,7 +29,7 @@ cv::Point MapAttributeSingleton::getRobotPositionPoint(const cv::Mat &room_map) 
     starting_position.y =
             rows - (starting_position_pose.x - getMapOrigin().y) / map_resolution_from_subscription;
     LOG_IF(INFO, DEBUG_SEGMENTATION)
-    << "current robot position (" << starting_position.x << ", " << starting_position.y << ")";
+                    << "current robot position (" << starting_position.x << ", " << starting_position.y << ")";
     return starting_position;
 }
 
@@ -40,7 +40,7 @@ cv::Point MapAttributeSingleton::getRobotPositionPoint(int rows, int cols) const
     starting_position.y =
             rows - (starting_position_pose.x - getMapOrigin().y) / map_resolution_from_subscription;
     LOG_IF(INFO, DEBUG_SEGMENTATION)
-    << "current robot position (" << starting_position.x << ", " << starting_position.y << ")";
+                    << "current robot position (" << starting_position.x << ", " << starting_position.y << ")";
     return starting_position;
 }
 
@@ -161,12 +161,21 @@ cv::Point MapAttributeSingleton::rosPoint2MapPoint(const cv::Mat &room_map, cons
 }
 
 cv::Point MapAttributeSingleton::rosPoint2MapPoint(int rows, int cols, const Point &point) const {
+    const cv::Point2d &origin = getMapOrigin();
     double x = cols * map_resolution_from_subscription - (point.getY() - getMapOrigin().x);
     double y = rows * map_resolution_from_subscription - (point.getX() - getMapOrigin().y);
     cv::Point position;
     position.x = x / map_resolution_from_subscription;
     position.y = y / map_resolution_from_subscription;
     return position;
+}
+
+Point MapAttributeSingleton::mapPoint2RosPoint(int rows, int cols, const cv::Point &point) const {
+    const cv::Point2d &origin = getMapOrigin();
+    Point p;
+    p.setX((rows - point.y) * map_resolution_from_subscription + getMapOrigin().y);
+    p.setY((cols - point.x) * map_resolution_from_subscription + getMapOrigin().x);
+    return p;
 }
 
 bool MapAttributeSingleton::isCreatingMap() const {

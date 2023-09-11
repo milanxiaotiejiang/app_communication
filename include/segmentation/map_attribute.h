@@ -103,6 +103,7 @@ public:
 
     cv::Point2d getMapOrigin() const {
         return {currentMapAttribute.originPose.position.x, currentMapAttribute.originPose.position.y};
+        return {0,0};
     }
 
     const std::vector<std::vector<Point>> &getVirtualWallList() const {
@@ -145,6 +146,8 @@ public:
     cv::Point rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const;
 
     cv::Point rosPoint2MapPoint(int rows, int cols, const Point &point) const;
+
+    Point mapPoint2RosPoint(int rows, int cols, const cv::Point &point) const;
 
     bool saveMap();
 

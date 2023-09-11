@@ -147,5 +147,45 @@ public:
            int boundaryMinArea, int version);
 };
 
+const int CURRENT_GATE_VERSION = 1;
+
+class Gate {
+public:
+    int id{};
+    std::string o_map_id;
+    double start_x{};
+    double start_y{};
+    double end_x{};
+    double end_y{};
+
+    double left_position_x{};
+    double left_position_y{};
+    double left_position_z{};
+    double left_orientation_x{};
+    double left_orientation_y{};
+    double left_orientation_z{};
+    double left_orientation_w{};
+
+    double right_position_x{};
+    double right_position_y{};
+    double right_position_z{};
+    double right_orientation_x{};
+    double right_orientation_y{};
+    double right_orientation_z{};
+    double right_orientation_w{};
+
+    int version;
+
+    Gate();
+
+    Gate(const std::string &oMapId, double startX, double startY, double endX, double endY);
+
+    Gate(const std::string &oMapId, double startX, double startY, double endX, double endY, double leftPositionX,
+         double leftPositionY, double leftPositionZ, double leftOrientationX, double leftOrientationY,
+         double leftOrientationZ, double leftOrientationW, double rightPositionX, double rightPositionY,
+         double rightPositionZ, double rightOrientationX, double rightOrientationY, double rightOrientationZ,
+         double rightOrientationW);
+};
+
 
 #endif //APP_COMMUNICATION_SEGMENTATION_MODEL_H

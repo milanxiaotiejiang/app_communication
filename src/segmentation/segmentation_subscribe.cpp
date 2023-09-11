@@ -90,14 +90,29 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
 //        throw app::exception(make_error_code(error::the_current_state_is_uncontrollable));
 //    }
     const cv::Mat &map = SegmentationCenter::instance().generateMat();
-    bool isOffMap = false;
-    bool isRestrictedZone = false;
-    bool isMaxPassable = false;
-    bool isPlanPath = false;
-    SegmentationCenter::instance()
-            .isRestrictedZone(map, isOffMap, isRestrictedZone, isMaxPassable, isPlanPath, true);
-    LOG(INFO) << "  isOffMap : " << isOffMap
-              << "  isRestrictedZone : " << isRestrictedZone
-              << "  isMaxPassable : " << isMaxPassable
-              << "  isPlanPath : " << isPlanPath;
+//    bool isOffMap = false;
+//    bool isRestrictedZone = false;
+//    bool isMaxPassable = false;
+//    bool isPlanPath = false;
+//    SegmentationCenter::instance()
+//            .isRestrictedZone(map, isOffMap, isRestrictedZone, isMaxPassable, isPlanPath, true);
+//    LOG(INFO) << "  isOffMap : " << isOffMap
+//              << "  isRestrictedZone : " << isRestrictedZone
+//              << "  isMaxPassable : " << isMaxPassable
+//              << "  isPlanPath : " << isPlanPath;
+    if (flag_result.data == 1) {
+        //        246, 204, 235, 276
+        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(246, 204));
+        auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(235, 276));
+
+        MapPo &po = SegmentationDataBase::instance().getDbMap();
+        Gate gate(po.id, 15, 234, 462, 234,
+                  pl.getX(), pl.getY(), 0, 0, 0, 0, 0,
+                  pr.getX(), pr.getY(), 0, 0, 0, 0, 0);
+        SegmentationDataBase::instance().saveGate(gate);
+    } else if (flag_result.data == 2) {
+        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(246, 204));
+        auto pl2 = MapAttributeSingleton::instance().rosPoint2MapPoint(map.rows, map.cols, pl);
+        LOG(INFO) << "";
+    }
 }
