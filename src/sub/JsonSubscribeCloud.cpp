@@ -251,6 +251,24 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case MAP_FEASIBLE_ZONE:
             messageStrategy = new MapFeasibleZoneStrategy();
             break;
+        case MANUAL_PUSH_START:
+            messageStrategy = new ManualPushStartStrategy();
+            break;
+        case MANUAL_PUSH_RESET:
+            messageStrategy = new ManualPushResetStrategy();
+            break;
+        case TRY_TO_ENTER_:
+            messageStrategy = new RobotTryEnterModeStrategy();
+            break;
+        case FORCED_TO_ENTER_:
+            messageStrategy = new RobotForceEnterModeStrategy();
+            break;
+        case WORK_TO_ENTER_:
+            messageStrategy = new RobotPreparetoWorkStrategy();
+            break;
+        case WORK_TO_MAP_APP_:
+            messageStrategy = new MapPreparetoWorkStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
 
