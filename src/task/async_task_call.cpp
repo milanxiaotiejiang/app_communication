@@ -458,7 +458,9 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
             (double((double) point.id / block.totalStep))
     );
 
-    LOG_IF(INFO, DEBUG_TASK) << pointProgressVo << " " << finishedPoints.size() << " " << point.timeout;
+    LOG_IF(INFO, DEBUG_TASK)
+                    << "blockId : " << block.id << " , " << pointProgressVo << " " << finishedPoints.size() << " "
+                    << point.timeout;
     finishedPoints.push_back(pointProgressVo);
 
 //    std::vector<geometry_msgs::Pose2D> exploration_path;
@@ -476,12 +478,14 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
 }
 
 RealBlock AsyncTaskCall::findFrontBlock() {
-    return plannerQueue.front();
+    RealBlock &block = plannerQueue.front();
+    return block;
 }
 
 RealBlock AsyncTaskCall::findFrontNextBlock() {
     plannerQueue.pop_front();
-    return plannerQueue.front();
+    RealBlock &block = plannerQueue.front();
+    return block;
 }
 
 bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
@@ -504,7 +508,7 @@ void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock) {
                 ->scheduleLater(std::chrono::seconds(timeout), [this, id]() {
                     auto currentPoint = findFrontBlock();
                     if (currentPoint.id == id) {
-                        executeOnPathDone(event::error::TIMEOUT);
+                        executeOnPathDone(id, event::error::TIMEOUT, "timeout");
                     }
                 });
     }
@@ -778,7 +782,7 @@ void AsyncTaskCall::executeOneTask(const RealTask &task) {
     });
 }
 
-void AsyncTaskCall::executeOnPathDone(event::error error) {
+void AsyncTaskCall::executeOnPathDone(int blockId, event::error error, const std::string &message) {
     if (isCharging())
         return;
     if (isWaitTask(currentFlow()))
@@ -796,48 +800,48 @@ void AsyncTaskCall::executeOnPathDone(event::error error) {
         async::TimerCall::instance().baseLoop()->cancelAny();
     }
 
-    if (!plannerQueue.empty()) {
-        if (error == event::error::LOST) {
-            notify_one([this, &error]() {
+    notify_one([this, &blockId, &error, &message]() {
+        LOG(WARNING) << "PointPlanner pathCd  blockId : " << blockId << " , result " << message;
+        if (!plannerQueue.empty()) {
+            if (error == event::error::LOST) {
                 auto currentPoint = findFrontBlock();
                 currentPoint.arrive = error == event::error::SUCCEEDED;
                 currentPoint.retry = true;
                 pushBlock(currentPoint);
-            });
-        } else {
-            notify_one([this, &error]() {
+            } else {
                 auto currentPoint = findFrontBlock();
                 currentPoint.arrive = error == event::error::SUCCEEDED;
                 pushBlock(currentPoint);
-            });
-        }
-    } else {
-        notify_one([this, &error]() {
+            }
+        } else {
             flowInBasePoint.arrive = error == event::error::SUCCEEDED;
             pushBlock(flowInBasePoint);
-        });
-    }
+        }
+
+    });
 }
 
-void AsyncTaskCall::executeOnPathFeedBack(int current_step, int goal_step, int current_goal,
+void AsyncTaskCall::executeOnPathFeedBack(int blockId, int current_step, int goal_step, int current_goal,
                                           const geometry_msgs::Pose &pose) {
-    lock([this, &current_step, &goal_step, &current_goal]() {
+    lock([this, &blockId, &current_step, &goal_step, &current_goal]() {
         if (!plannerQueue.empty()) {
             RealBlock &block = plannerQueue.front();
-            if (current_step > block.timely_step) {
-//                LOG(ERROR) << "AsyncTaskCall : executeOnPathFeedBack : "
-//                           << "  step " << step
-//                           << "  plannerQueue.size " << plannerQueue.size()
-//                           << "  point.id " << block.id
-//                           << "  point.timely_step " << block.timely_step
-//                           << "  point.already_step " << block.already_step
-//                           << "  block.plannerPoints.size " << block.plannerPoints.size();
-                handlePlannerBlock(block);
+            if (block.id == blockId) {
+                if (current_step > block.timely_step) {
+//                    LOG(ERROR) << "AsyncTaskCall : executeOnPathFeedBack : "
+//                               << "  blockId " << blockId
+//                               << "  plannerQueue.size " << plannerQueue.size()
+//                               << "  point.id " << block.id
+//                               << "  point.timely_step " << block.timely_step
+//                               << "  point.already_step " << block.already_step
+//                               << "  block.plannerPoints.size " << block.plannerPoints.size();
+                    handlePlannerBlock(block);
+                }
+                block.timely_step = current_step;
+                block.current_step = current_step;
+                block.goal_step = goal_step;
+                block.current_goal = current_goal;
             }
-            block.timely_step = current_step;
-            block.current_step = current_step;
-            block.goal_step = goal_step;
-            block.current_goal = current_goal;
         }
     });
     feedBackPose(pose);

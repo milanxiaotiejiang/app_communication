@@ -41,9 +41,9 @@ public:
 
     void pathActive();
 
-    void pathFeedback(const replan_msgs::ReplanFeedbackConstPtr &pose);
+    void pathFeedback(const replan_msgs::ReplanFeedbackConstPtr &pose, int blockId);
 
-    void pathDone(const actionlib::SimpleClientGoalState &state);
+    void pathDone(const actionlib::SimpleClientGoalState &state, int blockId);
 
     void crash();
 

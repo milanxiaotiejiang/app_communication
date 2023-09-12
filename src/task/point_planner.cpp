@@ -39,13 +39,12 @@ void PointPlanner::activeCB() {
 }
 
 void PointPlanner::feedBackCB(const replan_msgs::ReplanFeedbackConstPtr &feed_back) {
-    PointRoutine::instance().pathFeedback(feed_back);
+    PointRoutine::instance().pathFeedback(feed_back, atomicBlockId.load());
 }
 
 void
 PointPlanner::doneCB(const actionlib::SimpleClientGoalState &state, const replan_msgs::ReplanResultConstPtr &result) {
-    LOG(WARNING) << "PointPlanner pathCd result " << state.getText();
-    PointRoutine::instance().pathDone(state);
+    PointRoutine::instance().pathDone(state, atomicBlockId.exchange(-1));
 }
 
 void PointPlanner::initialize(ros::NodeHandle handle) {
@@ -57,7 +56,7 @@ void PointPlanner::initialize(ros::NodeHandle handle) {
 }
 
 bool PointPlanner::waitForReplanServer() {
-    share_replan.reset();
+    resetForReplanServer();
     share_replan = std::make_shared<ReplanAction>("replan", true);
     return share_replan->waitForServer(ros::Duration(5));
 }
@@ -100,12 +99,21 @@ void PointPlanner::goToPath(const RealBlock &block) {
 
     LOG(WARNING) << "PointPlanner block step --  current_step : " << block.current_step
                  << "  , goal_step : " << block.goal_step
-                 << "  , current_goal : " << block.current_goal;
+                 << "  , current_goal : " << block.current_goal
+                 << "  , plannerPoints.size : " << block.plannerPoints.size();
     replan_msgs::ReplanGoal path;
-    cpToPath(std::vector<RealPoint>{block.plannerPoints.begin() + block.goal_step, block.plannerPoints.end()},
-             path,
-             block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE,
-             SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
+    if (block.goal_step >= block.plannerPoints.size()) {
+        cpToPath(std::vector<RealPoint>{block.plannerPoints[block.plannerPoints.size() - 1]},
+                 path,
+                 block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE,
+                 SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
+    } else {
+        cpToPath(std::vector<RealPoint>{block.plannerPoints.begin() + block.goal_step, block.plannerPoints.end()},
+                 path,
+                 block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE,
+                 SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
+    }
+    atomicBlockId.store(block.id);
     share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
 }
 
@@ -119,6 +127,7 @@ void PointPlanner::backBasePoint() {
     auto backBasePoint = createBackBasePoint();
     replan_msgs::ReplanGoal path;
     cpToPath(std::vector<RealPoint>{backBasePoint}, path, replan_msgs::ReplanGoal::POINT_MUST_ARRIVE, false);
+    atomicBlockId.store(-1);
     share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
 }
 

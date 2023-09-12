@@ -141,9 +141,10 @@ public:
 
     void executeOneTask(const RealTask &task);
 
-    void executeOnPathDone(event::error error);
+    void executeOnPathDone(int blockId, event::error error, const std::string& message);
 
-    void executeOnPathFeedBack(int current_step, int goal_step, int current_goal, const geometry_msgs::Pose &pose);
+    void executeOnPathFeedBack(int blockId, int current_step, int goal_step, int current_goal,
+                               const geometry_msgs::Pose &pose);
 
     void executeOutStation(bool result);
 

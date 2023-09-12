@@ -17,6 +17,8 @@ const float RETURN_POINT_X_ = -1.3;
 
 typedef actionlib::SimpleActionClient<replan_msgs::ReplanAction> ReplanAction;
 
+static std::atomic<int> atomicBlockId;
+
 class PointPlanner {
 private:
     PointPlanner() = default;

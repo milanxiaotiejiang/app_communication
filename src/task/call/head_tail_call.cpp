@@ -39,9 +39,10 @@ void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
                 setFlow(event::flow::try_move_base_point_again);
             } else {
 //                setFlow(event::flow::software_interrupt_task);
-                LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 多次返回摆渡点失败， 直接记为“任务执行完成且返回了基站点”， " <<
-                                         "  backBaseRetryCount : " << backBaseRetryCount <<
-                                         "  rechargeRetryCount : " << rechargeRetryCount << " ...";
+                LOG_IF(INFO, DEBUG_TASK)
+                                << "HeadTailPointCall : 多次返回摆渡点失败， 直接记为“任务执行完成且返回了基站点”， " <<
+                                "  backBaseRetryCount : " << backBaseRetryCount <<
+                                "  rechargeRetryCount : " << rechargeRetryCount << " ...";
                 setFlow(event::flow::flowing_water_execution_completed);
             }
         }
@@ -174,20 +175,23 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
         }
         case event::flow::try_recharging_again: {
             LOG_IF(INFO, DEBUG_TASK)
-            << "HeadTailPointCall : 回充失败 rechargeRetryCount : " << rechargeRetryCount << " , 再次返回基站点位置 ...";
+                            << "HeadTailPointCall : 回充失败 rechargeRetryCount : " << rechargeRetryCount
+                            << " , 再次返回基站点位置 ...";
             backBaseRetryCount = 0;
             callBackBasePoint();
             break;
         }
         case event::flow::try_move_base_point_again: {
             LOG_IF(INFO, DEBUG_TASK)
-            << "HeadTailPointCall : 返回基站点位失败 backBaseRetryCount : " << backBaseRetryCount << " , 重试中 ...";
+                            << "HeadTailPointCall : 返回基站点位失败 backBaseRetryCount : " << backBaseRetryCount
+                            << " , 重试中 ...";
             callBackBasePoint();
             break;
         }
         case event::flow::hardware_interrupt_task: {
             LOG_IF(INFO, DEBUG_TASK)
-            << "HeadTailPointCall : 清洁机构出错，执行返回基站命令 错误 ： " << output_interpolation_block(block.id);
+                            << "HeadTailPointCall : 清洁机构出错，执行返回基站命令 错误 ： "
+                            << output_interpolation_block(block.id);
             callBackBasePoint();
             break;
         }
@@ -253,13 +257,13 @@ void HeadTailPointCall::callCloseMechanism(std::function<void()> f) {
     }
 }
 
-void HeadTailPointCall::callGoFirstPoint(const RealBlock& block) {
+void HeadTailPointCall::callGoFirstPoint(const RealBlock &block) {
     PointPlanner::instance().goToPathFirst(block);
     async::TimerCall::instance().baseLoop()
             ->scheduleLater(std::chrono::seconds(block.timeout), [this, block]() {
                 auto currentPoint = findFrontBlock();
                 if (currentPoint.id == block.id) {
-                    executeOnPathDone(event::error::TIMEOUT);
+                    executeOnPathDone(block.id, event::error::TIMEOUT, "timeout");
                 }
             });
 }
