@@ -68,5 +68,5 @@ void PointRoutine::pointDone(const actionlib::SimpleClientGoalState &state) {
     } else if (state == actionlib::SimpleClientGoalState::StateEnum::LOST) {
         status = event::error::LOST;
     }
-    asyncTaskCall->executeOnPathDone(status);
+    asyncTaskCall->executeOnPointDone(status);
 }

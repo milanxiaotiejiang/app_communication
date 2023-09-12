@@ -104,9 +104,14 @@ void NodeControl::onWork() {
                     {
                         bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
                         if (baseAvailable) {
-                            setWorkMode(node::State::work);
-                            state_ = node::State::work;
-                            work_state_ = node::WorkState::complete;
+                            bool coreMoveAvailable = ModeValidate::validateCoreMoveAvailable();
+                            if (coreMoveAvailable) {
+                                setWorkMode(node::State::work);
+                                state_ = node::State::work;
+                                work_state_ = node::WorkState::complete;
+                            } else {
+                                defeatModeStart(node::State::work);
+                            };
                         } else {
                             defeatModeStart(node::State::work);
                         }
@@ -120,9 +125,14 @@ void NodeControl::onWork() {
 
                         bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
                         if (baseAvailable) {
-                            setWorkMode(node::State::work);
-                            state_ = node::State::work;
-                            work_state_ = node::WorkState::complete;
+                            bool coreMoveAvailable = ModeValidate::validateCoreMoveAvailable();
+                            if (coreMoveAvailable) {
+                                setWorkMode(node::State::work);
+                                state_ = node::State::work;
+                                work_state_ = node::WorkState::complete;
+                            } else {
+                                defeatModeStart(node::State::work);
+                            }
                         } else {
                             defeatModeStart(node::State::work);
                         }

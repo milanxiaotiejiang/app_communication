@@ -18,6 +18,7 @@
 #include "simulation.h"
 #include "model/Point.h"
 #include "db/path.h"
+#include "task/RealPoint.h"
 
 const double map_resolution_from_subscription = 0.05;
 
@@ -154,6 +155,8 @@ public:
     void notifySaveMap();
 
     static bool readAnyMapInfo(MapAttribute &mapAttribute);
+
+    static RealPoint createCurrentPoint();
 };
 
 

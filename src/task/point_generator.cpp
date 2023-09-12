@@ -54,10 +54,13 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
                                             const std::vector<std::vector<PoseVo>> &complexList,
                                             std::vector<RealBlock> &blockList) {
     float totalDistance = 0;
+    // 获取当前地图的原点位置，以便后续转换 cv 点和 ros 点
     auto originPoint = MapAttributeSingleton::instance().getMapOrigin();
 
+    // 对于单个点列大于 complex_path_num_splits 值的，进行近似平均的拆分
     std::vector<std::vector<PoseVo>> splitVectors;
     for (const auto &vec: complexList) {
+        //complex_path_num_splits 默认 1000
         int numSubVec = (vec.size() + Environment::instance().complex_path_num_splits - 1) /
                         Environment::instance().complex_path_num_splits;
 
@@ -73,18 +76,21 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         }
     }
 
+    // 根据前后两个点位，重新计算每个点位的角度值
     std::vector<std::vector<PoseVo>> complexAngleList;
     for (const auto &complex: splitVectors) {
         std::vector<PoseVo> poseList = recalculateAngle(originPoint, complex);
         complexAngleList.push_back(poseList);
     }
 
+    // 将 PoseVo 转为 geometry_msgs::PoseStamped，主要是将 PoseVo 中 theta 转为 pose.orientation
     std::vector<std::vector<geometry_msgs::PoseStamped>> complexGeometryList;
     for (const auto &complex: complexAngleList) {
         std::vector<geometry_msgs::PoseStamped> geometryList = convertToGeometry(complex);
         complexGeometryList.push_back(geometryList);
     }
 
+    // 将 geometry_msgs::PoseStamped 集合转为 Block 点列，一个 Block 中包含 1 或很多点，其中 geometry_msgs::PoseStamped 转为 RealPosition + RealOrientation
     std::vector<RealBlock> initBlockList;
     for (const auto &complex: complexGeometryList) {
         auto realBlock = buildBlock(0, realTask);
@@ -102,6 +108,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         initBlockList.push_back(realBlock);
     }
 
+    // 根据任务次数追加 block ，并设置总进度
     std::vector<RealBlock> rateBlockList;
     for (int i = 0; i < realTask.getRate(); ++i) {
         for (auto &block: initBlockList) {
@@ -112,8 +119,18 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         }
     }
 
+    // 重点关注第一个点，第一个点有重试逻辑，且后续都应当将第一个点剥离出来，每次前往单个点与整个路径的行使规划参数不同
     std::vector<RealBlock> wholeBlockList;
-    addSinglePoint(wholeBlockList, realTask, rateBlockList[0].plannerPoints[0]);
+    if (!rateBlockList.empty()) {
+        RealBlock &block = rateBlockList[0];
+        std::vector<RealPoint> &plannerPoints = block.plannerPoints;
+        if (!plannerPoints.empty()) {
+            RealPoint point = plannerPoints[0];
+            addSinglePoint(wholeBlockList, realTask, point);
+        }
+    }
+
+    // 剥离下一个 block 中的第一个点，形成 block，以便动态调整规划器参数。注意处理最后一个 block 问题
     for (int i = 0; i < rateBlockList.size(); i++) {
         if (i == rateBlockList.size() - 1) {
             auto currentBlock = rateBlockList[i];
@@ -127,6 +144,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         }
     }
 
+    // 统计 block_accumulation、point_accumulation 以便计算进度
     int block_accumulation = 0;
     int point_accumulation = 0;
     for (auto &block: wholeBlockList) {
@@ -143,17 +161,26 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         block_accumulation++;
     }
 
-    auto lastPoint = PointPlanner::createBackBasePoint();
-    RealBlock backBlock = buildBlock(0, realTask);
-    backBlock.plannerPoints.push_back(lastPoint);
-    wholeBlockList.push_back(backBlock);
+    // 预制基站的摆渡点位，方便下方闸机逻辑处理中添加闸机 block
+    addSinglePoint(wholeBlockList, realTask, PointPlanner::createBackBasePoint());
 
+    // 取出当前的机器人位置，为计算闸机逻辑做准备
+    auto currentPoint = MapAttributeSingleton::createCurrentPoint();
+
+    // 1. 计算两点间距，得出超时时间，并计算总共时间、总步数
+    // 2. 为每个 block 添加来向 lastPoint，并取出第一个点，方便计算
+    auto lastPoint = currentPoint;
     geometry_msgs::Pose::_position_type lastPose;
-    for (auto &block: wholeBlockList) {
+    for (int i = 0; i < wholeBlockList.size(); i++) {
+        auto &block = wholeBlockList[i];
         auto plannerPoints = block.plannerPoints;
 
         block.firstPoint = plannerPoints[0];
-        block.lastPoint = lastPoint;
+        if (i == 0) {
+            block.lastPoint = currentPoint;
+        } else {
+            block.lastPoint = lastPoint;
+        }
 
         long timeout_accumulation = 0;
         for (auto &pose: plannerPoints) {
@@ -179,24 +206,17 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         block.plannerPoints = plannerPoints;
     }
 
-    cv::Mat map = SegmentationCenter::instance().generateMat();
-    auto original_map = map.clone();
-    AStarPlanner path_planner;
-    cv::Mat downsampled_map;
-    path_planner.downsampleMap(original_map, downsampled_map, 1.0, 0.0, map_resolution_from_subscription);
-
-    auto segmented_map = map.clone();
-    std::vector<Room> rooms;
-
+    // 1. 取出闸机相关信息（闸机区域、闸机2个摆渡点）
+    // 2. 根据闸机区域，拆分地图，得到被拆分后的两块区域
+    // 3. 由闸机的2个摆渡点，形成两个摆渡 block
     bool hasGate = false;
-    MapPo &po = SegmentationDataBase::instance().getDbMap();
-    const std::vector<Gate> &vector = SegmentationDataBase::instance().loadGate(po.id);
+    auto segmented_map = SegmentationCenter::instance().generateMat().clone();
+    auto gateList = SegmentationDataBase::instance().loadGate(SegmentationDataBase::instance().getDbMap().id);
     RealBlock leftBlock = buildBlock(0, realTask);
     RealBlock rightBlock = buildBlock(0, realTask);
     int leftValue, rightValue = 0;
-    Gate gate;
-    if (!vector.empty()) {
-        gate = vector[vector.size() - 1];
+    if (!gateList.empty()) {
+        Gate gate = gateList[gateList.size() - 1];
 
         cv::Point lineStart(gate.start_x, gate.start_y);
         cv::Point lineEnd(gate.end_x, gate.end_y);
@@ -208,7 +228,6 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         realPointLeft.realPosition = std::move(realPositionLeft);
         realPointLeft.realOrientation = std::move(realOrientationLeft);
         leftBlock.plannerPoints.push_back(realPointLeft);
-        leftBlock.core_move = true;
 
         RealPoint realPointRight;
         RealPosition realPositionRight(gate.right_position_x, gate.right_position_y, gate.right_position_z);
@@ -217,25 +236,28 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         realPointRight.realPosition = std::move(realPositionRight);
         realPointRight.realOrientation = std::move(realOrientationRight);
         rightBlock.plannerPoints.push_back(realPointRight);
-        rightBlock.core_move = true;
 
+        std::vector<Room> rooms;
         SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, lineStart, lineEnd);
 
 
         Point gateLeftPoint(gate.left_position_x, gate.left_position_y);
         Point gateRightPoint(gate.right_position_x, gate.right_position_y);
 
-        auto cvGateLeftPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(map.rows, map.cols, gateLeftPoint);
-        auto cvGateRightPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(map.rows, map.cols, gateRightPoint);
+        auto cvGateLeftPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
+                                                                                   segmented_map.cols, gateLeftPoint);
+        auto cvGateRightPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
+                                                                                    segmented_map.cols, gateRightPoint);
 
         leftValue = segmented_map.at<int>(cvGateLeftPoint);
         rightValue = segmented_map.at<int>(cvGateRightPoint);
 
-        whole_display(segmented_map, rooms, cvGateLeftPoint, cvGateRightPoint, "handSegmentation");
+//        whole_display(segmented_map, rooms, cvGateLeftPoint, cvGateRightPoint, "handSegmentation");
 
         hasGate = true;
     }
 
+    // 根据来向和取向，判断是否经过闸机，经过则添加闸机2个摆渡点
     std::vector<RealBlock> gateBlockList;
     for (auto &block: wholeBlockList) {
         block.totalDistance = totalDistance;
@@ -246,9 +268,9 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
             Point currentBlockFirstPoint(block.firstPoint.realPosition.x, block.firstPoint.realPosition.y);
 
             auto cvLastBlockLastPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(
-                    map.rows, map.cols, lastBlockLastPoint);
+                    segmented_map.rows, segmented_map.cols, lastBlockLastPoint);
             auto cvCurrentBlockFirstPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(
-                    map.rows, map.cols, currentBlockFirstPoint);
+                    segmented_map.rows, segmented_map.cols, currentBlockFirstPoint);
 
             int lastValue = segmented_map.at<int>(cvLastBlockLastPoint);
             int currentValue = segmented_map.at<int>(cvCurrentBlockFirstPoint);
@@ -256,11 +278,19 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
             if (lastValue != currentValue) {
 
                 if (lastValue == leftValue && currentValue == rightValue) {
+                    leftBlock.core_move = false;
                     gateBlockList.push_back(leftBlock);
+                    leftBlock.core_move = true;
+                    gateBlockList.push_back(leftBlock);
+                    rightBlock.core_move = true;
                     gateBlockList.push_back(rightBlock);
                     gateBlockList.push_back(block);
                 } else if (lastValue == rightValue && currentValue == leftValue) {
+                    rightBlock.core_move = false;
                     gateBlockList.push_back(rightBlock);
+                    rightBlock.core_move = true;
+                    gateBlockList.push_back(rightBlock);
+                    leftBlock.core_move = true;
                     gateBlockList.push_back(leftBlock);
                     gateBlockList.push_back(block);
                 } else {
@@ -275,29 +305,30 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         }
 
     }
-
     realTask.setTotalStep(point_accumulation);
     realTask.setTotalFrequency(realTask.getRate());
 
+    // 移除预制的最后一个点位
     gateBlockList.pop_back();
+
+    // 交由上个方法处理
     for (const auto &block: gateBlockList) {
         blockList.emplace_back(block);
     }
 
-    for (const auto &block: blockList) {
-        for (const auto &point: block.plannerPoints) {
-
-            auto cvPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(map.rows, map.cols,
-                                                                               Point(point.realPosition.x,
-                                                                                     point.realPosition.y));
-            const cv::Mat &mat = segmented_map.clone();
-            cv::circle(mat, cvPoint, 3, cv::Scalar(200), CV_FILLED);
-
-            cv::imshow("1", mat);
-            cv::waitKey();
-        }
-
-    }
+//    for (const auto &block: blockList) {
+//        for (const auto &point: block.plannerPoints) {
+//
+//            auto cvPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(map.rows, map.cols,
+//                                                                               Point(point.realPosition.x,
+//                                                                                     point.realPosition.y));
+//            const cv::Mat &mat = segmented_map.clone();
+//            cv::circle(mat, cvPoint, 3, cv::Scalar(200), CV_FILLED);
+//
+//            cv::imshow("1", mat);
+//            cv::waitKey();
+//        }
+//    }
 }
 
 std::vector<PoseVo> PointGenerator::recalculateAngle(const cv::Point2d &point2D,

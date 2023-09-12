@@ -253,3 +253,14 @@ bool MapAttributeSingleton::readAnyMapInfo(MapAttribute &mapAttribute) {
 
     return true;
 }
+
+RealPoint MapAttributeSingleton::createCurrentPoint() {
+    RealPoint realPoint;
+    RealPosition realPosition(MapAttributeSingleton::instance().getRobotPositionPose().x,
+                              MapAttributeSingleton::instance().getRobotPositionPose().y,
+                              0);
+    RealOrientation realOrientation(0, 0, 0, 1);
+    realPoint.realPosition = std::move(realPosition);
+    realPoint.realOrientation = std::move(realOrientation);
+    return realPoint;
+}

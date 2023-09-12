@@ -101,17 +101,17 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
 //              << "  isMaxPassable : " << isMaxPassable
 //              << "  isPlanPath : " << isPlanPath;
     if (flag_result.data == 1) {
-        //        246, 204, 235, 276
-        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(246, 204));
-        auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(235, 276));
+        int height = 250;
+        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height - 20));
+        auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height + 20));
 
         MapPo &po = SegmentationDataBase::instance().getDbMap();
-        Gate gate(po.id, 15, 234, 462, 234,
+        Gate gate(po.id, 15, height, 280, height,
                   pl.getX(), pl.getY(), 0, 0, 0, 0, 0,
                   pr.getX(), pr.getY(), 0, 0, 0, 0, 0);
         SegmentationDataBase::instance().saveGate(gate);
     } else if (flag_result.data == 2) {
-        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(246, 204));
+        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(150, 200));
         auto pl2 = MapAttributeSingleton::instance().rosPoint2MapPoint(map.rows, map.cols, pl);
         LOG(INFO) << "";
     }

@@ -1335,11 +1335,15 @@ void AsyncTaskCall::restore() {
         return;
     }
     if (!Environment::instance().direct_start_move_base) {
-        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "direct_start_move_base为false, move_base暂不支持";
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "direct_start_move_base 为 false, move_base 暂不支持";
     }
     bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
     if (!baseAvailable) {
         LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "move_base 服务不可可用, 无法处理返回基站";
+    }
+    bool coreMoveAvailable = ModeValidate::validateCoreMoveAvailable();
+    if (!coreMoveAvailable) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "core_move 服务不可可用, 无法处理返回基站";
     }
     notify_one([this]() {
         setFlow(event::flow::ensure_move_to_start_point);
