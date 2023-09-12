@@ -83,7 +83,7 @@ bool ModeValidate::validateMoveBase(int open) {
 
             int moveBaseMode = getMoveBaseMode();
             LOG_IF(INFO, DEBUG_NODE)
-            << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
+                            << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
             if (open == moveBaseMode) {
                 wait_cv.notify_one();
                 end_loop = true;
@@ -135,6 +135,13 @@ bool ModeValidate::validateMoveBaseAvailable() {
 //    moveBaseAvailableThread.join();
 }
 
+bool ModeValidate::validateCoreMoveAvailable() {
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  CoreMove 服务可用校验 ------------------------------ ";
+    bool coreMoveServer = PointPlanner::instance().waitForCoreMoveServer();
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  CoreMove 服务可用校验结果 " << coreMoveServer;
+    return coreMoveServer;
+}
+
 bool ModeValidate::validateMotorServer() {
     bool firingResult = MotorServerSingleton::instance().start();
     if (!firingResult) {
@@ -149,7 +156,8 @@ bool ModeValidate::validateMotorServer() {
     bool callReadyCheckFirst = CartographerServiceClient::instance().callReadyCheck();
 
     LOG_IF(INFO, DEBUG_NODE)
-    << "ModeValidate  MotorServer 首次校验结果 " << callReadyCheckFirst << " ------------------------------ ";
+                    << "ModeValidate  MotorServer 首次校验结果 " << callReadyCheckFirst
+                    << " ------------------------------ ";
 
     if (callReadyCheckFirst) {
         return true;
@@ -160,7 +168,8 @@ bool ModeValidate::validateMotorServer() {
     bool callReadyCheckAgain = CartographerServiceClient::instance().callReadyCheck();
 
     LOG_IF(INFO, DEBUG_NODE)
-    << "ModeValidate  MotorServer 再次校验结果 " << callReadyCheckAgain << " ------------------------------ ";
+                    << "ModeValidate  MotorServer 再次校验结果 " << callReadyCheckAgain
+                    << " ------------------------------ ";
 
     if (callReadyCheckAgain) {
         return true;

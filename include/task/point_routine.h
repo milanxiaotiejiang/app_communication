@@ -10,6 +10,7 @@
 #include "task/async_task_call.h"
 #include "task/RealTask.h"
 #include <replan_msgs/ReplanAction.h>
+#include "back_charge_msgs/CoreMoveAction.h"
 
 #include <utility>
 
@@ -46,6 +47,12 @@ public:
     void pathDone(const actionlib::SimpleClientGoalState &state);
 
     void crash();
+
+    void pointActive();
+
+    void pointFeedback(const back_charge_msgs::CoreMoveFeedbackConstPtr &pose);
+
+    void pointDone(const actionlib::SimpleClientGoalState &state);
 
 };
 

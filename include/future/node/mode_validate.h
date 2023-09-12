@@ -19,6 +19,8 @@ public:
 
     static bool validateMoveBaseAvailable();
 
+    static bool validateCoreMoveAvailable();
+
     static bool validateMotorServer();
 };
 

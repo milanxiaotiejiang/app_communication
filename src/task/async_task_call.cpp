@@ -496,17 +496,21 @@ bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
 
 
 void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock) {
-    PointPlanner::instance().goToPath(nextBlock);
-    int id = nextBlock.id;
-    int timeout = nextBlock.timeout;
-    if (timeout > 0) {
-        async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::seconds(timeout), [this, id]() {
-                    auto currentPoint = findFrontBlock();
-                    if (currentPoint.id == id) {
-                        executeOnPathDone(event::error::TIMEOUT);
-                    }
-                });
+    if (nextBlock.core_move && nextBlock.plannerPoints.size() == 1) {
+        PointPlanner::instance().goToPoint(nextBlock);
+    } else {
+        PointPlanner::instance().goToPath(nextBlock);
+        int id = nextBlock.id;
+        int timeout = nextBlock.timeout;
+        if (timeout > 0) {
+            async::TimerCall::instance().baseLoop()
+                    ->scheduleLater(std::chrono::seconds(timeout), [this, id]() {
+                        auto currentPoint = findFrontBlock();
+                        if (currentPoint.id == id) {
+                            executeOnPathDone(event::error::TIMEOUT);
+                        }
+                    });
+        }
     }
 }
 
@@ -776,6 +780,47 @@ void AsyncTaskCall::executeOneTask(const RealTask &task) {
     notify_one([this, &task]() {
         pushTask(task);
     });
+}
+
+void AsyncTaskCall::executeOnPointDone(event::error error) {
+    if (isCharging())
+        return;
+    if (isWaitTask(currentFlow()))
+        return;
+    if (isPreparation(currentFlow()))
+        return;
+    if (isUnrecoverableError())
+        return;
+    if (isUrgencyStop())
+        return;
+    if (isManualMode())
+        return;
+
+    if (error != event::error::TIMEOUT) {
+        async::TimerCall::instance().baseLoop()->cancelAny();
+    }
+
+    if (!plannerQueue.empty()) {
+        if (error == event::error::LOST) {
+            notify_one([this, &error]() {
+                auto currentPoint = findFrontBlock();
+                currentPoint.arrive = error == event::error::SUCCEEDED;
+                currentPoint.retry = true;
+                pushBlock(currentPoint);
+            });
+        } else {
+            notify_one([this, &error]() {
+                auto currentPoint = findFrontBlock();
+                currentPoint.arrive = error == event::error::SUCCEEDED;
+                pushBlock(currentPoint);
+            });
+        }
+    } else {
+        notify_one([this, &error]() {
+            flowInBasePoint.arrive = error == event::error::SUCCEEDED;
+            pushBlock(flowInBasePoint);
+        });
+    }
 }
 
 void AsyncTaskCall::executeOnPathDone(event::error error) {

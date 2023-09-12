@@ -3,6 +3,8 @@
 //
 
 #include "task/point_planner.h"
+
+#include <memory>
 #include "simulation.h"
 #include "BaseThrowable.h"
 #include "task/point_routine.h"
@@ -48,6 +50,20 @@ PointPlanner::doneCB(const actionlib::SimpleClientGoalState &state, const replan
     PointRoutine::instance().pathDone(state);
 }
 
+void PointPlanner::coreMoveActiveCB() {
+    PointRoutine::instance().pointActive();
+}
+
+void PointPlanner::coreMoveFeedBackCB(const back_charge_msgs::CoreMoveFeedbackConstPtr &feed_back) {
+    PointRoutine::instance().pointFeedback(feed_back);
+}
+
+void PointPlanner::coreMoveDoneCB(const actionlib::SimpleClientGoalState &state,
+                                  const back_charge_msgs::CoreMoveResultConstPtr &result) {
+    LOG(WARNING) << "PointPlanner pointCd result " << state.getText();
+    PointRoutine::instance().pointDone(state);
+}
+
 void PointPlanner::initialize(ros::NodeHandle handle) {
     PointPlanner::handle = handle;
     LOG_IF(INFO, DEBUG_FIRING) << "PointPlanner initialize ...";
@@ -57,13 +73,19 @@ void PointPlanner::initialize(ros::NodeHandle handle) {
 }
 
 bool PointPlanner::waitForReplanServer() {
-    share_replan.reset();
+    resetForReplanServer();
     share_replan = std::make_shared<ReplanAction>("replan", true);
     return share_replan->waitForServer(ros::Duration(5));
 }
 
 void PointPlanner::resetForReplanServer() {
-    share_replan.reset();
+    if (share_replan != nullptr)
+        share_replan.reset();
+}
+
+bool PointPlanner::waitForCoreMoveServer() {
+    core_move = std::make_shared<CoreMoveAction>("back_charge_core_move", true);
+    return core_move->waitForServer(ros::Duration(10));
 }
 
 void PointPlanner::goToPathFirst(const RealBlock &block) {
@@ -107,6 +129,22 @@ void PointPlanner::goToPath(const RealBlock &block) {
              block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE,
              SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
     share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
+}
+
+void PointPlanner::goToPoint(const RealBlock &block) {
+    if (!initialize_finish) {
+        throw app::exception(make_error_code(error::task_planner_failed_to_start));
+    }
+    if (block.core_move) {
+        RealPoint realPoint = block.plannerPoints[0];
+        back_charge_msgs::CoreMoveGoal goal;
+        goal.cmd = 1;
+        goal.target_pose.pose.position.x = realPoint.realPosition.x;
+        goal.target_pose.pose.position.y = realPoint.realPosition.y;
+        core_move->sendGoal(goal, &coreMoveDoneCB, &coreMoveActiveCB, &coreMoveFeedBackCB);
+    } else {
+        goToPath(block);
+    }
 }
 
 void PointPlanner::cancelPath() {
