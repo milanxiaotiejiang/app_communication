@@ -104,7 +104,6 @@ public:
 
     cv::Point2d getMapOrigin() const {
         return {currentMapAttribute.originPose.position.x, currentMapAttribute.originPose.position.y};
-        return {0,0};
     }
 
     const std::vector<std::vector<Point>> &getVirtualWallList() const {

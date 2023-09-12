@@ -10,12 +10,16 @@ void PointRoutine::pathActive() {
 
 }
 
-void PointRoutine::pathFeedback(const replan_msgs::ReplanFeedbackConstPtr &replan) {
+void PointRoutine::pathFeedback(const replan_msgs::ReplanFeedbackConstPtr &replan, int blockId) {
     replan_msgs::ReplanFeedback_<std::allocator<void>>::_base_position_type stamped = replan->base_position;
-    asyncTaskCall->executeOnPathFeedBack(replan->current_step, replan->goal_step, replan->current_goal, stamped.pose);
+    asyncTaskCall->executeOnPathFeedBack(blockId,
+                                         replan->current_step,
+                                         replan->goal_step,
+                                         replan->current_goal,
+                                         stamped.pose);
 }
 
-void PointRoutine::pathDone(const actionlib::SimpleClientGoalState &state) {
+void PointRoutine::pathDone(const actionlib::SimpleClientGoalState &state, int blockId) {
     event::error status = event::error::SUCCEEDED;
     if (state == actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED) {
         status = event::error::SUCCEEDED;
@@ -34,11 +38,11 @@ void PointRoutine::pathDone(const actionlib::SimpleClientGoalState &state) {
     } else if (state == actionlib::SimpleClientGoalState::StateEnum::LOST) {
         status = event::error::LOST;
     }
-    asyncTaskCall->executeOnPathDone(status);
+    asyncTaskCall->executeOnPathDone(blockId, status, state.getText());
 }
 
 void PointRoutine::crash() {
-    asyncTaskCall->executeOnPathDone(event::error::CRASH);
+    asyncTaskCall->executeOnPathDone(-1, event::error::CRASH,"crash");
 }
 
 void PointRoutine::pointActive() {

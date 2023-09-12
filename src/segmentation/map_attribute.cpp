@@ -161,7 +161,6 @@ cv::Point MapAttributeSingleton::rosPoint2MapPoint(const cv::Mat &room_map, cons
 }
 
 cv::Point MapAttributeSingleton::rosPoint2MapPoint(int rows, int cols, const Point &point) const {
-    const cv::Point2d &origin = getMapOrigin();
     double x = cols * map_resolution_from_subscription - (point.getY() - getMapOrigin().x);
     double y = rows * map_resolution_from_subscription - (point.getX() - getMapOrigin().y);
     cv::Point position;

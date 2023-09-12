@@ -252,7 +252,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         leftValue = segmented_map.at<int>(cvGateLeftPoint);
         rightValue = segmented_map.at<int>(cvGateRightPoint);
 
-//        whole_display(segmented_map, rooms, cvGateLeftPoint, cvGateRightPoint, "handSegmentation");
+        whole_display(segmented_map, rooms, cvGateLeftPoint, cvGateRightPoint, "GateSegmentation");
 
         hasGate = true;
     }

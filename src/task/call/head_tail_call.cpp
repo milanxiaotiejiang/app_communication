@@ -264,7 +264,7 @@ void HeadTailPointCall::callGoFirstPoint(const RealBlock &block) {
                 ->scheduleLater(std::chrono::seconds(block.timeout), [this, block]() {
                     auto currentPoint = findFrontBlock();
                     if (currentPoint.id == block.id) {
-                        executeOnPathDone(event::error::TIMEOUT);
+                        executeOnPathDone(block.id, event::error::TIMEOUT, "timeout");
                     }
                 });
     }
