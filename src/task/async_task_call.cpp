@@ -499,6 +499,8 @@ bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
 
 void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock) {
     if (nextBlock.core_move && nextBlock.plannerPoints.size() == 1) {
+        if (nextBlock.open_gate)
+            LOG(ERROR) << "OPEN GATE ... ";
         PointPlanner::instance().goToPoint(nextBlock);
     } else {
         PointPlanner::instance().goToPath(nextBlock);

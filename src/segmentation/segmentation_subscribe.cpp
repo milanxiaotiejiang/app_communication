@@ -111,8 +111,13 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
                   pr.getX(), pr.getY(), 0, 0, 0, 0, 0);
         SegmentationDataBase::instance().saveGate(gate);
     } else if (flag_result.data == 2) {
-        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(150, 200));
-        auto pl2 = MapAttributeSingleton::instance().rosPoint2MapPoint(map.rows, map.cols, pl);
-        LOG(INFO) << "";
+        MapPo &po = SegmentationDataBase::instance().getDbMap();
+        Gate gate(po.id, 123, 231, 292, 231,
+                  -0.0480371669563, 3.03767555864, -0.0023247943396,
+                  -0.0040943493407, -0.00849210578278, -0.0298977331954, 0.999508502211,
+                  2.23944492753, 2.95870282466, 0.00108490549205,
+                  -0.00406858102555, -0.00276490081865, 0.99982629203, 0.0179774229821);
+        SegmentationDataBase::instance().saveGate(gate);
     }
+
 }

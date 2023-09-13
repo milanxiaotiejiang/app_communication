@@ -281,16 +281,20 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
                     leftBlock.core_move = false;
                     gateBlockList.push_back(leftBlock);
                     leftBlock.core_move = true;
+                    leftBlock.open_gate = true;
                     gateBlockList.push_back(leftBlock);
                     rightBlock.core_move = true;
+                    leftBlock.open_gate = true;
                     gateBlockList.push_back(rightBlock);
                     gateBlockList.push_back(block);
                 } else if (lastValue == rightValue && currentValue == leftValue) {
                     rightBlock.core_move = false;
                     gateBlockList.push_back(rightBlock);
                     rightBlock.core_move = true;
+                    rightBlock.open_gate = true;
                     gateBlockList.push_back(rightBlock);
                     leftBlock.core_move = true;
+                    leftBlock.open_gate = true;
                     gateBlockList.push_back(leftBlock);
                     gateBlockList.push_back(block);
                 } else {
