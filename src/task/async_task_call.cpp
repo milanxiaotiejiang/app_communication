@@ -1111,9 +1111,6 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
     if (isPreparation(currentFlow())) {
         return;
     }
-    if (isPlannerEmpty(currentFlow())) {
-        return;
-    }
     notify_one([this, &operation]() {
         pushSpecial(operation);
     });
@@ -1127,9 +1124,6 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
         return;
     }
     if (isUnrecoverableError()) {
-        return;
-    }
-    if (isPlannerEmpty(currentFlow())) {
         return;
     }
     if (isManualMode()) {
