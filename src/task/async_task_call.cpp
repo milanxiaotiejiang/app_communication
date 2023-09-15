@@ -1093,6 +1093,9 @@ void AsyncTaskCall::urgencyStopAndCharge() {
 }
 
 void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
+    if (isWaitTask(currentFlow())) {
+        return;
+    }
     if (isCharging()) {
         return;
     }
@@ -1102,17 +1105,18 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
     if (isUnrecoverableError()) {
         return;
     }
-    if (isPlannerEmpty(currentFlow())) {
-        return;
-    }
     if (isManualMode()) {
         return;
     }
-    if (isFlowingWater(currentFlow())) {
-        notify_one([this, &operation]() {
-            pushSpecial(operation);
-        });
+    if (isPreparation(currentFlow())) {
+        return;
     }
+    if (isPlannerEmpty(currentFlow())) {
+        return;
+    }
+    notify_one([this, &operation]() {
+        pushSpecial(operation);
+    });
 }
 
 void AsyncTaskCall::executeCarpet(bool carpet) {
