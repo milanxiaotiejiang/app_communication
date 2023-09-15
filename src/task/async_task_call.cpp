@@ -1171,6 +1171,9 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
     if (isPlannerEmpty(currentFlow())) {
         return;
     }
+    if (isManualMode()) {
+        return;
+    }
     if (isFlowingWater(currentFlow())) {
 //        "1.仅在尘推和湿拖模式下识别到地毯后抬起清洁机构；
 //        2.识别到地毯后不关闭香氛或消杀。"
