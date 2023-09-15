@@ -478,14 +478,12 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
 }
 
 RealBlock AsyncTaskCall::findFrontBlock() {
-    RealBlock &block = plannerQueue.front();
-    return block;
+    return plannerQueue.front();
 }
 
 RealBlock AsyncTaskCall::findFrontNextBlock() {
     plannerQueue.pop_front();
-    RealBlock &block = plannerQueue.front();
-    return block;
+    return plannerQueue.front();
 }
 
 bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
@@ -817,7 +815,6 @@ void AsyncTaskCall::executeOnPathDone(int blockId, event::error error, const std
             flowInBasePoint.arrive = error == event::error::SUCCEEDED;
             pushBlock(flowInBasePoint);
         }
-
     });
 }
 
@@ -1131,6 +1128,9 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
     if (isPlannerEmpty(currentFlow())) {
         return;
     }
+    if (isManualMode()) {
+        return;
+    }
     if (isFlowingWater(currentFlow())) {
 //        "1.仅在尘推和湿拖模式下识别到地毯后抬起清洁机构；
 //        2.识别到地毯后不关闭香氛或消杀。"
@@ -1294,7 +1294,7 @@ void AsyncTaskCall::restore() {
         return;
     }
     if (!Environment::instance().direct_start_move_base) {
-        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "direct_start_move_base为false, move_base暂不支持";
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "direct_start_move_base 为 false, move_base 暂不支持";
     }
     bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
     if (!baseAvailable) {

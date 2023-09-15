@@ -259,13 +259,15 @@ void HeadTailPointCall::callCloseMechanism(std::function<void()> f) {
 
 void HeadTailPointCall::callGoFirstPoint(const RealBlock &block) {
     PointPlanner::instance().goToPathFirst(block);
-    async::TimerCall::instance().baseLoop()
-            ->scheduleLater(std::chrono::seconds(block.timeout), [this, block]() {
-                auto currentPoint = findFrontBlock();
-                if (currentPoint.id == block.id) {
-                    executeOnPathDone(block.id, event::error::TIMEOUT, "timeout");
-                }
-            });
+    if (block.timeout > 0) {
+        async::TimerCall::instance().baseLoop()
+                ->scheduleLater(std::chrono::seconds(block.timeout), [this, block]() {
+                    auto currentPoint = findFrontBlock();
+                    if (currentPoint.id == block.id) {
+                        executeOnPathDone(block.id, event::error::TIMEOUT, "timeout");
+                    }
+                });
+    }
 }
 
 void HeadTailPointCall::exchangeFrontPoint(const RealBlock &block) {
