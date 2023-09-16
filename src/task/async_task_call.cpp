@@ -77,6 +77,7 @@ void AsyncTaskCall::handleSpecialOperation() {
         }
         case loop::special_epoll::special_branch_water: {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 清水箱空，清水箱空导致需要强制返回基站点 ...";
+            MechanismManager::instance().resetWorkStatus();
             break;
         }
         case loop::special_epoll::special_sewage_water: {
@@ -99,7 +100,15 @@ void AsyncTaskCall::handleSpecialOperation() {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall handleSpecialOperation : " << epoll_special << " ...";
             break;
     }
-    cancelTaskAndBack(false);
+    if (!isWaitTask(currentFlow())) {
+        if (!isManualMode()) {
+            cancelTaskAndBack(false);
+        } else {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall  手动模式无需返回 ...";
+        }
+    } else {
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall  无任务无需返回 ...";
+    }
 }
 
 void AsyncTaskCall::handleErrorOperation() {
@@ -1093,9 +1102,6 @@ void AsyncTaskCall::urgencyStopAndCharge() {
 }
 
 void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
-    if (isWaitTask(currentFlow())) {
-        return;
-    }
     if (isCharging()) {
         return;
     }
@@ -1103,9 +1109,6 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
         return;
     }
     if (isUnrecoverableError()) {
-        return;
-    }
-    if (isManualMode()) {
         return;
     }
     if (isPreparation(currentFlow())) {
