@@ -77,6 +77,7 @@ void AsyncTaskCall::handleSpecialOperation() {
         }
         case loop::special_epoll::special_branch_water: {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 清水箱空，清水箱空导致需要强制返回基站点 ...";
+            MechanismManager::instance().resetWorkStatus();
             break;
         }
         case loop::special_epoll::special_sewage_water: {
@@ -99,7 +100,15 @@ void AsyncTaskCall::handleSpecialOperation() {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall handleSpecialOperation : " << epoll_special << " ...";
             break;
     }
-    cancelTaskAndBack(false);
+    if (!isWaitTask(currentFlow())) {
+        if (!isManualMode()) {
+            cancelTaskAndBack(false);
+        } else {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall  手动模式无需返回 ...";
+        }
+    } else {
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall  无任务无需返回 ...";
+    }
 }
 
 void AsyncTaskCall::handleErrorOperation() {
@@ -842,7 +851,8 @@ void AsyncTaskCall::executeOnPathDone(int blockId, event::error error, const std
         async::TimerCall::instance().baseLoop()->cancelAny();
     }
 
-    notify_one([this, &error]() {
+    notify_one([this, &blockId, &error, &message]() {
+        LOG(WARNING) << "PointPlanner pathCd  blockId : " << blockId << " , result " << message;
         if (!plannerQueue.empty()) {
             if (error == event::error::LOST) {
                 auto currentPoint = findFrontBlock();
@@ -1145,17 +1155,12 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
     if (isUnrecoverableError()) {
         return;
     }
-    if (isPlannerEmpty(currentFlow())) {
+    if (isPreparation(currentFlow())) {
         return;
     }
-    if (isManualMode()) {
-        return;
-    }
-    if (isFlowingWater(currentFlow())) {
-        notify_one([this, &operation]() {
-            pushSpecial(operation);
-        });
-    }
+    notify_one([this, &operation]() {
+        pushSpecial(operation);
+    });
 }
 
 void AsyncTaskCall::executeCarpet(bool carpet) {
@@ -1166,9 +1171,6 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
         return;
     }
     if (isUnrecoverableError()) {
-        return;
-    }
-    if (isPlannerEmpty(currentFlow())) {
         return;
     }
     if (isManualMode()) {

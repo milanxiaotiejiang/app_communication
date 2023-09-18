@@ -577,6 +577,7 @@ SegmentationCenter::isRestrictedZone(const cv::Mat &room_map, bool &isOffMap, bo
 
 
     cv::Mat prohibition_image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
+    int inProhibitionCount = 0;
 
     auto penaltyZoneList = MapAttributeSingleton::instance().getPenaltyZoneList();
     for (int i = 0; i < penaltyZoneList.size(); ++i) {
@@ -589,6 +590,12 @@ SegmentationCenter::isRestrictedZone(const cv::Mat &room_map, bool &isOffMap, bo
         }
         polygon_array.push_back(cvPoints);
         cv::fillPoly(prohibition_image, polygon_array, cv::Scalar(255));
+
+        cv::Mat prohibition_image_child = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
+
+        if (pointInArea(prohibition_image_child, stationPoint, robotPosition, false)) {
+            inProhibitionCount++;
+        }
     }
 
     auto virtualWallList = MapAttributeSingleton::instance().getVirtualWallList();
@@ -602,8 +609,8 @@ SegmentationCenter::isRestrictedZone(const cv::Mat &room_map, bool &isOffMap, bo
         }
     }
 
-    isRestrictedZone = pointInArea(prohibition_image, stationPoint, robotPosition, false);
-
+//    isRestrictedZone = pointInArea(prohibition_image, stationPoint, robotPosition, false);
+    isRestrictedZone = inProhibitionCount > 0;
 
     cv::Mat passable_map = room_map.clone();
 

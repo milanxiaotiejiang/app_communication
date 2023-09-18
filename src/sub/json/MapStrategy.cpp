@@ -124,7 +124,7 @@ MapScore EndMapStrategy::handler(MapParam params) {
         double proportion = tcr::coverageProportion();
         // 设置返回的结果
         mapScore.setId(SegmentationDataBase::instance().getDbMap().id);
-        mapScore.setScore(1.0);
+        mapScore.setScore(proportion);
         // 发布给 move_base 最新的禁行区域
         PublishInnerManager::instance().publishResetProhibition();
         // 重新规划牛耕田算法的全覆盖
