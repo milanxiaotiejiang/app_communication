@@ -63,6 +63,7 @@ void ParamManager::loadDefaultParam() {
         ofstream << node;
         ofstream.close();
     }
+    setSilver(true);
 }
 
 void ParamManager::reset() {
