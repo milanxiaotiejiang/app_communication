@@ -151,7 +151,7 @@ const int CURRENT_GATE_VERSION = 1;
 
 class Gate {
 public:
-    int id{};
+    long id{};
     std::string o_map_id;
     double start_x{};
     double start_y{};
@@ -174,11 +174,19 @@ public:
     double right_orientation_z{};
     double right_orientation_w{};
 
+    std::string left_gate_ID{};
+    std::string right_gate_ID{};
+
     int version;
 
     Gate();
 
-    Gate(const std::string &oMapId, double startX, double startY, double endX, double endY);
+    Gate(long id, const std::string &oMapId, double startX, double startY, double endX, double endY,
+         double leftPositionX, double leftPositionY, double leftPositionZ, double leftOrientationX,
+         double leftOrientationY, double leftOrientationZ, double leftOrientationW, double rightPositionX,
+         double rightPositionY, double rightPositionZ, double rightOrientationX, double rightOrientationY,
+         double rightOrientationZ, double rightOrientationW, const std::string &leftGateId,
+         const std::string &rightGateId, int version);
 
     Gate(const std::string &oMapId, double startX, double startY, double endX, double endY, double leftPositionX,
          double leftPositionY, double leftPositionZ, double leftOrientationX, double leftOrientationY,

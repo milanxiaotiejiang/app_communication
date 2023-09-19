@@ -8,6 +8,7 @@
 #include "segmentation/CvUtils.h"
 #include "db/segmentation_model.h"
 #include "db/SqliteDataBase.h"
+#include "model/gate_info.h"
 
 class SegmentationDataBase {
 private:
@@ -23,11 +24,16 @@ public:
 private:
     MapPo mapPo;
     MapStorage segmentationStorage = SqliteDataBase::initMapStorage();
+
 public:
     static auto &instance() {
         static SegmentationDataBase obj;
         return obj;
     }
+
+    static GateInfo gate2Info(const Gate &gate);
+
+    static Gate info2Gate(const GateInfo &gateInfo);
 
     void sync_schema();
 
@@ -86,6 +92,18 @@ public:
     void saveGate(const Gate &gate);
 
     std::vector<Gate> loadGate(const std::string &mapId);
+
+    void purgeGate(const std::string &mapId);
+
+    long addGateInfo(const GateInfo &gateInfo);
+
+    void deleteGateForId(long id);
+
+    long modifyGateInfo(const GateInfo &gateInfo);
+
+    std::vector<GateInfo> loadGateInfo(const std::string &mapId);
+
+    GateInfo queryGateForId(long id);
 };
 
 

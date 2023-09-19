@@ -11,6 +11,7 @@
 #include "db/segmentation_model.h"
 #include "segmentation_subscribe.h"
 #include "exploration/A_star_pathplanner.h"
+#include "model/gate_info.h"
 #include <opencv2/opencv.hpp>
 #include <ros/node_handle.h>
 #include <mutex>
@@ -109,10 +110,19 @@ public:
     pointInArea(const cv::Mat &area_map, const cv::Point &stationPoint, const cv::Point &point, bool largest) const;
 
     /**
+     * 检查闸机线
+     */
+    Room checkGateWire(cv::Mat &segmented_map, const cv::Point &ps, const cv::Point &pe);
+
+    /**
+     * 检查闸机摆渡点位
+     */
+    void checkGatePoint(cv::Mat &segmented_map, const Gate &gate);
+
+    /**
      * 将原始地图进行首次分割
      */
-    void gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms,
-                          const cv::Point &ps, const cv::Point &pe);
+    void gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate);
 
 };
 

@@ -31,6 +31,7 @@
 #include "simulation.h"
 #include "sub/json/DBTaskStrategy.h"
 #include "sys/syscall.h"
+#include "sub/json/GateStrategy.h"
 
 JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
     sub_json_ = handle.subscribe(APP_JSON, 3, &JsonSubscribe::subscribeCallback, this);
@@ -482,6 +483,26 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case FACTORY_RESET:
             messageStrategy = new FactoryResetStrategy();
             break;
+
+        case ADD_GATE:
+            messageStrategy = new AddGateStrategy();
+            break;
+        case DELETE_GATE:
+            messageStrategy = new DeleteGateStrategy();
+            break;
+        case PURGE_GATE:
+            messageStrategy = new PurgeGateStrategy();
+            break;
+        case MODIFY_GATE:
+            messageStrategy = new ModifyGateStrategy();
+            break;
+        case LIST_GATE:
+            messageStrategy = new ListGateStrategy();
+            break;
+        case QUERY_ID_GATE:
+            messageStrategy = new QueryIdGateStrategy();
+            break;
+
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);

@@ -701,8 +701,7 @@ bool SegmentationCenter::pointInArea(const cv::Mat &area_map, const cv::Point &s
     return inArea;
 }
 
-void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms,
-                                          const cv::Point &ps, const cv::Point &pe) {
+Room SegmentationCenter::checkGateWire(cv::Mat &segmented_map, const cv::Point &ps, const cv::Point &pe) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
@@ -727,6 +726,46 @@ void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Ro
     }
     //寓意为第一次添加，可以添加所有，速度快
     base_room.directInsertMemberPoints(new_members, map_resolution_from_subscription);
+
+    if (pointInRoom(segmented_map, base_room, ps) ||
+        pointInRoom(segmented_map, base_room, pe)) {
+        throw app::exception(make_error_code(error::room_both_ends_of_the_split_line_are_in_the_room));
+    }
+
+    if (!lineThroughRoom(segmented_map, base_room, ps, pe)) {
+        throw app::exception(make_error_code(error::room_the_dividing_line_does_not_pass_through_the_room));
+    }
+    return base_room;
+}
+
+void SegmentationCenter::checkGatePoint(cv::Mat &segmented_map, const Gate &gate) {
+
+    Point gateLeftPoint(gate.left_position_x, gate.left_position_y);
+    Point gateRightPoint(gate.right_position_x, gate.right_position_y);
+
+    auto cvGateLeftPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
+                                                                               segmented_map.cols, gateLeftPoint);
+    auto cvGateRightPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
+                                                                                segmented_map.cols, gateRightPoint);
+
+    int leftValue = segmented_map.at<int>(cvGateLeftPoint);
+    int rightValue = segmented_map.at<int>(cvGateRightPoint);
+
+    if (leftValue == 0 || rightValue == 0) {
+        throw app::exception(make_error_code(error::not_on_the_map));
+    }
+    if (leftValue == rightValue) {
+        throw app::exception(make_error_code(error::the_ferry_point_is_in_the_same_area));
+    }
+}
+
+void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate) {
+
+    cv::Point ps(gate.start_x, gate.start_y);
+    cv::Point pe(gate.end_x, gate.end_y);
+
+    auto base_room = checkGateWire(segmented_map, ps, pe);
+
 
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
 
@@ -755,4 +794,6 @@ void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Ro
 
     if (DEBUG_DISPLAYS_SHOW)
         whole_display(segmented_map, rooms, "handSegmentation");
+
+    checkGatePoint(segmented_map, gate);
 }

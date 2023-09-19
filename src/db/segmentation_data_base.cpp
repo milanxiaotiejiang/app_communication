@@ -13,6 +13,31 @@
 #include "BaseThrowable.h"
 #include "db/task_data_base.h"
 
+GateInfo SegmentationDataBase::gate2Info(const Gate &gate) {
+    return GateInfo(
+            gate.id, gate.o_map_id, gate.start_x, gate.start_y, gate.end_x, gate.end_y,
+            gate.left_position_x, gate.left_position_y, gate.left_position_z,
+            gate.left_orientation_x, gate.left_orientation_y, gate.left_orientation_z, gate.left_orientation_w,
+            gate.right_position_x, gate.right_position_y, gate.right_position_z,
+            gate.right_orientation_x, gate.right_orientation_y, gate.right_orientation_z, gate.right_orientation_w,
+            gate.left_gate_ID, gate.right_gate_ID
+    );
+}
+
+Gate SegmentationDataBase::info2Gate(const GateInfo &gateInfo) {
+    return Gate(
+            gateInfo.getId(), gateInfo.getOMapId(), gateInfo.getStartX(), gateInfo.getStartY(), gateInfo.getEndX(),
+            gateInfo.getEndY(),
+            gateInfo.getLeftPositionX(), gateInfo.getLeftPositionY(), gateInfo.getLeftPositionZ(),
+            gateInfo.getLeftOrientationX(), gateInfo.getLeftOrientationY(), gateInfo.getLeftOrientationZ(),
+            gateInfo.getLeftOrientationW(),
+            gateInfo.getRightPositionX(), gateInfo.getRightPositionY(), gateInfo.getRightPositionZ(),
+            gateInfo.getRightOrientationX(), gateInfo.getRightOrientationY(), gateInfo.getRightOrientationZ(),
+            gateInfo.getRightOrientationW(),
+            gateInfo.getLeftGateId(), gateInfo.getRightGateId(), CURRENT_GATE_VERSION
+    );
+}
+
 void SegmentationDataBase::sync_schema() {
     segmentationStorage.sync_schema();
 }
@@ -251,5 +276,35 @@ void SegmentationDataBase::saveGate(const Gate &gate) {
 
 std::vector<Gate> SegmentationDataBase::loadGate(const std::string &mapId) {
     return segmentationStorage.get_all<Gate>(where(c(&Gate::o_map_id) == mapId));
+}
+
+void SegmentationDataBase::purgeGate(const std::string &mapId) {
+    segmentationStorage.remove_all<Gate>(where(c(&Gate::o_map_id) == mapId));
+}
+
+long SegmentationDataBase::addGateInfo(const GateInfo &gateInfo) {
+    return segmentationStorage.insert(info2Gate(gateInfo));
+}
+
+void SegmentationDataBase::deleteGateForId(long id) {
+    segmentationStorage.remove<Gate>(id);
+}
+
+long SegmentationDataBase::modifyGateInfo(const GateInfo &gateInfo) {
+    segmentationStorage.update(info2Gate(gateInfo));
+}
+
+std::vector<GateInfo> SegmentationDataBase::loadGateInfo(const std::string &mapId) {
+    auto gates = segmentationStorage.get_all<Gate>(where(c(&Gate::o_map_id) == mapId));
+    std::vector<GateInfo> gateInfos;
+    for (const auto &gate: gates) {
+        gateInfos.push_back(gate2Info(gate));
+    }
+    return gateInfos;
+}
+
+GateInfo SegmentationDataBase::queryGateForId(long id) {
+    Gate originalGate = segmentationStorage.get<Gate>(id);
+    return gate2Info(originalGate);
 }
 

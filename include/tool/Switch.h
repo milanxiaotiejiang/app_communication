@@ -191,6 +191,13 @@ enum MESSAGE_ID {
 
     FACTORY_RESET,
 
+    ADD_GATE,
+    DELETE_GATE,
+    PURGE_GATE,
+    MODIFY_GATE,
+    LIST_GATE,
+    QUERY_ID_GATE,
+
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };
 

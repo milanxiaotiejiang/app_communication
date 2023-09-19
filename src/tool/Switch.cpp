@@ -479,5 +479,25 @@ int switch_ID(const std::string &str) {
     if (str == "factory_reset") {
         return FACTORY_RESET;
     }
+
+    if (str == "ADD_GATE") {
+        return ADD_GATE;
+    }
+    if (str == "DELETE_GATE") {
+        return DELETE_GATE;
+    }
+    if (str == "PURGE_GATE") {
+        return PURGE_GATE;
+    }
+    if (str == "MODIFY_GATE") {
+        return MODIFY_GATE;
+    }
+    if (str == "LIST_GATE") {
+        return LIST_GATE;
+    }
+    if (str == "QUERY_ID_GATE") {
+        return QUERY_ID_GATE;
+    }
+
     return -1;
 }

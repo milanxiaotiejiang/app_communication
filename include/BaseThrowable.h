@@ -144,6 +144,8 @@ namespace error {
         please_ensure_to_start_end_the_self_non_emergency_stop_status,
         during_self_check_the_task_cannot_be_started,
         secondary_detection,
+        not_on_the_map,
+        the_ferry_point_is_in_the_same_area,
     };// enum value
 
     class category : public std::error_category {
@@ -410,6 +412,10 @@ namespace error {
                     return "自检中，任务无法启动";
                 case error::secondary_detection:
                     return "secondary_detection";
+                case error::not_on_the_map:
+                    return "不在地图内";
+                case error::the_ferry_point_is_in_the_same_area:
+                    return "两个摆渡点在同一区域";
                 default:
                     return "Unknown";
             }
