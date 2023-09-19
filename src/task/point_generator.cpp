@@ -218,8 +218,8 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
     if (!gateList.empty()) {
         Gate gate = gateList[gateList.size() - 1];
 
-        cv::Point lineStart(gate.start_x, gate.start_y);
-        cv::Point lineEnd(gate.end_x, gate.end_y);
+//        cv::Point lineStart(gate.start_x, gate.start_y);
+//        cv::Point lineEnd(gate.end_x, gate.end_y);
 
         RealPoint realPointLeft;
         RealPosition realPositionLeft(gate.left_position_x, gate.left_position_y, gate.left_position_z);
@@ -238,7 +238,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         rightBlock.plannerPoints.push_back(realPointRight);
 
         std::vector<Room> rooms;
-        SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, lineStart, lineEnd);
+        SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, gate);
 
 
         Point gateLeftPoint(gate.left_position_x, gate.left_position_y);
