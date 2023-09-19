@@ -276,10 +276,10 @@ void whole_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms,
     cv::imshow(winname, roomMat);
     cv::waitKey();
 
-    auto cloneMat = roomMat.clone();
-    cv::resize(cloneMat, cloneMat, cv::Size(), 0.5, 0.5, cv::INTER_LINEAR);
-    cv::imshow(winname, cloneMat);
-    cv::waitKey();
+//    auto cloneMat = roomMat.clone();
+//    cv::resize(cloneMat, cloneMat, cv::Size(), 0.5, 0.5, cv::INTER_LINEAR);
+//    cv::imshow(winname, cloneMat);
+//    cv::waitKey();
 }
 
 void whole_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms, cv::Point pl, cv::Point pr,

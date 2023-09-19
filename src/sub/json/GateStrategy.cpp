@@ -11,7 +11,6 @@ long AddGateStrategy::handler(GateInfo params) {
     std::vector<Room> rooms;
     SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, SegmentationDataBase::info2Gate(params));
 
-
     params.setId(-1);
     params.setOMapId(SegmentationDataBase::instance().getDbMap().id);
     return SegmentationDataBase::instance().addGateInfo(params);

@@ -109,7 +109,20 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
         Gate gate(po.id, 15, height, 280, height,
                   pl.getX(), pl.getY(), 0, 0, 0, 0, 0,
                   pr.getX(), pr.getY(), 0, 0, 0, 0, 0);
-        SegmentationDataBase::instance().saveGate(gate);
+//        SegmentationDataBase::instance().saveGate(gate);
+        try {
+            auto segmented_map = SegmentationCenter::instance().generateMat();
+            std::vector<Room> rooms;
+            SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, gate);
+
+        } catch (app::exception const &e) {
+            LOG(ERROR) << e.what();
+        } catch (const std::exception &e) {
+            LOG(ERROR) << e.what();
+        } catch (...) {
+            LOG(ERROR) << "MessageStrategy other start exception";
+        }
+
     } else if (flag_result.data == 2) {
         MapPo &po = SegmentationDataBase::instance().getDbMap();
         Gate gate(po.id, 123, 231, 292, 231,

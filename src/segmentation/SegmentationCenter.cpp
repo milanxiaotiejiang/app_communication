@@ -792,8 +792,8 @@ void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Ro
     rooms.push_back(roomStart);
     rooms.push_back(roomEnd);
 
-    if (DEBUG_DISPLAYS_SHOW)
-        whole_display(segmented_map, rooms, "handSegmentation");
+//    if (DEBUG_DISPLAYS_SHOW)
+    whole_display(segmented_map, rooms, "handSegmentation");
 
     checkGatePoint(segmented_map, gate);
 }
