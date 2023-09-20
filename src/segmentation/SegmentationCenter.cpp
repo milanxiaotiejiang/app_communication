@@ -701,13 +701,16 @@ bool SegmentationCenter::pointInArea(const cv::Mat &area_map, const cv::Point &s
     return inArea;
 }
 
-Room SegmentationCenter::checkGateWire(cv::Mat &segmented_map, const cv::Point &ps, const cv::Point &pe) {
+Room SegmentationCenter::checkGateWire(cv::Mat &segmented_map, const Gate &gate) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
     if (MapAttributeSingleton::instance().isCreatingMap()) {
         throw app::exception(make_error_code(error::in_creating_map));
     }
+
+    cv::Point ps(gate.start_x, gate.start_y);
+    cv::Point pe(gate.end_x, gate.end_y);
 
     // 1.加载原始地图
     cv::Mat map = generateMat();
@@ -738,7 +741,7 @@ Room SegmentationCenter::checkGateWire(cv::Mat &segmented_map, const cv::Point &
     return base_room;
 }
 
-void SegmentationCenter::checkGatePoint(cv::Mat &segmented_map, const Gate &gate) {
+void SegmentationCenter::checkGatePoint(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate) {
 
     Point gateLeftPoint(gate.left_position_x, gate.left_position_y);
     Point gateRightPoint(gate.right_position_x, gate.right_position_y);
@@ -757,6 +760,39 @@ void SegmentationCenter::checkGatePoint(cv::Mat &segmented_map, const Gate &gate
     if (leftValue == rightValue) {
         throw app::exception(make_error_code(error::the_ferry_point_is_in_the_same_area));
     }
+
+    double distance = cv::norm(cvGateLeftPoint - cvGateRightPoint);
+    if (distance > 100) {
+        throw app::exception(make_error_code(error::gate_mark_points_too_far_away));
+    }
+
+    cv::Point ps(gate.start_x, gate.start_y);
+    cv::Point pe(gate.end_x, gate.end_y);
+
+    cv::Vec4i lineGate(cvGateLeftPoint.x, cvGateLeftPoint.y, cvGateRightPoint.x, cvGateRightPoint.y);
+    cv::Vec4i lineThorough(ps.x, ps.y, pe.x, pe.y);
+
+    double angleGate = atan2(lineGate[3] - lineGate[1], lineGate[2] - lineGate[0]) * 180 / CV_PI;
+    double angleThorough = atan2(lineThorough[3] - lineThorough[1], lineThorough[2] - lineThorough[0]) * 180 / CV_PI;
+
+    double angleDifference = std::abs(angleGate - angleThorough);
+
+    if (angleDifference < 80 || angleDifference > 100) {
+        throw app::exception(make_error_code(error::mark_points_as_perpendicular_as_possible_to_the_gate));
+    }
+
+    cv::Point midPoint((cvGateLeftPoint.x + cvGateRightPoint.x) / 2, (cvGateLeftPoint.y + cvGateRightPoint.y) / 2);
+    cv::Point lineVector = ps - pe;
+    cv::Point pointVector = midPoint - pe;
+    double minDistance = std::abs(pointVector.x * lineVector.y - pointVector.y * lineVector.x) /
+                         std::sqrt(lineVector.x * lineVector.x + lineVector.y * lineVector.y);
+    if (minDistance > 30) {
+        throw app::exception(make_error_code(error::mark_points_in_the_gate_as_much_as_possible));
+    }
+
+
+//    if (DEBUG_DISPLAYS_SHOW)
+    whole_display(segmented_map, rooms, cvGateLeftPoint, cvGateRightPoint, "handSegmentation");
 }
 
 void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate) {
@@ -764,11 +800,7 @@ void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Ro
     cv::Point ps(gate.start_x, gate.start_y);
     cv::Point pe(gate.end_x, gate.end_y);
 
-    auto base_room = checkGateWire(segmented_map, ps, pe);
-
-
-    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
-
+    auto base_room = checkGateWire(segmented_map, gate);
 
     Room roomStart(rand() % 52224 + 13056);
     Room roomEnd(rand() % 52224 + 13056);
@@ -792,10 +824,7 @@ void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Ro
     rooms.push_back(roomStart);
     rooms.push_back(roomEnd);
 
-//    if (DEBUG_DISPLAYS_SHOW)
-    whole_display(segmented_map, rooms, "handSegmentation");
-
-    checkGatePoint(segmented_map, gate);
+    checkGatePoint(segmented_map, rooms, gate);
 }
 
 void SegmentationCenter::gateManySegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate) {

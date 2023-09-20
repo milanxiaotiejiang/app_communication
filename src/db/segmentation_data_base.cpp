@@ -271,7 +271,7 @@ PlanPo SegmentationDataBase::getDbPlan(std::string map_id) {
 }
 
 void SegmentationDataBase::saveGate(const Gate &gate) {
-    segmentationStorage.replace(gate);
+    segmentationStorage.insert(gate);
 }
 
 std::vector<Gate> SegmentationDataBase::loadGate(const std::string &mapId) {

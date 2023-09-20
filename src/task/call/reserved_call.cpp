@@ -34,34 +34,56 @@ void ReservedCall::handleManualOperation() {
 void ReservedCall::handleSpecialOperation() {
     switch (epoll_special) {
         case loop::special_epoll::special_low_battery: {
-            InternalEventPubManager::get_instance()->pubOper(LOW_BATTERY_BACK_CHARGE);
-            CleanHistoryCenter::instance().lowPowerBack();
+            if (!low_battery_back_charge_escalation) {
+                low_battery_back_charge_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(LOW_BATTERY_BACK_CHARGE);
+                CleanHistoryCenter::instance().lowPowerBack();
+            }
             break;
         }
         case loop::special_epoll::special_branch_water: {
-            InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(true, false, false, false);
+            if (!clean_water_level_check_failed_escalation) {
+                clean_water_level_check_failed_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
+                CleanHistoryCenter::instance().equipmentErrorBack(true, false, false, false);
+            }
             break;
         }
         case loop::special_epoll::special_sewage_water: {
-            InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(false, true, false, false);
+            if (!dirty_water_level_check_failed_escalation) {
+                dirty_water_level_check_failed_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
+                CleanHistoryCenter::instance().equipmentErrorBack(false, true, false, false);
+            }
             break;
         }
         case loop::special_epoll::special_branch_sewage_water: {
-            InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
-            InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(true, true, false, false);
+            if (!clean_water_level_check_failed_escalation) {
+                clean_water_level_check_failed_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
+                CleanHistoryCenter::instance().equipmentErrorBack(true, false, false, false);
+            }
+            if (!dirty_water_level_check_failed_escalation) {
+                dirty_water_level_check_failed_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
+                CleanHistoryCenter::instance().equipmentErrorBack(false, true, false, false);
+            }
             break;
         }
         case loop::special_epoll::special_dust_push_anomaly: {
-            InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(false, false, true, false);
+            if (!motor_error_recovery_failed_escalation) {
+                motor_error_recovery_failed_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_FAILED);
+                CleanHistoryCenter::instance().equipmentErrorBack(false, false, true, false);
+            }
             break;
         }
         case loop::special_epoll::special_wet_tow_anomaly: {
-            InternalEventPubManager::get_instance()->pubOper(MOP_ERROR_RECOVERY_SCCEED);
-            CleanHistoryCenter::instance().equipmentErrorBack(false, false, false, true);
+            if (!mop_error_recovery_success_escalation) {
+                mop_error_recovery_success_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(MOP_ERROR_RECOVERY_SCCEED);
+                CleanHistoryCenter::instance().equipmentErrorBack(false, false, false, true);
+            }
             break;
         }
         default:
@@ -220,6 +242,15 @@ void ReservedCall::garbage(event::SB sb) {
     InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::SOFTWARE_INTERRUPT);
     InternalEventPubManager::get_instance()->taskStop(runTaskId());
     AsyncTaskCall::garbage(sb);
+}
+
+void ReservedCall::reset() {
+    AsyncTaskCall::reset();
+    low_battery_back_charge_escalation = false;
+    clean_water_level_check_failed_escalation = false;
+    dirty_water_level_check_failed_escalation = false;
+    motor_error_recovery_failed_escalation = false;
+    mop_error_recovery_success_escalation = false;
 }
 
 std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint(int errorId) {

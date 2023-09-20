@@ -42,6 +42,7 @@
 #include "db/task_data_base.h"
 #include "db/segmentation_data_base.h"
 #include "leave/sensor/sensor_center.h"
+#include "segmentation/GateComprehensive.h"
 
 std::string TaskCenter::preTask(const RealTask &task) {
     //拦截手动下发的任务且前期出站后期进站

@@ -100,7 +100,10 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
 //              << "  isRestrictedZone : " << isRestrictedZone
 //              << "  isMaxPassable : " << isMaxPassable
 //              << "  isPlanPath : " << isPlanPath;
-    if (flag_result.data == 1) {
+    if (flag_result.data == 0) {
+        MapPo &po = SegmentationDataBase::instance().getDbMap();
+        SegmentationDataBase::instance().purgeGate(po.id);
+    } else if (flag_result.data == 1) {
         int height = 250;
         auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height - 20));
         auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height + 20));
@@ -122,8 +125,29 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
         } catch (...) {
             LOG(ERROR) << "MessageStrategy other start exception";
         }
-
     } else if (flag_result.data == 2) {
+        int height = 110;
+        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height - 20));
+        auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height + 20));
+
+        MapPo &po = SegmentationDataBase::instance().getDbMap();
+        Gate gate(po.id, 15, height, 280, height,
+                  pl.getX(), pl.getY(), 0, 0, 0, 0, 0,
+                  pr.getX(), pr.getY(), 0, 0, 0, 0, 0);
+//        SegmentationDataBase::instance().saveGate(gate);
+        try {
+            auto segmented_map = SegmentationCenter::instance().generateMat();
+            std::vector<Room> rooms;
+            SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, gate);
+
+        } catch (app::exception const &e) {
+            LOG(ERROR) << e.what();
+        } catch (const std::exception &e) {
+            LOG(ERROR) << e.what();
+        } catch (...) {
+            LOG(ERROR) << "MessageStrategy other start exception";
+        }
+    } else if (flag_result.data == 3) {
         MapPo &po = SegmentationDataBase::instance().getDbMap();
         Gate gate(po.id, 123, 231, 292, 231,
                   -0.0480371669563, 3.03767555864, -0.0023247943396,

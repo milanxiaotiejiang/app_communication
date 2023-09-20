@@ -39,6 +39,16 @@ private:
 
     bool lineThroughRoom(const cv::Mat &segmented_map, Room room, const cv::Point &ps, const cv::Point &pe) const;
 
+    /**
+     * 检查闸机线
+     */
+    Room checkGateWire(cv::Mat &segmented_map, const Gate &gate);
+
+    /**
+     * 检查闸机摆渡点位
+     */
+    void checkGatePoint(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate);
+
 public:
     static auto &instance() {
         static SegmentationCenter obj;
@@ -108,16 +118,6 @@ public:
 
     bool
     pointInArea(const cv::Mat &area_map, const cv::Point &stationPoint, const cv::Point &point, bool largest) const;
-
-    /**
-     * 检查闸机线
-     */
-    Room checkGateWire(cv::Mat &segmented_map, const cv::Point &ps, const cv::Point &pe);
-
-    /**
-     * 检查闸机摆渡点位
-     */
-    void checkGatePoint(cv::Mat &segmented_map, const Gate &gate);
 
     /**
      * 将原始地图进行首次分割，用于验证

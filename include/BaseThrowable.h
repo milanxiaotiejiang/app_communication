@@ -148,6 +148,9 @@ namespace error {
         the_ferry_point_is_in_the_same_area,
         no_straight_line_crossing_map_area_detected,
         in_the_setting_of_gate_the_task_cannot_be_started,
+        mark_points_as_perpendicular_as_possible_to_the_gate,
+        gate_mark_points_too_far_away,
+        mark_points_in_the_gate_as_much_as_possible
     };// enum value
 
     class category : public std::error_category {
@@ -422,6 +425,12 @@ namespace error {
                     return "未检测到直线穿越地图区域";
                 case error::in_the_setting_of_gate_the_task_cannot_be_started:
                     return "闸机设置中，任务无法启动";
+                case error::mark_points_as_perpendicular_as_possible_to_the_gate:
+                    return "标记点尽量与闸机保持垂直";
+                case error::gate_mark_points_too_far_away:
+                    return "闸机摆渡点位相距过大";
+                case error::mark_points_in_the_gate_as_much_as_possible:
+                    return "标记点尽量均衡分布在闸机两侧";
                 default:
                     return "Unknown";
             }
