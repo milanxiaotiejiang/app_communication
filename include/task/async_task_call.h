@@ -85,7 +85,7 @@ protected:
 
     virtual void garbage(event::SB sb);
 
-    void reset();
+    virtual void reset();
 
     virtual void handleFlowBlock(const RealBlock &block) = 0;
 
