@@ -198,6 +198,9 @@ enum MESSAGE_ID {
     LIST_GATE,
     QUERY_ID_GATE,
 
+    OPEN_GATE_SETTING,
+    CLOSE_GATE_SETTING,
+
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };
 

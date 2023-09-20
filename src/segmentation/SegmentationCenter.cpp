@@ -797,3 +797,107 @@ void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Ro
 
     checkGatePoint(segmented_map, gate);
 }
+
+void SegmentationCenter::gateManySegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate) {
+    if (!initialize_finish) {
+        throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
+
+    cv::Mat map = generateMat().clone();
+
+    cv::Point ps(gate.start_x, gate.start_y);
+    cv::Point pe(gate.end_x, gate.end_y);
+
+
+    if (rooms.empty()) {
+        map.convertTo(segmented_map, CV_32SC1, 256, 0);// rescale to 32 int, 255 --> 255*256 = 65280
+
+        Room room(rand() % 52224 + 13056);
+        std::vector<cv::Point> new_members;
+        for (int y = 0; y < map.rows; y++) {
+            for (int x = 0; x < map.cols; x++) {
+                if (map.at<unsigned char>(y, x) == 255) {
+                    new_members.emplace_back(x, y);
+                }
+            }
+        }
+        //寓意为第一次添加，可以添加所有，速度快
+        room.directInsertMemberPoints(new_members, map_resolution_from_subscription);
+        rooms.push_back(room);
+    }
+
+    std::vector<std::pair<int, int>> roomPixelCounts;
+    for (int i = 0; i < rooms.size(); i++) {
+        auto &room = rooms[i];
+        cv::Mat zero_map = cv::Mat::zeros(map.rows, map.cols, CV_8UC1);
+        cv::drawContours(zero_map, std::vector<std::vector<cv::Point> >(1, room.getMembers()),
+                         -1, cv::Scalar(255), CV_FILLED);
+
+        int pixelCount = 0;
+        cv::LineIterator it(zero_map, ps, pe, 8);
+        for (int i = 0; i < it.count; i++, ++it) {
+            if (*(*it) == 255) {
+                pixelCount++;
+            }
+        }
+
+        LOG(INFO) << "直线是否穿越区域， 直线点位个数：" << it.count << " , 相交后点位个数：" << pixelCount;
+
+        if (pixelCount > 0) {
+            roomPixelCounts.emplace_back(i, pixelCount);
+        }
+    }
+
+    if (roomPixelCounts.empty()) {
+        throw app::exception(make_error_code(error::no_straight_line_crossing_map_area_detected));
+    }
+
+    std::sort(roomPixelCounts.begin(), roomPixelCounts.end(), [](const auto &a, const auto &b) {
+        return a.second > b.second;
+    });
+
+    auto target_index = roomPixelCounts[0].first;
+    auto base_room = rooms[target_index];
+
+    if (pointInRoom(segmented_map, base_room, ps) ||
+        pointInRoom(segmented_map, base_room, pe)) {
+        throw app::exception(make_error_code(error::room_both_ends_of_the_split_line_are_in_the_room));
+    }
+
+    if (!lineThroughRoom(segmented_map, base_room, ps, pe)) {
+        throw app::exception(make_error_code(error::room_the_dividing_line_does_not_pass_through_the_room));
+    }
+
+    rooms.erase(rooms.begin() + target_index);
+
+    // 2.初始化分割后的两个房间
+    Room roomStart(rand() % 52224 + 13056);
+    Room roomEnd(rand() % 52224 + 13056);
+    std::vector<cv::Point> membersStart;
+    std::vector<cv::Point> membersEnd;
+    for (const auto &point: base_room.getMembers()) {
+        int f = CvUtils::sideInLine(ps, pe, point);
+        if (f > 0) {
+            segmented_map.at<int>(point) = roomStart.getID();
+            membersStart.push_back(point);
+//            roomStart.insertMemberPoint(point, map_resolution_from_subscription);
+        } else {
+            segmented_map.at<int>(point) = roomEnd.getID();
+            membersEnd.push_back(point);
+//            roomEnd.insertMemberPoint(point, map_resolution_from_subscription);
+        }
+    }
+
+    // 同上
+    roomStart.directInsertMemberPoints(membersStart, map_resolution_from_subscription);
+    roomEnd.directInsertMemberPoints(membersEnd, map_resolution_from_subscription);
+
+    rooms.push_back(roomStart);
+    rooms.push_back(roomEnd);
+
+//    if (DEBUG_DISPLAYS_SHOW)
+    whole_display(segmented_map, rooms, "gateManySegmentation");
+}

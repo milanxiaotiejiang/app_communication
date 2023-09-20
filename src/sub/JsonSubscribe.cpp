@@ -503,6 +503,13 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new QueryIdGateStrategy();
             break;
 
+        case OPEN_GATE_SETTING:
+            messageStrategy = new OpenGateSettingStrategy();
+            break;
+        case CLOSE_GATE_SETTING:
+            messageStrategy = new CloseGateSettingStrategy();
+            break;
+
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);

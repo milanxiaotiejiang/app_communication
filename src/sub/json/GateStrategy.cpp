@@ -5,6 +5,7 @@
 #include "sub/json/GateStrategy.h"
 #include "db/segmentation_data_base.h"
 #include "segmentation/SegmentationCenter.h"
+#include "segmentation/GateComprehensive.h"
 
 long AddGateStrategy::handler(GateInfo params) {
     auto segmented_map = SegmentationCenter::instance().generateMat();
@@ -40,4 +41,14 @@ std::vector<GateInfo> ListGateStrategy::handler(std::string params) {
 
 GateInfo QueryIdGateStrategy::handler(long params) {
     return SegmentationDataBase::instance().queryGateForId(params);
+}
+
+std::string OpenGateSettingStrategy::handler(std::string params) {
+    GateSettingCenter::instance().startInspect();
+    return "";
+}
+
+std::string CloseGateSettingStrategy::handler(std::string params) {
+    GateSettingCenter::instance().stopInspect();
+    return "";
 }

@@ -146,6 +146,8 @@ namespace error {
         secondary_detection,
         not_on_the_map,
         the_ferry_point_is_in_the_same_area,
+        no_straight_line_crossing_map_area_detected,
+        in_the_setting_of_gate_the_task_cannot_be_started,
     };// enum value
 
     class category : public std::error_category {
@@ -416,6 +418,10 @@ namespace error {
                     return "不在地图内";
                 case error::the_ferry_point_is_in_the_same_area:
                     return "两个摆渡点在同一区域";
+                case error::no_straight_line_crossing_map_area_detected:
+                    return "未检测到直线穿越地图区域";
+                case error::in_the_setting_of_gate_the_task_cannot_be_started:
+                    return "闸机设置中，任务无法启动";
                 default:
                     return "Unknown";
             }

@@ -39,4 +39,14 @@ public:
     GateInfo handler(long params) override;
 };
 
+class OpenGateSettingStrategy : public MessageStrategy<std::string, std::string> {
+public:
+    std::string handler(std::string params) override;
+};
+
+class CloseGateSettingStrategy : public MessageStrategy<std::string, std::string> {
+public:
+    std::string handler(std::string params) override;
+};
+
 #endif //APP_COMMUNICATION_GATESTRATEGY_H

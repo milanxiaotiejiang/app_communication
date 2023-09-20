@@ -117,6 +117,10 @@ std::string TaskCenter::proTask(const RealTask &task) {
         throw app::exception(
                 make_error_code(error::during_self_check_the_task_cannot_be_started));
     }
+    if (GateSettingCenter::instance().isGateSettingMode()) {
+        throw app::exception(
+                make_error_code(error::in_the_setting_of_gate_the_task_cannot_be_started));
+    }
 
     //没有传感器数据的情况下，不能够分发任务
     //todo /imu /scan /odom without any data reject

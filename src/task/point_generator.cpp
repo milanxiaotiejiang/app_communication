@@ -24,7 +24,7 @@
 #include "task/point_planner.h"
 
 #include "simulation.h"
-#include "segmentation/handle_segmentation_display.h"
+#include "segmentation/GateComprehensive.h"
 
 RealBlock PointGenerator::buildBlock(int id, const RealTask &task) {
     RealBlock block;
@@ -144,7 +144,9 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         }
     }
 
-    // 统计 block_accumulation、point_accumulation 以便计算进度
+//    addSinglePoint(wholeBlockList, realTask, PointPlanner::createBackBasePoint());
+
+    // 统计 block_accumulation , point_accumulation 以便计算进度
     int block_accumulation = 0;
     int point_accumulation = 0;
     for (auto &block: wholeBlockList) {
@@ -161,26 +163,13 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         block_accumulation++;
     }
 
-    // 预制基站的摆渡点位，方便下方闸机逻辑处理中添加闸机 block
-    addSinglePoint(wholeBlockList, realTask, PointPlanner::createBackBasePoint());
-
-    // 取出当前的机器人位置，为计算闸机逻辑做准备
-    auto currentPoint = MapAttributeSingleton::createCurrentPoint();
-
-    // 1. 计算两点间距，得出超时时间，并计算总共时间、总步数
-    // 2. 为每个 block 添加来向 lastPoint，并取出第一个点，方便计算
-    auto lastPoint = currentPoint;
+    // 计算两点间距，得出超时时间，并计算总共时间、总步数，此处取出当前的机器人位置，为计算第一个超时时间处理
+    geometry_msgs::Pose2D pose2D = MapAttributeSingleton::instance().getRobotPositionPose();
     geometry_msgs::Pose::_position_type lastPose;
-    for (int i = 0; i < wholeBlockList.size(); i++) {
-        auto &block = wholeBlockList[i];
+    lastPose.x = pose2D.x;
+    lastPose.y = pose2D.y;
+    for (auto &block: wholeBlockList) {
         auto plannerPoints = block.plannerPoints;
-
-        block.firstPoint = plannerPoints[0];
-        if (i == 0) {
-            block.lastPoint = currentPoint;
-        } else {
-            block.lastPoint = lastPoint;
-        }
 
         long timeout_accumulation = 0;
         for (auto &pose: plannerPoints) {
@@ -197,8 +186,6 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
             lastPose.x = pose.realPosition.x;
             lastPose.y = pose.realPosition.y;
             lastPose.z = pose.realPosition.z;
-
-            lastPoint = pose;
         }
 
         block.timeout = timeout_accumulation * 2;
@@ -206,55 +193,51 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         block.plannerPoints = plannerPoints;
     }
 
-    // 1. 取出闸机相关信息（闸机区域、闸机2个摆渡点）
+    for (auto &block: wholeBlockList) {
+        block.totalDistance = totalDistance;
+    }
+
+    realTask.setTotalStep(point_accumulation);
+    realTask.setTotalFrequency(realTask.getRate());
+
+    for (const auto &block: wholeBlockList) {
+        blockList.emplace_back(block);
+    }
+
+//    std::vector<GateComprehensive> gateComprehensiveList;
+    auto generateMat = SegmentationCenter::instance().generateMat();
+    auto gateList = SegmentationDataBase::instance().loadGate(SegmentationDataBase::instance().getDbMap().id);
+    GateComprehensive gateComprehensive(gateList);
+//    for (const auto &gate: gateList) {
+//        gateComprehensiveList.push_back(gateComprehensive);
+//    }
+
+    for (const auto &block: blockList) {
+
+        for (const auto &point: block.plannerPoints) {
+
+            auto cvPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(generateMat.rows, generateMat.cols,
+                                                                               Point(point.realPosition.x,
+                                                                                     point.realPosition.y));
+            cv::circle(generateMat, cvPoint, 3, cv::Scalar(200), CV_FILLED);
+        }
+
+        LOG(ERROR) << block.timeout;
+        cv::imshow("1", generateMat);
+        cv::waitKey();
+
+    }
+
+/*
+ // 1. 取出闸机相关信息（闸机区域、闸机2个摆渡点）
     // 2. 根据闸机区域，拆分地图，得到被拆分后的两块区域
     // 3. 由闸机的2个摆渡点，形成两个摆渡 block
-    bool hasGate = false;
-    auto segmented_map = SegmentationCenter::instance().generateMat().clone();
+    std::vector<GateComprehensive> gateComprehensiveList;
+    auto generateMat = SegmentationCenter::instance().generateMat();
     auto gateList = SegmentationDataBase::instance().loadGate(SegmentationDataBase::instance().getDbMap().id);
-    RealBlock leftBlock = buildBlock(0, realTask);
-    RealBlock rightBlock = buildBlock(0, realTask);
-    int leftValue, rightValue = 0;
-    if (!gateList.empty()) {
-        Gate gate = gateList[gateList.size() - 1];
-
-//        cv::Point lineStart(gate.start_x, gate.start_y);
-//        cv::Point lineEnd(gate.end_x, gate.end_y);
-
-        RealPoint realPointLeft;
-        RealPosition realPositionLeft(gate.left_position_x, gate.left_position_y, gate.left_position_z);
-        RealOrientation realOrientationLeft(gate.left_orientation_x, gate.left_orientation_y,
-                                            gate.left_orientation_z, gate.left_orientation_w);
-        realPointLeft.realPosition = std::move(realPositionLeft);
-        realPointLeft.realOrientation = std::move(realOrientationLeft);
-        leftBlock.plannerPoints.push_back(realPointLeft);
-
-        RealPoint realPointRight;
-        RealPosition realPositionRight(gate.right_position_x, gate.right_position_y, gate.right_position_z);
-        RealOrientation realOrientationRight(gate.right_orientation_x, gate.right_orientation_y,
-                                             gate.right_orientation_z, gate.right_orientation_w);
-        realPointRight.realPosition = std::move(realPositionRight);
-        realPointRight.realOrientation = std::move(realOrientationRight);
-        rightBlock.plannerPoints.push_back(realPointRight);
-
-        std::vector<Room> rooms;
-        SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, gate);
-
-
-        Point gateLeftPoint(gate.left_position_x, gate.left_position_y);
-        Point gateRightPoint(gate.right_position_x, gate.right_position_y);
-
-        auto cvGateLeftPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
-                                                                                   segmented_map.cols, gateLeftPoint);
-        auto cvGateRightPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
-                                                                                    segmented_map.cols, gateRightPoint);
-
-        leftValue = segmented_map.at<int>(cvGateLeftPoint);
-        rightValue = segmented_map.at<int>(cvGateRightPoint);
-
-        whole_display(segmented_map, rooms, cvGateLeftPoint, cvGateRightPoint, "GateSegmentation");
-
-        hasGate = true;
+    for (const auto &gate: gateList) {
+        GateComprehensive gateComprehensive(gate);
+        gateComprehensiveList.push_back(gateComprehensive);
     }
 
     // 根据来向和取向，判断是否经过闸机，经过则添加闸机2个摆渡点
@@ -263,21 +246,12 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         block.totalDistance = totalDistance;
         auto plannerPoints = block.plannerPoints;
 
-        if (hasGate && plannerPoints.size() == 1) {
-            Point lastBlockLastPoint(block.lastPoint.realPosition.x, block.lastPoint.realPosition.y);
-            Point currentBlockFirstPoint(block.firstPoint.realPosition.x, block.firstPoint.realPosition.y);
-
-            auto cvLastBlockLastPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(
-                    segmented_map.rows, segmented_map.cols, lastBlockLastPoint);
-            auto cvCurrentBlockFirstPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(
-                    segmented_map.rows, segmented_map.cols, currentBlockFirstPoint);
-
-            int lastValue = segmented_map.at<int>(cvLastBlockLastPoint);
-            int currentValue = segmented_map.at<int>(cvCurrentBlockFirstPoint);
+        if (gateComprehensiveList.size() > 0 && plannerPoints.size() == 1) {
+            auto gateComprehensive = gateComprehensiveList[gateComprehensiveList.size() - 1];
 
             if (lastValue != currentValue) {
 
-                if (lastValue == leftValue && currentValue == rightValue) {
+                if (lastValue == gateComprehensive.leftValue && currentValue == gateComprehensive.rightValue) {
                     leftBlock.core_move = false;
                     gateBlockList.push_back(leftBlock);
                     leftBlock.core_move = true;
@@ -309,30 +283,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         }
 
     }
-    realTask.setTotalStep(point_accumulation);
-    realTask.setTotalFrequency(realTask.getRate());
-
-    // 移除预制的最后一个点位
-    gateBlockList.pop_back();
-
-    // 交由上个方法处理
-    for (const auto &block: gateBlockList) {
-        blockList.emplace_back(block);
-    }
-
-//    for (const auto &block: blockList) {
-//        for (const auto &point: block.plannerPoints) {
-//
-//            auto cvPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(map.rows, map.cols,
-//                                                                               Point(point.realPosition.x,
-//                                                                                     point.realPosition.y));
-//            const cv::Mat &mat = segmented_map.clone();
-//            cv::circle(mat, cvPoint, 3, cv::Scalar(200), CV_FILLED);
-//
-//            cv::imshow("1", mat);
-//            cv::waitKey();
-//        }
-//    }
+ */
 }
 
 std::vector<PoseVo> PointGenerator::recalculateAngle(const cv::Point2d &point2D,

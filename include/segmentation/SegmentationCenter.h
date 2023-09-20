@@ -120,9 +120,14 @@ public:
     void checkGatePoint(cv::Mat &segmented_map, const Gate &gate);
 
     /**
-     * 将原始地图进行首次分割
+     * 将原始地图进行首次分割，用于验证
      */
     void gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate);
+
+    /**
+     * 闸机分割
+     */
+    void gateManySegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate);
 
 };
 
