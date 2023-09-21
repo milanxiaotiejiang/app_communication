@@ -204,14 +204,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         blockList.emplace_back(block);
     }
 
-//    std::vector<GateComprehensive> gateComprehensiveList;
     auto generateMat = SegmentationCenter::instance().generateMat();
-    auto gateList = SegmentationDataBase::instance().loadGate(SegmentationDataBase::instance().getDbMap().id);
-    GateComprehensive gateComprehensive(gateList);
-//    for (const auto &gate: gateList) {
-//        gateComprehensiveList.push_back(gateComprehensive);
-//    }
-
     for (const auto &block: blockList) {
 
         for (const auto &point: block.plannerPoints) {
@@ -225,65 +218,11 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         LOG(ERROR) << block.timeout;
         cv::imshow("1", generateMat);
         cv::waitKey();
-
     }
 
-/*
- // 1. 取出闸机相关信息（闸机区域、闸机2个摆渡点）
-    // 2. 根据闸机区域，拆分地图，得到被拆分后的两块区域
-    // 3. 由闸机的2个摆渡点，形成两个摆渡 block
-    std::vector<GateComprehensive> gateComprehensiveList;
-    auto generateMat = SegmentationCenter::instance().generateMat();
     auto gateList = SegmentationDataBase::instance().loadGate(SegmentationDataBase::instance().getDbMap().id);
-    for (const auto &gate: gateList) {
-        GateComprehensive gateComprehensive(gate);
-        gateComprehensiveList.push_back(gateComprehensive);
-    }
+    GateComprehensive gateComprehensive(gateList);
 
-    // 根据来向和取向，判断是否经过闸机，经过则添加闸机2个摆渡点
-    std::vector<RealBlock> gateBlockList;
-    for (auto &block: wholeBlockList) {
-        block.totalDistance = totalDistance;
-        auto plannerPoints = block.plannerPoints;
-
-        if (gateComprehensiveList.size() > 0 && plannerPoints.size() == 1) {
-            auto gateComprehensive = gateComprehensiveList[gateComprehensiveList.size() - 1];
-
-            if (lastValue != currentValue) {
-
-                if (lastValue == gateComprehensive.leftValue && currentValue == gateComprehensive.rightValue) {
-                    leftBlock.core_move = false;
-                    gateBlockList.push_back(leftBlock);
-                    leftBlock.core_move = true;
-                    leftBlock.open_gate = true;
-                    gateBlockList.push_back(leftBlock);
-                    rightBlock.core_move = true;
-                    leftBlock.open_gate = true;
-                    gateBlockList.push_back(rightBlock);
-                    gateBlockList.push_back(block);
-                } else if (lastValue == rightValue && currentValue == leftValue) {
-                    rightBlock.core_move = false;
-                    gateBlockList.push_back(rightBlock);
-                    rightBlock.core_move = true;
-                    rightBlock.open_gate = true;
-                    gateBlockList.push_back(rightBlock);
-                    leftBlock.core_move = true;
-                    leftBlock.open_gate = true;
-                    gateBlockList.push_back(leftBlock);
-                    gateBlockList.push_back(block);
-                } else {
-                    gateBlockList.push_back(block);
-                }
-
-            } else {
-                gateBlockList.push_back(block);
-            }
-        } else {
-            gateBlockList.push_back(block);
-        }
-
-    }
- */
 }
 
 std::vector<PoseVo> PointGenerator::recalculateAngle(const cv::Point2d &point2D,

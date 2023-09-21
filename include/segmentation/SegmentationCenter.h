@@ -127,8 +127,19 @@ public:
     /**
      * 闸机分割
      */
-    void gateManySegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate);
+    void gateManySegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms,
+                              std::map<std::pair<int, int>, std::pair<Gate, bool>> &planMap, const Gate &gate);
 
+    /**
+     * 获取原来的闸机摆渡点在现有分区地图上的值
+     */
+    int obtainOriginalGatePointValue(cv::Mat &segmented_map, const Gate originalGate,
+                                     double regionDirection, double pointDirection);
+
+    /**
+     * 闸机开启
+     */
+    void gateManyOpen(cv::Mat &open_map, const Gate &gate);
 };
 
 

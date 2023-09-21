@@ -791,8 +791,8 @@ void SegmentationCenter::checkGatePoint(cv::Mat &segmented_map, std::vector<Room
     }
 
 
-//    if (DEBUG_DISPLAYS_SHOW)
-    whole_display(segmented_map, rooms, cvGateLeftPoint, cvGateRightPoint, "handSegmentation");
+    if (DEBUG_DISPLAYS_SHOW)
+        whole_display(segmented_map, rooms, cvGateLeftPoint, cvGateRightPoint, "handSegmentation");
 }
 
 void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate) {
@@ -827,7 +827,9 @@ void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Ro
     checkGatePoint(segmented_map, rooms, gate);
 }
 
-void SegmentationCenter::gateManySegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate) {
+void SegmentationCenter::gateManySegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms,
+                                              std::map<std::pair<int, int>, std::pair<Gate, bool>> &planMap,
+                                              const Gate &gate) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::room_initialize_fail));
     }
@@ -890,6 +892,7 @@ void SegmentationCenter::gateManySegmentation(cv::Mat &segmented_map, std::vecto
 
     auto target_index = roomPixelCounts[0].first;
     auto base_room = rooms[target_index];
+    int baseId = base_room.getID();
 
     if (pointInRoom(segmented_map, base_room, ps) ||
         pointInRoom(segmented_map, base_room, pe)) {
@@ -927,6 +930,127 @@ void SegmentationCenter::gateManySegmentation(cv::Mat &segmented_map, std::vecto
     rooms.push_back(roomStart);
     rooms.push_back(roomEnd);
 
-//    if (DEBUG_DISPLAYS_SHOW)
-    whole_display(segmented_map, rooms, "gateManySegmentation");
+    Point gateLeftPoint(gate.left_position_x, gate.left_position_y);
+    Point gateRightPoint(gate.right_position_x, gate.right_position_y);
+
+    auto cvGateLeftPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
+                                                                               segmented_map.cols, gateLeftPoint);
+    auto cvGateRightPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
+                                                                                segmented_map.cols, gateRightPoint);
+
+    int leftValue = segmented_map.at<int>(cvGateLeftPoint);
+    int rightValue = segmented_map.at<int>(cvGateRightPoint);
+
+    int startId = roomStart.getID();
+    int endId = roomEnd.getID();
+
+    bool forwardDirection = true;
+    if (startId == leftValue && endId == rightValue) {
+        forwardDirection = true;
+    } else if (startId == rightValue && endId == leftValue) {
+        forwardDirection = false;
+    } else {
+        throw app::exception(make_error_code(error::gate_value_error));
+    }
+
+    // start -> end | start    end  
+    // true  ====>    left  -> right
+    // false ====>    right -> left
+    std::map<std::pair<int, int>, std::pair<Gate, bool>> myPlanMap;
+    for (const auto &plan: planMap) {
+        std::pair<int, int> region = plan.first;
+        std::pair<Gate, bool> gatePoint = plan.second;
+
+        if (region.first == baseId) {
+            region.first = obtainOriginalGatePointValue(segmented_map, gatePoint.first, true, gatePoint.second);
+        } else if (region.second == baseId) {
+            region.second = obtainOriginalGatePointValue(segmented_map, gatePoint.first, false, gatePoint.second);
+        }
+        myPlanMap[region] = gatePoint;
+    }
+
+    planMap.clear();
+
+    for (const auto &plan: myPlanMap) {
+        planMap[plan.first] = plan.second;
+    }
+    planMap[std::make_pair(startId, endId)] = std::make_pair(gate, forwardDirection);
+    planMap[std::make_pair(endId, startId)] = std::make_pair(gate, !forwardDirection);
+
+    if (DEBUG_DISPLAYS_SHOW)
+        whole_display(segmented_map, rooms, "gateManySegmentation");
+}
+
+int SegmentationCenter::obtainOriginalGatePointValue(cv::Mat &segmented_map, const Gate originalGate,
+                                                     double regionDirection, double pointDirection) {
+    int recodeValue = 0;
+    if (regionDirection) {
+        if (pointDirection) {
+            recodeValue = segmented_map.at<int>(
+                    MapAttributeSingleton::instance().rosPoint2MapPoint(
+                            segmented_map.rows, segmented_map.cols,
+                            Point(originalGate.left_position_x, originalGate.left_position_y)
+                    )
+            );
+        } else {
+            recodeValue = segmented_map.at<int>(
+                    MapAttributeSingleton::instance().rosPoint2MapPoint(
+                            segmented_map.rows, segmented_map.cols,
+                            Point(originalGate.right_position_x, originalGate.right_position_y)
+                    )
+            );
+        }
+
+    } else {
+        if (pointDirection) {
+            recodeValue = segmented_map.at<int>(
+                    MapAttributeSingleton::instance().rosPoint2MapPoint(
+                            segmented_map.rows, segmented_map.cols,
+                            Point(originalGate.right_position_x, originalGate.right_position_y)
+                    )
+            );
+        } else {
+            recodeValue = segmented_map.at<int>(
+                    MapAttributeSingleton::instance().rosPoint2MapPoint(
+                            segmented_map.rows, segmented_map.cols,
+                            Point(originalGate.left_position_x, originalGate.left_position_y)
+                    )
+            );
+        }
+
+    }
+    return recodeValue;
+}
+
+void SegmentationCenter::gateManyOpen(cv::Mat &open_map, const Gate &gate) {
+    if (!initialize_finish) {
+        throw app::exception(make_error_code(error::room_initialize_fail));
+    }
+    if (MapAttributeSingleton::instance().isCreatingMap()) {
+        throw app::exception(make_error_code(error::in_creating_map));
+    }
+
+    cv::Point ps(gate.start_x, gate.start_y);
+    cv::Point pe(gate.end_x, gate.end_y);
+
+
+    cv::line(open_map, ps, pe, cv::Scalar(50), 3, cv::LINE_8);
+
+    Point gateLeftPoint(gate.left_position_x, gate.left_position_y);
+    Point gateRightPoint(gate.right_position_x, gate.right_position_y);
+
+    auto cvGateLeftPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(open_map.rows,
+                                                                               open_map.cols, gateLeftPoint);
+    auto cvGateRightPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(open_map.rows,
+                                                                                open_map.cols, gateRightPoint);
+
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//网格正方形的边长
+    double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
+    cv::line(open_map, cvGateLeftPoint, cvGateRightPoint, cv::Scalar(255), grid_spacing_in_pixel * 2, cv::LINE_8);
+
+    if (DEBUG_DISPLAYS_SHOW) {
+        cv::imshow("gateManyOpen", open_map);
+        cv::waitKey();
+    }
 }

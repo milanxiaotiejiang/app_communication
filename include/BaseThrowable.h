@@ -150,7 +150,8 @@ namespace error {
         in_the_setting_of_gate_the_task_cannot_be_started,
         mark_points_as_perpendicular_as_possible_to_the_gate,
         gate_mark_points_too_far_away,
-        mark_points_in_the_gate_as_much_as_possible
+        mark_points_in_the_gate_as_much_as_possible,
+        gate_value_error
     };// enum value
 
     class category : public std::error_category {
@@ -431,6 +432,8 @@ namespace error {
                     return "闸机摆渡点位相距过大";
                 case error::mark_points_in_the_gate_as_much_as_possible:
                     return "标记点尽量均衡分布在闸机两侧";
+                case error::gate_value_error:
+                    return "gate_value_error";
                 default:
                     return "Unknown";
             }
