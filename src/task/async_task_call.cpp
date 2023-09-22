@@ -22,11 +22,13 @@
 #include "future/node/mode_validate.h"
 #include "model/ManualModel.h"
 #include "task/manager/NodeWorkModeManager.h"
+#include "segmentation/GateComprehensive.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
  */
-AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()) {
+AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
+                                 mGateDistribution(std::make_shared<AsyncGateDistribution>()) {
     notifier.setOnTaskCallback(std::dynamic_pointer_cast<ITaskCallback>(feedback));
     feedback->run();
 
@@ -37,6 +39,12 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()) {
     setUrgencyStop(loop::urgency_stop::trigger_urgency_stop);
 
     initTaskBlock(runTask);
+
+    mGateDistribution->setCallbackDistribution([this](bool) {
+        //int blockId, event::error error, const std::string &message
+        LOG_IF(INFO, DEBUG_GATE) << "假设通过闸机了 ";
+        executeOnPathDone(0, event::error::SUCCEEDED, "闸机");
+    });
 }
 
 void AsyncTaskCall::handleManualOperation() {
@@ -252,6 +260,9 @@ void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
     finishedPoints.clear();
 
     HotWindNoteSingleton::instance().closeHotWind();
+
+    auto gateList = SegmentationDataBase::instance().loadGate(SegmentationDataBase::instance().getDbMap().id);
+    mGateComprehensive = std::make_shared<GateComprehensive>(gateList);
 
     //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
     notify_one([this]() {
@@ -505,13 +516,54 @@ bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
     return (abs(dist_error) < disAccuracy) && (abs(angle_error) < angleAccuracy);
 }
 
+void AsyncTaskCall::callBackBasePoint() {
 
-void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock) {
-    if (nextBlock.core_move && nextBlock.plannerPoints.size() == 1) {
-        if (nextBlock.open_gate)
-            LOG(ERROR) << "OPEN GATE ... ";
-        PointPlanner::instance().goToPoint(nextBlock);
+    auto backBasePoint = PointPlanner::createBackBasePoint();
+
+    bool use_re_plan = true;
+    std::vector <RealPoint> points;
+
+    std::vector<int> stacks;
+    mGateComprehensive->AStarPlannerPoint(backBasePoint, stacks);
+
+    if (!stacks.empty()) {
+        if (stacks.size() > 1) {
+
+            mGateComprehensive->generateGatePointList(stacks, backBasePoint, points);
+            if (points.size() > 0) {
+                use_re_plan = false;
+            }
+        }
+    }
+    if (use_re_plan) {
+        AsyncTaskFramework::callBackBasePoint();
     } else {
+        mGateDistribution->onDistributionStart(points);
+    }
+}
+
+void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock, bool first) {
+    if (first) PointPlanner::instance().setPathFirst();
+
+    bool use_re_plan = true;
+    std::vector<RealPoint> points;
+    if (nextBlock.plannerPoints.size() == 1 && mGateComprehensive->isHasGate()) {
+
+        RealPoint realPoint = nextBlock.plannerPoints[0];
+        std::vector<int> stacks;
+        mGateComprehensive->AStarPlannerPoint(realPoint, stacks);
+
+        if (!stacks.empty()) {
+            if (stacks.size() > 1) {
+
+                mGateComprehensive->generateGatePointList(stacks, realPoint, points);
+                if (points.size() > 0) {
+                    use_re_plan = false;
+                }
+            }
+        }
+    }
+    if (use_re_plan) {
         PointPlanner::instance().goToPath(nextBlock);
         int id = nextBlock.id;
         int timeout = nextBlock.timeout;
@@ -524,6 +576,8 @@ void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock) {
                         }
                     });
         }
+    } else {
+        mGateDistribution->onDistributionStart(points);
     }
 }
 
@@ -812,25 +866,27 @@ void AsyncTaskCall::executeOnPointDone(event::error error) {
     if (error != event::error::TIMEOUT) {
         async::TimerCall::instance().baseLoop()->cancelAny();
     }
-
-    notify_one([this, &error]() {
-        if (!plannerQueue.empty()) {
-            if (error == event::error::LOST) {
-                auto currentPoint = findFrontBlock();
-                currentPoint.arrive = error == event::error::SUCCEEDED;
-                currentPoint.retry = true;
-                pushBlock(currentPoint);
+    if (mGateDistribution->isImplement()) {
+        mGateDistribution->executeOnPointDone(error);
+    } else
+        notify_one([this, &error]() {
+            if (!plannerQueue.empty()) {
+                if (error == event::error::LOST) {
+                    auto currentPoint = findFrontBlock();
+                    currentPoint.arrive = error == event::error::SUCCEEDED;
+                    currentPoint.retry = true;
+                    pushBlock(currentPoint);
+                } else {
+                    auto currentPoint = findFrontBlock();
+                    currentPoint.arrive = error == event::error::SUCCEEDED;
+                    pushBlock(currentPoint);
+                }
             } else {
-                auto currentPoint = findFrontBlock();
-                currentPoint.arrive = error == event::error::SUCCEEDED;
-                pushBlock(currentPoint);
+                flowInBasePoint.arrive = error == event::error::SUCCEEDED;
+                pushBlock(flowInBasePoint);
             }
-        } else {
-            flowInBasePoint.arrive = error == event::error::SUCCEEDED;
-            pushBlock(flowInBasePoint);
-        }
 
-    });
+        });
 }
 
 void AsyncTaskCall::executeOnPathDone(int blockId, event::error error, const std::string &message) {
@@ -851,24 +907,28 @@ void AsyncTaskCall::executeOnPathDone(int blockId, event::error error, const std
         async::TimerCall::instance().baseLoop()->cancelAny();
     }
 
-    notify_one([this, &blockId, &error, &message]() {
-        LOG(WARNING) << "PointPlanner pathCd  blockId : " << blockId << " , result " << message;
-        if (!plannerQueue.empty()) {
-            if (error == event::error::LOST) {
-                auto currentPoint = findFrontBlock();
-                currentPoint.arrive = error == event::error::SUCCEEDED;
-                currentPoint.retry = true;
-                pushBlock(currentPoint);
+    if (mGateDistribution->isImplement()) {
+        LOG(WARNING) << "PointPlanner moveBase  blockId : " << blockId << " , result : " << message;
+        mGateDistribution->executeOnPathDone(error);
+    } else
+        notify_one([this, &blockId, &error, &message]() {
+            LOG(WARNING) << "PointPlanner moveBase  blockId : " << blockId << " , result : " << message;
+            if (!plannerQueue.empty()) {
+                if (error == event::error::LOST) {
+                    auto currentPoint = findFrontBlock();
+                    currentPoint.arrive = error == event::error::SUCCEEDED;
+                    currentPoint.retry = true;
+                    pushBlock(currentPoint);
+                } else {
+                    auto currentPoint = findFrontBlock();
+                    currentPoint.arrive = error == event::error::SUCCEEDED;
+                    pushBlock(currentPoint);
+                }
             } else {
-                auto currentPoint = findFrontBlock();
-                currentPoint.arrive = error == event::error::SUCCEEDED;
-                pushBlock(currentPoint);
+                flowInBasePoint.arrive = error == event::error::SUCCEEDED;
+                pushBlock(flowInBasePoint);
             }
-        } else {
-            flowInBasePoint.arrive = error == event::error::SUCCEEDED;
-            pushBlock(flowInBasePoint);
-        }
-    });
+        });
 }
 
 void AsyncTaskCall::executeOnPathFeedBack(int blockId, int current_step, int goal_step, int current_goal,

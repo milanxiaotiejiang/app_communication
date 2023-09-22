@@ -42,7 +42,7 @@ void PointRoutine::pathDone(const actionlib::SimpleClientGoalState &state, int b
 }
 
 void PointRoutine::crash() {
-    asyncTaskCall->executeOnPathDone(-1, event::error::CRASH,"crash");
+    asyncTaskCall->executeOnPathDone(-1, event::error::CRASH, "crash");
 }
 
 void PointRoutine::pointActive() {
@@ -50,7 +50,7 @@ void PointRoutine::pointActive() {
 }
 
 void PointRoutine::pointFeedback(const back_charge_msgs::CoreMoveFeedbackConstPtr &pose) {
-    back_charge_msgs::CoreMoveFeedback_<std::allocator<void>>::_current_position_type  stamped = pose->current_position;
+    back_charge_msgs::CoreMoveFeedback_<std::allocator<void>>::_current_position_type stamped = pose->current_position;
 }
 
 void PointRoutine::pointDone(const actionlib::SimpleClientGoalState &state) {

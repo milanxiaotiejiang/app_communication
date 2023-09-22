@@ -79,6 +79,9 @@ public:
 
     int currentStep{0};
 
+    bool core_move{false};
+    bool open_gate{false};
+
 //    friend std::ostream &operator<<(std::ostream &os, const RealPoint &point) {
 //        os << "id: " << point.id << " blockId: " << point.blockId << " realProgress: " << point.realProgress;
 //        return os;

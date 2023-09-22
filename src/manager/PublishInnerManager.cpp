@@ -4,6 +4,7 @@
 
 #include "manager/PublishInnerManager.h"
 #include "db/path.h"
+#include "simulation.h"
 
 void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_push_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/push_mode_control", 1);
@@ -14,7 +15,11 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_darwer_cmd_ = handle.advertise<std_msgs::Int32>("/mrrobot/drawer_cmd", 1);
     pub_arom_status_ = handle.advertise<std_msgs::Int32>("/mrrobot/arom_status_control", 1);
     pub_light_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/light_mode", 1);
-    pub_velocity_ = handle.advertise<geometry_msgs::Twist>("/cmd_vel/app", 1);
+    if (Environment::instance().isRealEnvironment) {
+        pub_velocity_ = handle.advertise<geometry_msgs::Twist>("/cmd_vel/app", 1);
+    } else {
+        pub_velocity_ = handle.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+    }
     pub_passed_path_ = handle.advertise<nav_msgs::Path>("/clean_robot/passed_path", 10);
     pub_music = handle.advertise<std_msgs::Int32>("/play_music", 1);
     pub_otalow = handle.advertise<std_msgs::String>("/ota_low", 10);

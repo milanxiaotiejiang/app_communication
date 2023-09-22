@@ -119,7 +119,7 @@ protected:
 
     virtual void callCloseMechanism(std::function<void()> f) = 0;
 
-    void callBackBasePoint();
+    virtual void callBackBasePoint();
 
     void callNeedPublishSleep();
 

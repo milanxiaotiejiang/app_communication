@@ -59,7 +59,7 @@ void PointPlanner::coreMoveFeedBackCB(const back_charge_msgs::CoreMoveFeedbackCo
 
 void PointPlanner::coreMoveDoneCB(const actionlib::SimpleClientGoalState &state,
                                   const back_charge_msgs::CoreMoveResultConstPtr &result) {
-    LOG(WARNING) << "PointPlanner pointCd result " << state.getText();
+    LOG(WARNING) << "PointPlanner coreMove result : " << state.getText();
     PointRoutine::instance().pointDone(state);
 }
 
@@ -87,10 +87,9 @@ bool PointPlanner::waitForCoreMoveServer() {
     return core_move->waitForServer(ros::Duration(10));
 }
 
-void PointPlanner::goToPathFirst(const RealBlock &block) {
+void PointPlanner::setPathFirst() {
     xyGoalTolerance.d(0.15);
     yawGoalTolerance.d(0.15);
-    goToPath(block);
 }
 
 void PointPlanner::goToPath(const RealBlock &block) {
@@ -139,24 +138,26 @@ void PointPlanner::goToPath(const RealBlock &block) {
     share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
 }
 
-void PointPlanner::goToPoint(const RealBlock &block) {
+void PointPlanner::goToPoint(const RealPoint &point) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::task_planner_failed_to_start));
     }
-    if (block.core_move) {
-        RealPoint realPoint = block.plannerPoints[0];
+    if (point.core_move) {
         back_charge_msgs::CoreMoveGoal goal;
         goal.cmd = 1;
-        goal.target_pose.pose.position.x = realPoint.realPosition.x;
-        goal.target_pose.pose.position.y = realPoint.realPosition.y;
+        goal.target_pose.pose.position.x = point.realPosition.x;
+        goal.target_pose.pose.position.y = point.realPosition.y;
         core_move->sendGoal(goal, &coreMoveDoneCB, &coreMoveActiveCB, &coreMoveFeedBackCB);
     } else {
-        goToPath(block);
+        replan_msgs::ReplanGoal path;
+        cpToPath(std::vector<RealPoint>{point}, path, replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE, false);
+        share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
     }
 }
 
 void PointPlanner::cancelPath() {
     share_replan->cancelGoal();
+    core_move->cancelGoal();
 }
 
 void PointPlanner::backBasePoint() {

@@ -72,21 +72,15 @@ public:
         int end_time = ros::Time::now().sec;
         std::cout << "cost handSegmentation : " << end_time - start_time << " s " << std::endl;
 
-        whole_display(segmented_map, rooms, gateList, planMap, 2, "GateComprehensive");
-
-        const cv::Point2i &point = cv::Point(150, 320);
-        const Point &rosPoint = MapAttributeSingleton::instance().mapPoint2RosPoint(gate_open_map.rows,
-                                                                                    gate_open_map.cols, point);
-        RealPoint realPoint;
-        realPoint.realPosition.x = rosPoint.getX();
-        realPoint.realPosition.y = rosPoint.getY();
-        AStarPlannerPoint(realPoint);
+//        whole_display(segmented_map, rooms, gateList, planMap, 2, "GateComprehensive");
     }
 
-    void AStarPlannerPoint(const RealPoint &realPoint) {
+    bool isHasGate() {
+        return hasGate;
+    }
+
+    void AStarPlannerPoint(const RealPoint &realPoint, std::vector<int> &stacks) {
         cv::Point robotPosition = MapAttributeSingleton::instance().getRobotPositionPoint(gate_open_map);
-        robotPosition.x = robotPosition.x + 50;
-        robotPosition.y = robotPosition.y - 100;
         auto cvDestPoint = MapAttributeSingleton::instance()
                 .rosPoint2MapPoint(gate_open_map.rows, gate_open_map.cols,
                                    Point(realPoint.realPosition.x, realPoint.realPosition.y)
@@ -96,11 +90,11 @@ public:
         double length = path_planner.planPath(gate_open_map, gate_open_map, robotPosition,
                                               cvDestPoint, 1.0, 0.,
                                               map_resolution_from_subscription, 0, nullptr, &current_path);
+
         if (length > 1e90) {
             return;
         }
 
-        std::vector<int> stacks;
         for (const auto &point: current_path) {
             int value = atValue(point);
             if (value > 0) {
@@ -114,77 +108,75 @@ public:
                 }
             }
         }
-
-//        auto showMap = gate_open_map.clone();
-//        cv::circle(showMap, robotPosition, 4, cv::Scalar(200), CV_FILLED);
-//        cv::circle(showMap, cvDestPoint, 4, cv::Scalar(200), CV_FILLED);
-
-        for (const auto &item: stacks) {
-            LOG(ERROR) << item;
-        }
-
-        LOG(ERROR) << length;
     }
 
-//    cv::Point leftPoint() const {
-//        return MapAttributeSingleton::instance().rosPoint2MapPoint(
-//                segmented_map.rows, segmented_map.cols,
-//                Point(gate.left_position_x, gate.left_position_y)
-//        );
-//    }
-//
-//    cv::Point rightPoint() const {
-//        return MapAttributeSingleton::instance().rosPoint2MapPoint(
-//                segmented_map.rows, segmented_map.cols,
-//                Point(gate.right_position_x, gate.right_position_y)
-//        );
-//    }
+    void generateGatePointList(const std::vector<int> &stacks, RealPoint destPoint, std::vector<RealPoint> &points) {
+        if (stacks.size() <= 1) {
+            throw std::runtime_error("stacks size must > 1");
+        }
+        bool hasError = false;
+        for (int i = 0; i < stacks.size() - 1; i++) {
+            int start = stacks[i];
+            int end = stacks[i + 1];
+            auto pair = std::make_pair(start, end);
+            auto iter = planMap.find(pair);
+            if (iter != planMap.end()) {
+                auto gatePlan = iter->second;
+                Gate &gate = gatePlan.first;
+                bool direction = gatePlan.second;
+
+                if (direction) {
+                    points.push_back(leftPoint(gate, false, false));
+                    points.push_back(leftPoint(gate, true, true));
+                    points.push_back(rightPoint(gate, true, false));
+                } else {
+                    points.push_back(rightPoint(gate, false, false));
+                    points.push_back(rightPoint(gate, true, true));
+                    points.push_back(leftPoint(gate, true, false));
+                }
+
+                if (i == stacks.size() - 2) {
+                    points.push_back(destPoint);
+                }
+
+            } else {
+                hasError = true;
+            }
+        }
+
+        if (hasError) {
+            points.clear();
+        }
+    }
+
 
     int atValue(cv::Point point) const {
         return segmented_map.at<int>(point);
     }
 
-//    int leftValue() const {
-//        return atValue(leftPoint());
-//    }
-//
-//    int rightValue() const {
-//        return atValue(rightPoint());
-//    }
-//
-//    void leftBlock(RealBlock &realBlock) {
-//        RealPoint realPoint;
-//        RealPosition realPosition(gate.left_position_x, gate.left_position_y, gate.left_position_z);
-//        RealOrientation realOrientation(gate.left_orientation_x, gate.left_orientation_y,
-//                                        gate.left_orientation_z, gate.left_orientation_w);
-//        realPoint.realPosition = std::move(realPosition);
-//        realPoint.realOrientation = std::move(realOrientation);
-//        realBlock.plannerPoints.push_back(realPoint);
-//    }
-//
-//    void rightBlock(RealBlock &realBlock) {
-//        RealPoint realPoint;
-//        RealPosition realPosition(gate.right_position_x, gate.right_position_y, gate.right_position_z);
-//        RealOrientation realOrientation(gate.right_orientation_x, gate.right_orientation_y,
-//                                        gate.right_orientation_z, gate.right_orientation_w);
-//        realPoint.realPosition = std::move(realPosition);
-//        realPoint.realOrientation = std::move(realOrientation);
-//        realBlock.plannerPoints.push_back(realPoint);
-//    }
-//
-//    int pointValue(const Point &point) {//ros
-//        auto mapPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(
-//                segmented_map.rows, segmented_map.cols, point);
-//        return atValue(mapPoint);
-//    }
-//
-//    int lastValue(const RealBlock &block) {
-//        return pointValue(Point(block.lastPoint.realPosition.x, block.lastPoint.realPosition.y));
-//    }
-//
-//    int firstValue(const RealBlock &block) {
-//        return pointValue(Point(block.firstPoint.realPosition.x, block.firstPoint.realPosition.y));
-//    }
+    RealPoint leftPoint(Gate &gate, bool core_move, bool open_gate) {
+        RealPoint realPoint;
+        RealPosition realPosition(gate.left_position_x, gate.left_position_y, gate.left_position_z);
+        RealOrientation realOrientation(gate.left_orientation_x, gate.left_orientation_y,
+                                        gate.left_orientation_z, gate.left_orientation_w);
+        realPoint.realPosition = std::move(realPosition);
+        realPoint.realOrientation = std::move(realOrientation);
+        realPoint.core_move = core_move;
+        realPoint.open_gate = open_gate;
+        return realPoint;
+    }
+
+    RealPoint rightPoint(Gate &gate, bool core_move, bool open_gate) {
+        RealPoint realPoint;
+        RealPosition realPosition(gate.right_position_x, gate.right_position_y, gate.right_position_z);
+        RealOrientation realOrientation(gate.right_orientation_x, gate.right_orientation_y,
+                                        gate.right_orientation_z, gate.right_orientation_w);
+        realPoint.realPosition = std::move(realPosition);
+        realPoint.realOrientation = std::move(realOrientation);
+        realPoint.core_move = core_move;
+        realPoint.open_gate = open_gate;
+        return realPoint;
+    }
 
 };
 

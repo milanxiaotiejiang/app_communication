@@ -81,11 +81,11 @@ public:
 
     bool waitForCoreMoveServer();
 
-    void goToPathFirst(const RealBlock &block);
+    void setPathFirst();
 
     void goToPath(const RealBlock &block);
 
-    void goToPoint(const RealBlock &block);
+    void goToPoint(const RealPoint &point);
 
     void cancelPath();
 

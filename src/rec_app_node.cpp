@@ -122,7 +122,7 @@ std::string getenv_rec(const std::string &name) {
     if (pAdmin != nullptr) {
         closedir(pAdmin);
     }
-    return isRealEnvironment ? "/home/admin1" : "/home/lijiang";
+    return isRealEnvironment ? "/home/admin1" : "/home/io";
 }
 
 void judgeEnvironment() {

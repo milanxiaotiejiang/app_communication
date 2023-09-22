@@ -61,12 +61,6 @@ public:
 
     float totalDistance;
 
-    RealPoint firstPoint;
-    RealPoint lastPoint;
-
-    bool core_move{false};
-    bool open_gate{false};
-
     friend std::ostream &operator<<(std::ostream &os, const RealBlock &block) {
         os << "id: " << block.id;
         return os;

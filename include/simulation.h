@@ -21,6 +21,7 @@
 #define DEBUG_DUMP true
 #define DEBUG_SENSOR true
 #define DEBUG_RESTORE true
+#define DEBUG_GATE true
 
 
 #define NODE_CONTROLLER_WORK_MODE "/node_controller/work_mode"

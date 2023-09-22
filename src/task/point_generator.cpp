@@ -204,24 +204,21 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         blockList.emplace_back(block);
     }
 
-    auto generateMat = SegmentationCenter::instance().generateMat();
-    for (const auto &block: blockList) {
-
-        for (const auto &point: block.plannerPoints) {
-
-            auto cvPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(generateMat.rows, generateMat.cols,
-                                                                               Point(point.realPosition.x,
-                                                                                     point.realPosition.y));
-            cv::circle(generateMat, cvPoint, 3, cv::Scalar(200), CV_FILLED);
-        }
-
-        LOG(ERROR) << block.timeout;
-        cv::imshow("1", generateMat);
-        cv::waitKey();
-    }
-
-    auto gateList = SegmentationDataBase::instance().loadGate(SegmentationDataBase::instance().getDbMap().id);
-    GateComprehensive gateComprehensive(gateList);
+//    auto generateMat = SegmentationCenter::instance().generateMat();
+//    for (const auto &block: blockList) {
+//
+//        for (const auto &point: block.plannerPoints) {
+//
+//            auto cvPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(generateMat.rows, generateMat.cols,
+//                                                                               Point(point.realPosition.x,
+//                                                                                     point.realPosition.y));
+//            cv::circle(generateMat, cvPoint, 3, cv::Scalar(200), CV_FILLED);
+//        }
+//
+//        LOG(ERROR) << "timeout : " << block.timeout;
+//        cv::imshow("complexPathToRealBlock", generateMat);
+//        cv::waitKey();
+//    }
 
 }
 

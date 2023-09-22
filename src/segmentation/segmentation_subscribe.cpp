@@ -112,7 +112,7 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
         Gate gate(po.id, 15, height, 280, height,
                   pl.getX(), pl.getY(), 0, 0, 0, 0, 0,
                   pr.getX(), pr.getY(), 0, 0, 0, 0, 0);
-//        SegmentationDataBase::instance().saveGate(gate);
+        SegmentationDataBase::instance().saveGate(gate);
         try {
             auto segmented_map = SegmentationCenter::instance().generateMat();
             std::vector<Room> rooms;
@@ -134,7 +134,7 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
         Gate gate(po.id, 15, height, 280, height,
                   pl.getX(), pl.getY(), 0, 0, 0, 0, 0,
                   pr.getX(), pr.getY(), 0, 0, 0, 0, 0);
-//        SegmentationDataBase::instance().saveGate(gate);
+        SegmentationDataBase::instance().saveGate(gate);
         try {
             auto segmented_map = SegmentationCenter::instance().generateMat();
             std::vector<Room> rooms;

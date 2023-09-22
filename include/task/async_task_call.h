@@ -15,6 +15,8 @@
 #include "task/model/PointProgressVo.h"
 #include "task/callback/EventNotifier.h"
 #include "model/ManualModel.h"
+#include "task/framework/AsyncGateFramework.h"
+#include "segmentation/GateComprehensive.h"
 
 const int MAX_FIRST_RETRY_COUNT = 2;
 const int MAX_BASE_POINT_RETRY_COUNT = 3;
@@ -31,6 +33,8 @@ private:
     std::mutex event_flow_mtx;  // 互斥量用于保护写操作
 
     std::shared_ptr<TaskFeedback> feedback;
+    std::shared_ptr<AsyncGateDistribution> mGateDistribution;
+    std::shared_ptr<GateComprehensive> mGateComprehensive;
 
 protected:
 
@@ -102,7 +106,7 @@ protected:
     bool isBasePointReached(float disAccuracy, float angleAccuracy);
 
 
-    void callGoNextBlock(const RealBlock &realBlock);
+    void callGoNextBlock(const RealBlock &realBlock, bool first = false);
 
     void callBlockComplete(const std::function<void()> &f);
 
@@ -134,6 +138,8 @@ protected:
 
     virtual void forceInterruptTask(event::SB sb);
 
+    void callBackBasePoint() override;
+
 public:
     AsyncTaskCall();
 
@@ -143,7 +149,7 @@ public:
 
     void executeOnPointDone(event::error error);
 
-    void executeOnPathDone(int blockId, event::error error, const std::string& message);
+    void executeOnPathDone(int blockId, event::error error, const std::string &message);
 
     void executeOnPathFeedBack(int blockId, int current_step, int goal_step, int current_goal,
                                const geometry_msgs::Pose &pose);

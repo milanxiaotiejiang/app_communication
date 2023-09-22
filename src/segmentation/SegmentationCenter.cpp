@@ -875,7 +875,7 @@ void SegmentationCenter::gateManySegmentation(cv::Mat &segmented_map, std::vecto
             }
         }
 
-        LOG(INFO) << "直线是否穿越区域， 直线点位个数：" << it.count << " , 相交后点位个数：" << pixelCount;
+        LOG_IF(INFO, DEBUG_GATE) << "直线是否穿越区域， 直线点位个数：" << it.count << " , 相交后点位个数：" << pixelCount;
 
         if (pixelCount > 0) {
             roomPixelCounts.emplace_back(i, pixelCount);
