@@ -769,15 +769,37 @@ void SegmentationCenter::checkGatePoint(cv::Mat &segmented_map, std::vector<Room
     cv::Point ps(gate.start_x, gate.start_y);
     cv::Point pe(gate.end_x, gate.end_y);
 
-    cv::Vec4i lineGate(cvGateLeftPoint.x, cvGateLeftPoint.y, cvGateRightPoint.x, cvGateRightPoint.y);
-    cv::Vec4i lineThorough(ps.x, ps.y, pe.x, pe.y);
+//    cv::Vec4i lineGate(cvGateLeftPoint.x, cvGateLeftPoint.y, cvGateRightPoint.x, cvGateRightPoint.y);
+//    cv::Vec4i lineThorough(ps.x, ps.y, pe.x, pe.y);
+//
+//    // 计算两条直线的方向向量
+//    cv::Point2f dirGate(lineGate[2] - lineGate[0], lineGate[3] - lineGate[1]);
+//    cv::Point2f dirThorough(lineThorough[2] - lineThorough[0], lineThorough[3] - lineThorough[1]);
+//
+//    // 计算两个方向向量的夹角（以度为单位）
+//    double angleGate = atan2(dirGate.y, dirGate.x) * 180 / CV_PI;
+//    double angleThorough = atan2(dirThorough.y, dirThorough.x) * 180 / CV_PI;
+//
+//    double angleDifference = std::abs(angleGate - angleThorough);
+//
+//    if (angleDifference < 80 || angleDifference > 100) {
+//        throw app::exception(make_error_code(error::mark_points_as_perpendicular_as_possible_to_the_gate));
+//    }
 
-    double angleGate = atan2(lineGate[3] - lineGate[1], lineGate[2] - lineGate[0]) * 180 / CV_PI;
-    double angleThorough = atan2(lineThorough[3] - lineThorough[1], lineThorough[2] - lineThorough[0]) * 180 / CV_PI;
+    int lineDiffY = pe.y - ps.y;
+    int lineDiffX = pe.x - ps.x;
+    int gateDiffY = cvGateRightPoint.y - cvGateLeftPoint.y;
+    int gateDiffX = cvGateRightPoint.x - cvGateLeftPoint.x;
 
-    double angleDifference = std::abs(angleGate - angleThorough);
+    double h1u = lineDiffY / sqrt(std::pow(lineDiffY, 2) + std::pow(lineDiffX, 2));
+    double w1u = lineDiffX / sqrt(std::pow(lineDiffY, 2) + std::pow(lineDiffX, 2));
+    double h2u = gateDiffY / sqrt(std::pow(gateDiffY, 2) + std::pow(gateDiffX, 2));
+    double w2u = gateDiffX / sqrt(std::pow(gateDiffY, 2) + std::pow(gateDiffX, 2));
 
-    if (angleDifference < 80 || angleDifference > 100) {
+    auto angleThorough = (h1u * h2u + w1u * w2u) * 180 / CV_PI;
+
+    // 检查角度差是否小于阈值，表示两条线接近垂直
+    if (angleThorough > 10.0) {
         throw app::exception(make_error_code(error::mark_points_as_perpendicular_as_possible_to_the_gate));
     }
 

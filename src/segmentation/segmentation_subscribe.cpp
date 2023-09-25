@@ -148,13 +148,43 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
             LOG(ERROR) << "MessageStrategy other start exception";
         }
     } else if (flag_result.data == 3) {
-        MapPo &po = SegmentationDataBase::instance().getDbMap();
-        Gate gate(po.id, 123, 231, 292, 231,
-                  -0.0480371669563, 3.03767555864, -0.0023247943396,
-                  -0.0040943493407, -0.00849210578278, -0.0298977331954, 0.999508502211,
-                  2.23944492753, 2.95870282466, 0.00108490549205,
-                  -0.00406858102555, -0.00276490081865, 0.99982629203, 0.0179774229821);
-        SegmentationDataBase::instance().saveGate(gate);
+//        MapPo &po = SegmentationDataBase::instance().getDbMap();
+//        Gate gate(po.id, 123, 231, 292, 231,
+//                  -0.0480371669563, 3.03767555864, -0.0023247943396,
+//                  -0.0040943493407, -0.00849210578278, -0.0298977331954, 0.999508502211,
+//                  2.23944492753, 2.95870282466, 0.00108490549205,
+//                  -0.00406858102555, -0.00276490081865, 0.99982629203, 0.0179774229821);
+//        SegmentationDataBase::instance().saveGate(gate);
+
+        // 定义两条线的端点
+        cv::Point2i ps(0, 50);
+        cv::Point2i pe(50, 0);
+
+        cv::Point2i cvGateLeftPoint(0, 0);
+        cv::Point2i cvGateRightPoint(50, 0);
+
+        int lineDiffY = pe.y - ps.y;
+        int lineDiffX = pe.x - ps.x;
+        int gateDiffY = cvGateRightPoint.y - cvGateLeftPoint.y;
+        int gateDiffX = cvGateRightPoint.x - cvGateLeftPoint.x;
+        // normalize to unit vectors
+        double h1u = lineDiffY / sqrt(std::pow(lineDiffY, 2) + std::pow(lineDiffX, 2));
+        double w1u = lineDiffX / sqrt(std::pow(lineDiffY, 2) + std::pow(lineDiffX, 2));
+        double h2u = gateDiffY / sqrt(std::pow(gateDiffY, 2) + std::pow(gateDiffX, 2));
+        double w2u = gateDiffX / sqrt(std::pow(gateDiffY, 2) + std::pow(gateDiffX, 2));
+
+        auto angleThorough = (h1u * h2u + w1u * w2u) * 180 / CV_PI;
+
+        // 设置垂直阈值
+        double verticalThreshold = 10.0;
+
+        // 检查角度差是否小于阈值，表示两条线接近垂直
+        if (angleThorough < verticalThreshold) {
+            std::cout << angleThorough << " 线条接近垂直.\n";
+        } else {
+            std::cout << angleThorough << " 线条不接近垂直.\n";
+        }
+
     }
 
 }

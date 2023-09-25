@@ -307,14 +307,14 @@ namespace sqlite_orm {
     template<>
     struct statement_binder<TaskMode> {
         int bind(sqlite3_stmt *stmt, int index, const TaskMode &value) {
-            return statement_binder<int>().bind(stmt, index, SqliteDataBase::ModeToInt(value));
+            return statement_binder<std::string>().bind(stmt, index, std::to_string(SqliteDataBase::ModeToInt(value)));
         }
     };
 
     template<>
     struct field_printer<TaskMode> {
-        int operator()(const TaskMode &t) const {
-            return SqliteDataBase::ModeToInt(t);
+        std::string operator()(const TaskMode &t) const {
+            return std::to_string(SqliteDataBase::ModeToInt(t));
         }
     };
 
