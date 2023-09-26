@@ -52,7 +52,8 @@ private:
     acceptAppSchedule,//
     pub_collect_dust,//
     pub_maintenance_mode,//
-    pub_detection;
+    pub_detection,//
+    pub_open_gate;
 
 public:
     static auto &instance() {
@@ -109,6 +110,8 @@ public:
     void publishMaintenanceMode(const std_msgs::Int32 &message) const;
 
     void pubDetection(const ai_msgs::MultiRectangles &message);
+
+    void pubOpenGate();
 };
 
 #endif //APP_COMMUNICATION_PUBLISHINNERMANAGER_H

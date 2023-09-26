@@ -5,6 +5,7 @@
 #include "task/framework/AsyncGateFramework.h"
 #include "future/async_call.h"
 #include "task/point_planner.h"
+#include "manager/PublishInnerManager.h"
 
 AsyncGateImplement::AsyncGateImplement() {
     int err = AsyncGateImplement::make_thread(run, this);
@@ -41,6 +42,7 @@ AsyncGateImplement::AsyncGateImplement() {
             if (front.open_gate) {
                 LOG_IF(INFO, DEBUG_GATE)
                                 << "AsyncGateImplement  发送打开闸机的命令 ... ";
+                PublishInnerManager::instance().pubOpenGate();
             }
             PointPlanner::instance().goToPoint(front);
         }

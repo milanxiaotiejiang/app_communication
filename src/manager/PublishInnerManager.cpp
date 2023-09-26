@@ -35,6 +35,7 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_collect_dust = handle.advertise<std_msgs::Int32>("/collect_dust", 1);
     pub_maintenance_mode = handle.advertise<std_msgs::Int32>("/maintenance_mode", 1);
     pub_detection = handle.advertise<ai_msgs::MultiRectangles>("/detection_results", 1);
+    pub_open_gate = handle.advertise<std_msgs::Int32>("/open_gate", 1);
 }
 
 void PublishInnerManager::publishPushMode(const std_msgs::Int32 &message) const {
@@ -144,4 +145,10 @@ void PublishInnerManager::publishMaintenanceMode(const std_msgs::Int32 &message)
 
 void PublishInnerManager::pubDetection(const ai_msgs::MultiRectangles &message) {
     pub_detection.publish(message);
+}
+
+void PublishInnerManager::pubOpenGate() {
+    std_msgs::Int32 message;
+    message.data = 1;
+    pub_open_gate.publish(message);
 }
