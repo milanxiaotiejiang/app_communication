@@ -127,12 +127,12 @@ public:
 
                 if (direction) {
                     points.push_back(leftPoint(gate, false, false));
-                    points.push_back(leftPoint(gate, true, true));
-                    points.push_back(rightPoint(gate, true, false));
+                    points.push_back(leftPoint(gate, true, false));
+                    points.push_back(rightPoint(gate, true, true));
                 } else {
                     points.push_back(rightPoint(gate, false, false));
-                    points.push_back(rightPoint(gate, true, true));
-                    points.push_back(leftPoint(gate, true, false));
+                    points.push_back(rightPoint(gate, true, false));
+                    points.push_back(leftPoint(gate, true, true));
                 }
 
                 if (i == stacks.size() - 2) {

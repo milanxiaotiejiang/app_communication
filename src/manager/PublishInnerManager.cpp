@@ -149,6 +149,6 @@ void PublishInnerManager::pubDetection(const ai_msgs::MultiRectangles &message) 
 
 void PublishInnerManager::pubOpenGate() {
     std_msgs::Int32 message;
-    message.data = 1;
+    message.data = 60;
     pub_open_gate.publish(message);
 }
