@@ -105,8 +105,8 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
         SegmentationDataBase::instance().purgeGate(po.id);
     } else if (flag_result.data == 1) {
         int height = 250;
-        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height - 20));
-        auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height + 20));
+        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height - 15));
+        auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height + 15));
 
         MapPo &po = SegmentationDataBase::instance().getDbMap();
         Gate gate(po.id, 15, height, 280, height,
@@ -127,8 +127,8 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
         }
     } else if (flag_result.data == 2) {
         int height = 110;
-        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height - 20));
-        auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height + 20));
+        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height - 15));
+        auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height + 15));
 
         MapPo &po = SegmentationDataBase::instance().getDbMap();
         Gate gate(po.id, 15, height, 280, height,
