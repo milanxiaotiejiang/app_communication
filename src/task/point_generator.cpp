@@ -10,14 +10,9 @@
 #include <Eigen/Dense>
 #include <eigen_conversions/eigen_msg.h>
 #include "exploration/radian_angle_conversion.h"
-#include "model/ViewPart.h"
-#include "manager/ViewPartManager.h"
-#include "model/Combination.h"
-#include "manager/CombinationManager.h"
 #include "exploration/line.h"
 #include "tool/Variable.h"
 #include "segmentation/SegmentationCenter.h"
-#include "task/model/CombinationPoseVo.h"
 #include "exploration/path_exploration_preview_task.h"
 #include "db/segmentation_data_base.h"
 #include "geometry_msgs/Polygon.h"

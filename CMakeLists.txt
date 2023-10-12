@@ -110,10 +110,11 @@ file(GLOB HEADER_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/include/*/*/*/*.h")
 file(GLOB SOURCE_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*/*/*.cpp")
 
 
-find_library(CPPFS_LIB head/cppfs PATHS "${CMAKE_SOURCE_DIR}/lib")
-message("${CMAKE_SOURCE_DIR}/lib")
+find_library(CPPFS_LIB head/cppfs
+        NAMES cppfs
+        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 message("CPPFS_LIB=${CPPFS_LIB}")
-include_directories(include "${CMAKE_SOURCE_DIR}/head")
+include_directories(include "${CMAKE_CURRENT_SOURCE_DIR}/head")
 
 add_executable(rec_app_node
         ${HEADER_FILES_LEVEL_1}

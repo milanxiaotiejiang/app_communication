@@ -11,7 +11,6 @@
 #include "task/RealBlock.h"
 #include "task/RealPoint.h"
 #include "model/RoomVo.h"
-#include "task/model/CombinationPoseVo.h"
 #include "model/Point.h"
 
 /**

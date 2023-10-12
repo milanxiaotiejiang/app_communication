@@ -16,6 +16,7 @@
 #include "sub/json/KnobControlStrategy.h"
 #include "sub/json/DBTaskStrategy.h"
 #include "sub/json/GateStrategy.h"
+#include "sub/json/ProjectStrategy.h"
 #include "exploration/ExplorationStrategy.h"
 #include "segmentation/SegmentationStrategy.h"
 #include <utility>
