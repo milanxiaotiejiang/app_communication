@@ -472,6 +472,6 @@ public:
     double _pointSegmentDistance(const T &x1,
                                  const T &x2,
                                  const T &x0) const override {
-        PointSegmentDistance3D<T>::getDistance(x1, x2, x0);
+        return PointSegmentDistance3D<T>::getDistance(x1, x2, x0);
     }
 };

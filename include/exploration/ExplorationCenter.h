@@ -82,7 +82,7 @@ private:
 
     bool detectionTooSmallRoom(const cv::Mat &map, int iterations) const;
 
-    cv::Point &findBaseNearReachable(cv::Mat &map, cv::Point &reachablePoint, int range);
+    void findBaseNearReachable(cv::Mat &map, cv::Point &reachablePoint, int range);
 
 public:
     static auto &instance() {
