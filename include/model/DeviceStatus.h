@@ -6,7 +6,6 @@
 #define APP_COMMUNICATION_DEVICESTATUS_H
 
 #include "MapInfo.h"
-#include "Task.h"
 #include "WorkStatus.h"
 
 #include "nlohmann/json.hpp"

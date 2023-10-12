@@ -12,8 +12,6 @@
 class TaskExploration {
 public:
 
-    static void task2RealTask(const Task &task, RealTask &realTask);
-
     static void task2RealTask(const TaskVo &task, RealTask &realTask);
 
     static RoomCoverage explorationPlanningPath(const RealTask &task);

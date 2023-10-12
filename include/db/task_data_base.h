@@ -6,7 +6,6 @@
 #define APP_COMMUNICATION_TASK_DATA_BASE_H
 
 #include "SqliteDataBase.h"
-#include "model/Task.h"
 #include "model/task.h"
 
 class TaskDataBase {
