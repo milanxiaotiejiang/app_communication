@@ -5,7 +5,6 @@
 #ifndef APP_COMMUNICATION_VARIABLE_H
 #define APP_COMMUNICATION_VARIABLE_H
 
-#include "model/TeachModePoint.h"
 #include "nav_msgs/Path.h"
 #include <nav_msgs/OccupancyGrid.h>
 
@@ -16,7 +15,6 @@ private:
     int planner_type;
     geometry_msgs::Pose current_pose;
     bool scan_flag;
-    WayPoint current_point;
     bool m_move_base_recovery_failure;
     bool m_base_exist;   //是否存在基站
     bool m_face_recognition;   //是否存在基站

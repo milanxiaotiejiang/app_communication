@@ -39,8 +39,6 @@ public:
 
     virtual ~ZooRobotStatusSubscribe();
 
-    void pubKnob(const zoo_bringup::robot_status &robot_status) const;
-
 };
 
 

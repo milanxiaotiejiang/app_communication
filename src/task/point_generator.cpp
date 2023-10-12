@@ -24,21 +24,13 @@
 #include "task/point_planner.h"
 
 #include "simulation.h"
-#include "segmentation/GateComprehensive.h"
 
 RealBlock PointGenerator::buildBlock(int id, const RealTask &task) {
     RealBlock block;
     block.id = id;
     block.taskId = task.getId();
 
-    block.renew = task.isRenew();
-    if (task.isRenew()) {
-        block.newTaskId = task.getTaskId();
-    } else {
-        if (task.getMode() == 7) {
-            block.oldTaskId = task.getCombination().getCombinationID();
-        }
-    }
+    block.newTaskId = task.getTaskId();
 
     block.name = task.getName();
     block.rate = task.getRate();

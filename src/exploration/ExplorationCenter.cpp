@@ -986,7 +986,7 @@ bool ExplorationCenter::detectionTooSmallRoom(const cv::Mat &map, int iterations
     return count != 0;
 }
 
-cv::Point &ExplorationCenter::findBaseNearReachable(cv::Mat &map, cv::Point &reachablePoint, int range) {
+void ExplorationCenter::findBaseNearReachable(cv::Mat &map, cv::Point &reachablePoint, int range) {
     int origin_x = reachablePoint.x;
     int origin_y = reachablePoint.y;
 

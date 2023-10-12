@@ -7,20 +7,9 @@
 
 #include "MessageStrategy.h"
 #include "net/base/BaseResult.h"
-#include "model/Project.h"
 
 #include "tool/write_file.hpp"
 #include "model/ParamVo.h"
-
-class ProjectStrategy : public MessageStrategy<Project, std::string> {
-public:
-    std::string handler(Project params) override;
-};
-
-class getProjectStrategy : public MessageStrategy<std::string, std::string> {
-public:
-    std::string handler(std::string params) override;
-};
 
 class PadVersionStrategy : public MessageStrategy<std::string, std::string> {
 public:

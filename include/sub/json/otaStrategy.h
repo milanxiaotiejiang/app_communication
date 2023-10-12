@@ -7,8 +7,6 @@
 
 #include "MessageStrategy.h"
 #include "tool/write_file.hpp"
-#include "model/Notice.h"
-#include "manager/NoticeManager.h"
 #include "model/OtaInfo.h"
 
 class otaStrategy : public MessageStrategy<OtaInfo, std::string> {

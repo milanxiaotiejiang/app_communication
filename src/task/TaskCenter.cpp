@@ -46,20 +46,11 @@
 
 std::string TaskCenter::preTask(const RealTask &task) {
     //拦截手动下发的任务且前期出站后期进站
-    if (task.isRenew()) {
-        const std::string &source = task.getOnSource();
-        TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
-        if (taskSource == TaskSource::App || taskSource == TaskSource::Pad || taskSource == TaskSource::Cloud) {
-            if (!asyncTaskCall->canIssuedTask(task)) {
-                throw app::exception(make_error_code(error::the_current_task_is_not_completed));
-            }
-        }
-    } else {
-        const std::string &launchPeople = task.getLaunchPeople();
-        if (launchPeople == "App" || launchPeople == "Pad" || launchPeople == "Cloud") {
-            if (!asyncTaskCall->canIssuedTask(task)) {
-                throw app::exception(make_error_code(error::the_current_task_is_not_completed));
-            }
+    const std::string &source = task.getOnSource();
+    TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
+    if (taskSource == TaskSource::App || taskSource == TaskSource::Pad || taskSource == TaskSource::Cloud) {
+        if (!asyncTaskCall->canIssuedTask(task)) {
+            throw app::exception(make_error_code(error::the_current_task_is_not_completed));
         }
     }
 
@@ -131,20 +122,18 @@ std::string TaskCenter::proTask(const RealTask &task) {
         throw app::exception(make_error_code(error::the_current_task_is_not_completed));
     }
 
-    if (task.isRenew()) {
-        //如果任务是湿拖任务，清水箱已空或者污水箱已满，不能分发任务
-        if (task.getWorkStatus().getMopStatus() == 1) {
-            if (ZooInnerStatus::instance().getCleanWaterLevel() == 0) {
-                throw app::exception(make_error_code(error::clean_water_level_check_failed));
-            }
-            if (ZooInnerStatus::instance().getDirtyWaterLevel() == 100) {
-                throw app::exception(make_error_code(error::dirty_water_level_check_failed));
-            }
+    //如果任务是湿拖任务，清水箱已空或者污水箱已满，不能分发任务
+    if (task.getWorkStatus().getMopStatus() == 1) {
+        if (ZooInnerStatus::instance().getCleanWaterLevel() == 0) {
+            throw app::exception(make_error_code(error::clean_water_level_check_failed));
         }
-        if (task.getWorkStatus().getVacuumStatus() == 1) {
-            if (ZooInnerStatus::instance().getDirtyWaterLevel() == 100) {
-                throw app::exception(make_error_code(error::dirty_water_level_check_failed));
-            }
+        if (ZooInnerStatus::instance().getDirtyWaterLevel() == 100) {
+            throw app::exception(make_error_code(error::dirty_water_level_check_failed));
+        }
+    }
+    if (task.getWorkStatus().getVacuumStatus() == 1) {
+        if (ZooInnerStatus::instance().getDirtyWaterLevel() == 100) {
+            throw app::exception(make_error_code(error::dirty_water_level_check_failed));
         }
     }
 
@@ -234,9 +223,6 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
                     ZooInnerStatus::instance().setNeedSleep(false);
                 }
 
-                std_msgs::Int32 message;
-                message.data = ii++;
-                PublishOutManager::instance().publishCarpet(message);
             }
         });
         moveBaseThread.detach();
@@ -253,12 +239,6 @@ void TaskCenter::uninstall() {
     delete flagOutSubscribe;
     delete flagInSubscribe;
     delete carpetDetectSubscribe;
-}
-
-void TaskCenter::executeTask(const Task &task) {
-    RealTask realTask;
-    TaskExploration::task2RealTask(task, realTask);
-    preTask(realTask);
 }
 
 std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int on_rate) {

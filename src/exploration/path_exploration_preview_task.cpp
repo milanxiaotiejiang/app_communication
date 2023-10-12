@@ -16,21 +16,7 @@
 #include "exploration/ExplorationCenter.h"
 #include "simulation.h"
 
-void TaskExploration::task2RealTask(const Task &task, RealTask &realTask) {
-    realTask.setRenew(false);
-
-    realTask.setId(task.getTaskId());
-    realTask.setRate(task.getRate());
-    realTask.setMode(task.getMode());
-    realTask.setZoned0(task.getZoned());
-    realTask.setCombination(task.getCombination());
-    realTask.setLaunchPeople(task.getLaunchPeople());
-    realTask.setLaunchTime(task.getLaunchTime());
-}
-
 void TaskExploration::task2RealTask(const TaskVo &task, RealTask &realTask) {
-    realTask.setRenew(true);
-
     auto uuid = boost::uuids::to_string(boost::uuids::random_generator()());
     realTask.setId(uuid);
 

@@ -166,36 +166,31 @@ void TaskFeedback::onTaskStart(const RealTask &task) {
         pointList.clear();
         savePath = local_path + task.getId() + ".rrmap";
 
-        if (task.isRenew()) {
-            std::vector<MPoint> covers;
-            for (const auto &block: task.getPlanBlocks()) {
-                for (const auto &point: block.plannerPoints) {
-                    const cv::Point cvPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(
-                            rows, cols, Point(point.realPosition.x, point.realPosition.y)
-                    );
-                    covers.emplace_back(cvPoint.x, cvPoint.y);
-                }
+        std::vector<MPoint> covers;
+        for (const auto &block: task.getPlanBlocks()) {
+            for (const auto &point: block.plannerPoints) {
+                const cv::Point cvPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(
+                        rows, cols, Point(point.realPosition.x, point.realPosition.y)
+                );
+                covers.emplace_back(cvPoint.x, cvPoint.y);
             }
-            rrMapCover.setCovers(covers);
-            rrMapPath.setPoints(covers);
+        }
+        rrMapCover.setCovers(covers);
+        rrMapPath.setPoints(covers);
 
-            TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
-            if (mode == TaskMode::Zoned) {
-                std::vector<MZone> zones;
-                std::vector<ZoneVo> taskZones = task.getZoned();
-                for (const auto &tzp: taskZones) {
-                    std::vector<PointVo> points = tzp.getPoints();
-                    MPoint p0(points[0].getX(), points[0].getY());
-                    MPoint p1(points[1].getX(), points[1].getY());
-                    MPoint p2(points[2].getX(), points[2].getY());
-                    MPoint p3(points[3].getX(), points[3].getY());
-                    MZone zone(p0, p1, p2, p3);
-                    zones.push_back(zone);
-                }
-                rrMapZone.setZones(zones);
-            }
-        } else {
+        TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
+        if (mode == TaskMode::Zoned) {
             std::vector<MZone> zones;
+            std::vector<ZoneVo> taskZones = task.getZoned();
+            for (const auto &tzp: taskZones) {
+                std::vector<PointVo> points = tzp.getPoints();
+                MPoint p0(points[0].getX(), points[0].getY());
+                MPoint p1(points[1].getX(), points[1].getY());
+                MPoint p2(points[2].getX(), points[2].getY());
+                MPoint p3(points[3].getX(), points[3].getY());
+                MZone zone(p0, p1, p2, p3);
+                zones.push_back(zone);
+            }
             rrMapZone.setZones(zones);
         }
 

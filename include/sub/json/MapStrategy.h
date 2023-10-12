@@ -37,11 +37,6 @@ public:
     void removeAncientNeeds() const;
 };
 
-class SaveMapStrategy : public MessageStrategy<MapInfo, MapInfo> {
-public:
-    MapInfo handler(MapInfo params) override;
-};
-
 class GetMultiMapsStrategy : public MessageStrategy<std::string, std::vector<MapInfo>> {
 public:
     std::vector<MapInfo> handler(std::string params) override;

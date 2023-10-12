@@ -195,8 +195,6 @@ void on_open(server *s, const websocketpp::connection_hdl &hdl) {
     ask.subMap[ROBOT_STATUS] = false;
     ask.subMap[NOTICE_APP] = false;
     ask.subMap[TASK_POINT] = false;
-    ask.subMap[CHECK_APP] = false;
-    ask.subMap[KNOB_APP] = false;
     ask.subMap[ALARM_EVENT] = false;
     ask.subMap[RESPONSE] = false;
     ask.subMap[RESPONSE_JSON] = false;
@@ -326,8 +324,6 @@ public:
         dataMap[NOTICE_APP] = "";
         dataMap[SENSOR_CHECK] = "";
         dataMap[TASK_POINT] = "";
-        dataMap[CHECK_APP] = "";
-        dataMap[KNOB_APP] = "";
         dataMap[ALARM_EVENT] = "";
         dataMap[RESPONSE] = "";
         dataMap[RESPONSE_JSON] = "";

@@ -10,7 +10,6 @@
 
 #include "net/base/BaseResult.h"
 #include "model/Point.h"
-#include "model/Task.h"
 #include "string"
 #include "tool/write_file.hpp"
 #include "net/base/BaseMethod.h"
@@ -37,29 +36,14 @@
 #include "task/model/PointProgressVo.h"
 #include "model/task.h"
 
-class ExecuteTaskStrategy : public MessageStrategy<Task, std::string> {
-public:
-    std::string handler(Task params) override;
-};
-
 class PerformTaskStrategy : public MessageStrategy<OnTask, std::string> {
 public:
     std::string handler(OnTask params) override;
 };
 
-class GetTaskListStrategy : public MessageStrategy<std::string, std::vector<Task>> {
-public:
-    std::vector<Task> handler(std::string params) override;
-};
-
 class RunningTaskStrategy : public MessageStrategy<std::string, RunTask> {
 public:
     RunTask handler(std::string params) override;
-};
-
-class GetTaskListStrategyV2 : public MessageStrategy<std::string, std::vector<TaskUpgrade>> {
-public:
-    std::vector<TaskUpgrade> handler(std::string params) override;
 };
 
 class IsInBasementStrategy : public MessageStrategy<std::string, bool> {
@@ -75,11 +59,6 @@ public:
 class GetFinishedPointStrategy : public MessageStrategy<std::string, std::vector<PointProgressVo>> {
 public:
     std::vector<PointProgressVo> handler(std::string params) override;
-};
-
-class GetFullPlanStrategy : public MessageStrategy<std::vector<int>, Task> {
-public:
-    Task handler(std::vector<int> params) override;
 };
 
 #endif// APP_COMMUNICATION_TASKSTRATEGY_H

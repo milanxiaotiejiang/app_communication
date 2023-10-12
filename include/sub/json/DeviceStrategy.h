@@ -12,9 +12,7 @@
 #include "model/DeviceStatus.h"
 #include "model/DeviceStatusV2.h"
 #include "model/MapInfo.h"
-#include <model/Task.h>
 #include <model/WorkStatus.h>
-#include "model/Location.h"
 
 
 #include <nlohmann/json.hpp>

@@ -115,6 +115,7 @@ bool PlanParamSetStrategy::handler(PlanParam params) {
             params.getBoundaryMinArea()
     );
     ExplorationCenter::instance().repaintCoveragePath();
+    return true;
 }
 
 PlanParam PlanParamResetStrategy::handler(std::string params) {

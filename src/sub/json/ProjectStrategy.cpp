@@ -9,57 +9,6 @@
 #include "manager/cloud_robot_control.h"
 #include "db/path.h"
 
-std::string ProjectStrategy::handler(Project params) {
-    std::string filePath;
-    filePath.append(path::data_base_config_dir());
-    filePath.append("project_info.txt");
-
-    if (!sh::File::exists(filePath)) {
-        std::unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
-        if (!uFilePtr->create(filePath)) {
-            throw app::exception(make_error_code(error::create_file_fail));
-        }
-    }
-
-    std::unique_ptr<sh::File> uFilePtr(new sh::File(filePath));
-    if (!uFilePtr->open(std::ios::in)) {
-        throw app::exception(make_error_code(error::open_file_fail));
-    }
-    uFilePtr->close();
-
-    std::string name = params.getName();
-
-    //直接保存
-    if (sh::File::saveTextTo(filePath, name)) {
-        return "";
-    } else {
-        throw app::exception(make_error_code(error::open_file_fail));
-    }
-}
-
-std::string getProjectStrategy::handler(std::string params) {
-    bool is_location;
-
-    std::string filePath;
-    filePath.append(path::data_base_config_dir());
-    filePath.append("project_info.txt");
-
-    sh::File *pFile1 = new sh::File(filePath);
-    std::string responseP;
-    if (pFile1->open(std::ios::in)) {//检查是否存在文件
-        responseP = pFile1->readAll();
-        if (responseP.length() > 0) {
-            is_location = true;
-            CloudRobotControl::instance().saveInfo(responseP);
-        } else {
-            is_location = false;
-            CloudRobotControl::instance().saveInfo("there is no project!!!");
-        }
-    } else {
-    }
-    return "";
-}
-
 std::string PadVersionStrategy::handler(std::string params) {
     std::string filePath;
     filePath.append(path::data_base_config_dir());

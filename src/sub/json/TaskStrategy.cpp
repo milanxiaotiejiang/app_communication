@@ -15,11 +15,6 @@
 #include "db/SqliteDataBase.h"
 #include "tool/param_check.h"
 
-std::string ExecuteTaskStrategy::handler(Task task) {
-    TaskCenter::instance().executeTask(task);
-    return "";
-}
-
 std::string PerformTaskStrategy::handler(OnTask params) {
     LOG(ERROR) << params;
     checkRate(params.on_rate);
@@ -29,65 +24,17 @@ std::string PerformTaskStrategy::handler(OnTask params) {
     );
 }
 
-std::vector<Task> GetTaskListStrategy::handler(std::string params) {
-    std::vector<Task> task_list;
-    for (const auto &item: ManualManager::instance().runTaskList()) {
-        Task task(item.getId(), item.getMode(), item.getRate(), item.getWorkStatus(),
-                  CleanPolygon(), item.getZoned0(), CleanContinuity(), TeachPathInfo(),
-                  item.getLaunchPeople(), item.getLaunchTime(), item.getTimeMode(), true);
-        if (item.getMode() == 7) {
-            task.setCombination(item.getCombination());
-        }
-        task_list.push_back(task);
-    }
-    return task_list;
-}
-
 RunTask RunningTaskStrategy::handler(std::string params) {
     RunTask runTask("");
     const RealTask &runningTask = ManualManager::instance().runningTask();
     if (!runningTask.getId().empty()) {
         runTask.taskId = runningTask.getId();
-        runTask.renew = runningTask.isRenew();
-        if (runningTask.isRenew()) {
-            runTask.newTaskId = runningTask.getTaskId();
-        } else {
-            if (runningTask.getMode() == 7) {
-                runTask.oldTaskId = runningTask.getCombination().getCombinationID();
-            }
-        }
+        runTask.renew = true;
+        runTask.newTaskId = runningTask.getTaskId();
     } else {
         throw app::exception(make_error_code(error::no_run_task));
     }
     return runTask;
-}
-
-std::vector<TaskUpgrade> GetTaskListStrategyV2::handler(std::string params) {
-//    //操作，获取当前任务状态
-//    std::vector<Task> clean_task_list;
-//    for (const auto &item: TaskManager::get_instance()->getTaskList()) {
-//        clean_task_list.push_back(item);
-//    }
-//
-//    std::vector<TaskUpgrade> taskUpgradeList;
-//    for (const auto &item: clean_task_list) {
-//        auto workStatus = item.getWorkStatus();
-//        WorkStatusUpgrade ws;
-//        ws.setSweepStatus(workStatus.getSweepStatus());
-//        ws.setDragStatus(workStatus.getMopStatus());
-//        ws.setAbsorbStatus(workStatus.getVacuumStatus());
-//        ws.setPushStatus(workStatus.getPushStatus());
-//
-//        TaskUpgrade taskUpgrade(
-//                item.getTaskId(), item.getMode(), item.getRate(), ws,
-//                item.getPolygon(), item.getZoned(), item.getContinuity(),
-//                item.getTeachPath(), item.getLaunchPeople(), item.getLaunchTime(), item.getTimeMode(),
-//                item.isInExecute(), item.getCombination(), item.getFullPath()
-//        );
-//        taskUpgradeList.push_back(taskUpgrade);
-//    }
-//
-//    return taskUpgradeList;
 }
 
 bool IsInBasementStrategy::handler(std::string params) {
@@ -106,84 +53,5 @@ VersionInfo GetRosVersionStrategy::handler(std::string params) {
 }
 
 std::vector<PointProgressVo> GetFinishedPointStrategy::handler(std::string params) {
-//    //操作，获取当前任务状态
-//    deque<PointProgressVo> finished_point_list;
-//    for (const auto &block: ManualManager::instance().runTaskPointList()) {
-//        if (block.id < 0) {
-//            continue;
-//        }
-//        auto plannerPoints = block.plannerPoints;
-//        if (plannerPoints.empty()) {
-//            continue;
-//        }
-//        if (block.arrive) {
-//            for (const auto &point: plannerPoints) {
-//                PointProgressVo pointProgressVo(
-//                        point.realPosition.x, point.realPosition.y,
-//                        point.currentStep, block.totalStep,
-//                        block.currentFrequency, block.totalFrequency,
-//                        block.work_status, block.mode, block.inClean,
-//                        block.taskId, block.renew, block.oldTaskId, block.newTaskId);
-//                finished_point_list.push_back(pointProgressVo);
-//            }
-//        } else {
-//            int current_step = block.already_step + block.timely_step;
-//            if (current_step > plannerPoints.size()) {
-//                continue;
-//            }
-//            for (int i = 0; i < current_step; i++) {
-//                auto point = plannerPoints[i];
-//                PointProgressVo pointProgressVo(
-//                        point.realPosition.x, point.realPosition.y,
-//                        point.currentStep, block.totalStep,
-//                        block.currentFrequency, block.totalFrequency,
-//                        block.work_status, block.mode, block.inClean,
-//                        block.taskId, block.renew, block.oldTaskId, block.newTaskId);
-//                finished_point_list.push_back(pointProgressVo);
-//            }
-//        }
-//    }
     return ManualManager::instance().runTaskPointList();
-}
-
-Task GetFullPlanStrategy::handler(std::vector<int> params) {
-
-//    std::vector<geometry_msgs::Pose2D> exploration_path;
-//    std::vector<cv::Point> point_path;
-//    const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
-//    ExplorationCenter::instance().generatePlanningPath(baseMap, ExplorationModel::FULL,
-//                                                       BOUSTROPHEDON_EXPLORER_MODE, false,
-//                                                       cv::Point(0, 0),
-//                                                       exploration_path, point_path);
-//
-//    ExplorationCenter::instance().pathPublish(exploration_path);
-//    boost::uuids::uuid uuid = boost::uuids::random_generator()();
-//    string uuid_string = boost::uuids::to_string(uuid);
-//
-//    std::vector<PoseVo> poseList;
-//    std::vector<PointVo> pointList;
-//    for (const auto &item: exploration_path) {
-//        poseList.emplace_back(item.y, item.x, item.theta);
-//    }
-//    for (const auto &item: point_path) {
-//        pointList.emplace_back(item.x, item.y);
-//    }
-//
-//    auto coverage = RoomCoverage(uuid_string, pointList, poseList);
-
-    auto coverage = ExplorationCenter::instance().obtainCoveragePath();
-    ExplorationCenter::instance().cacheRoomCoverage(coverage);
-
-
-    Environment::instance().room_coverage_uuid = coverage.getCoverageId();
-
-    std::vector<Point> full;
-    for (const auto &item: coverage.getPoseList()) {
-        full.emplace_back(item.getX(), item.getY());
-    }
-    FullPath fullPath(full);
-    Task param;
-    param.setFullPath(fullPath);
-
-    return param;
 }

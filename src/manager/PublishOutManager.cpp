@@ -13,7 +13,6 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
     pub_robot_status_ = handle.advertise<std_msgs::String>(ROBOT_STATUS, 10);
     pub_map_ = handle.advertise<nav_msgs::OccupancyGrid>(MAP_APP, 10);
 
-    pub_self_check_ = handle.advertise<std_msgs::String>(CHECK_APP, 1);
     pub_notice_ = handle.advertise<std_msgs::String>(NOTICE_APP, 1);
     pub_sensor_check_ = handle.advertise<std_msgs::String>(SENSOR_CHECK, 1);
     pub_internal_event_ = handle.advertise<std_msgs::String>(INTERNAL_EVENT, 10);
@@ -21,10 +20,6 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
     acceptAppJsonV1 = handle.advertise<std_msgs::String>(APP_JSON, 1);
 
     acceptAppCommunication = handle.advertise<std_msgs::String>(APP_COMMUNICATION, 1);
-
-    pub_knob_ = handle.advertise<std_msgs::String>(KNOB_APP, 10);
-
-    pubCarpet = handle.advertise<std_msgs::Int32>("/sub_carpet", 10);
 }
 
 void PublishOutManager::publishJson(const std::string &message) const {
@@ -62,21 +57,6 @@ void PublishOutManager::publishMap(const nav_msgs::OccupancyGrid &message) const
               " y : " << message.info.origin.position.y <<
               " z : " << message.info.origin.position.z;
     pub_map_.publish(message);
-}
-
-void PublishOutManager::publishSelfCheck(const VersionSubscribe<SelfCheckStatus> &versionSubscribe) const {
-    RequestModel<VersionSubscribe<SelfCheckStatus>> requestModel;
-    requestModel.setOp("publish");
-    requestModel.setTopic(CHECK_APP);
-    requestModel.setMsg(versionSubscribe);
-
-    json jsonResult = requestModel;
-
-    WsServerManager::instance().sendRequestData(CHECK_APP, jsonResult.dump());
-
-    std_msgs::String result;
-    result.data.append(jsonResult.dump());
-    pub_self_check_.publish(result);
 }
 
 void PublishOutManager::publishNotice(const Notice &notice) const {
@@ -129,24 +109,6 @@ void PublishOutManager::publishAppCommunication(const std_msgs::String &message)
     acceptAppCommunication.publish(message);
 }
 
-void PublishOutManager::publishKnob(const VersionSubscribe<KnobStatus> &versionSubscribe) const {
-    RequestModel<VersionSubscribe<KnobStatus>> requestModel(
-            "publish", KNOB_APP, versionSubscribe
-    );
-
-    json jsonResult = requestModel;
-
-    WsServerManager::instance().sendRequestData(KNOB_APP, jsonResult.dump());
-
-    std_msgs::String result;
-    result.data.append(jsonResult.dump());
-    pub_knob_.publish(result);
-}
-
 void PublishOutManager::publishInternalEvent(const std_msgs::String &message) const {
     pub_internal_event_.publish(message);
-}
-
-void PublishOutManager::publishCarpet(const std_msgs::Int32 &message) const {
-    pubCarpet.publish(message);
 }

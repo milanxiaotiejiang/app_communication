@@ -5,6 +5,7 @@
 #ifndef APP_COMMUNICATION_ICALLBACK_H
 #define APP_COMMUNICATION_ICALLBACK_H
 
+#include <geometry_msgs/Pose.h>
 #include "task/RealTask.h"
 
 class ITaskCallback {

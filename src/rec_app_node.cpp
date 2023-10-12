@@ -1,6 +1,5 @@
 #include "rec_app.h"
 #include "simulation.h"
-#include "manager/UpgradeManager.h"
 
 /**
  * https://github.com/fnc12/sqlite_orm
@@ -22,14 +21,8 @@ int Factorial(int number) {
 //}
 
 Variable *Variable::m_instance_ptr = nullptr;
-TeachModePoint *TeachModePoint::m_instance_ptr = nullptr;
-ViewPartManager *ViewPartManager::m_instance_ptr = nullptr;
-CombinationManager *CombinationManager::m_instance_ptr = nullptr;
-FullCleanManager *FullCleanManager::m_instance_ptr = nullptr;
 
 internal_event::InternalEventPubManager *internal_event::InternalEventPubManager::instance_ = nullptr;
-
-ScheduleThread *sThd = nullptr;
 
 int main(int argc, char **argv) {
 
@@ -93,16 +86,7 @@ int main(int argc, char **argv) {
     WsServerManager::instance().startWebSocket();
     AiServerManager::instance().startWebSocket();
 
-
-    UpgradeManager::instance().upgradeTask();
-    UpgradeManager::instance().upgradeTimer();
-    UpgradeManager::instance().deleteExcessive();
-
     ScheduleManagerSingleton::instance().start(handle);
-
-    sThd = new ScheduleThread(handle);
-    sThd->start();
-    sThd->detach();
 
     ManualManager::instance().restore();
 

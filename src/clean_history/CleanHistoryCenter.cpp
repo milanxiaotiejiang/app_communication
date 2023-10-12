@@ -49,27 +49,20 @@ namespace clean_history_db {
         std::string launch_people = task.getLaunchPeople();
         int mode = 0;
         std::string oldTaskId;
-        if (task.isRenew()) {
-            launch_people = task.getOnSource();
-            if (task.getMode() == 0) {
-                mode = 7;
-            } else if (task.getMode() == 1) {
-                mode = 6;
-            } else if (task.getMode() == 2) {
-                mode = 2;
-            } else if (task.getMode() == 3) {
-                mode = 3;
-            }
-        } else {
-            mode = task.getMode();
-            if (task.getMode() == 7) {
-                oldTaskId = task.getCombination().getCombinationID();
-            }
+        launch_people = task.getOnSource();
+        if (task.getMode() == 0) {
+            mode = 7;
+        } else if (task.getMode() == 1) {
+            mode = 6;
+        } else if (task.getMode() == 2) {
+            mode = 2;
+        } else if (task.getMode() == 3) {
+            mode = 3;
         }
         CleanHistory new_clean_history(task.getId(), mode,
                                        task.getRate(), launch_people,
                                        task.getTimeMode(), launch_time,
-                                       task.isRenew(),
+                                       true,
                                        oldTaskId,
                                        task.getTaskId());
         CleanHistoryDataBase::instance().addCleanHistory(new_clean_history);

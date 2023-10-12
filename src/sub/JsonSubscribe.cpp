@@ -5,33 +5,23 @@
 #include "sub/JsonSubscribe.h"
 
 #include "net/WsServerManager.h"
-#include "sub/json/TTStrategy.h"
-#include "sub/json/CombinationStartegy.h"
 #include "sub/json/DeviceStrategy.h"
 #include "sub/json/MapStrategy.h"
-#include "sub/json/ProjectStrategy.h"
 #include "sub/json/TaskStrategy.h"
-#include "sub/json/TeachModeStrategy.h"
-#include "sub/json/TimerStrategy.h"
-#include "sub/json/ViewPartStrategy.h"
 #include <sub/json/GetCleanHistoryStrategy.h>
-#include <sub/json/LocationStrategy.h>
 #include <sub/json/ModeStrategy.h>
 #include <sub/json/StatusStrategy.h>
 #include "sub/json/MaterialStrategy.h"
-#include "sub/json/NoticeStrategy.h"
 #include "sub/json/CloudDeviceStrategy.h"
 #include "sub/json/KnobControlStrategy.h"
-#include "sub/json/FullCleaningModeStrategy.h"
+#include "sub/json/DBTaskStrategy.h"
+#include "sub/json/GateStrategy.h"
 #include "exploration/ExplorationStrategy.h"
 #include "segmentation/SegmentationStrategy.h"
 #include <utility>
 
 #include "simulation.h"
-#include "simulation.h"
-#include "sub/json/DBTaskStrategy.h"
 #include "sys/syscall.h"
-#include "sub/json/GateStrategy.h"
 
 JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
     sub_json_ = handle.subscribe(APP_JSON, 3, &JsonSubscribe::subscribeCallback, this);
@@ -55,9 +45,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
     switch (switch_ID(entrance.getMethod())) {
         case GET_DEVICE_STATUS_:
             messageStrategy = new GetDeviceStatusStrategy();
-            break;
-        case SAVE_MAP_:
-            messageStrategy = new SaveMapStrategy();
             break;
         case START_MAP:
             messageStrategy = new StartMapStrategy();
@@ -85,12 +72,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new GetEditMapStrategy();
             break;
 
-        case EXECUTE_TASK_:
-            messageStrategy = new ExecuteTaskStrategy();
-            break;
-        case GET_TASK_LIST_:
-            messageStrategy = new GetTaskListStrategy();
-            break;
         case RUNNING_TASK:
             messageStrategy = new RunningTaskStrategy();
             break;
@@ -113,29 +94,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new ChangeAromStatusStrategy();
             break;
 
-        case TEACH_MODE_START_:
-            messageStrategy = new StartTeachModeStrategy();
-            break;
-        case TEACH_MODE_STOP_:
-            messageStrategy = new StopTeachModeStrategy();
-            break;
-        case TEACH_HEART_BEAT_:
-            messageStrategy = new HeartBeatofTeachModeStrategy();
-            break;
-        case GET_TEACH_PATH_LIST_:
-            messageStrategy = new GetTeachModeListStrategy();
-            break;
-        case GET_TEACH_PATH_DETAIL_:
-            messageStrategy = new GetTeachModeDetialStrategy();
-            break;
-        case DELETE_TEACH_PATH_LIST_:
-            messageStrategy = new DeleteTeachModeStrategy();
-            break;
-
-        case GET_FULL_PLAN_:
-            messageStrategy = new GetFullPlanStrategy();
-            break;
-
         case TRY_TO_ENTER_:
             messageStrategy = new RobotTryEnterModeStrategy();
             break;
@@ -151,59 +109,11 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case CLEAN_HISTORY_REQUEST_:
             messageStrategy = new GetCleanHistoryStrategy();
             break;
-        case COMBINATION_PART_ADD_:
-            messageStrategy = new CombinationPartAddStrategy();
-            break;
-        case COMBINATION_COMBINATION_ADD_:
-            messageStrategy = new CombinationCombinationAddStartegy();
-            break;
-        case COMBINATION_PART_LIST_:
-            messageStrategy = new CombinationPartListStrategy();
-            break;
-        case COMBINATION_COMBINATION_LIST_:
-            messageStrategy = new CombinationCombinationListStrategy();
-            break;
-        case COMBINATION_COMBINATION_DETAILS_:
-            messageStrategy = new CombinationCombinationDetailsStrategy();
-            break;
-        case COMBINATION_PART_DELETE_:
-            messageStrategy = new CombinationPartDeleteStrategy();
-            break;
-        case COMBINATION_PART_DELETE_FORCE_:
-            messageStrategy = new CombinationPartDeleteForceStrategy();
-            break;
-        case COMBINATION_COMBINATION_DELETE_:
-            messageStrategy = new CombinationCombinationDeleteStrategy();
-            break;
-        case COMBINATION_PART_UPDATE_:
-            messageStrategy = new CombinationPartUpdateStrategy();
-            break;
-        case COMBINATION_COMBINATION_UPDATE_:
-            messageStrategy = new CombinationCombinationUpdateStrategy();
-            break;
         case IS_IN_BASEMENT_:
             messageStrategy = new IsInBasementStrategy();
             break;
         case GET_ROS_VERSION_:
             messageStrategy = new GetRosVersionStrategy();
-            break;
-        case UPD_TIMER_:
-            messageStrategy = new UpdateTimerStrategy();
-            break;
-        case SET_TIMER_:
-            messageStrategy = new SetTimerStrategy();
-            break;
-        case GET_TIMER_LIST_:
-            messageStrategy = new GetTimerListStrategy();
-            break;
-        case DEL_TIMER_:
-            messageStrategy = new DelTimerStrategy();
-            break;
-        case SAVE_LOCATION:
-            messageStrategy = new LocationStrategy();
-            break;
-        case SAVE_PROJECT:
-            messageStrategy = new ProjectStrategy();
             break;
         case PAD_VERSION_INTO:
             messageStrategy = new PadVersionStrategy();
@@ -211,23 +121,8 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case GET_MACHINE_MODEL:
             messageStrategy = new MachineModelStrategy();
             break;
-        case MAIN_COMBINATION_WAY:
-            messageStrategy = new CombinationMainStrategy();
-            break;
-        case CANCEL_MAIN_COMBINATION:
-            messageStrategy = new CancelCombinationMainStrategy();
-            break;
-        case NOTICE_LIST:
-            messageStrategy = new NoticeListStrategy();
-            break;
         case GET_DEVICE_SECRET:
             messageStrategy = new GetDeviceSecretStrategy();
-            break;
-        case TT_ERROR_CHECK:
-            messageStrategy = new TTErrorCheck();
-            break;
-        case KNOB_CONTROL:
-            messageStrategy = new KnobControlStrategy();
             break;
         case COLLECT_DUST:
             messageStrategy = new CollectDustStrategy();

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
+
 project(app_communication)
+
 SET(CMAKE_BUILD_TYPE Debug)
 #SET(CMAKE_BUILD_TYPE "Release")
 #SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC")
@@ -7,7 +9,7 @@ SET(CMAKE_BUILD_TYPE Debug)
 ## --------------------------------------------
 SET(MAJOR_VERSION 1)
 SET(MINOR_VERSION 0)
-SET(PATCH_VERSION 2)
+SET(PATCH_VERSION 0)
 
 #说明要生成的是deb包
 SET(CPACK_GENERATOR "DEB")
@@ -56,7 +58,7 @@ find_package(catkin REQUIRED COMPONENTS
         replan_msgs
         back_charge_msgs
         ai_msgs
-        )
+)
 
 catkin_package(
         INCLUDE_DIRS include
@@ -92,6 +94,7 @@ include_directories(include ${PYTHON_INCLUDE_DIRS})
 include_directories(include /usr/local/include/breakpad)
 include_directories(include ${BOOST_IOSTREAMS_DIRS})
 
+
 message("cmake_current_source_dir=${CMAKE_CURRENT_SOURCE_DIR}")
 
 file(GLOB HEADER_FILES_LEVEL_1 "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
@@ -107,12 +110,10 @@ file(GLOB HEADER_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/include/*/*/*/*.h")
 file(GLOB SOURCE_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*/*/*.cpp")
 
 
-file(GLOB HEADER_CPP_FS "${CMAKE_CURRENT_SOURCE_DIR}/include/cppfs/*.h")
-file(GLOB SOURCE_CPP_FS "${CMAKE_CURRENT_SOURCE_DIR}/src/cppfs/*.cpp")
-file(GLOB HEADER_CPP_FS_POSIX "${CMAKE_CURRENT_SOURCE_DIR}/include/cppfs/posix/*.h")
-file(GLOB SOURCE_CPP_FS_POSIX "${CMAKE_CURRENT_SOURCE_DIR}/src/cppfs/posix/*.cpp")
-file(GLOB HEADER_CPP_FS_LINUX "${CMAKE_CURRENT_SOURCE_DIR}/include/cppfs/linux/*.h")
-file(GLOB SOURCE_CPP_FS_LINUX "${CMAKE_CURRENT_SOURCE_DIR}/src/cppfs/linux/*.cpp")
+find_library(CPPFS_LIB head/cppfs PATHS "${CMAKE_SOURCE_DIR}/lib")
+message("${CMAKE_SOURCE_DIR}/lib")
+message("CPPFS_LIB=${CPPFS_LIB}")
+include_directories(include "${CMAKE_SOURCE_DIR}/head")
 
 add_executable(rec_app_node
         ${HEADER_FILES_LEVEL_1}
@@ -124,21 +125,13 @@ add_executable(rec_app_node
         ${HEADER_FILES_LEVEL_4}
         ${SOURCE_FILES_LEVEL_4}
         ${TEST_FILES}
-        include/cppfs/basen.hpp
         include/exploration/voronoi/voronoi.hpp
         include/exploration/voronoi/nanoflann.hpp
-        )
+)
 
 add_executable(dump_upload
         dump/dump_upload.cpp
-        include/cppfs/basen.hpp
-        ${HEADER_CPP_FS}
-        ${SOURCE_CPP_FS}
-        ${HEADER_CPP_FS_POSIX}
-        ${SOURCE_CPP_FS_POSIX}
-        ${HEADER_CPP_FS_LINUX}
-        ${SOURCE_CPP_FS_LINUX}
-        )
+)
 
 
 target_link_libraries(rec_app_node
@@ -146,41 +139,43 @@ target_link_libraries(rec_app_node
         ${catkin_LIBRARIES}
         ${OpenCV_LIBRARIES}
         ${GLOG_LIBRARIES}
-#        python2.7
+        #        python2.7
         eventpp::eventpp
         sqlite_orm::sqlite_orm sqlite3
         ${BREAK_PAD_LIBRARIES}
         ${Boost_LIBRARIES}
-        )
+        ${CPPFS_LIB}
+)
 
 target_link_libraries(dump_upload
         ${catkin_LIBRARIES}
-        )
+        ${CPPFS_LIB}
+)
 
 
 install(PROGRAMS
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+)
 
 install(TARGETS rec_app_node
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+)
 
 install(TARGETS dump_upload
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+)
 
 install(DIRECTORY include/
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
         FILES_MATCHING PATTERN "*.h"
         PATTERN ".svn" EXCLUDE
-        )
+)
 
 
 set(other_dir
         params
         scripts
-        )
+)
 
 
 foreach (_dir ${other_dir})

@@ -32,20 +32,7 @@ private:
     code_machina::BlockingCollection<RealTask> transferCollection;
 
     static std::shared_ptr<PointGenerator> pointGeneratorFactory(const RealTask &realTask) {
-        if (realTask.isRenew()) {
-            return std::make_shared<ExplorationGenerator>(ExplorationGenerator());
-        } else {
-//            if (realTask.getMode() == 10) {
-//                return std::make_shared<CoveragePointGenerator>(CoveragePointGenerator());
-//            } else if (realTask.getMode() == 2) {
-//                return std::make_shared<RectanglePointGenerator>(RectanglePointGenerator());
-//            } else if (realTask.getMode() == 7) {
-//                return std::make_shared<CombinationPointGenerator>(CombinationPointGenerator());
-//            } else if (realTask.getMode() == 6) {
-//                return std::make_shared<FullPointGenerator>(FullPointGenerator());
-//            }
-        }
-        throw app::exception(make_error_code(error::task_mode_no_find));
+        return std::make_shared<ExplorationGenerator>(ExplorationGenerator());
     }
 
     void plan_transfer_thread_func();

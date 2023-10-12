@@ -7,6 +7,8 @@
 #include <std_msgs/String.h>
 #include "simulation.h"
 #include "manager/VersionManager.h"
+#include "model/Notice.h"
+#include "manager/NoticeManager.h"
 
 int checkFolderExistOta(std::string const &name) {
     struct stat fileStatus;

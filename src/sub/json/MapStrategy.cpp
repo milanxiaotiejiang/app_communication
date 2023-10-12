@@ -34,16 +34,6 @@ std::string FactoryResetStrategy::handler(std::string params) {
     TaskDataBase::instance().deleteOwnTask();
     // 在此地图下，重置禁行区域，并备份
     MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true);
-    // 删除掉早期过期文件信息
-    cppfs::FileHandle file_timer_info_json = cppfs::fs::open(
-            path::data_base_config_dir() + "timer_info_json.txt");
-    file_timer_info_json.remove();
-    cppfs::FileHandle file_view_part_principal_json = cppfs::fs::open(
-            path::data_base_config_dir() + "view_part_principal_json.txt");
-    file_view_part_principal_json.remove();
-    cppfs::FileHandle file_combination_list_principal_json_work = cppfs::fs::open(
-            path::data_base_config_dir() + "combination_list_principal_json_work.txt");
-    file_combination_list_principal_json_work.remove();
     return "";
 }
 
@@ -149,66 +139,6 @@ void EndMapStrategy::removeAncientNeeds() const {
     cppfs::FileHandle file_combination_list_principal_json_work = cppfs::fs::open(
             path::data_base_config_dir() + "combination_list_principal_json_work.txt");
     file_combination_list_principal_json_work.remove();
-}
-
-MapInfo SaveMapStrategy::handler(MapInfo params) {
-    if (!ZooInnerStatus::instance().getIsCharging()) {
-        throw app::exception(make_error_code(error::the_map_needs_to_be_saved_at_the_base_station_location));
-    }
-    // todo 此版本为单地图
-    if (MapAttributeSingleton::instance().saveMap()) {
-
-        SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id,
-                                                       params.getMapName());
-
-        if (params.isReset()) {
-            SegmentationDataBase::instance().removeAllRoom(SegmentationDataBase::instance().getDbMap().id);
-            TaskDataBase::instance().deleteTaskFoMap(SegmentationDataBase::instance().getDbMap().id);
-            MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true);
-            PublishInnerManager::instance().publishResetProhibition();
-            cppfs::FileHandle file_timer_info_json = cppfs::fs::open(
-                    path::data_base_config_dir() + "timer_info_json.txt");
-            file_timer_info_json.remove();
-            cppfs::FileHandle file_view_part_principal_json = cppfs::fs::open(
-                    path::data_base_config_dir() + "view_part_principal_json.txt");
-            file_view_part_principal_json.remove();
-            cppfs::FileHandle file_combination_list_principal_json_work = cppfs::fs::open(
-                    path::data_base_config_dir() + "combination_list_principal_json_work.txt");
-            file_combination_list_principal_json_work.remove();
-        }
-
-        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
-        MapAttributeSingleton::instance().loadStation();
-        SegmentationCenter::instance().resetSegmentation();
-
-        double proportion = tcr::coverageProportion();
-
-        MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
-        MapInfo param(mapPo.id, mapPo.name, proportion);
-
-        ExplorationCenter::instance().repaintCoveragePath();
-
-        return param;
-    } else {
-        throw app::exception(make_error_code(error::create_map_fail));
-    }
-
-//    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
-//    MapControl::instance().backupAndRetrieve(oldMap.id);
-//    if (MapAttribute::instance().saveMap()) {
-//        const MapPo &newMap = SegmentationDataBase::instance().installMap(params.getMapName());
-//        SegmentationDataBase::instance().loadMainMap();
-//        MapControl::instance().backupProhibition(newMap.id, false);
-//        MapControl::instance().backupMap(newMap.id, false);
-//
-//        ExplorationCenter::instance().repaintCoveragePath(true);
-//
-//        MapInfo param(newMap.id, newMap.name);
-//        return param;
-//    } else {
-//        MapControl::instance().loadInformation(oldMap.id);
-//        throw app::exception(make_error_code(error::create_map_fail));
-//    }
 }
 
 std::vector<MapInfo> GetMultiMapsStrategy::handler(std::string params) {

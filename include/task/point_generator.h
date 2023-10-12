@@ -5,13 +5,14 @@
 #ifndef APP_COMMUNICATION_POINT_GENERATOR_H
 #define APP_COMMUNICATION_POINT_GENERATOR_H
 
+#include <geometry_msgs/PoseStamped.h>
 #include "vector"
 #include "RealTask.h"
 #include "task/RealBlock.h"
 #include "task/RealPoint.h"
 #include "model/RoomVo.h"
-#include "model/ViewPart.h"
 #include "task/model/CombinationPoseVo.h"
+#include "model/Point.h"
 
 /**
  * 点位生成节点，包含矩形、全覆盖、分区全覆盖等
@@ -44,29 +45,6 @@ public:
     generateChildPointFlow(const std::vector<PoseVo> &points, std::vector<PoseVo> &cpList, float resolution_);
 
 };
-
-//class CoveragePointGenerator : public PointGenerator {
-//protected:
-//    std::vector<RealPoint> taskGeneratePointList(RealTask &task) override;
-//};
-
-//class RectanglePointGenerator : public PointGenerator {
-//protected:
-//    std::vector<RealPoint> taskGeneratePointList(RealTask &task) override;
-//};
-
-//class CombinationPointGenerator : public PointGenerator {
-//private:
-//    bool generateRecPointListForViewPart(std::vector<Point> zoned, std::vector<CombinationPoseVo> &pointList);
-//
-//protected:
-//    std::vector<RealPoint> taskGeneratePointList(RealTask &task) override;
-//};
-
-//class FullPointGenerator : public PointGenerator {
-//protected:
-//    std::vector<RealPoint> taskGeneratePointList(RealTask &task) override;
-//};
 
 class ExplorationGenerator : public PointGenerator {
 public:

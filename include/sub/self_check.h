@@ -33,7 +33,6 @@
 #include <thread>
 #include "manager/VersionManager.h"
 #include "net/base/VersionSubscribe.h"
-#include "model/SelfCheckParam.h"
 
 static float RANGE_THRESHOLD = 0.15;
 static int BATTERY_THRESHOLD = 2;
@@ -356,7 +355,7 @@ public:
 
     bool publishFlag() { return publish_flag_; }
 
-    bool setEnabled(bool enable) {
+    void setEnabled(bool enable) {
         enabled_ = enable;
     }
 

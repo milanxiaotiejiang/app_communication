@@ -6,7 +6,6 @@
 #define APP_COMMUNICATION_TASKCENTER_H
 
 #include "simulation.h"
-#include "model/Task.h"
 #include "model/task.h"
 #include "task/RealTask.h"
 #include "task/subscribe/ZooRobotStatusSubscribe.h"
@@ -59,8 +58,6 @@ public:
     void initialize(ros::NodeHandle handle);
 
     void uninstall();
-
-    void executeTask(const Task &task);
 
     std::string performTask(const long taskId, TaskSource on_source, int on_rate);
 

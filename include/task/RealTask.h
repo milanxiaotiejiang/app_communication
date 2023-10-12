@@ -7,7 +7,6 @@
 
 #include "string"
 #include "model/WorkStatus.h"
-#include "model/Task.h"
 #include "RealBlock.h"
 #include "RealPoint.h"
 #include "model/RoomVo.h"
@@ -16,8 +15,6 @@
 class RealTask {
 private:
     std::string id;
-
-    bool renew;//新旧任务标志位
 
     std::string map_id;//当前任务所在的地图
     long task_id;//关联的新任务id
@@ -34,9 +31,6 @@ private:
     std::vector<SubregionVo> subregions;//新任务区域
     bool knife{false};//风刀开关
 
-    std::vector<float> zoned0;//app手动划区
-    Combination combination;//组合任务
-    int combination_type;//全覆盖 or 组合
     std::string time_mode;
 
     std::string source;//创建任务的源头
@@ -62,14 +56,6 @@ public:
 
     void setId(const std::string &id) {
         RealTask::id = id;
-    }
-
-    bool isRenew() const {
-        return renew;
-    }
-
-    void setRenew(bool renew) {
-        RealTask::renew = renew;
     }
 
     const std::string &getMapId() const {
@@ -160,30 +146,6 @@ public:
         RealTask::knife = knife;
     }
 
-    const std::vector<float> &getZoned0() const {
-        return zoned0;
-    }
-
-    void setZoned0(const std::vector<float> &zoned0) {
-        RealTask::zoned0 = zoned0;
-    }
-
-    const Combination &getCombination() const {
-        return combination;
-    }
-
-    void setCombination(const Combination &combination) {
-        RealTask::combination = combination;
-    }
-
-    int getCombinationType() const {
-        return combination_type;
-    }
-
-    void setCombinationType(int combinationType) {
-        combination_type = combinationType;
-    }
-
     const std::string &getTimeMode() const {
         return time_mode;
     }
@@ -266,11 +228,7 @@ public:
 
     void assignmentPoint(RealBlock &block, int blockId) const {
         block.id = blockId;
-        if (isRenew()) {
-            block.newTaskId = getTaskId();
-        } else {
-            block.oldTaskId = getId();
-        }
+        block.newTaskId = getTaskId();
     }
 
     void changeArrivalStatus(const RealBlock &block) {

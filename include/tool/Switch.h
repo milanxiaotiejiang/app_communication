@@ -18,8 +18,6 @@ enum MESSAGE_ID {
     EDIT_MAP_,              // 编辑地图禁行区
     GET_EDIT_MAP_,          //获取地图禁行区
 
-    EXECUTE_TASK_,          //发布任务
-    GET_TASK_LIST_,         //获取任务列表
     RUNNING_TASK,
 
     APP_SPOT_,              //继续清扫（与暂停对应）
@@ -28,61 +26,21 @@ enum MESSAGE_ID {
     CHANGE_WORK_STATUS_,    //改变清扫模式
     CHANGE_AROM_STATUS_,    //改变香薰机状态
 
-    CONTINUITY_TASK_LIST_,     //连续区域清扫
-    GET_CONTINUITY_TASK_LIST_, //获取连续区域清扫
-    POLYGON_TASK_LIST_,        //设置多边形区域
-    GET_POLYGON_TASK_LIST_,    //获取多边形区域
-
-    TEACH_MODE_START_,       //开启示教
-    TEACH_MODE_STOP_,        //关闭示教
-    TEACH_HEART_BEAT_,       //示教心跳包
-    GET_TEACH_PATH_LIST_,    //获取示教列表
-    GET_TEACH_PATH_DETAIL_,  //获取示教详细点位
-    DELETE_TEACH_PATH_LIST_, //删除示教
-    GET_FULL_PLAN_,          //获取全局规划路径
-
     TRY_TO_ENTER_,          //尝试进入某种模式
     FORCED_TO_ENTER_,       //强制进入某种模式
     WORK_TO_ENTER_,         //打开规划器，进入工作模式
     WORK_TO_MAP_APP_,       //工作模式请求地图
     CLEAN_HISTORY_REQUEST_, //请求清扫历史纪录
 
-    COMBINATION_PART_ADD_,        //添加单个part
-    COMBINATION_COMBINATION_ADD_, //添加单个combination；
-
-    COMBINATION_PART_LIST_,        //读取part列表
-    COMBINATION_COMBINATION_LIST_, //读取combination列表
-
-    COMBINATION_COMBINATION_DETAILS_, //读取combination详情
-
-    COMBINATION_PART_DELETE_,        //删除单个part
-    COMBINATION_PART_DELETE_FORCE_,  //强制删除单个part
-    COMBINATION_COMBINATION_DELETE_, //删除单个combination
-
-    COMBINATION_PART_UPDATE_,        //更新单个part
-    COMBINATION_COMBINATION_UPDATE_, //更新单个combination
     GET_FINISHED_POINT_,             //获取当前已经走过的点列
     IS_IN_BASEMENT_,                 //是否在基站
 
-    SET_TIMER_,      //设置清扫计时器
-    GET_TIMER_LIST_, //获取清扫计时器列表
-    DEL_TIMER_,      //删除单个定时器
-    UPD_TIMER_,      //修改清扫计时器
     GET_ROS_VERSION_,
-    SAVE_LOCATION,
-    SAVE_PROJECT,
-    GET_LOCATION,
-    GET_PROJECT,
     PAD_VERSION_INTO,
 
     GET_MACHINE_MODEL,
-    MAIN_COMBINATION_WAY,
-    CANCEL_MAIN_COMBINATION,
 
-    NOTICE_LIST,
     GET_DEVICE_SECRET,
-    TT_ERROR_CHECK,
-    KNOB_CONTROL,
     COLLECT_DUST,
 
     ROOM_MAP_DATA,
