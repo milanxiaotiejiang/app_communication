@@ -89,6 +89,8 @@ public:
 
     void cancelPath();
 
+    void cancelPoint();
+
     void backBasePoint();
 
     static RealPoint createBackBasePoint();

@@ -67,6 +67,13 @@ catkin_package(
         #  DEPENDS system_lib
 )
 
+find_package(CURL REQUIRED)
+if (CURL_FOUND)
+    message("We have found the curl library. ${CURL}")
+else ()
+    message(FATAL_ERROR "cURL library not found. Please install it or specify the library path.")
+endif ()
+
 find_package(OpenCV REQUIRED)
 find_package(eventpp)
 find_package(SqliteOrm REQUIRED)
@@ -77,6 +84,7 @@ set(GLOG_INCLUDE_DIRS /usr/include)
 set(PYTHON_INCLUDE_DIRS "/usr/include/python2.7")
 set(BREAK_PAD_LIBRARIES /usr/local/lib/libbreakpad_client.a)
 set(BOOST_IOSTREAMS_DIRS ${Boost_INCLUDE_DIRS}/boost/iostreams)
+file(GLOB CURL_LIBRARIES /usr/lib/x86_64-linux-gnu/libcurl.so)
 
 link_directories(/usr/local/lib)
 
@@ -85,6 +93,7 @@ message("glog_libraries=${GLOG_LIBRARIES}")
 message("break_pad_libraries=${BREAK_PAD_LIBRARIES}")
 message("boost_iostreams_dirs=${BOOST_IOSTREAMS_DIRS}")
 message("opencv_include_dirs=${OpenCV_INCLUDE_DIRS}")
+message("curl_libraries=${CURL_LIBRARIES}")
 
 include_directories(include /usr/local/include/yaml-cpp)
 include_directories(${GLOG_INCLUDE_DIRS})
@@ -146,6 +155,8 @@ target_link_libraries(rec_app_node
         ${BREAK_PAD_LIBRARIES}
         ${Boost_LIBRARIES}
         ${CPPFS_LIB}
+        #        CURL::CURL curl
+        ${CURL_LIBRARIES}
 )
 
 target_link_libraries(dump_upload

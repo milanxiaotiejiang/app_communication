@@ -136,6 +136,8 @@ protected:
 
     void cancelTask();
 
+    void cancelAny();
+
     virtual void forceInterruptTask(event::SB sb);
 
     void callBackBasePoint() override;

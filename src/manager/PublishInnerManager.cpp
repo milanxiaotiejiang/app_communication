@@ -36,6 +36,7 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_maintenance_mode = handle.advertise<std_msgs::Int32>("/maintenance_mode", 1);
     pub_detection = handle.advertise<ai_msgs::MultiRectangles>("/detection_results", 1);
     pub_open_gate = handle.advertise<std_msgs::Int32>("/open_gate", 1);
+    pub_hardware_reset = handle.advertise<std_msgs::Int32>("/hardware_reset", 1);
 }
 
 void PublishInnerManager::publishPushMode(const std_msgs::Int32 &message) const {
@@ -150,5 +151,11 @@ void PublishInnerManager::pubDetection(const ai_msgs::MultiRectangles &message) 
 void PublishInnerManager::pubOpenGate() {
     std_msgs::Int32 message;
     message.data = 60;
+    pub_open_gate.publish(message);
+}
+
+void PublishInnerManager::pubHardwareReset() {
+    std_msgs::Int32 message;
+    message.data = 1;
     pub_open_gate.publish(message);
 }

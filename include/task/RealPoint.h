@@ -81,6 +81,8 @@ public:
 
     bool core_move{false};
     bool open_gate{false};
+    std::string gate_uuid{};
+    std::string gate_factory_id{};
 
 //    friend std::ostream &operator<<(std::ostream &os, const RealPoint &point) {
 //        os << "id: " << point.id << " blockId: " << point.blockId << " realProgress: " << point.realProgress;

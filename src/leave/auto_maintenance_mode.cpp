@@ -25,7 +25,8 @@ void AutoMaintenanceModeManager::run() {
     while (true) {
 
         std::unique_lock<std::mutex> lk(auto_maintenance_mutex);
-        LOG_IF(INFO, DEBUG_MAINTENANCE) << "自动维护下次执行时间 ： " << ScheduleManager::format_time_point(end_time_point);
+        LOG_IF(INFO, DEBUG_MAINTENANCE)
+                        << "自动维护下次执行时间 ： " << ScheduleManager::format_time_point(end_time_point);
 
         auto_maintenance_cv.wait_until(lk, end_time_point, [this]() {
             return isResetTime;
@@ -100,7 +101,7 @@ void AutoMaintenanceModeManager::autoMaintenance() {
         async::TimerCall::instance().baseLoop()
                 ->scheduleLater(std::chrono::minutes(5), []() {
                     LOG_IF(INFO, DEBUG_MAINTENANCE)
-                    << "collectDust status " << ParamManager::instance().getCollectDust();
+                                    << "collectDust status " << ParamManager::instance().getCollectDust();
                     if (ParamManager::instance().getCollectDust()) {
                         PublishInnerManager::instance().publishCollectDust();
                         LOG_IF(INFO, DEBUG_MAINTENANCE) << "collectDust publish ";
@@ -121,13 +122,19 @@ void AutoMaintenanceModeManager::autoMaintenance() {
         async::TimerCall::instance().baseLoop()
                 ->scheduleLater(std::chrono::seconds(1), []() {
                     LOG_IF(INFO, DEBUG_MAINTENANCE)
-                    << "collectDust status " << ParamManager::instance().getCollectDust();
+                                    << "collectDust status " << ParamManager::instance().getCollectDust();
                     if (ParamManager::instance().getCollectDust()) {
                         PublishInnerManager::instance().publishCollectDust();
                         LOG_IF(INFO, DEBUG_MAINTENANCE) << "collectDust publish ";
                     }
                 });
     }
+
+    async::TimerCall::instance().baseLoop()
+            ->scheduleLater(std::chrono::minutes(30), []() {
+                LOG_IF(INFO, DEBUG_MAINTENANCE) << "hardware_reset ... ";
+                PublishInnerManager::instance().pubHardwareReset();
+            });
 
 }
 

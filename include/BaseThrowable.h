@@ -151,7 +151,8 @@ namespace error {
         mark_points_as_perpendicular_as_possible_to_the_gate,
         gate_mark_points_too_far_away,
         mark_points_in_the_gate_as_much_as_possible,
-        gate_value_error
+        gate_value_error,
+        passing_through_the_gate_manual_control_is_not_supported,
     };// enum value
 
     class category : public std::error_category {
@@ -434,6 +435,8 @@ namespace error {
                     return "标记点尽量均衡分布在闸机两侧";
                 case error::gate_value_error:
                     return "gate_value_error";
+                case error::passing_through_the_gate_manual_control_is_not_supported:
+                    return "机器正在通过闸机，不支持控制";
                 default:
                     return "Unknown";
             }

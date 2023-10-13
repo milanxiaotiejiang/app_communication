@@ -157,6 +157,9 @@ void PointPlanner::goToPoint(const RealPoint &point) {
 
 void PointPlanner::cancelPath() {
     share_replan->cancelGoal();
+}
+
+void PointPlanner::cancelPoint() {
     core_move->cancelGoal();
 }
 

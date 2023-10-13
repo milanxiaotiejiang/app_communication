@@ -155,6 +155,7 @@ public:
                                        make_column("right_orientation_w", &Gate::right_orientation_w),
                                        make_column("left_gate_ID", &Gate::left_gate_ID),
                                        make_column("right_gate_ID", &Gate::right_gate_ID),
+                                       make_column("factory_ID", &Gate::factory_ID),
                                        make_column("version", &Gate::version, default_value(CURRENT_GATE_VERSION))
                             )
         );

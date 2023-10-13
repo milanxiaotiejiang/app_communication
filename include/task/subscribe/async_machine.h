@@ -9,6 +9,7 @@
 #include "task/subscribe/zoo_inner_status.h"
 #include "clean_history/CleanHistoryCenter.h"
 #include "simulation.h"
+#include "future/node/node_control.h"
 
 class AsyncMachine {
 private:
@@ -33,6 +34,7 @@ private:
     ros::NodeHandle mHandle;
     EnterStatus enterStatus;
 
+    bool inGateMachine;
 public:
     static auto &instance() {
         static AsyncMachine obj;
@@ -83,6 +85,10 @@ public:
         AsyncMachine::epoll_special = epoll_special;
         AsyncMachine::epoll_error = epoll_error;
         AsyncMachine::urgency_stop = urgency_stop;
+    }
+
+    void setGateMachine(bool inGateMachine) {
+        AsyncMachine::inGateMachine = inGateMachine;
     }
 
     loop::error_epoll getError() {
@@ -139,6 +145,12 @@ public:
     int getMachineCode() {
         if (urgency_stop != loop::urgency_stop::release_urgency_stop) {
             return 10004;
+        }
+        if (NodeControl::instance().isMap()) {
+            return 10015;
+        }
+        if (inGateMachine) {
+            return 10016;
         }
         if (epoll_error == loop::error_epoll::error_manual_clean_start) {
             return 10013;
@@ -197,6 +209,8 @@ public:
                 return "转场中";
             case 10006:
                 return "待机中";
+            case 10007:
+                return "暂停中";
             case 10009:
                 return "回充中";
             case 10010:
@@ -207,10 +221,12 @@ public:
                 return "充电完成";
             case 10013:
                 return "手动模式";
-            case 10007:
-                return "暂停中";
             case 10014:
                 return "进站中";
+            case 10015:
+                return "建图中";
+            case 10016:
+                return "过闸机中";
             default:
                 return "未知";
         }

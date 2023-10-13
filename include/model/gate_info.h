@@ -38,6 +38,8 @@ class GateInfo {
     std::string left_gate_ID{};
     std::string right_gate_ID{};
 
+    std::string factory_ID{};
+
 public:
     GateInfo();
 
@@ -46,7 +48,7 @@ public:
              double leftOrientationY, double leftOrientationZ, double leftOrientationW, double rightPositionX,
              double rightPositionY, double rightPositionZ, double rightOrientationX, double rightOrientationY,
              double rightOrientationZ, double rightOrientationW, const std::string &leftGateId,
-             const std::string &rightGateId);
+             const std::string &rightGateId, const std::string &factoryId);
 
     friend void to_json(json &j, const GateInfo &b) {
         j = json{
@@ -72,6 +74,7 @@ public:
                 {"right_orientation_w", b.right_orientation_w},
                 {"left_gate_ID",        b.left_gate_ID},
                 {"right_gate_ID",       b.right_gate_ID},
+                {"factory_ID",          b.factory_ID},
         };
     }
 
@@ -98,6 +101,7 @@ public:
         j.at("right_orientation_w").get_to(b.right_orientation_w);
         j.at("left_gate_ID").get_to(b.left_gate_ID);
         j.at("right_gate_ID").get_to(b.right_gate_ID);
+        j.at("factory_ID").get_to(b.factory_ID);
     }
 
     long getId() const;
@@ -187,6 +191,10 @@ public:
     const std::string &getRightGateId() const;
 
     void setRightGateId(const std::string &rightGateId);
+
+    const std::string &getFactoryId() const;
+
+    void setFactoryId(const std::string &factoryId);
 };
 
 

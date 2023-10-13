@@ -31,7 +31,11 @@ private:
 
     std::function<void()> callbackImplementStart;
 
-    std::function<void(bool)> callbackImplementEnd;
+    std::function<void(bool, int)> callbackImplementEnd;
+
+    bool openGate(const std::string &gate_factory_id, const std::string &gate_uuid);
+
+    bool closeGate();
 
 protected:
     [[noreturn]] void execute() override;
@@ -41,6 +45,8 @@ public:
 
     void onImplementStart(const std::vector<RealPoint> points);
 
+    void cancelImplement();
+
     bool isImplement();
 
     void executeOnPointDone(event::error error);
@@ -49,7 +55,7 @@ public:
 
     void setCallbackImplementStart(const std::function<void()> &callback);
 
-    void setCallbackImplementEnd(const std::function<void(bool)> &callback);
+    void setCallbackImplementEnd(const std::function<void(bool, int)> &callback);
 
 };
 
@@ -64,7 +70,8 @@ private:
 
     std::vector<RealPoint> pointList;
 
-    std::function<void(bool)> callbackDistribution;
+    std::function<void()> callbackDistributionStart;
+    std::function<void(bool, int)> callbackDistributionResult;
 
 protected:
     [[noreturn]]  void execute() override;
@@ -74,13 +81,17 @@ public:
 
     void onDistributionStart(const std::vector<RealPoint> points);
 
+    void cancelDistribution();
+
     bool isImplement();
 
     void executeOnPointDone(event::error error);
 
     void executeOnPathDone(event::error error);
 
-    void setCallbackDistribution(const std::function<void(bool)> &callback);
+    void setCallbackDistribution(const std::function<void(bool, int)> &callback);
+
+    void setCallbackDistributionStart(const std::function<void()> &callbackDistributionStart);
 
 };
 

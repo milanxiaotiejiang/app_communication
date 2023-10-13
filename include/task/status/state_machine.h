@@ -39,7 +39,8 @@ namespace event {
         ABORTED,
         LOST,
         TIMEOUT,
-        CRASH
+        CRASH,
+        FAIL
     };
 
     enum GG {

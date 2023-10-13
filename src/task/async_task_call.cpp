@@ -40,10 +40,26 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
 
     initTaskBlock(runTask);
 
-    mGateDistribution->setCallbackDistribution([this](bool) {
+    mGateDistribution->setCallbackDistributionStart([]() {
+        AsyncMachine::instance().setGateMachine(true);
+    });
+    mGateDistribution->setCallbackDistribution([this](bool success, int progress) {
+        AsyncMachine::instance().setGateMachine(false);
         //int blockId, event::error error, const std::string &message
-        LOG_IF(INFO, DEBUG_GATE) << "假设通过闸机了 ";
-        executeOnPathDone(0, event::error::SUCCEEDED, "闸机");
+        if (success) {
+            LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  假设通过闸机了 ";
+            executeOnPathDone(0, event::error::SUCCEEDED, "闸机");
+        } else {
+            if (progress == -1) {
+                PointPlanner::instance().cancelPoint();
+                LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  执行取消 ";
+                executeOnPathDone(0, event::error::SUCCEEDED, "闸机");
+            } else {
+                LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  执行错误 ";
+                setFlow(event::flow::software_interrupt_task);
+                executeOnPathDone(0, event::error::FAIL, "闸机");
+            }
+        }
     });
 }
 
@@ -67,8 +83,8 @@ void AsyncTaskCall::handleManualOperation() {
             break;
         case loop::manual_epoll::manual_task_over:
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 有 App 或 Pad 下发任务，停止当前任务 ...";
-            PointPlanner::instance().cancelPath();
-            async::TimerCall::instance().baseLoop()->cancelAny();
+            mGateDistribution->cancelDistribution();
+            cancelAny();
             goodGame(event::GG::gg_task_over);
             break;
         default:
@@ -521,7 +537,7 @@ void AsyncTaskCall::callBackBasePoint() {
     auto backBasePoint = PointPlanner::createBackBasePoint();
 
     bool use_re_plan = true;
-    std::vector <RealPoint> points;
+    std::vector<RealPoint> points;
 
     std::vector<int> stacks;
     mGateComprehensive->AStarPlannerPoint(backBasePoint, stacks);
@@ -760,8 +776,7 @@ void AsyncTaskCall::callPause(bool skipManual) {
     MechanismManager::instance().resetWorkStatus();
     if (isContinueWork(currentFlow(), true, skipManual)) {
         makeSurePause(currentFlow());
-        PointPlanner::instance().cancelPath();
-        async::TimerCall::instance().baseLoop()->cancelAny();
+        cancelAny();
         if (!plannerQueue.empty()) {
             auto currentPoint = findFrontBlock();
             if (currentPoint.goal_step == INT_MAX) {
@@ -777,8 +792,7 @@ void AsyncTaskCall::callPause(bool skipManual) {
 void AsyncTaskCall::cancelTaskAndBack(bool force) {
     if (!isReturningBase(currentFlow())) {
         if (isRegularTask(currentFlow())) {
-            PointPlanner::instance().cancelPath();
-            async::TimerCall::instance().baseLoop()->cancelAny();
+            cancelAny();
             setEpollManual(loop::manual_epoll::manual_normal);
             waitTaskQueue.clear();
             plannerQueue.clear();
@@ -789,8 +803,7 @@ void AsyncTaskCall::cancelTaskAndBack(bool force) {
     } else {
         if (force) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 强制返回 force ...";
-            PointPlanner::instance().cancelPath();
-            async::TimerCall::instance().baseLoop()->cancelAny();
+            cancelAny();
             setEpollManual(loop::manual_epoll::manual_normal);
             waitTaskQueue.clear();
             plannerQueue.clear();
@@ -804,10 +817,15 @@ void AsyncTaskCall::cancelTaskAndBack(bool force) {
 
 void AsyncTaskCall::cancelTask() {
     if (isRegularTask(currentFlow())) {
-        PointPlanner::instance().cancelPath();
-        async::TimerCall::instance().baseLoop()->cancelAny();
+        cancelAny();
         waitTaskQueue.clear();
     }
+}
+
+void AsyncTaskCall::cancelAny() {
+    PointPlanner::instance().cancelPath();
+    async::TimerCall::instance().baseLoop()->cancelAny();
+    mGateDistribution->cancelDistribution();
 }
 
 void AsyncTaskCall::forceInterruptTask(event::SB sb) {
@@ -815,8 +833,7 @@ void AsyncTaskCall::forceInterruptTask(event::SB sb) {
         currentFlow() != event::flow::hardware_interrupt_task &&
         currentFlow() != event::flow::software_interrupt_task) {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 当前有任务取消任务 ... ";
-        PointPlanner::instance().cancelPath();
-        async::TimerCall::instance().baseLoop()->cancelAny();
+        cancelAny();
         waitTaskQueue.clear();
     }
 }
@@ -1026,6 +1043,9 @@ void AsyncTaskCall::manualResume() {
     if (!isPause()) {
         throw app::exception(make_error_code(error::not_paused_status));
     }
+    if (mGateDistribution->isImplement()) {
+        throw app::exception(make_error_code(error::passing_through_the_gate_manual_control_is_not_supported));
+    }
     notify_one([this]() {
         pushManual(loop::manual_epoll::manual_resume);
     });
@@ -1048,6 +1068,9 @@ void AsyncTaskCall::manualPause() {
     if (!isContinueWork(currentFlow(), true)) {
         throw app::exception(make_error_code(error::pause_is_not_supported));
     }
+    if (mGateDistribution->isImplement()) {
+        throw app::exception(make_error_code(error::passing_through_the_gate_manual_control_is_not_supported));
+    }
     notify_one([this]() {
         pushManual(loop::manual_epoll::manual_pause);
     });
@@ -1065,6 +1088,9 @@ void AsyncTaskCall::enterManual() {//进入手动模式接口
     }
     if (isManualMode()) {//已经在手动模式下
         throw app::exception(make_error_code(error::already_in_manual_clean_mode));
+    }
+    if (mGateDistribution->isImplement()) {
+        throw app::exception(make_error_code(error::passing_through_the_gate_manual_control_is_not_supported));
     }
 
     if (isWaitTask(currentFlow()))

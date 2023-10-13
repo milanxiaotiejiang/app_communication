@@ -163,6 +163,8 @@ public:
         realPoint.realOrientation = std::move(realOrientation);
         realPoint.core_move = core_move;
         realPoint.open_gate = open_gate;
+        realPoint.gate_uuid = gate.left_gate_ID;
+        realPoint.gate_factory_id = gate.factory_ID;
         return realPoint;
     }
 
@@ -175,6 +177,8 @@ public:
         realPoint.realOrientation = std::move(realOrientation);
         realPoint.core_move = core_move;
         realPoint.open_gate = open_gate;
+        realPoint.gate_uuid = gate.right_gate_ID;
+        realPoint.gate_factory_id = gate.factory_ID;
         return realPoint;
     }
 

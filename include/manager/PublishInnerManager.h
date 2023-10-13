@@ -53,7 +53,8 @@ private:
     pub_collect_dust,//
     pub_maintenance_mode,//
     pub_detection,//
-    pub_open_gate;
+    pub_open_gate,//
+    pub_hardware_reset;
 
 public:
     static auto &instance() {
@@ -112,6 +113,8 @@ public:
     void pubDetection(const ai_msgs::MultiRectangles &message);
 
     void pubOpenGate();
+
+    void pubHardwareReset();
 };
 
 #endif //APP_COMMUNICATION_PUBLISHINNERMANAGER_H

@@ -147,7 +147,7 @@ public:
            int boundaryMinArea, int version);
 };
 
-const int CURRENT_GATE_VERSION = 1;
+const int CURRENT_GATE_VERSION = 2;
 
 class Gate {
 public:
@@ -179,6 +179,8 @@ public:
 
     int version;
 
+    std::string factory_ID;
+
     Gate();
 
     Gate(long id, const std::string &oMapId, double startX, double startY, double endX, double endY,
@@ -186,7 +188,7 @@ public:
          double leftOrientationY, double leftOrientationZ, double leftOrientationW, double rightPositionX,
          double rightPositionY, double rightPositionZ, double rightOrientationX, double rightOrientationY,
          double rightOrientationZ, double rightOrientationW, const std::string &leftGateId,
-         const std::string &rightGateId, int version);
+         const std::string &rightGateId, const std::string &factoryID, int version);
 
     Gate(const std::string &oMapId, double startX, double startY, double endX, double endY, double leftPositionX,
          double leftPositionY, double leftPositionZ, double leftOrientationX, double leftOrientationY,

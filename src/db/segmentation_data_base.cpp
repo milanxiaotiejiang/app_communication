@@ -20,7 +20,7 @@ GateInfo SegmentationDataBase::gate2Info(const Gate &gate) {
             gate.left_orientation_x, gate.left_orientation_y, gate.left_orientation_z, gate.left_orientation_w,
             gate.right_position_x, gate.right_position_y, gate.right_position_z,
             gate.right_orientation_x, gate.right_orientation_y, gate.right_orientation_z, gate.right_orientation_w,
-            gate.left_gate_ID, gate.right_gate_ID
+            gate.left_gate_ID, gate.right_gate_ID, gate.factory_ID
     );
 }
 
@@ -34,7 +34,8 @@ Gate SegmentationDataBase::info2Gate(const GateInfo &gateInfo) {
             gateInfo.getRightPositionX(), gateInfo.getRightPositionY(), gateInfo.getRightPositionZ(),
             gateInfo.getRightOrientationX(), gateInfo.getRightOrientationY(), gateInfo.getRightOrientationZ(),
             gateInfo.getRightOrientationW(),
-            gateInfo.getLeftGateId(), gateInfo.getRightGateId(), CURRENT_GATE_VERSION
+            gateInfo.getLeftGateId(), gateInfo.getRightGateId(),
+            gateInfo.getFactoryId(), CURRENT_GATE_VERSION
     );
 }
 

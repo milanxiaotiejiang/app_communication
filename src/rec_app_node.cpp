@@ -348,6 +348,22 @@ void initNodeParams(const ros::NodeHandle &nh) {
     ros::param::get("/rec_app_node_crash", crash);
     Environment::instance().rec_app_node_crash = crash;
     nh.setParam("/rec_app_node_crash", false);
+
+    std::string nebula_base_url;
+    nh.param<std::string>("nebula_base_url", nebula_base_url, "http://192.168.2.53:8080/nebula");
+    Environment::instance().nebula_base_url = nebula_base_url;
+
+    std::string path;
+    path.append("/opt/robot/robot_hw_info.yaml");
+    if (sh::File::exists(path)) {
+        YAML::Node config = YAML::LoadFile(path);
+        YAML::Node deviceSecretNode = config["device_secret"];
+        YAML::Node deviceNameNode = config["device_name"];
+        if (!deviceNameNode.IsNull()) {
+            std::string deviceName = deviceNameNode.as<std::string>();
+            Environment::instance().device_name = deviceName;
+        }
+    }
 }
 
 void release() {

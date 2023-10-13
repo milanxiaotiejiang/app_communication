@@ -65,6 +65,9 @@ public:
 
     bool rec_app_node_crash = false;
 
+    std::string nebula_base_url;
+    std::string device_name{"1"};
+
     static bool will() {
         return (rand() % 10) > 5;
     }

@@ -11,20 +11,21 @@ GateInfo::GateInfo(long id, const std::string &oMapId, double startX, double sta
                    double leftOrientationY, double leftOrientationZ, double leftOrientationW, double rightPositionX,
                    double rightPositionY, double rightPositionZ, double rightOrientationX, double rightOrientationY,
                    double rightOrientationZ, double rightOrientationW, const std::string &leftGateId,
-                   const std::string &rightGateId) : id(id), o_map_id(oMapId), start_x(startX), start_y(startY),
-                                                     end_x(endX), end_y(endY), left_position_x(leftPositionX),
-                                                     left_position_y(leftPositionY), left_position_z(leftPositionZ),
-                                                     left_orientation_x(leftOrientationX),
-                                                     left_orientation_y(leftOrientationY),
-                                                     left_orientation_z(leftOrientationZ),
-                                                     left_orientation_w(leftOrientationW),
-                                                     right_position_x(rightPositionX), right_position_y(rightPositionY),
-                                                     right_position_z(rightPositionZ),
-                                                     right_orientation_x(rightOrientationX),
-                                                     right_orientation_y(rightOrientationY),
-                                                     right_orientation_z(rightOrientationZ),
-                                                     right_orientation_w(rightOrientationW), left_gate_ID(leftGateId),
-                                                     right_gate_ID(rightGateId) {}
+                   const std::string &rightGateId, const std::string &factoryId)
+        : id(id), o_map_id(oMapId), start_x(startX), start_y(startY),
+          end_x(endX), end_y(endY), left_position_x(leftPositionX),
+          left_position_y(leftPositionY), left_position_z(leftPositionZ),
+          left_orientation_x(leftOrientationX),
+          left_orientation_y(leftOrientationY),
+          left_orientation_z(leftOrientationZ),
+          left_orientation_w(leftOrientationW),
+          right_position_x(rightPositionX), right_position_y(rightPositionY),
+          right_position_z(rightPositionZ),
+          right_orientation_x(rightOrientationX),
+          right_orientation_y(rightOrientationY),
+          right_orientation_z(rightOrientationZ),
+          right_orientation_w(rightOrientationW), left_gate_ID(leftGateId),
+          right_gate_ID(rightGateId), factory_ID(factoryId) {}
 
 long GateInfo::getId() const {
     return id;
@@ -200,4 +201,12 @@ const std::string &GateInfo::getRightGateId() const {
 
 void GateInfo::setRightGateId(const std::string &rightGateId) {
     right_gate_ID = rightGateId;
+}
+
+const std::string &GateInfo::getFactoryId() const {
+    return factory_ID;
+}
+
+void GateInfo::setFactoryId(const std::string &factoryId) {
+    factory_ID = factoryId;
 }
