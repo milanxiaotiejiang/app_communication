@@ -177,7 +177,7 @@ public:
     std::string left_gate_ID{};
     std::string right_gate_ID{};
 
-    int version;
+    int version{CURRENT_GATE_VERSION};
 
     std::string factory_ID;
 

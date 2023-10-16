@@ -75,8 +75,8 @@ HttpPost(const std::string &url, const std::string &token,
 
     const std::basic_string<char> &dumpStr = postData.dump();
     const char *bodyStr = dumpStr.c_str();
-//    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  " << postData.dump().c_str();
-//    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  " << token;
+    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  " << postData.dump().c_str();
+    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  " << token;
 
     CURL *curl;
     CURLcode res;
@@ -121,6 +121,10 @@ HttpPost(const std::string &url, const std::string &token,
 
 /*
  * curl -X POST -H "charsets: utf-8" -H "Content-Type: application/json" -H "X-Access-Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2OTc3NjkzOTcsInVzZXJuYW1lIjoicm9ib3QifQ.Rv6pR9dRr8c41peGJPPnfJE5mvLXzhMJhO6DdDhSw0A" --data-raw '{"deviceName":"1","factoryId":"01A","uuid":"59a9dbd3c8424bf598ff71ca5bb0be6e"}' http://192.168.2.53:8080/nebula/gate/openGate
+//        std::map<std::string, std::string> postData;
+//        postData["deviceName"] = "1";
+//        postData["uuid"] = "59a9dbd3c8424bf598ff71ca5bb0be6e";
+//        postData["factoryId"] = "01A";
  */
 bool AsyncGateImplement::openGate(const std::string &gate_factory_id, const std::string &gate_uuid) {
     LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  发送打开闸机的命令 ... ";
@@ -136,10 +140,6 @@ bool AsyncGateImplement::openGate(const std::string &gate_factory_id, const std:
         const CloudToken &cloudToken = cloudModelToken.getResult();
         std::string token = cloudToken.getToken();
 
-//        std::map<std::string, std::string> postData;
-//        postData["deviceName"] = "1";
-//        postData["uuid"] = "59a9dbd3c8424bf598ff71ca5bb0be6e";
-//        postData["factoryId"] = "01A";
         json postData = {
                 {"deviceName", Environment::instance().device_name},
                 {"uuid",       gate_uuid},
