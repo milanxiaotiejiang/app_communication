@@ -33,10 +33,6 @@ private:
 
     std::function<void(bool, int)> callbackImplementEnd;
 
-    bool openGate(const std::string &gate_factory_id, const std::string &gate_uuid);
-
-    bool closeGate();
-
 protected:
     [[noreturn]] void execute() override;
 
@@ -56,6 +52,10 @@ public:
     void setCallbackImplementStart(const std::function<void()> &callback);
 
     void setCallbackImplementEnd(const std::function<void(bool, int)> &callback);
+
+    static bool openGate(const std::string &gate_factory_id, const std::string &gate_uuid);
+
+    static bool closeGate(const std::string &gate_factory_id, const std::string &gate_uuid);
 
 };
 

@@ -185,6 +185,8 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
             std::cout << angleThorough << " 线条不接近垂直.\n";
         }
 
+    } else if (flag_result.data == 4) {
+        AsyncGateImplement::openGate("01A", "59a9dbd3c8424bf598ff71ca5bb0be6e");
     }
 
 }

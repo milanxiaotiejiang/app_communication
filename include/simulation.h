@@ -66,6 +66,8 @@ public:
     bool rec_app_node_crash = false;
 
     std::string nebula_base_url;
+    std::string nebula_account;
+    std::string nebula_secret;
     std::string device_name{"1"};
 
     static bool will() {

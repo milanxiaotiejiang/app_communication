@@ -353,6 +353,14 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<std::string>("nebula_base_url", nebula_base_url, "http://192.168.2.53:8080/nebula");
     Environment::instance().nebula_base_url = nebula_base_url;
 
+    std::string nebula_account;
+    nh.param<std::string>("nebula_account", nebula_account, "robot");
+    Environment::instance().nebula_account = nebula_account;
+
+    std::string nebula_secret;
+    nh.param<std::string>("nebula_secret", nebula_secret, "robot1");
+    Environment::instance().nebula_secret = nebula_secret;
+
     std::string path;
     path.append("/opt/robot/robot_hw_info.yaml");
     if (sh::File::exists(path)) {
