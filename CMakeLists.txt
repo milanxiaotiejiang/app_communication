@@ -183,6 +183,10 @@ install(DIRECTORY include/
         PATTERN ".svn" EXCLUDE
 )
 
+install(FILES ${CPPFS_LIB}
+        DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        )
+
 
 set(other_dir
         params
