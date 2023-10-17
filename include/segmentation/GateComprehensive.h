@@ -110,7 +110,7 @@ public:
         }
     }
 
-    void generateGatePointList(const std::vector<int> &stacks, RealPoint destPoint, std::vector<RealPoint> &points) {
+    void generateGatePointList(const std::vector<int> &stacks, const RealPoint& destPoint, std::vector<RealPoint> &points) {
         if (stacks.size() <= 1) {
             throw std::runtime_error("stacks size must > 1");
         }
@@ -126,13 +126,15 @@ public:
                 bool direction = gatePlan.second;
 
                 if (direction) {
-                    points.push_back(leftPoint(gate, false, false));
-                    points.push_back(leftPoint(gate, true, false));
-                    points.push_back(rightPoint(gate, true, true));
+                    points.push_back(leftPoint(gate, false, GATE_DEFAULT));
+                    points.push_back(leftPoint(gate, true, GATE_DEFAULT));
+                    points.push_back(rightPoint(gate, true, GATE_OPEN));
+                    points.push_back(rightPoint(gate, true, GATE_CLOSE));
                 } else {
-                    points.push_back(rightPoint(gate, false, false));
-                    points.push_back(rightPoint(gate, true, false));
-                    points.push_back(leftPoint(gate, true, true));
+                    points.push_back(rightPoint(gate, false, GATE_DEFAULT));
+                    points.push_back(rightPoint(gate, true, GATE_DEFAULT));
+                    points.push_back(leftPoint(gate, true, GATE_OPEN));
+                    points.push_back(leftPoint(gate, true, GATE_CLOSE));
                 }
 
                 if (i == stacks.size() - 2) {
@@ -150,33 +152,33 @@ public:
     }
 
 
-    int atValue(cv::Point point) const {
+    int atValue(const cv::Point& point) const {
         return segmented_map.at<int>(point);
     }
 
-    RealPoint leftPoint(Gate &gate, bool core_move, bool open_gate) {
+    static RealPoint leftPoint(Gate &gate, bool core_move, int gateControl) {
         RealPoint realPoint;
         RealPosition realPosition(gate.left_position_x, gate.left_position_y, gate.left_position_z);
         RealOrientation realOrientation(gate.left_orientation_x, gate.left_orientation_y,
                                         gate.left_orientation_z, gate.left_orientation_w);
-        realPoint.realPosition = std::move(realPosition);
-        realPoint.realOrientation = std::move(realOrientation);
+        realPoint.realPosition = realPosition;
+        realPoint.realOrientation = realOrientation;
         realPoint.core_move = core_move;
-        realPoint.open_gate = open_gate;
+        realPoint.gateControl = gateControl;
         realPoint.gate_uuid = gate.left_gate_ID;
         realPoint.gate_factory_id = gate.factory_ID;
         return realPoint;
     }
 
-    RealPoint rightPoint(Gate &gate, bool core_move, bool open_gate) {
+    static RealPoint rightPoint(Gate &gate, bool core_move, int gateControl) {
         RealPoint realPoint;
         RealPosition realPosition(gate.right_position_x, gate.right_position_y, gate.right_position_z);
         RealOrientation realOrientation(gate.right_orientation_x, gate.right_orientation_y,
                                         gate.right_orientation_z, gate.right_orientation_w);
-        realPoint.realPosition = std::move(realPosition);
-        realPoint.realOrientation = std::move(realOrientation);
+        realPoint.realPosition = realPosition;
+        realPoint.realOrientation = realOrientation;
         realPoint.core_move = core_move;
-        realPoint.open_gate = open_gate;
+        realPoint.gateControl = gateControl;
         realPoint.gate_uuid = gate.right_gate_ID;
         realPoint.gate_factory_id = gate.factory_ID;
         return realPoint;

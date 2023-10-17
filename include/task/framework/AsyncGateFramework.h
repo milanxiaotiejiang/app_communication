@@ -39,7 +39,7 @@ protected:
 public:
     AsyncGateImplement();
 
-    void onImplementStart(const std::vector<RealPoint> points);
+    void onImplementStart(const std::vector<RealPoint>& points);
 
     void cancelImplement();
 

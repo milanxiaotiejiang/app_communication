@@ -127,8 +127,14 @@ HttpPost(const std::string &url, const std::string &token,
 //        postData["factoryId"] = "01A";
  */
 bool AsyncGateImplement::openGate(const std::string &gate_factory_id, const std::string &gate_uuid) {
-    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  发送打开闸机的命令 ... ";
+    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  发送打开闸机的命令 "
+                             << " gate_factory_id : " << gate_factory_id
+                             << " , gate_uuid : " << gate_uuid << " ... ";
     PublishInnerManager::instance().pubOpenGate();
+
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
+    }
 
     std::string tokenUrl = Environment::instance().nebula_base_url + "/api/v1/auth?account=" +
                            Environment::instance().nebula_account + "&secret=" + Environment::instance().nebula_secret;
@@ -165,8 +171,14 @@ bool AsyncGateImplement::openGate(const std::string &gate_factory_id, const std:
 }
 
 bool AsyncGateImplement::closeGate(const std::string &gate_factory_id, const std::string &gate_uuid) {
-    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  发送关闭闸机的命令 ... ";
+    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  发送关闭闸机的命令 "
+                             << " gate_factory_id : " << gate_factory_id
+                             << " , gate_uuid : " << gate_uuid << " ... ";
 //    PublishInnerManager::instance().pubCloseGate();
+
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
+    }
 
     std::string tokenUrl = Environment::instance().nebula_base_url + "/api/v1/auth?account=" +
                            Environment::instance().nebula_account + "&secret=" + Environment::instance().nebula_secret;
@@ -229,7 +241,7 @@ bool AsyncGateImplement::closeGate(const std::string &gate_factory_id, const std
                 callbackImplementStart();
             }
             RealPoint &front = pointEpollDeque.front();
-            if (front.open_gate) {
+            if (front.gateControl == GATE_OPEN) {
                 LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  准备开启闸机 ... ";
 
                 bool isOpen = false;
@@ -256,6 +268,10 @@ bool AsyncGateImplement::closeGate(const std::string &gate_factory_id, const std
                     implementing = false;
                     callbackImplementEnd(false, progressPointCount);
                 }
+            } else if (front.gateControl == GATE_CLOSE) {
+                LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  准备关闭闸机 ... ";
+                closeGate(front.gate_factory_id, front.gate_uuid);
+                PointPlanner::instance().goToPoint(front);
             } else {
                 PointPlanner::instance().goToPoint(front);
             }
@@ -265,7 +281,7 @@ bool AsyncGateImplement::closeGate(const std::string &gate_factory_id, const std
     }
 }
 
-void AsyncGateImplement::onImplementStart(const std::vector<RealPoint> points) {
+void AsyncGateImplement::onImplementStart(const std::vector<RealPoint>& points) {
     {
         std::unique_lock<std::mutex> lock(cv_mut);
 

@@ -109,9 +109,10 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
         auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height + 15));
 
         MapPo &po = SegmentationDataBase::instance().getDbMap();
-        Gate gate(po.id, 15, height, 280, height,
+        Gate gate(-1, po.id, 15, height, 280, height,
                   pl.getX(), pl.getY(), 0, 0, 0, 0, 0,
-                  pr.getX(), pr.getY(), 0, 0, 0, 0, 0);
+                  pr.getX(), pr.getY(), 0, 0, 0, 0, 0,
+                  "59a9dbd3c8424bf598ff71ca5bb0be6e", "9b40dce9ebcf440f8290112b36e69f6f", "01A", CURRENT_GATE_VERSION);
         SegmentationDataBase::instance().saveGate(gate);
         try {
             auto segmented_map = SegmentationCenter::instance().generateMat();
@@ -131,9 +132,10 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
         auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height + 15));
 
         MapPo &po = SegmentationDataBase::instance().getDbMap();
-        Gate gate(po.id, 15, height, 280, height,
+        Gate gate(-1, po.id, 15, height, 280, height,
                   pl.getX(), pl.getY(), 0, 0, 0, 0, 0,
-                  pr.getX(), pr.getY(), 0, 0, 0, 0, 0);
+                  pr.getX(), pr.getY(), 0, 0, 0, 0, 0,
+                  "59a9dbd3c8424bf598ff71ca5bb0be6e", "9b40dce9ebcf440f8290112b36e69f6f", "01A", CURRENT_GATE_VERSION);
         SegmentationDataBase::instance().saveGate(gate);
         try {
             auto segmented_map = SegmentationCenter::instance().generateMat();
@@ -187,6 +189,8 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
 
     } else if (flag_result.data == 4) {
         AsyncGateImplement::openGate("01A", "59a9dbd3c8424bf598ff71ca5bb0be6e");
+    } else if (flag_result.data == 5) {
+        AsyncGateImplement::closeGate("01A", "9b40dce9ebcf440f8290112b36e69f6f");
     }
 
 }

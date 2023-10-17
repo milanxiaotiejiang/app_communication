@@ -64,6 +64,10 @@ public:
     }
 };
 
+const int GATE_DEFAULT = 0;
+const int GATE_OPEN = 1;
+const int GATE_CLOSE = 2;
+
 class RealPoint {
 public:
     int id{0};//序列点位ID，一般按排序顺序设置
@@ -80,7 +84,7 @@ public:
     int currentStep{0};
 
     bool core_move{false};
-    bool open_gate{false};
+    int gateControl{GATE_DEFAULT};
     std::string gate_uuid{};
     std::string gate_factory_id{};
 
