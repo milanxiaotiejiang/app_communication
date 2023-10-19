@@ -23,10 +23,14 @@ out_path=$HOME/core_$version".tar"
 rm -rf "$pack_dir"
 mkdir "$pack_dir"
 cp -r "$core_dir" $pack_dir
+
+cd
+
 #tar -cJf $version".tar.xz" pack_dir
 echo '开始压缩' "$pack_dir" '文件夹...'
 # 使用 pv 命令来显示进度条
-tar -c "$pack_dir" | pv -s $(du -sb "$pack_dir" | awk '{print $1}') | xz >"$target_path"
+# tar -c "$pack_dir" | pv -s $(du -sb "$pack_dir" | awk '{print $1}') | xz >"$target_path"
+tar -cf - $version | pv -s $(du -sb $version | awk '{print $1}') | xz -z > $version.tar.xz
 echo "文件夹压缩完成！"
 
 mv $target_path $out_path
