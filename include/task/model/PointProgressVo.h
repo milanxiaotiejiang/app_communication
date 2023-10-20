@@ -27,7 +27,7 @@ private:
 
     std::string taskId;//运行中的任务ID
 
-    bool renew{false};//新旧任务标志位
+    bool renew{true};//新旧任务标志位
     std::string oldTaskId;//旧任务，有值就是CombinationID，没值就是全覆盖
     long newTaskId{0};//新任务，可从数据库查找到的
 
@@ -38,7 +38,7 @@ public:
 
     PointProgressVo(float x, float y, int currentStep, int totalStep, int currentFrequency,
                     int totalFrequency, const WorkStatus &workStatus, int mode, bool isCleaning,
-                    const std::string &taskId, bool renew, const std::string &oldTaskId, long newTaskId,
+                    const std::string &taskId, long newTaskId,
                     double value) :
             id(boost::uuids::to_string(boost::uuids::random_generator()())),
             x(x), y(y),
@@ -48,8 +48,6 @@ public:
             mode(mode),
             is_cleaning(isCleaning),
             taskId(taskId),
-            renew(renew),
-            oldTaskId(oldTaskId),
             newTaskId(newTaskId),
             value(value) {}
 

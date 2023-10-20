@@ -64,6 +64,7 @@ std::string HttpGet(const std::string &url) {
         curl_easy_cleanup(curl);
     }
     curl_global_cleanup();
+    LOG_IF(INFO, DEBUG_GATE) << "HttpGet  " << readBuffer;
     return readBuffer;
 }
 
@@ -116,6 +117,7 @@ HttpPost(const std::string &url, const std::string &token,
         curl_easy_cleanup(curl);
     }
     curl_global_cleanup();
+    LOG_IF(INFO, DEBUG_GATE) << "HttpPost  " << readBuffer;
     return readBuffer;
 }
 
@@ -392,7 +394,7 @@ AsyncGateDistribution::AsyncGateDistribution() : mImplement(std::make_shared<Asy
     }
 }
 
-void AsyncGateDistribution::onDistributionStart(const std::vector<RealPoint> points) {
+void AsyncGateDistribution::onDistributionStart(const std::vector<RealPoint>& points) {
     {
         std::unique_lock<std::mutex> lock(cv_mut);
 

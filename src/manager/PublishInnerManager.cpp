@@ -157,5 +157,5 @@ void PublishInnerManager::pubOpenGate() {
 void PublishInnerManager::pubHardwareReset() {
     std_msgs::Int32 message;
     message.data = 1;
-    pub_open_gate.publish(message);
+    pub_hardware_reset.publish(message);
 }

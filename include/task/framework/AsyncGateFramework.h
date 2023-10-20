@@ -79,7 +79,7 @@ protected:
 public:
     AsyncGateDistribution();
 
-    void onDistributionStart(const std::vector<RealPoint> points);
+    void onDistributionStart(const std::vector<RealPoint>& points);
 
     void cancelDistribution();
 

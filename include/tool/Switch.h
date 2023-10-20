@@ -8,7 +8,6 @@
 
 enum MESSAGE_ID {
     GET_DEVICE_STATUS_ = 0, //获取机器状态
-    SAVE_MAP_,              //保存地图
     START_MAP,              //保存地图
     END_MAP,              //保存地图
     GET_MULTI_MAPS_,        //获取地图列表

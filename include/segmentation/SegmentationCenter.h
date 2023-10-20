@@ -119,6 +119,8 @@ public:
     bool
     pointInArea(const cv::Mat &area_map, const cv::Point &stationPoint, const cv::Point &point, bool largest) const;
 
+    void resetGateSegmentation();
+
     /**
      * 将原始地图进行首次分割，用于验证
      */

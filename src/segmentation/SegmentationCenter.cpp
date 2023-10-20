@@ -817,6 +817,11 @@ void SegmentationCenter::checkGatePoint(cv::Mat &segmented_map, std::vector<Room
         whole_display(segmented_map, rooms, cvGateLeftPoint, cvGateRightPoint, "handSegmentation");
 }
 
+void SegmentationCenter::resetGateSegmentation() {
+    MapPo &po = SegmentationDataBase::instance().getDbMap();
+    SegmentationDataBase::instance().purgeGate(po.id);
+}
+
 void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate) {
 
     cv::Point ps(gate.start_x, gate.start_y);

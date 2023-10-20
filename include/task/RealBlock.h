@@ -28,8 +28,6 @@ public:
 
     std::string taskId{""};//运行中的任务ID
 
-    bool renew{false};//新旧任务标志位
-    std::string oldTaskId;//旧任务，有值就是CombinationID，没值就是全覆盖
     long newTaskId{0};//新任务，可从数据库查找到的
 
     std::string name{""};//任务名称

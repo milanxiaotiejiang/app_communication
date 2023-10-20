@@ -490,7 +490,7 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
             point.currentStep, block.totalStep,
             block.currentFrequency, block.totalFrequency,
             block.work_status, block.mode, block.inClean,
-            runTaskId(), block.renew, block.oldTaskId, block.newTaskId,
+            runTaskId(), block.newTaskId,
             (double((double) point.id / block.totalStep))
     );
 
@@ -546,7 +546,7 @@ void AsyncTaskCall::callBackBasePoint() {
         if (stacks.size() > 1) {
 
             mGateComprehensive->generateGatePointList(stacks, backBasePoint, points);
-            if (points.size() > 0) {
+            if (!points.empty()) {
                 use_re_plan = false;
             }
         }

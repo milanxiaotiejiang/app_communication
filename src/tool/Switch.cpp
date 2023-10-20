@@ -30,9 +30,6 @@ int switch_ID(const std::string &str) {
     if (str == "get_device_status") {
         return GET_DEVICE_STATUS_;
     }
-    if (str == "save_map") {
-        return SAVE_MAP_;
-    }
     if (str == "start_map") {
         return START_MAP;
     }

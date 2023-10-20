@@ -108,6 +108,8 @@ MapScore EndMapStrategy::handler(MapParam params) {
         MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
         // 删除多个分区的相关信息
         SegmentationCenter::instance().resetSegmentation();
+        // 删除闸机相关信息
+        SegmentationCenter::instance().resetGateSegmentation();
         // 重新加载基站信息
         MapAttributeSingleton::instance().loadStation();
         // 使用全覆盖算法快速验证地图质量

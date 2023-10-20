@@ -12,6 +12,7 @@
 #include "segmentation/SegmentationCenter.h"
 #include "segmentation/map_attribute.h"
 #include "segmentation/handle_segmentation_display.h"
+#include "BaseThrowable.h"
 
 class GateSettingCenter {
 private:
@@ -54,6 +55,8 @@ private:
 
     AStarPlanner path_planner;
 
+    bool hasError = false;
+
 public:
     GateComprehensive(const std::vector<Gate> &gateList) : gateList(gateList) {
         hasGate = !gateList.empty();
@@ -66,7 +69,13 @@ public:
 
         for (const auto &gate: gateList) {
             SegmentationCenter::instance().gateManyOpen(gate_open_map, gate);
-            SegmentationCenter::instance().gateManySegmentation(segmented_map, rooms, planMap, gate);
+            try {
+                SegmentationCenter::instance().gateManySegmentation(segmented_map, rooms, planMap, gate);
+            } catch (app::exception const &e) {
+                LOG(ERROR) << e.what();
+                hasError = true;
+                break;
+            }
         }
 
         int end_time = ros::Time::now().sec;
@@ -75,8 +84,12 @@ public:
 //        whole_display(segmented_map, rooms, gateList, planMap, 2, "GateComprehensive");
     }
 
-    bool isHasGate() {
-        return hasGate;
+    bool isHasGate() const {
+        if (hasError) {
+            return hasGate;
+        } else {
+            return false;
+        }
     }
 
     void AStarPlannerPoint(const RealPoint &realPoint, std::vector<int> &stacks) {
@@ -110,7 +123,8 @@ public:
         }
     }
 
-    void generateGatePointList(const std::vector<int> &stacks, const RealPoint& destPoint, std::vector<RealPoint> &points) {
+    void
+    generateGatePointList(const std::vector<int> &stacks, const RealPoint &destPoint, std::vector<RealPoint> &points) {
         if (stacks.size() <= 1) {
             throw std::runtime_error("stacks size must > 1");
         }
@@ -152,7 +166,7 @@ public:
     }
 
 
-    int atValue(const cv::Point& point) const {
+    int atValue(const cv::Point &point) const {
         return segmented_map.at<int>(point);
     }
 
