@@ -79,16 +79,16 @@ public:
         }
 
         int end_time = ros::Time::now().sec;
-        std::cout << "cost handSegmentation : " << end_time - start_time << " s " << std::endl;
+        std::cout << "cost handSegmentation : " << end_time - start_time << " s " << hasError << std::endl;
 
 //        whole_display(segmented_map, rooms, gateList, planMap, 2, "GateComprehensive");
     }
 
     bool isHasGate() const {
         if (hasError) {
-            return hasGate;
-        } else {
             return false;
+        } else {
+            return hasGate;
         }
     }
 
