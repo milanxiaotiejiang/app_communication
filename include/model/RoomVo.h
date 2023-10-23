@@ -92,6 +92,42 @@ public:
     }
 };
 
+// Cleaning mechanism control mode
+
+enum class CmcMode {
+    Omission,
+    Open,
+    Close,
+};
+
+class PoseMo {
+private:
+    float x;
+    float y;
+    float theta;
+    CmcMode cmcMode{CmcMode::Omission};
+public:
+    PoseMo();
+
+    PoseMo(float x, float y, float theta, CmcMode cmcMode);
+
+    float getX() const;
+
+    void setX(float x);
+
+    float getY() const;
+
+    void setY(float y);
+
+    float getTheta() const;
+
+    void setTheta(float theta);
+
+    const CmcMode &getCmcMode() const;
+
+    void setCmcMode(const CmcMode &cmcMode);
+};
+
 class RoomVo {
 private:
     int id;

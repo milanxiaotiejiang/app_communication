@@ -7,6 +7,7 @@
 
 #include <utility>
 #include <ostream>
+#include "model/RoomVo.h"
 
 class RealPosition {
 public:
@@ -76,6 +77,8 @@ public:
     RealPosition realPosition{0, 0, 0};//geometry_msgs::PoseStamped pose 的 position
     RealOrientation realOrientation{0, 0, 0, 0};//geometry_msgs::PoseStamped pose 的 orientation
 //    RealProgress realProgress{0, 0, 0, 0};//进度控制，由全覆盖路径和次数 rate 生成
+
+    CmcMode cmcMode{CmcMode::Omission};
 
     long timeout = 0;
 

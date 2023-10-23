@@ -38,14 +38,14 @@ RealBlock PointGenerator::buildBlock(int id, const RealTask &task) {
 }
 
 void PointGenerator::complexPathToRealBlock(RealTask &realTask,
-                                            const std::vector<std::vector<PoseVo>> &complexList,
+                                            const std::vector<std::vector<PoseMo>> &complexList,
                                             std::vector<RealBlock> &blockList) {
     float totalDistance = 0;
     // 获取当前地图的原点位置，以便后续转换 cv 点和 ros 点
     auto originPoint = MapAttributeSingleton::instance().getMapOrigin();
 
     // 对于单个点列大于 complex_path_num_splits 值的，进行近似平均的拆分
-    std::vector<std::vector<PoseVo>> splitVectors;
+    std::vector<std::vector<PoseMo>> splitVectors;
     for (const auto &vec: complexList) {
         //complex_path_num_splits 默认 1000
         int numSubVec = (vec.size() + Environment::instance().complex_path_num_splits - 1) /
@@ -57,23 +57,23 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
 
         for (int i = 0; i < numSubVec; ++i) {
             int endIdx = startIdx + sizePerSubVec + (i < remainder ? 1 : 0);
-            std::vector<PoseVo> subVec(vec.begin() + startIdx, vec.begin() + endIdx);
+            std::vector<PoseMo> subVec(vec.begin() + startIdx, vec.begin() + endIdx);
             splitVectors.push_back(subVec);
             startIdx = endIdx;
         }
     }
 
     // 根据前后两个点位，重新计算每个点位的角度值
-    std::vector<std::vector<PoseVo>> complexAngleList;
+    std::vector<std::vector<PoseMo>> complexAngleList;
     for (const auto &complex: splitVectors) {
-        std::vector<PoseVo> poseList = recalculateAngle(originPoint, complex);
+        std::vector<PoseMo> poseList = recalculateAngle(originPoint, complex);
         complexAngleList.push_back(poseList);
     }
 
     // 将 PoseVo 转为 geometry_msgs::PoseStamped，主要是将 PoseVo 中 theta 转为 pose.orientation
-    std::vector<std::vector<geometry_msgs::PoseStamped>> complexGeometryList;
+    std::vector<std::vector<PoseStamped>> complexGeometryList;
     for (const auto &complex: complexAngleList) {
-        std::vector<geometry_msgs::PoseStamped> geometryList = convertToGeometry(complex);
+        std::vector<PoseStamped> geometryList = convertToGeometry(complex);
         complexGeometryList.push_back(geometryList);
     }
 
@@ -83,12 +83,15 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
         auto realBlock = buildBlock(0, realTask);
 
         for (const auto &pose: complex) {
+            auto geometry_msgs_pose = pose.poseStamped.pose;
             RealPoint realPoint;
-            RealPosition realPosition(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
-            RealOrientation realOrientation(pose.pose.orientation.x, pose.pose.orientation.y,
-                                            pose.pose.orientation.z, pose.pose.orientation.w);
+            RealPosition realPosition(geometry_msgs_pose.position.x, geometry_msgs_pose.position.y,
+                                      geometry_msgs_pose.position.z);
+            RealOrientation realOrientation(geometry_msgs_pose.orientation.x, geometry_msgs_pose.orientation.y,
+                                            geometry_msgs_pose.orientation.z, geometry_msgs_pose.orientation.w);
             realPoint.realPosition = std::move(realPosition);
             realPoint.realOrientation = std::move(realOrientation);
+            realPoint.cmcMode = pose.cmcMode;
             realBlock.plannerPoints.push_back(realPoint);
         }
 
@@ -109,10 +112,10 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
     // 重点关注第一个点，第一个点有重试逻辑，且后续都应当将第一个点剥离出来，每次前往单个点与整个路径的行使规划参数不同
     std::vector<RealBlock> wholeBlockList;
     if (!rateBlockList.empty()) {
-        RealBlock &block = rateBlockList[0];
-        std::vector<RealPoint> &plannerPoints = block.plannerPoints;
+        const std::vector<RealPoint> &plannerPoints = rateBlockList[0].plannerPoints;
         if (!plannerPoints.empty()) {
             RealPoint point = plannerPoints[0];
+            point.cmcMode = CmcMode::Omission;
             addSinglePoint(wholeBlockList, realTask, point);
         }
     }
@@ -127,7 +130,9 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
             auto nextBlock = rateBlockList[i + 1];
 
             wholeBlockList.push_back(currentBlock);
-            addSinglePoint(wholeBlockList, realTask, nextBlock.plannerPoints[0]);
+            RealPoint point = nextBlock.plannerPoints[0];
+            point.cmcMode = CmcMode::Omission;
+            addSinglePoint(wholeBlockList, realTask, point);
         }
     }
 
@@ -209,9 +214,9 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
 
 }
 
-std::vector<PoseVo> PointGenerator::recalculateAngle(const cv::Point2d &point2D,
-                                                     const std::vector<PoseVo> &poseList) {
-    std::vector<PoseVo> results(poseList.size());
+std::vector<PoseMo> PointGenerator::recalculateAngle(const cv::Point2d &point2D,
+                                                     const std::vector<PoseMo> &poseList) {
+    std::vector<PoseMo> results(poseList.size());
     for (size_t point_index = 0; point_index < poseList.size(); ++point_index) {
         double theta = 0.;
 
@@ -232,27 +237,30 @@ std::vector<PoseVo> PointGenerator::recalculateAngle(const cv::Point2d &point2D,
             }
         }
 
-        results[point_index] = PoseVo(poseList[point_index].getX(), poseList[point_index].getY(), theta);
+        results[point_index] = PoseMo(poseList[point_index].getX(), poseList[point_index].getY(), theta,
+                                      poseList[point_index].getCmcMode());
     }
     return results;
 }
 
-std::vector<geometry_msgs::PoseStamped> PointGenerator::convertToGeometry(const std::vector<PoseVo> &complex) {
-    std::vector<geometry_msgs::PoseStamped> results(complex.size());
+std::vector<PoseStamped> PointGenerator::convertToGeometry(const std::vector<PoseMo> &complex) {
+    std::vector<PoseStamped> results(complex.size());
     std_msgs::Header header;
     header.stamp = ros::Time::now();
     header.frame_id = "/map";
     for (size_t i = 0; i < complex.size(); ++i) {
-        PoseVo vo = complex[i];
+        PoseMo vo = complex[i];
 
-        results[i].header = header;
-        results[i].header.seq = i;
-        results[i].pose.position.x = vo.getX();
-        results[i].pose.position.y = vo.getY();
-        results[i].pose.position.z = 0.;
+        results[i].poseStamped.header = header;
+        results[i].poseStamped.header.seq = i;
+        results[i].poseStamped.pose.position.x = vo.getX();
+        results[i].poseStamped.pose.position.y = vo.getY();
+        results[i].poseStamped.pose.position.z = 0.;
         Eigen::Quaterniond quaternion;
         quaternion = Eigen::AngleAxisd(vo.getTheta(), Eigen::Vector3d::UnitZ());
-        tf::quaternionEigenToMsg(quaternion, results[i].pose.orientation);
+        tf::quaternionEigenToMsg(quaternion, results[i].poseStamped.pose.orientation);
+
+        results[i].cmcMode = vo.getCmcMode();
     }
     return results;
 }
@@ -763,11 +771,15 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
         double rows = room_map.rows * map_resolution_from_subscription;
         double cols = room_map.cols * map_resolution_from_subscription;
 
-        std::vector<PoseVo> poseList;
-        std::vector<std::vector<PoseVo>> complexPoseList;
+        std::vector<PoseVo> recordPoseList;
+        std::vector<std::vector<PoseMo>> complexPoseList;
 
         std::vector<ZoneVo> zones = task.getZoned();
-        for (const auto &zone: zones) {
+        std::vector<bool> intersects;
+
+        bool lastIntersect = false;
+        for (int i = 0; i < zones.size(); i++) {
+            auto &zone = zones[i];
 
             std::vector<PointVo> points = zone.getPoints();
             std::vector<Point> trs;
@@ -796,15 +808,37 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
             std::vector<PoseVo> subPoseList;
             generateChildPointFlow(zonePoseList, subPoseList, 0.2);
 
-            for (const auto &item: subPoseList) {
-                poseList.push_back(item);
+            bool intersect = false;
+            if (i < zones.size() - 1) {
+                auto currentZone = zones[i];
+                auto nextZone = zones[i + 1];
+                intersect = cleanMechanismControlMode(currentZone, nextZone, room_map.rows, room_map.cols);
             }
 
-            complexPoseList.push_back(subPoseList);
+            std::vector<PoseMo> poseList;
+            for (int j = 0; j < subPoseList.size(); j++) {
+                const auto &item = subPoseList[j];
+                recordPoseList.push_back(item);
+
+                CmcMode cmcMode = CmcMode::Omission;
+                if (j == 0) {
+                    if (!lastIntersect) {
+                        cmcMode = CmcMode::Open;
+                    }
+                } else if (j == subPoseList.size() - 1) {
+                    if (!intersect) {
+                        cmcMode = CmcMode::Close;
+                    }
+                    lastIntersect = intersect;
+                }
+                poseList.emplace_back(item.getX(), item.getY(), item.getTheta(), cmcMode);
+            }
+
+            complexPoseList.push_back(poseList);
         }
 
         std::vector<geometry_msgs::Pose2D> exploration_path;
-        for (const auto &item: poseList) {
+        for (const auto &item: recordPoseList) {
             geometry_msgs::Pose2D pose;
             pose.x = item.getY();
             pose.y = item.getX();
@@ -825,17 +859,86 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
 //        }
         explorationCenter.pathPublish(exploration_path);
 
+        if (DEBUG_CLEAN_MECHANISM) {
+            std::cout << "--------------------- clean mechanism control mode print start -------------------------"
+                      << std::endl;
+            for (const auto &list: complexPoseList) {
+                for (const auto &item: list) {
+                    if (item.getCmcMode() == CmcMode::Open) {
+                        std::cout << "1";
+                    } else if (item.getCmcMode() == CmcMode::Close) {
+                        std::cout << "0";
+                    } else {
+                        std::cout << "-";
+                    }
+                }
+                std::cout << "\n ";
+            }
+            std::cout << "--------------------- clean mechanism control mode print end -------------------------"
+                      << std::endl;
+        }
+
         std::vector<RealBlock> blocks;
         complexPathToRealBlock(task, complexPoseList, blocks);
         return blocks;
     } else {
         auto coverage = TaskExploration::explorationPlanningPath(task);
 
-        const std::vector<std::vector<PoseVo>> &complexList = coverage.getComplexList();
+        const std::vector<std::vector<PoseVo>> &vComplexList = coverage.getComplexList();
+        std::vector<std::vector<PoseMo>> mComplexList;
+        for (const auto &vList: vComplexList) {
+            for (const auto &item: vList) {
+                std::vector<PoseMo> pms;
+                pms.emplace_back(item.getX(), item.getY(), item.getTheta(), CmcMode::Omission);
+            }
+        }
+
         std::vector<RealBlock> blocks;
-        complexPathToRealBlock(task, complexList, blocks);
+        complexPathToRealBlock(task, mComplexList, blocks);
 
         return blocks;
     }
 
+}
+
+bool
+ExplorationGenerator::cleanMechanismControlMode(const ZoneVo &currentZone, const ZoneVo &nextZone, int rows, int cols) {
+
+    std::vector<std::vector<cv::Point>> current_polygon_array;
+    std::vector<cv::Point> currentCvPoints;
+    for (const auto &point: currentZone.getPoints()) {
+        currentCvPoints.emplace_back(point.getX(), point.getY());
+    }
+    current_polygon_array.push_back(currentCvPoints);
+    cv::Mat current_zoned_image = cv::Mat::zeros(rows, cols, CV_8UC1);
+    cv::fillPoly(current_zoned_image, current_polygon_array, cv::Scalar(255));
+
+    std::vector<std::vector<cv::Point>> next_polygon_array;
+    std::vector<cv::Point> nextCvPoints;
+    for (const auto &point: nextZone.getPoints()) {
+        nextCvPoints.emplace_back(point.getX(), point.getY());
+    }
+    next_polygon_array.push_back(nextCvPoints);
+    cv::Mat next_zoned_image = cv::Mat::zeros(rows, cols, CV_8UC1);
+    cv::fillPoly(next_zoned_image, next_polygon_array, cv::Scalar(255));
+
+//    cv::imshow("current_zoned_image", current_zoned_image);
+//    cv::waitKey();
+//    cv::imshow("next_zoned_image", next_zoned_image);
+//    cv::waitKey();
+
+    cv::Mat andMat;
+    cv::bitwise_and(current_zoned_image, next_zoned_image, andMat);
+
+    int intersect = 0;
+    for (int y = 0; y < andMat.rows; y++) {
+        for (int x = 0; x < andMat.cols; x++) {
+            if (andMat.at<unsigned char>(y, x) > 254) {
+                intersect++;
+            }
+        }
+    }
+
+    LOG(INFO) << "rect intersect count " << intersect << " ...";
+    return intersect > 0;
 }

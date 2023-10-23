@@ -91,11 +91,18 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
 //                flowOpenMechanismPoint.realError.arrive = true;
 //                pushPoint(flowOpenMechanismPoint);
 //            });
-            callOpenMechanism(baseWorkStatus(), isKnife(), []() {});
+            if (baseTaskMode() == static_cast<int>(TaskMode::Zoned)) {
+                LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 矩形任务无需打开清洁机构 ...";
+                flowOpenMechanismPoint.arrive = true;
+                notify_one([this]() {
+                    pushBlock(flowOpenMechanismPoint);
+                });
+            } else
+                callOpenMechanism(baseWorkStatus(), isKnife(), []() {});
             break;
         }
         case event::flow::cleaning_mechanism_ready: {
-            LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 清洁机构下放成功，准备执行规划点位任务，当前去第一个点 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 清洁机构准备完成，准备执行规划点位任务，当前去第一个点 ...";
             recordEmergencyStop(event::flow::ensure_move_to_start_point, block);
             setFlow(event::flow::ensure_move_to_start_point);
             RealBlock front = plannerQueue.front();
@@ -137,10 +144,29 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
                 if (plannerQueue.size() == 1) {
                     //最后一个已经走完，移除最后一个再次执行一次，走收拖头
                     LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 清扫结束，准备回基站点 ...";
+                    if (baseTaskMode() == static_cast<int>(TaskMode::Zoned)) {
+                        LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 矩形任务及时收起清洁机构 ...";
+                        MechanismManager::instance().resetWorkStatus();
+                    }
                     callBlockComplete([this]() {
                         callBackBasePoint();
                     });
                 } else {
+                    auto currentBlock = findFrontBlock();
+                    auto plannerPoints = currentBlock.plannerPoints;
+                    if (!plannerPoints.empty()) {
+                        auto cmcMode = plannerPoints[plannerPoints.size() - 1].cmcMode;
+                        LOG_IF(INFO, DEBUG_CLEAN_MECHANISM)
+                                        << "DEBUG_CLEAN_MECHANISM 取已完成的点列队尾，清洁机构操控 mode 为 "
+                                        << static_cast<int>(cmcMode)
+                                        << " ... ";
+                        if (cmcMode == CmcMode::Open) {
+                            //
+                        } else if (cmcMode == CmcMode::Close) {
+                            MechanismManager::instance().resetWorkStatus();
+                        }
+                    }
+
                     auto nextBlock = findFrontNextBlock();
                     if (nextBlock.inClean) {
                         if (nextBlock.timely_step > 0) {
@@ -155,12 +181,20 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             break;
         }
         case event::flow::arrive_base_point_success: {
-            LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 成功到达基站前点位，收起清洁机构 ...";
-//            callCloseMechanism([this]() {
-//                flowCloseMechanismPoint.realError.arrive = true;
-//                pushPoint(flowCloseMechanismPoint);
-//            });
-            callCloseMechanism([]() {});
+            if (baseTaskMode() == static_cast<int>(TaskMode::Zoned)) {
+                LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 矩形任务无需再次收起清洁机构 ...";
+                flowCloseMechanismPoint.arrive = true;
+                notify_one([this]() {
+                    pushBlock(flowCloseMechanismPoint);
+                });
+            } else {
+                LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 成功到达基站前点位，收起清洁机构 ...";
+//                callCloseMechanism([this]() {
+//                    flowCloseMechanismPoint.realError.arrive = true;
+//                    pushPoint(flowCloseMechanismPoint);
+//                });
+                callCloseMechanism([]() {});
+            }
             break;
         }
         case event::flow::flowing_water_execution_completed: {

@@ -132,7 +132,8 @@ void AutoMaintenanceModeManager::autoMaintenance() {
 
     async::TimerCall::instance().baseLoop()
             ->scheduleLater(std::chrono::minutes(30), []() {
-                LOG_IF(INFO, DEBUG_MAINTENANCE) << "hardware_reset ... ";
+                LOG_IF(INFO, DEBUG_MAINTENANCE) << " 1s 后硬重启 ... ";
+                sleep(1);
                 PublishInnerManager::instance().pubHardwareReset();
             });
 

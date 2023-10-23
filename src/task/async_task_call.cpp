@@ -567,7 +567,12 @@ void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock, bool first) {
 
         RealPoint realPoint = nextBlock.plannerPoints[0];
         std::vector<int> stacks;
-        mGateComprehensive->AStarPlannerPoint(realPoint, stacks);
+        try {
+            mGateComprehensive->AStarPlannerPoint(realPoint, stacks);
+        } catch (...) {
+            LOG_IF(INFO, DEBUG_GATE)
+                            << "AsyncGateImplement  AStarPlannerPoint catch " << "... ";
+        }
 
         if (!stacks.empty()) {
             if (stacks.size() > 1) {
@@ -580,6 +585,19 @@ void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock, bool first) {
         }
     }
     if (use_re_plan) {
+        auto plannerPoints = nextBlock.plannerPoints;
+        if (!plannerPoints.empty()) {
+            auto cmcMode = plannerPoints[0].cmcMode;
+            LOG_IF(INFO, DEBUG_CLEAN_MECHANISM)
+                            << "DEBUG_CLEAN_MECHANISM 取未执行的点列队首，清洁机构操控 mode 为 "
+                            << static_cast<int>(cmcMode) << " ... ";
+            if (cmcMode == CmcMode::Open) {
+                MechanismManager::instance().controlWorkStatus(nextBlock.work_status, nextBlock.knife);
+            } else if (cmcMode == CmcMode::Close) {
+                //
+            }
+        }
+
         PointPlanner::instance().goToPath(nextBlock);
         int id = nextBlock.id;
         int timeout = nextBlock.timeout;
@@ -670,7 +688,7 @@ void AsyncTaskCall::callSubsequentMode(int mode, double cleanedRatio) {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 处理 mode " << mode << " ...";
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 处理 cleanedRatio " << cleanedRatio << " ...";
 
-    if (mode == 1 && cleanedRatio > 0.8 && Environment::instance().update_map) {
+    if (mode == static_cast<int>(TaskMode::Cover) && cleanedRatio > 0.8 && Environment::instance().update_map) {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 全覆盖清洁后需要更新地图信息 ...";
         CartographerPublisher::instance().publishUpdateMap();
     } else {

@@ -129,90 +129,102 @@ HttpPost(const std::string &url, const std::string &token,
 //        postData["factoryId"] = "01A";
  */
 bool AsyncGateImplement::openGate(const std::string &gate_factory_id, const std::string &gate_uuid) {
-    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  发送打开闸机的命令 "
-                             << " gate_factory_id : " << gate_factory_id
-                             << " , gate_uuid : " << gate_uuid << " ... ";
-    PublishInnerManager::instance().pubOpenGate();
+    try {
+        LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  发送打开闸机的命令 "
+                                 << " gate_factory_id : " << gate_factory_id
+                                 << " , gate_uuid : " << gate_uuid << " ... ";
+        PublishInnerManager::instance().pubOpenGate();
 
-    if (!Environment::instance().isRealEnvironment) {
-        return true;
-    }
-
-    std::string tokenUrl = Environment::instance().nebula_base_url + "/api/v1/auth?account=" +
-                           Environment::instance().nebula_account + "&secret=" + Environment::instance().nebula_secret;
-    std::string gateUrl = Environment::instance().nebula_base_url + "/gate/openGate";
-
-    std::string tokenResponse = HttpGet(tokenUrl);
-    json tokenJson = json::parse(tokenResponse);
-    CloudModel<CloudToken> cloudModelToken = tokenJson.get<CloudModel<CloudToken>>();
-    if (cloudModelToken.isSuccess()) {
-        const CloudToken &cloudToken = cloudModelToken.getResult();
-        std::string token = cloudToken.getToken();
-
-        json postData = {
-                {"deviceName", Environment::instance().device_name},
-                {"uuid",       gate_uuid},
-                {"factoryId",  gate_factory_id}
-        };
-        std::string openGateResponse = HttpPost(gateUrl, token, postData);
-
-        json openGateJson = json::parse(openGateResponse);
-        CloudModel<std::string> cloudModelOpenGate = openGateJson.get<CloudModel<std::string>>();
-        if (cloudModelOpenGate.isSuccess()) {
+        if (!Environment::instance().isRealEnvironment) {
             return true;
+        }
+
+        std::string tokenUrl = Environment::instance().nebula_base_url + "/api/v1/auth?account=" +
+                               Environment::instance().nebula_account + "&secret=" +
+                               Environment::instance().nebula_secret;
+        std::string gateUrl = Environment::instance().nebula_base_url + "/gate/openGate";
+
+        std::string tokenResponse = HttpGet(tokenUrl);
+        json tokenJson = json::parse(tokenResponse);
+        CloudModel<CloudToken> cloudModelToken = tokenJson.get<CloudModel<CloudToken>>();
+        if (cloudModelToken.isSuccess()) {
+            const CloudToken &cloudToken = cloudModelToken.getResult();
+            std::string token = cloudToken.getToken();
+
+            json postData = {
+                    {"deviceName", Environment::instance().device_name},
+                    {"uuid",       gate_uuid},
+                    {"factoryId",  gate_factory_id}
+            };
+            std::string openGateResponse = HttpPost(gateUrl, token, postData);
+
+            json openGateJson = json::parse(openGateResponse);
+            CloudModel<std::string> cloudModelOpenGate = openGateJson.get<CloudModel<std::string>>();
+            if (cloudModelOpenGate.isSuccess()) {
+                return true;
+            } else {
+                LOG_IF(INFO, DEBUG_GATE)
+                                << "AsyncGateImplement  request open gate fail " << cloudModelOpenGate.getMessage()
+                                << "... ";
+            }
         } else {
             LOG_IF(INFO, DEBUG_GATE)
-                            << "AsyncGateImplement  request open gate fail " << cloudModelOpenGate.getMessage()
-                            << "... ";
+                            << "AsyncGateImplement  request token fail " << cloudModelToken.getMessage() << "... ";
         }
-    } else {
-        LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  request token fail " << cloudModelToken.getMessage() << "... ";
+    } catch (...) {
+        LOG_IF(INFO, DEBUG_GATE)
+                        << "AsyncGateImplement  request token catch " << "... ";
     }
-
     return false;
 }
 
 bool AsyncGateImplement::closeGate(const std::string &gate_factory_id, const std::string &gate_uuid) {
-    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  发送关闭闸机的命令 "
-                             << " gate_factory_id : " << gate_factory_id
-                             << " , gate_uuid : " << gate_uuid << " ... ";
+    try {
+        LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  发送关闭闸机的命令 "
+                                 << " gate_factory_id : " << gate_factory_id
+                                 << " , gate_uuid : " << gate_uuid << " ... ";
 //    PublishInnerManager::instance().pubCloseGate();
 
-    if (!Environment::instance().isRealEnvironment) {
-        return true;
-    }
-
-    std::string tokenUrl = Environment::instance().nebula_base_url + "/api/v1/auth?account=" +
-                           Environment::instance().nebula_account + "&secret=" + Environment::instance().nebula_secret;
-    std::string gateUrl = Environment::instance().nebula_base_url + "/gate/closeGate";
-
-    std::string tokenResponse = HttpGet(tokenUrl);
-    json tokenJson = json::parse(tokenResponse);
-    CloudModel<CloudToken> cloudModelToken = tokenJson.get<CloudModel<CloudToken>>();
-    if (cloudModelToken.isSuccess()) {
-        const CloudToken &cloudToken = cloudModelToken.getResult();
-        std::string token = cloudToken.getToken();
-
-        json postData = {
-                {"deviceName", Environment::instance().device_name},
-                {"uuid",       gate_uuid},
-                {"factoryId",  gate_factory_id}
-        };
-        std::string openGateResponse = HttpPost(gateUrl, token, postData);
-
-        json openGateJson = json::parse(openGateResponse);
-        CloudModel<std::string> cloudModelOpenGate = openGateJson.get<CloudModel<std::string>>();
-        if (cloudModelOpenGate.isSuccess()) {
+        if (!Environment::instance().isRealEnvironment) {
             return true;
+        }
+
+        std::string tokenUrl = Environment::instance().nebula_base_url + "/api/v1/auth?account=" +
+                               Environment::instance().nebula_account + "&secret=" +
+                               Environment::instance().nebula_secret;
+        std::string gateUrl = Environment::instance().nebula_base_url + "/gate/closeGate";
+
+        std::string tokenResponse = HttpGet(tokenUrl);
+        json tokenJson = json::parse(tokenResponse);
+        CloudModel<CloudToken> cloudModelToken = tokenJson.get<CloudModel<CloudToken>>();
+        if (cloudModelToken.isSuccess()) {
+            const CloudToken &cloudToken = cloudModelToken.getResult();
+            std::string token = cloudToken.getToken();
+
+            json postData = {
+                    {"deviceName", Environment::instance().device_name},
+                    {"uuid",       gate_uuid},
+                    {"factoryId",  gate_factory_id}
+            };
+            std::string openGateResponse = HttpPost(gateUrl, token, postData);
+
+            json openGateJson = json::parse(openGateResponse);
+            CloudModel<std::string> cloudModelOpenGate = openGateJson.get<CloudModel<std::string>>();
+            if (cloudModelOpenGate.isSuccess()) {
+                return true;
+            } else {
+                LOG_IF(INFO, DEBUG_GATE)
+                                << "AsyncGateImplement  request open gate fail " << cloudModelOpenGate.getMessage()
+                                << "... ";
+            }
         } else {
             LOG_IF(INFO, DEBUG_GATE)
-                            << "AsyncGateImplement  request open gate fail " << cloudModelOpenGate.getMessage()
-                            << "... ";
+                            << "AsyncGateImplement  request token fail " << cloudModelToken.getMessage() << "... ";
         }
-    } else {
-        LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  request token fail " << cloudModelToken.getMessage() << "... ";
+    } catch (...) {
+        LOG_IF(INFO, DEBUG_GATE)
+                        << "AsyncGateImplement  request token catch " << "... ";
     }
-
     return false;
 }
 
@@ -283,7 +295,7 @@ bool AsyncGateImplement::closeGate(const std::string &gate_factory_id, const std
     }
 }
 
-void AsyncGateImplement::onImplementStart(const std::vector<RealPoint>& points) {
+void AsyncGateImplement::onImplementStart(const std::vector<RealPoint> &points) {
     {
         std::unique_lock<std::mutex> lock(cv_mut);
 
@@ -394,7 +406,7 @@ AsyncGateDistribution::AsyncGateDistribution() : mImplement(std::make_shared<Asy
     }
 }
 
-void AsyncGateDistribution::onDistributionStart(const std::vector<RealPoint>& points) {
+void AsyncGateDistribution::onDistributionStart(const std::vector<RealPoint> &points) {
     {
         std::unique_lock<std::mutex> lock(cv_mut);
 

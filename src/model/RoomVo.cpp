@@ -382,3 +382,39 @@ int PlanParam::getRandomNumberGenerationRatio() const {
 int PlanParam::getBoundaryMinArea() const {
     return boundary_min_area;
 }
+
+PoseMo::PoseMo() {}
+
+float PoseMo::getX() const {
+    return x;
+}
+
+void PoseMo::setX(float x) {
+    PoseMo::x = x;
+}
+
+float PoseMo::getY() const {
+    return y;
+}
+
+void PoseMo::setY(float y) {
+    PoseMo::y = y;
+}
+
+float PoseMo::getTheta() const {
+    return theta;
+}
+
+void PoseMo::setTheta(float theta) {
+    PoseMo::theta = theta;
+}
+
+const CmcMode &PoseMo::getCmcMode() const {
+    return cmcMode;
+}
+
+void PoseMo::setCmcMode(const CmcMode &cmcMode) {
+    PoseMo::cmcMode = cmcMode;
+}
+
+PoseMo::PoseMo(float x, float y, float theta, CmcMode cmcMode) : x(x), y(y), theta(theta), cmcMode(cmcMode) {}

@@ -13,6 +13,11 @@
 #include "model/RoomVo.h"
 #include "model/Point.h"
 
+struct PoseStamped {
+    geometry_msgs::PoseStamped poseStamped;
+    CmcMode cmcMode{CmcMode::Omission};
+};
+
 /**
  * 点位生成节点，包含矩形、全覆盖、分区全覆盖等
  */
@@ -20,16 +25,16 @@ class PointGenerator {
 protected:
     static RealBlock buildBlock(int id, const RealTask &task);
 
-    static std::vector<PoseVo> recalculateAngle(const cv::Point2d& point2D, const std::vector<PoseVo> &poseList);
+    static std::vector<PoseMo> recalculateAngle(const cv::Point2d &point2D, const std::vector<PoseMo> &poseList);
 
-    static std::vector<geometry_msgs::PoseStamped> convertToGeometry(const std::vector<PoseVo> &complex);
+    static std::vector<PoseStamped> convertToGeometry(const std::vector<PoseMo> &complex);
 
     static void addSinglePoint(std::vector<RealBlock> &blockList,
                                const RealTask &realTask,
                                const RealPoint &singlePoint);
 
     static void complexPathToRealBlock(RealTask &realTask,
-                                       const std::vector<std::vector<PoseVo>> &complexList,
+                                       const std::vector<std::vector<PoseMo>> &complexList,
                                        std::vector<RealBlock> &blockList);
 
 public:
@@ -48,6 +53,8 @@ public:
 class ExplorationGenerator : public PointGenerator {
 public:
     std::vector<RealBlock> taskGeneratePointList(RealTask &task) override;
+
+    bool cleanMechanismControlMode(const ZoneVo &currentZone, const ZoneVo &nextZone, int rows, int cols);
 };
 
 #endif //APP_COMMUNICATION_POINT_GENERATOR_H
