@@ -1336,9 +1336,9 @@ void AsyncTaskCall::executeLift(bool lift) {
     if (isPreparation(currentFlow())) {
         return;
     }
-    if (isReturningBase(currentFlow())) {
-        return;
-    }
+//    if (isReturningBase(currentFlow())) {
+//        return;
+//    }
     if (!isRegularTask(currentFlow())) {
         return;
     }

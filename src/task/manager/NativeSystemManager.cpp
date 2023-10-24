@@ -87,6 +87,8 @@ void NativeSystemManager::hlsErrorEvent(int error_event) {
                 break;
         }
 //    InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR);
+
+        asyncTaskCall->executeElectricMove();
     }
 }
 
