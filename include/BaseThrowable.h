@@ -153,6 +153,7 @@ namespace error {
         mark_points_in_the_gate_as_much_as_possible,
         gate_value_error,
         passing_through_the_gate_manual_control_is_not_supported,
+        please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station
     };// enum value
 
     class category : public std::error_category {
@@ -414,7 +415,7 @@ namespace error {
                 case error::please_ensure_to_start_end_the_self_at_the_base_station:
                     return "开始 / 结束自检请保证在基站";
                 case error::please_ensure_to_start_end_the_self_non_emergency_stop_status:
-                    return "开始自检请保证非急停状态";
+                    return "急停状态不支持当前操作";
                 case error::during_self_check_the_task_cannot_be_started:
                     return "自检中，任务无法启动";
                 case error::secondary_detection:
@@ -437,6 +438,8 @@ namespace error {
                     return "gate_value_error";
                 case error::passing_through_the_gate_manual_control_is_not_supported:
                     return "机器正在通过闸机，不支持控制";
+                case error::please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station:
+                    return "请确保在基站开启/结束闸机设置";
                 default:
                     return "Unknown";
             }

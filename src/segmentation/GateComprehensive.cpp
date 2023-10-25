@@ -20,7 +20,7 @@ bool GateSettingCenter::isGateSettingMode() {
 void GateSettingCenter::startInspect() {
     if (Environment::instance().isRealEnvironment) {
         if (!ZooInnerStatus::instance().getIsCharging()) {
-            throw app::exception(make_error_code(error::please_ensure_to_start_end_the_self_at_the_base_station));
+            throw app::exception(make_error_code(error::please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station));
         }
 
         if (ZooInnerStatus::instance().getUrgencyStopStatus()) {
