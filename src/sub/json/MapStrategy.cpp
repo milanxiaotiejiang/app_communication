@@ -69,10 +69,6 @@ MapScore EndMapStrategy::handler(MapParam params) {
             throw app::exception(make_error_code(error::quit_map_needs_to_be_saved_at_the_base_station_location));
         }
     }
-    // 电机失能
-    std_msgs::Int32 map_start;
-    map_start.data = 0;
-    PublishInnerManager::instance().publishManualPush(map_start);
     // 最终结果，包含建图地图评分
     MapScore mapScore;
     if (params.isSave()) {
@@ -85,14 +81,26 @@ MapScore EndMapStrategy::handler(MapParam params) {
             bool isToSleep = NodeWorkModeManager::instance().tryToSleep();
             MapControl::instance().loadInformation(SegmentationDataBase::instance().getDbMap().id);
             MapControl::instance().changeMapServer();
+
+            // 电机失能
+            std_msgs::Int32 map_start;
+            map_start.data = 0;
+            PublishInnerManager::instance().publishManualPush(map_start);
+
             if (isToSleep) {
                 throw app::exception(make_error_code(error::create_map_fail));
             } else {
                 throw app::exception(make_error_code(error::create_map_fail_to_sleep));
             }
         }
-        // 更新本地内存中数据，单地图其实没必要更新
-        SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id, "default");
+
+        if (params.isNewMap()) {
+            SegmentationDataBase::instance().installMap(params.getMapName());
+            SegmentationDataBase::instance().loadMainMap();
+        }
+
+//        // 更新本地内存中数据，单地图其实没必要更新
+//        SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id, "default");
         //是否重置禁行区、任务等
         if (params.isReset()) {
             // 在此地图下，移除分区、与分区关联的任务
@@ -101,15 +109,13 @@ MapScore EndMapStrategy::handler(MapParam params) {
             TaskDataBase::instance().deleteTaskFoMap(SegmentationDataBase::instance().getDbMap().id);
             // 在此地图下，重置禁行区域，并备份
             MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true);
-            // 删除掉早期过期文件信息
-            removeAncientNeeds();
+            // 删除多个分区的相关信息
+            SegmentationCenter::instance().resetSegmentation();
+            // 删除闸机相关信息
+            SegmentationCenter::instance().resetGateSegmentation();
         }
         // 备份地图相关文件，不删除
         MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
-        // 删除多个分区的相关信息
-        SegmentationCenter::instance().resetSegmentation();
-        // 删除闸机相关信息
-        SegmentationCenter::instance().resetGateSegmentation();
         // 重新加载基站信息
         MapAttributeSingleton::instance().loadStation();
         // 使用全覆盖算法快速验证地图质量
@@ -126,21 +132,14 @@ MapScore EndMapStrategy::handler(MapParam params) {
         MapControl::instance().changeMapServer();
     }
 
+    // 电机失能
+    std_msgs::Int32 map_start;
+    map_start.data = 0;
+    PublishInnerManager::instance().publishManualPush(map_start);
+
     NodeWorkModeManager::instance().toSleep();
 
     return mapScore;
-}
-
-void EndMapStrategy::removeAncientNeeds() const {
-    cppfs::FileHandle file_timer_info_json = cppfs::fs::open(
-            path::data_base_config_dir() + "timer_info_json.txt");
-    file_timer_info_json.remove();
-    cppfs::FileHandle file_view_part_principal_json = cppfs::fs::open(
-            path::data_base_config_dir() + "view_part_principal_json.txt");
-    file_view_part_principal_json.remove();
-    cppfs::FileHandle file_combination_list_principal_json_work = cppfs::fs::open(
-            path::data_base_config_dir() + "combination_list_principal_json_work.txt");
-    file_combination_list_principal_json_work.remove();
 }
 
 std::vector<MapInfo> GetMultiMapsStrategy::handler(std::string params) {

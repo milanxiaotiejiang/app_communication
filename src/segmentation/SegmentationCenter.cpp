@@ -117,6 +117,8 @@ bool SegmentationCenter::initialize(const ros::NodeHandle &handle) {
 
     segmentationSubscribe = new SegmentationSubscribe(handle);
 
+    multipleMapSubscribe = new MultipleMapSubscribe(handle);
+
     // test
 //    resetSegmentation();
 

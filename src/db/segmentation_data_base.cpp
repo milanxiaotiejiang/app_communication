@@ -12,6 +12,7 @@
 #include "segmentation/Room.h"
 #include "BaseThrowable.h"
 #include "db/task_data_base.h"
+#include "segmentation/map_attribute.h"
 
 GateInfo SegmentationDataBase::gate2Info(const Gate &gate) {
     return GateInfo(
@@ -236,16 +237,39 @@ void SegmentationDataBase::reRoomName(int targetId, const std::string &name) {
 //    });
 }
 
-void SegmentationDataBase::setPlanParam(const std::string &mapId, double robotRadius,
-                                        int mapCorrectionClosingNeighborhoodSize,
-                                        double gridObstacleOffset, double pathEps, double minCellArea,
-                                        double maxDeviationFromTrack,
-                                        int rangeNearBaseStation, double roomAreaFactorLowerLimit,
-                                        double roomAreaFactorUpperLimit,
-                                        int neighborhoodIndex, int maxIterations, double minCriticalPointDistanceFactor,
-                                        double maxAreaForMerging, int distanceFromObstacles, int numberExtension,
-                                        int multipleContourSpacing, int random_number_generation_ratio,
-                                        int boundary_min_area, int version) {
+PlanPo SegmentationDataBase::loadDefaultPlanParam(const std::string &mapId) {
+    return SegmentationDataBase::instance().setPlanParam(mapId,
+                                                         robot_radius_,
+                                                         map_correction_closing_neighborhood_size_,
+                                                         grid_obstacle_offset_,
+                                                         path_eps_,
+                                                         min_cell_area_,
+                                                         max_deviation_from_track_,
+                                                         range_near_base_station_,
+                                                         room_area_factor_lower_limit_,
+                                                         room_area_factor_upper_limit_,
+                                                         neighborhood_index_,
+                                                         max_iterations_,
+                                                         min_critical_point_distance_factor_,
+                                                         max_area_for_merging_,
+                                                         distance_from_obstacles_,
+                                                         number_extension_,
+                                                         multiple_contour_spacing_,
+                                                         random_number_generation_ratio_,
+                                                         boundary_min_area_);
+}
+
+PlanPo SegmentationDataBase::setPlanParam(const std::string &mapId, double robotRadius,
+                                          int mapCorrectionClosingNeighborhoodSize,
+                                          double gridObstacleOffset, double pathEps, double minCellArea,
+                                          double maxDeviationFromTrack,
+                                          int rangeNearBaseStation, double roomAreaFactorLowerLimit,
+                                          double roomAreaFactorUpperLimit,
+                                          int neighborhoodIndex, int maxIterations,
+                                          double minCriticalPointDistanceFactor,
+                                          double maxAreaForMerging, int distanceFromObstacles, int numberExtension,
+                                          int multipleContourSpacing, int random_number_generation_ratio,
+                                          int boundary_min_area, int version) {
     PlanPo planPo(mapId, robotRadius, mapCorrectionClosingNeighborhoodSize,
                   gridObstacleOffset, pathEps, minCellArea, maxDeviationFromTrack,
                   rangeNearBaseStation, roomAreaFactorLowerLimit, roomAreaFactorUpperLimit,
@@ -253,6 +277,7 @@ void SegmentationDataBase::setPlanParam(const std::string &mapId, double robotRa
                   distanceFromObstacles, numberExtension, multipleContourSpacing,
                   random_number_generation_ratio, boundary_min_area, version);
     segmentationStorage.replace(planPo);
+    return planPo;
 }
 
 void SegmentationDataBase::removePlanParam(const std::string &mapId) {
@@ -261,14 +286,16 @@ void SegmentationDataBase::removePlanParam(const std::string &mapId) {
     );
 }
 
-PlanPo SegmentationDataBase::getDbPlan(std::string map_id) {
+PlanPo SegmentationDataBase::getDbPlan(const std::string &mapId) {
+    LOG(INFO) << "SegmentationDataBase getDbPlan mapId " << mapId;
     auto vectorPlan = segmentationStorage.get_all<PlanPo>(
-            where(c(&PlanPo::map_id) == std::move(map_id))
+            where(c(&PlanPo::map_id) == mapId)
     );
     if (!vectorPlan.empty())
         return vectorPlan.front();
-    else
-        return {};
+    else {
+        return SegmentationDataBase::instance().loadDefaultPlanParam(mapId);
+    };
 }
 
 void SegmentationDataBase::saveGate(const Gate &gate) {

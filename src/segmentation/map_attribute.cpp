@@ -109,25 +109,7 @@ void MapAttributeSingleton::loadPlanParam() {
 
 void MapAttributeSingleton::loadDefaultPlanParam() {
     std::string &map_id = SegmentationDataBase::instance().getDbMap().id;
-    SegmentationDataBase::instance().setPlanParam(map_id,
-                                                  robot_radius_,
-                                                  map_correction_closing_neighborhood_size_,
-                                                  grid_obstacle_offset_,
-                                                  path_eps_,
-                                                  min_cell_area_,
-                                                  max_deviation_from_track_,
-                                                  range_near_base_station_,
-                                                  room_area_factor_lower_limit_,
-                                                  room_area_factor_upper_limit_,
-                                                  neighborhood_index_,
-                                                  max_iterations_,
-                                                  min_critical_point_distance_factor_,
-                                                  max_area_for_merging_,
-                                                  distance_from_obstacles_,
-                                                  number_extension_,
-                                                  multiple_contour_spacing_,
-                                                  random_number_generation_ratio_,
-                                                  boundary_min_area_);
+    SegmentationDataBase::instance().loadDefaultPlanParam(map_id);
 }
 
 void

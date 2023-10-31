@@ -6,6 +6,7 @@
 #define APP_COMMUNICATION_MAPINFO_H
 
 #include <string>
+#include <ostream>
 
 #include "nlohmann/json.hpp"
 
@@ -15,18 +16,20 @@ class MapParam {
 private:
     bool save;
     bool reset;
+    bool new_map;
+    std::string map_name;
 public:
     MapParam();
 
-    MapParam(bool save, bool reset);
-
     bool isSave() const;
-
-    void setSave(bool save);
 
     bool isReset() const;
 
-    void setReset(bool reset);
+    bool isNewMap() const;
+
+    const std::string &getMapName() const;
+
+    MapParam(bool save, bool reset, bool newMap, const std::string &mapName);
 
     friend void to_json(json &j, const MapParam &b) {
         j = json{
@@ -45,6 +48,7 @@ class MapScore {
 private:
     std::string id;//real id
     double score;
+    std::string map_name;
 public:
     MapScore();
 
@@ -69,6 +73,8 @@ public:
         j.at("id").get_to(b.id);
         j.at("score").get_to(b.score);
     }
+
+    friend std::ostream &operator<<(std::ostream &os, const MapScore &score);
 };
 
 class MapInfo {
@@ -132,6 +138,8 @@ public:
             j.at("score").get_to(b.score);
         }
     }
+
+    friend std::ostream &operator<<(std::ostream &os, const MapInfo &info);
 };
 
 

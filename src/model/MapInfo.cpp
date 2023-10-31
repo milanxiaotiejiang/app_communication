@@ -55,25 +55,33 @@ void MapInfo::setScore(double score) {
     MapInfo::score = score;
 }
 
-MapParam::MapParam() {}
+std::ostream &operator<<(std::ostream &os, const MapInfo &info) {
+    os << "map_id: " << info.map_id << " id: " << info.id << " map_name: " << info.map_name << " reset: " << info.reset
+       << " score: " << info.score;
+    return os;
+}
 
-MapParam::MapParam(bool save, bool reset) : save(save), reset(reset) {}
+MapParam::MapParam() {}
 
 bool MapParam::isSave() const {
     return save;
-}
-
-void MapParam::setSave(bool save) {
-    MapParam::save = save;
 }
 
 bool MapParam::isReset() const {
     return reset;
 }
 
-void MapParam::setReset(bool reset) {
-    MapParam::reset = reset;
+const std::string &MapParam::getMapName() const {
+    return map_name;
 }
+
+bool MapParam::isNewMap() const {
+    return new_map;
+}
+
+MapParam::MapParam(bool save, bool reset, bool newMap, const std::string &mapName) : save(save), reset(reset),
+                                                                                     new_map(newMap),
+                                                                                     map_name(mapName) {}
 
 
 MapScore::MapScore() {}
@@ -94,4 +102,9 @@ double MapScore::getScore() const {
 
 void MapScore::setScore(double score) {
     MapScore::score = score;
+}
+
+std::ostream &operator<<(std::ostream &os, const MapScore &score) {
+    os << "id: " << score.id << " score: " << score.score << " map_name: " << score.map_name;
+    return os;
 }

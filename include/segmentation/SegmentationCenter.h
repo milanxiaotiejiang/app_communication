@@ -12,6 +12,7 @@
 #include "segmentation_subscribe.h"
 #include "exploration/A_star_pathplanner.h"
 #include "model/gate_info.h"
+#include "multiple_map_subscribe.h"
 #include <opencv2/opencv.hpp>
 #include <ros/node_handle.h>
 #include <mutex>
@@ -32,6 +33,7 @@ private:
     std::recursive_mutex cv_mut;
 
     SegmentationSubscribe *segmentationSubscribe;
+    MultipleMapSubscribe *multipleMapSubscribe;
 
     bool detectionTooSmallRoom(const cv::Mat &segmented_map, Room room, const PlanPo &plan) const;
 

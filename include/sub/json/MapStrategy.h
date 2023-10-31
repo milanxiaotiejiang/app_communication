@@ -33,8 +33,6 @@ public:
 class EndMapStrategy : public MessageStrategy<MapParam, MapScore> {
 public:
     MapScore handler(MapParam params) override;
-
-    void removeAncientNeeds() const;
 };
 
 class GetMultiMapsStrategy : public MessageStrategy<std::string, std::vector<MapInfo>> {

@@ -8,7 +8,7 @@
 #include "glog/logging.h"
 #include "string"
 
-#define DEBUG_REQUEST false
+#define DEBUG_REQUEST true
 #define DEBUG_FIRING false
 #define DEBUG_EXPLORATION false
 #define DEBUG_EXPLORATION_CACHE false
@@ -23,6 +23,7 @@
 #define DEBUG_RESTORE true
 #define DEBUG_GATE true
 #define DEBUG_CLEAN_MECHANISM true
+#define DEBUG_MULTIPLE_MAP true
 
 
 #define NODE_CONTROLLER_WORK_MODE "/node_controller/work_mode"
