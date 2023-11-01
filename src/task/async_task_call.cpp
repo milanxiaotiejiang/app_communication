@@ -153,7 +153,6 @@ void AsyncTaskCall::handleErrorOperation() {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 电机失能了 ... ";
             forceInterruptTask(event::SB::sb_electric_move);
             break;
-            break;
         case loop::error_epoll::error_unrecoverable:
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 出现不可恢复的错误 ... ";
             forceInterruptTask(event::SB::sb_unrecoverable);
