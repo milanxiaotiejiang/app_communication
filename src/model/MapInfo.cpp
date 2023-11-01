@@ -83,6 +83,10 @@ MapParam::MapParam(bool save, bool reset, bool newMap, const std::string &mapNam
                                                                                      new_map(newMap),
                                                                                      map_name(mapName) {}
 
+void MapParam::setReset(bool reset) {
+    MapParam::reset = reset;
+}
+
 
 MapScore::MapScore() {}
 

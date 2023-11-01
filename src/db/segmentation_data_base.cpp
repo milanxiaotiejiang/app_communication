@@ -287,7 +287,6 @@ void SegmentationDataBase::removePlanParam(const std::string &mapId) {
 }
 
 PlanPo SegmentationDataBase::getDbPlan(const std::string &mapId) {
-    LOG(INFO) << "SegmentationDataBase getDbPlan mapId " << mapId;
     auto vectorPlan = segmentationStorage.get_all<PlanPo>(
             where(c(&PlanPo::map_id) == mapId)
     );

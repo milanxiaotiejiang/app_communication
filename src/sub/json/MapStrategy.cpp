@@ -22,6 +22,7 @@
 #include "tool/Variable.h"
 #include "leave/ParamManager.h"
 #include "db/property_data_base.h"
+#include "tool/param_check.h"
 
 std::string FactoryResetStrategy::handler(std::string params) {
     PropertyDataBase::instance().resetConsumable(true, true, true, true, true, true);
@@ -53,6 +54,7 @@ std::string StartMapStrategy::handler(std::string params) {
 
     HotWindNoteSingleton::instance().closeHotWind();
 
+    // 电机失能
     std_msgs::Int32 map_start;
     map_start.data = 2;
     PublishInnerManager::instance().publishManualPush(map_start);
@@ -61,6 +63,11 @@ std::string StartMapStrategy::handler(std::string params) {
 }
 
 MapScore EndMapStrategy::handler(MapParam params) {
+    checkName(params.getMapName());
+    if (params.isNewMap()) {
+        params.setReset(false);
+    }
+
     // 根据电量判断是否在基站，不在基站不处理开始/结束建图
     if (!ZooInnerStatus::instance().getIsCharging()) {
         if (params.isSave()) {
@@ -82,7 +89,7 @@ MapScore EndMapStrategy::handler(MapParam params) {
             MapControl::instance().loadInformation(SegmentationDataBase::instance().getDbMap().id);
             MapControl::instance().changeMapServer();
 
-            // 电机失能
+            // 电机使能
             std_msgs::Int32 map_start;
             map_start.data = 0;
             PublishInnerManager::instance().publishManualPush(map_start);
@@ -132,7 +139,7 @@ MapScore EndMapStrategy::handler(MapParam params) {
         MapControl::instance().changeMapServer();
     }
 
-    // 电机失能
+    // 电机使能
     std_msgs::Int32 map_start;
     map_start.data = 0;
     PublishInnerManager::instance().publishManualPush(map_start);

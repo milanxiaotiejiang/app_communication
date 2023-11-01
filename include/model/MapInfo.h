@@ -31,6 +31,8 @@ public:
 
     MapParam(bool save, bool reset, bool newMap, const std::string &mapName);
 
+    void setReset(bool reset);
+
     friend void to_json(json &j, const MapParam &b) {
         j = json{
                 {"save",  b.save},
