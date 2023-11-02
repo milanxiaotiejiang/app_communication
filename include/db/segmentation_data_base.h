@@ -118,7 +118,7 @@ public:
 
     void purgeGate(const std::string &mapId);
 
-    long addGateInfo(const GateInfo &gateInfo);
+    int addGateInfo(const GateInfo &gateInfo);
 
     void deleteGateForId(long id);
 

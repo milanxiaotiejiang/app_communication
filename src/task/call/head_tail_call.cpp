@@ -181,8 +181,8 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             break;
         }
         case event::flow::arrive_base_point_success: {
-            if (baseTaskMode() == static_cast<int>(TaskMode::Zoned)) {
-                LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 矩形任务无需再次收起清洁机构 ...";
+            if (baseTaskMode() == static_cast<int>(TaskMode::Zoned) && !MechanismManager::instance().isOpening()) {
+                LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 矩形任务 并且 已经收起 无需再次收起清洁机构 ...";
                 flowCloseMechanismPoint.arrive = true;
                 notify_one([this]() {
                     pushBlock(flowCloseMechanismPoint);

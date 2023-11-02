@@ -7,10 +7,10 @@
 #include "segmentation/SegmentationCenter.h"
 #include "segmentation/GateComprehensive.h"
 
-long AddGateStrategy::handler(GateInfo params) {
-    auto segmented_map = SegmentationCenter::instance().generateMat();
-    std::vector<Room> rooms;
-    SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, SegmentationDataBase::info2Gate(params));
+int AddGateStrategy::handler(GateInfo params) {
+//    auto segmented_map = SegmentationCenter::instance().generateMat();
+//    std::vector<Room> rooms;
+//    SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, SegmentationDataBase::info2Gate(params));
 
     params.setId(-1);
     params.setOMapId(SegmentationDataBase::instance().getDbMap().id);

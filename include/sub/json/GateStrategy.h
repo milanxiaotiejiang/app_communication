@@ -9,9 +9,9 @@
 #include "model/gate_info.h"
 
 
-class AddGateStrategy : public MessageStrategy<GateInfo, long> {
+class AddGateStrategy : public MessageStrategy<GateInfo, int> {
 public:
-    long handler(GateInfo params) override;
+    int handler(GateInfo params) override;
 };
 
 class DeleteGateStrategy : public MessageStrategy<long, std::string> {

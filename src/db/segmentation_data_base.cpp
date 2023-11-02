@@ -309,7 +309,7 @@ void SegmentationDataBase::purgeGate(const std::string &mapId) {
     segmentationStorage.remove_all<Gate>(where(c(&Gate::o_map_id) == mapId));
 }
 
-long SegmentationDataBase::addGateInfo(const GateInfo &gateInfo) {
+int SegmentationDataBase::addGateInfo(const GateInfo &gateInfo) {
     return segmentationStorage.insert(info2Gate(gateInfo));
 }
 

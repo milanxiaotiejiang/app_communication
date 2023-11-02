@@ -16,6 +16,9 @@ private:
 
     MechanismManager &operator=(const MechanismManager &) = delete;
 
+
+    std::atomic<bool> opening;
+
 public:
     ~MechanismManager() = default;
 
@@ -26,6 +29,7 @@ public:
     }
 
 public:
+    bool isOpening() const;
 
     void resetWorkStatus();
 
