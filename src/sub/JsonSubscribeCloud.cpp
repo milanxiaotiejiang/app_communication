@@ -44,7 +44,7 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
     auto requestModel = jdecode.get<RequestModel<Entrance>>();
     auto entrance = requestModel.getMsg();
 
-    LOG_IF(INFO, DEBUG_REQUEST) << "JsonSubscribeCloud method : " << entrance.getMethod();
+//    LOG_IF(INFO, DEBUG_REQUEST) << "JsonSubscribeCloud method : " << entrance.getMethod();
     int start_time = ros::Time::now().sec;
 
     MessageBaseStrategy *messageStrategy = nullptr;
@@ -232,8 +232,8 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         messageContext.startDateProgressing(MessageSource::Cloud, jdecode);
 
         int end_time = ros::Time::now().sec;
-        LOG_IF(INFO, DEBUG_REQUEST) << "----------------" << "JsonSubscribe end : " << entrance.getMethod() << " "
-                                    << end_time - start_time << " s " << "----------------";
+//        LOG_IF(INFO, DEBUG_REQUEST) << "----------------" << "JsonSubscribeCloud end : " << entrance.getMethod() << " "
+//                                    << end_time - start_time << " s " << "----------------";
 
         res.resp = CloudRobotControl::instance().useInfo();
         CloudRobotControl::instance().reset();

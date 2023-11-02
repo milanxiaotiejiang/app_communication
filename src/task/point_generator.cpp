@@ -887,10 +887,11 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
         const std::vector<std::vector<PoseVo>> &vComplexList = coverage.getComplexList();
         std::vector<std::vector<PoseMo>> mComplexList;
         for (const auto &vList: vComplexList) {
+            std::vector<PoseMo> pms;
             for (const auto &item: vList) {
-                std::vector<PoseMo> pms;
                 pms.emplace_back(item.getX(), item.getY(), item.getTheta(), CmcMode::Omission);
             }
+            mComplexList.push_back(pms);
         }
 
         std::vector<RealBlock> blocks;

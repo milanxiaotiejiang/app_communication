@@ -16,7 +16,7 @@ using json = nlohmann::json;
 
 AsyncGateImplement::AsyncGateImplement() {
     int err = AsyncGateImplement::make_thread(run, this);
-    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement : " << err;
+//    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement : " << err;
 }
 
 std::string UrlEncode(const std::string &value) {
@@ -382,7 +382,7 @@ void AsyncGateImplement::setCallbackImplementEnd(const std::function<void(bool, 
 
 AsyncGateDistribution::AsyncGateDistribution() : mImplement(std::make_shared<AsyncGateImplement>()) {
     int err = AsyncGateDistribution::make_thread(run, this);
-    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateDistribution : " << err;
+//    LOG_IF(INFO, DEBUG_GATE) << "AsyncGateDistribution : " << err;
 
     mImplement->setCallbackImplementStart([this]() {
         LOG_IF(INFO, DEBUG_GATE) << "闸机规划点位开始执行 ... ";

@@ -62,8 +62,11 @@ std::string StartMapStrategy::handler(std::string params) {
     return "";
 }
 
+#define multiple false
+
 MapScore EndMapStrategy::handler(MapParam params) {
-    checkName(params.getMapName());
+    if (multiple)
+        checkName(params.getMapName());
     if (params.isNewMap()) {
         params.setReset(false);
     }

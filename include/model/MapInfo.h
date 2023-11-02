@@ -14,10 +14,10 @@ using json = nlohmann::json;
 
 class MapParam {
 private:
-    bool save;
-    bool reset;
-    bool new_map;
-    std::string map_name;
+    bool save{false};
+    bool reset{false};
+    bool new_map{false};
+    std::string map_name{""};
 public:
     MapParam();
 

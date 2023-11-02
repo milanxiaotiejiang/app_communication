@@ -74,8 +74,8 @@ int main(int argc, char **argv) {
     NodeControl::instance().initialize(handle);
 
     //启动订阅话题的callback
-//    JsonSubscribe jsonSubscribe(handle);
-//    JsonSubscribeCloud jsonSubscribeCloud(handle);
+    JsonSubscribe jsonSubscribe(handle);
+    JsonSubscribeCloud jsonSubscribeCloud(handle);
     BeforeJsonSubscribe beforeJsonSubscribe(handle);
     MapInnerSubscribe mapInnerSubscribe(handle);
     DSVersionSubscribe dsVersionSubscribe(handle);

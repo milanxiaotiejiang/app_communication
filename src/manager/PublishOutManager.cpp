@@ -51,11 +51,11 @@ void PublishOutManager::publishMap(const nav_msgs::OccupancyGrid &message) const
     } else {
         WsServerManager::instance().setMapApp(message);
     }
-    LOG(INFO) << "publishMap  width : " << message.info.width <<
-              " height : " << message.info.height <<
-              " x : " << message.info.origin.position.x <<
-              " y : " << message.info.origin.position.y <<
-              " z : " << message.info.origin.position.z;
+//    LOG(INFO) << "publishMap  width : " << message.info.width <<
+//              " height : " << message.info.height <<
+//              " x : " << message.info.origin.position.x <<
+//              " y : " << message.info.origin.position.y <<
+//              " z : " << message.info.origin.position.z;
     pub_map_.publish(message);
 }
 
