@@ -167,15 +167,18 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
                         }
                     }
 
-                    auto nextBlock = findFrontNextBlock();
-                    if (nextBlock.inClean) {
-                        if (nextBlock.timely_step > 0) {
-                            nextBlock.already_step = nextBlock.already_step + nextBlock.timely_step + 1;
-                            nextBlock.timely_step = 0;
-                            exchangeFrontPoint(nextBlock);
+                    auto nextBlockPair = findFrontNextBlock();
+                    if (nextBlockPair.first) {
+                        auto nextBlock = nextBlockPair.second;
+                        if (nextBlock.inClean) {
+                            if (nextBlock.timely_step > 0) {
+                                nextBlock.already_step = nextBlock.already_step + nextBlock.timely_step + 1;
+                                nextBlock.timely_step = 0;
+                                exchangeFrontPoint(nextBlock);
+                            }
                         }
+                        callGoNextBlock(nextBlock);
                     }
-                    callGoNextBlock(nextBlock);
                 }
             }
             break;

@@ -516,9 +516,17 @@ RealBlock AsyncTaskCall::findFrontBlock() {
     return plannerQueue.front();
 }
 
-RealBlock AsyncTaskCall::findFrontNextBlock() {
+std::pair<bool, RealBlock> AsyncTaskCall::findFrontNextBlock() {
+    if (plannerQueue.empty()) {
+        LOG_IF(INFO, DEBUG_TASK) << "findFrontNextBlock : empty ...";
+        return std::make_pair(false, RealBlock());
+    }
+    if (plannerQueue.size() == 1) {
+        LOG_IF(INFO, DEBUG_TASK) << "findFrontNextBlock : size == 1 ...";
+        return std::make_pair(false, RealBlock());
+    }
     plannerQueue.pop_front();
-    return plannerQueue.front();
+    return std::make_pair(true, plannerQueue.front());
 }
 
 bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
@@ -797,8 +805,10 @@ void AsyncTaskCall::callPause(bool skipManual) {
         if (!plannerQueue.empty()) {
             auto currentPoint = findFrontBlock();
             if (currentPoint.goal_step == INT_MAX) {
-                auto nextPoint = findFrontNextBlock();
-                plannerQueue.push_front(nextPoint);
+                auto nextPointPair = findFrontNextBlock();
+                if (nextPointPair.first) {
+                    plannerQueue.push_front(nextPointPair.second);
+                }
             } else {
                 plannerQueue.push_front(currentPoint);
             }

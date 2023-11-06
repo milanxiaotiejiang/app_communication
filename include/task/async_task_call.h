@@ -101,7 +101,7 @@ protected:
 
     RealBlock findFrontBlock();
 
-    RealBlock findFrontNextBlock();
+    std::pair<bool, RealBlock> findFrontNextBlock();
 
     bool isBasePointReached(float disAccuracy, float angleAccuracy);
 
