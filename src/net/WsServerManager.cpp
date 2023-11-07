@@ -45,6 +45,8 @@
 #include "boost/iostreams/filter/gzip.hpp"
 
 #include "tool/base64.h"
+#include "model/MapInfo.h"
+#include "net/base/BaseResult.h"
 
 //#include "tool/ZLibString.hpp"
 
@@ -114,26 +116,33 @@ void on_http(server *s, websocketpp::connection_hdl hdl) {
     server::connection_ptr con = s->get_con_from_hdl(hdl);
 
     std::string res = con->get_request_body();
-    auto path = con->get_resource();//"/nebula/sys/randomImage/5585"
-    std::string host = con->get_host();//"192.168.2.87"
-    uint16_t port = con->get_port();//9090
+    auto path = con->get_resource();
+    std::string host = con->get_host();
+    uint16_t port = con->get_port();
     std::string reason = con->get_local_close_reason();
     std::string proxy = con->get_proxy();
-    auto request = con->get_request();//post uri
-    std::string requestBody = con->get_request_body();//"{\"captcha\":\"\",\"checkKey\":\"5585\",\"password\":\"demo@123\",\"username\":\"demo\"}"
-    auto resource = con->get_resource();//"/nebula/sys/login"
-    std::string responseMsg = con->get_response_msg();//"[::ffff:192.168.2.83]:42898"
+    auto request = con->get_request();
+    std::string requestBody = con->get_request_body();
+    auto resource = con->get_resource();
+    std::string responseMsg = con->get_response_msg();
     std::string remoteEndPoint = con->get_remote_endpoint();
-    std::string uri = request.get_uri();//"/nebula/sys/login"
-    std::string method = request.get_method();//"POST"
-    std::string body = request.get_body();//"{\"captcha\":\"\",\"checkKey\":\"5585\",\"password\":\"demo@123\",\"username\":\"demo\"}"
+    std::string uri = request.get_uri();//"/map_image
+    std::string method = request.get_method();
+    std::string body = request.get_body();//"{\r\n  \"map_id\": \"59a9dbd3c8424bf598ff71ca5bb0be6e\"\r\n}"
     std::string version = request.get_version();
     auto headers = request.get_headers();
 
-    std::stringstream ss;
-    ss << "got HTTP request with " << res.size() << " bytes of body data.";
+    json jDecode = json::parse(body);
+    auto entrance = jDecode.get<MapImageRequest>();
 
-    con->set_body(ss.str());
+    MapImageResponse imageResponse;
+    imageResponse.map_id = "1234567890";
+    BaseResult<MapImageResponse> result(-1, imageResponse);
+    json jsonResult = result;
+
+//    cv::Mat map = cv::imread(path::map_pgm_path().c_str(), cv::ImreadModes::IMREAD_GRAYSCALE);
+
+    con->set_body(jsonResult.dump());
     con->set_status(websocketpp::http::status_code::ok);
 }
 

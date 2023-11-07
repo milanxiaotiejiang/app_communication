@@ -144,5 +144,34 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const MapInfo &info);
 };
 
+class MapImageRequest {
+public:
+    std::string map_id;
+
+    friend void to_json(json &j, const MapImageRequest &mapImage) {
+        j = json{
+                {"map_id", mapImage.map_id},
+        };
+    }
+
+    friend void from_json(const json &j, MapImageRequest &mapImage) {
+        j.at("map_id").get_to(mapImage.map_id);
+    }
+};
+
+class MapImageResponse {
+public:
+    std::string map_id;
+
+    friend void to_json(json &j, const MapImageResponse &mapImage) {
+        j = json{
+                {"map_id", mapImage.map_id},
+        };
+    }
+
+    friend void from_json(const json &j, MapImageResponse &mapImage) {
+        j.at("map_id").get_to(mapImage.map_id);
+    }
+};
 
 #endif //APP_COMMUNICATION_MAPINFO_H
