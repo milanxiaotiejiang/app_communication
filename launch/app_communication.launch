@@ -1,6 +1,6 @@
 <launch>
   <param name="ul_sensor_name_1" value="/mrrobot/ul_sensor1"/>
   <param name="ul_sensor_name_2" value="/mrrobot/ul_sensor2"/>
-  <node name="rec_app_node" pkg="app_communication"  type="rec_app_node" output="screen" respawn="false">
+  <node name="rec_app_node" pkg="app_communication"  type="rec_app_node" output="screen" respawn="true">
   </node>
 </launch>

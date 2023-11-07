@@ -91,6 +91,11 @@ public:
     static void sendRequestData(const std::string &key, const std::string &data);
 
     static void sendMessageBusTopic(const std::string &string);
+
+    static bool startsWith(const std::string &haystack, const std::string &needle) {
+        return needle.length() <= haystack.length()
+               && equal(needle.begin(), needle.end(), haystack.begin());
+    }
 };
 
 

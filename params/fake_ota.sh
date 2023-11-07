@@ -165,7 +165,10 @@ function update_move_base_launch_include
 
 echo "Upgrade Aircore"
 version=$(rosparam get /ros_version)
-major=${version:0:5}
+echo $version
+#major=${version:0:5}
+major=$(echo $version | awk -F'.' '{print $1"."$2"."$3}')
+echo $major
 old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9" "1.0.0" "1.0.1" "1.0.2" "2.0.0" "2.0.2" "2.0.3" "2.0.4" "2.0.5" "2.0.6" "2.0.7" "2.0.8" "2.0.9" "2.0.10" "2.0.11")
 version_index=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
@@ -316,15 +319,9 @@ fi
 if [ $version_index -lt 18 ]
 then
   echo "Updating 2.0.10"
-  update_cartographer_rplidar
-  update_cartographer_localization
-  update_libcartographer
 fi
 
 if [ $version_index -lt 19 ]
 then
   echo "Updating 2.0.11"
-  update_cartographer_rplidar
-  update_cartographer_localization
-  update_libcartographer
 fi
