@@ -23,6 +23,7 @@
 #include "leave/ParamManager.h"
 #include "db/property_data_base.h"
 #include "tool/param_check.h"
+#include "schedule/schedule_manager_singleton.h"
 
 std::string FactoryResetStrategy::handler(std::string params) {
     PropertyDataBase::instance().resetConsumable(true, true, true, true, true, true);
@@ -62,7 +63,7 @@ std::string StartMapStrategy::handler(std::string params) {
     return "";
 }
 
-#define multiple false
+#define multiple true
 
 MapScore EndMapStrategy::handler(MapParam params) {
     if (multiple)
@@ -133,6 +134,8 @@ MapScore EndMapStrategy::handler(MapParam params) {
         // 设置返回的结果
         mapScore.setId(SegmentationDataBase::instance().getDbMap().id);
         mapScore.setScore(proportion);
+        // 更新内存中定时任务
+        ScheduleManagerSingleton::instance().trigger_task_update();
         // 发布给 move_base 最新的禁行区域
         PublishInnerManager::instance().publishResetProhibition();
         // 重新规划牛耕田算法的全覆盖

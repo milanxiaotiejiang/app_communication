@@ -161,17 +161,23 @@ struct MapImageRequest {
 struct MapImageResponse {
     int type{1};
     std::string image;
+    int width;
+    int height;
 
     friend void to_json(json &j, const MapImageResponse &mapImage) {
         j = json{
                 {"type",  mapImage.type},
                 {"image", mapImage.image},
+                {"width", mapImage.width},
+                {"height", mapImage.height},
         };
     }
 
     friend void from_json(const json &j, MapImageResponse &mapImage) {
         j.at("type").get_to(mapImage.type);
         j.at("image").get_to(mapImage.image);
+        j.at("width").get_to(mapImage.width);
+        j.at("height").get_to(mapImage.height);
     }
 };
 
