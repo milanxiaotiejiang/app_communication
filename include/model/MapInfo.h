@@ -12,14 +12,14 @@
 
 using json = nlohmann::json;
 
-class MapParam {
+class BuildMapParam {
 private:
     bool save{false};
     bool reset{false};
     bool new_map{false};
     std::string map_name{""};
 public:
-    MapParam();
+    BuildMapParam();
 
     bool isSave() const;
 
@@ -29,20 +29,20 @@ public:
 
     const std::string &getMapName() const;
 
-    MapParam(bool save, bool reset, bool newMap, const std::string &mapName);
+    BuildMapParam(bool save, bool reset, bool newMap, const std::string &mapName);
 
     void setReset(bool reset);
 
-    friend void to_json(json &j, const MapParam &b) {
+    friend void to_json(json &j, const BuildMapParam &b) {
         j = json{
-                {"save",  b.save},
-                {"reset", b.reset},
-                {"new_map", b.new_map},
+                {"save",     b.save},
+                {"reset",    b.reset},
+                {"new_map",  b.new_map},
                 {"map_name", b.map_name},
         };
     }
 
-    friend void from_json(const json &j, MapParam &b) {
+    friend void from_json(const json &j, BuildMapParam &b) {
         j.at("save").get_to(b.save);
         j.at("reset").get_to(b.reset);
         j.at("new_map").get_to(b.new_map);
@@ -148,6 +148,91 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const MapInfo &info);
 };
 
+class MultiMapInfo {
+private:
+    std::string id;
+    std::string name;
+    bool main;
+    std::string path;
+public:
+    MultiMapInfo();
+
+    MultiMapInfo(const std::string &id, const std::string &name, bool main, const std::string &path);
+
+    const std::string &getId() const;
+
+    void setId(const std::string &id);
+
+    const std::string &getName() const;
+
+    void setName(const std::string &name);
+
+    bool isMain() const;
+
+    void setMain(bool main);
+
+    const std::string &getPath() const;
+
+    void setPath(const std::string &path);
+
+    friend void to_json(json &j, const MultiMapInfo &b) {
+        j = json{
+                {"id",   b.id},
+                {"name", b.name},
+                {"main", b.main},
+                {"path", b.path},
+        };
+    }
+
+    friend void from_json(const json &j, MultiMapInfo &b) {
+        j.at("id").get_to(b.id);
+        j.at("name").get_to(b.name);
+        j.at("main").get_to(b.main);
+        j.at("path").get_to(b.path);
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const MultiMapInfo &info);
+};
+
+class ModifyMapName {
+private:
+    std::string id;
+    std::string name;
+public:
+    ModifyMapName() {}
+
+    ModifyMapName(const std::string &id, const std::string &name) : id(id), name(name) {}
+
+    const std::string &getId() const {
+        return id;
+    }
+
+    void setId(const std::string &id) {
+        ModifyMapName::id = id;
+    }
+
+    const std::string &getName() const {
+        return name;
+    }
+
+    void setName(const std::string &name) {
+        ModifyMapName::name = name;
+    }
+
+    friend void to_json(json &j, const ModifyMapName &b) {
+        j = json{
+                {"id",   b.id},
+                {"name", b.name},
+        };
+    }
+
+    friend void from_json(const json &j, ModifyMapName &b) {
+        j.at("id").get_to(b.id);
+        j.at("name").get_to(b.name);
+    }
+
+};
+
 struct MapImageRequest {
     std::string map_id;
 
@@ -170,9 +255,9 @@ struct MapImageResponse {
 
     friend void to_json(json &j, const MapImageResponse &mapImage) {
         j = json{
-                {"type",  mapImage.type},
-                {"image", mapImage.image},
-                {"width", mapImage.width},
+                {"type",   mapImage.type},
+                {"image",  mapImage.image},
+                {"width",  mapImage.width},
                 {"height", mapImage.height},
         };
     }

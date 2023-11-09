@@ -30,14 +30,14 @@ public:
     std::string handler(std::string params) override;
 };
 
-class EndMapStrategy : public MessageStrategy<MapParam, MapScore> {
+class EndMapStrategy : public MessageStrategy<BuildMapParam, MapScore> {
 public:
-    MapScore handler(MapParam params) override;
+    MapScore handler(BuildMapParam params) override;
 };
 
-class GetMultiMapsStrategy : public MessageStrategy<std::string, std::vector<MapInfo>> {
+class GetMultiMapsStrategy : public MessageStrategy<std::string, std::vector<MultiMapInfo>> {
 public:
-    std::vector<MapInfo> handler(std::string params) override;
+    std::vector<MultiMapInfo> handler(std::string params) override;
 };
 
 class ChangeMapStrategy : public MessageStrategy<std::string, std::string> {
@@ -45,9 +45,9 @@ public:
     std::string handler(std::string params) override;
 };
 
-class ModifyMapNameStrategy : public MessageStrategy<MapInfo, std::string> {
+class ModifyMapNameStrategy : public MessageStrategy<ModifyMapName, std::string> {
 public:
-    std::string handler(MapInfo params) override;
+    std::string handler(ModifyMapName params) override;
 };
 
 class DeleteMapStrategy : public MessageStrategy<std::string, std::string> {

@@ -38,22 +38,22 @@ void MultipleMapSubscribe::multipleMapCreateSubscribeCallback(const std_msgs::In
             startMapStrategy.handler("");
         } else if (data == 3) {
             // 地图创建失败，需要重新创建
-            MapParam mapParam(false, false, false, "");
+            BuildMapParam mapParam(false, false, false, "");
             EndMapStrategy endMapStrategy;
             mapScore = endMapStrategy.handler(mapParam);
         } else if (data == 4) {
             // 需要重新绘制当前地图，并且不删除相关资源
-            MapParam mapParam(true, false, false, "");
+            BuildMapParam mapParam(true, false, false, "");
             EndMapStrategy endMapStrategy;
             mapScore = endMapStrategy.handler(mapParam);
         } else if (data == 5) {
             // 需要重新绘制当前地图，并且删除相关资源
-            MapParam mapParam(true, true, false, "");
+            BuildMapParam mapParam(true, true, false, "");
             EndMapStrategy endMapStrategy;
             mapScore = endMapStrategy.handler(mapParam);
         } else {
             std::string map_name = map_0 + std::to_string(data);
-            MapParam mapParam(true, false, true, map_name);
+            BuildMapParam mapParam(true, false, true, map_name);
             EndMapStrategy endMapStrategy;
             mapScore = endMapStrategy.handler(mapParam);
         }

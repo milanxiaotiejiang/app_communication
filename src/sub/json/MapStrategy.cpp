@@ -65,7 +65,7 @@ std::string StartMapStrategy::handler(std::string params) {
 
 #define multiple true
 
-MapScore EndMapStrategy::handler(MapParam params) {
+MapScore EndMapStrategy::handler(BuildMapParam params) {
     if (multiple)
         checkName(params.getMapName());
     if (params.isNewMap()) {
@@ -156,12 +156,12 @@ MapScore EndMapStrategy::handler(MapParam params) {
     return mapScore;
 }
 
-std::vector<MapInfo> GetMultiMapsStrategy::handler(std::string params) {
-    std::vector<MapInfo> mapInfos;
+std::vector<MultiMapInfo> GetMultiMapsStrategy::handler(std::string params) {
+    std::vector<MultiMapInfo> mapInfos;
     const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
     for (const auto &map: allMap) {
-        MapInfo mapInfo(map.id, map.name);
-        mapInfos.push_back(mapInfo);
+        MultiMapInfo multiMapInfo(map.id, map.name, map.main, map.path);
+        mapInfos.push_back(multiMapInfo);
     }
     return mapInfos;
 }
@@ -216,7 +216,8 @@ std::string ChangeMapStrategy::handler(std::string params) {
     return "";
 }
 
-std::string ModifyMapNameStrategy::handler(MapInfo params) {
+std::string ModifyMapNameStrategy::handler(ModifyMapName params) {
+    checkName(params.getName());
     const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
     bool isFind = false;
     for (const auto &item: allMap) {
@@ -228,12 +229,12 @@ std::string ModifyMapNameStrategy::handler(MapInfo params) {
     if (!isFind) {
         throw app::exception(make_error_code(error::map_id_does_not_exist));
     }
-    SegmentationDataBase::instance().updateMapName(params.getId(), params.getMapName());
+    SegmentationDataBase::instance().updateMapName(params.getId(), params.getName());
     return "";
 }
 
 std::string DeleteMapStrategy::handler(std::string params) {
-
+    return "";
 }
 
 std::string EditMapStrategy::handler(std::vector<std::vector<float>> params) {

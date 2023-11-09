@@ -61,30 +61,74 @@ std::ostream &operator<<(std::ostream &os, const MapInfo &info) {
     return os;
 }
 
-MapParam::MapParam() {}
+const std::string &MultiMapInfo::getId() const {
+    return id;
+}
 
-bool MapParam::isSave() const {
+void MultiMapInfo::setId(const std::string &id) {
+    MultiMapInfo::id = id;
+}
+
+const std::string &MultiMapInfo::getName() const {
+    return name;
+}
+
+void MultiMapInfo::setName(const std::string &name) {
+    MultiMapInfo::name = name;
+}
+
+bool MultiMapInfo::isMain() const {
+    return main;
+}
+
+void MultiMapInfo::setMain(bool main) {
+    MultiMapInfo::main = main;
+}
+
+const std::string &MultiMapInfo::getPath() const {
+    return path;
+}
+
+void MultiMapInfo::setPath(const std::string &path) {
+    MultiMapInfo::path = path;
+}
+
+MultiMapInfo::MultiMapInfo() {}
+
+MultiMapInfo::MultiMapInfo(const std::string &id, const std::string &name, bool main, const std::string &path) : id(id),
+                                                                                                                 name(name),
+                                                                                                                 main(main),
+                                                                                                                 path(path) {}
+
+std::ostream &operator<<(std::ostream &os, const MultiMapInfo &info) {
+    os << "id: " << info.id << " name: " << info.name << " main: " << info.main << " path: " << info.path;
+    return os;
+}
+
+BuildMapParam::BuildMapParam() {}
+
+bool BuildMapParam::isSave() const {
     return save;
 }
 
-bool MapParam::isReset() const {
+bool BuildMapParam::isReset() const {
     return reset;
 }
 
-const std::string &MapParam::getMapName() const {
+const std::string &BuildMapParam::getMapName() const {
     return map_name;
 }
 
-bool MapParam::isNewMap() const {
+bool BuildMapParam::isNewMap() const {
     return new_map;
 }
 
-MapParam::MapParam(bool save, bool reset, bool newMap, const std::string &mapName) : save(save), reset(reset),
-                                                                                     new_map(newMap),
-                                                                                     map_name(mapName) {}
+BuildMapParam::BuildMapParam(bool save, bool reset, bool newMap, const std::string &mapName) : save(save), reset(reset),
+                                                                                               new_map(newMap),
+                                                                                               map_name(mapName) {}
 
-void MapParam::setReset(bool reset) {
-    MapParam::reset = reset;
+void BuildMapParam::setReset(bool reset) {
+    BuildMapParam::reset = reset;
 }
 
 
