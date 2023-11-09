@@ -35,7 +35,7 @@ public:
 
     bool backupAndRetrieve(const std::string &map_id);
 
-    bool backupProhibition(const std::string &map_id, bool retrieve);
+    bool backupProhibition(const std::string &map_id, bool complete, bool reset);
 
     bool backupMap(const std::string &map_id, bool retrieve);
 

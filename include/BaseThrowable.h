@@ -155,7 +155,8 @@ namespace error {
         passing_through_the_gate_manual_control_is_not_supported,
         please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station,
         the_base_station_is_no_longer_able_to_switch_maps,
-        cannot_switch_maps_in_non_sleep_mode
+        cannot_switch_maps_in_non_sleep_mode,
+        cannot_delete_to_the_current_map
     };// enum value
 
     class category : public std::error_category {
@@ -446,6 +447,8 @@ namespace error {
                     return "请推回基站再切换地图";
                 case error::cannot_switch_maps_in_non_sleep_mode:
                     return "未退出睡眠模式，清重新启动";
+                case error::cannot_delete_to_the_current_map:
+                    return "不能删除当前地图";
                 default:
                     return "Unknown";
             }

@@ -58,9 +58,9 @@ int set_prohibition(float *point, int num) {
     return 1;
 }
 
-int reset_prohibition(void) {
-    YAML::Node config = YAML::LoadFile(path::prohibition_areas_path());
-    std::ofstream fout(path::prohibition_areas_path());
+int reset_prohibition(std::string prohibition_path) {
+    YAML::Node config = YAML::LoadFile(prohibition_path);
+    std::ofstream fout(prohibition_path);
     config.reset();//将yaml文件清空
     //对yaml文件进行操作
 
@@ -68,9 +68,7 @@ int reset_prohibition(void) {
     config["prohibition_areas"][0][0][1] = -100;//保留一个点，不然文件会无法访问
 
     fout << config;//将修改写进yaml文件
-
     fout.close();//文件关闭后yaml内容才会变化
-
     return 1;
 }
 

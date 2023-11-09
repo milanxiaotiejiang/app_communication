@@ -32,6 +32,8 @@ bool MapControl::initialize(ros::NodeHandle handle) {
 }
 
 bool MapControl::loadInformation(const std::string &map_id) {
+    LOG_IF(INFO, DEBUG_MULTIPLE_MAP) << "load " << map_id << " map information ...";
+
     std::string dir = path::robot_slam_map_dir() + map_id + path::separator();
 
     cppfs::FileHandle omy = cppfs::fs::open(dir + path::mymap_yaml);
@@ -82,28 +84,36 @@ bool MapControl::checkMapInformation(const std::string &map_id) {
 
 bool MapControl::backupAndRetrieve(const std::string &map_id) {
     backupMap(map_id, true);
-    backupProhibition(map_id, true);
+    backupProhibition(map_id, true, false);
     return true;
 }
 
 /**
  * 将正在使用的禁行区文件拷贝到备份文件夹
  * @param map_id
- * @param retrieve 是否重置禁行区，为 true 即重置两部分的禁行区文件
  * @return
  */
-bool MapControl::backupProhibition(const std::string &map_id, bool retrieve) {
+bool MapControl::backupProhibition(const std::string &map_id, bool complete, bool reset) {
+    if (complete)
+        LOG_IF(INFO, DEBUG_MULTIPLE_MAP) << "backup " << map_id << " complete prohibition ...";
+    else
+        LOG_IF(INFO, DEBUG_MULTIPLE_MAP) << "backup " << map_id << " empty prohibition ...";
+    if (reset)
+        LOG_IF(INFO, DEBUG_MULTIPLE_MAP) << "reset now prohibition ...";
+
     cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + map_id + path::separator());
     if (!dir.isDirectory())
         dir.createDirectory();
 
     cppfs::FileHandle npa = cppfs::fs::open(path::prohibition_areas_path());
     if (npa.exists()) {
-        if (retrieve) {
-//            npa.remove();
-            reset_prohibition();
-        }
         npa.copy(dir);
+        if (!complete) {
+            reset_prohibition(dir.path() + path::prohibition_areas_yaml);
+        }
+        if (reset) {
+            reset_prohibition(path::prohibition_areas_path());
+        }
     }
 
     return true;
@@ -116,6 +126,11 @@ bool MapControl::backupProhibition(const std::string &map_id, bool retrieve) {
  * @return
  */
 bool MapControl::backupMap(const std::string &map_id, bool retrieve) {
+    if (retrieve)
+        LOG_IF(INFO, DEBUG_MULTIPLE_MAP) << "backup " << map_id << " four file and retrieve ...";
+    else
+        LOG_IF(INFO, DEBUG_MULTIPLE_MAP) << "backup " << map_id << " four file no retrieve ...";
+
     cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + map_id + path::separator());
     if (!dir.isDirectory())
         dir.createDirectory();

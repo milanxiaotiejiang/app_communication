@@ -35,7 +35,7 @@ std::string FactoryResetStrategy::handler(std::string params) {
     // 在此地图下，移除所有任务，包含定时任务
     TaskDataBase::instance().deleteOwnTask();
     // 在此地图下，重置禁行区域，并备份
-    MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true);
+    MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false, true);
     return "";
 }
 
@@ -120,7 +120,7 @@ MapScore EndMapStrategy::handler(BuildMapParam params) {
             // 在此地图下，移除所有任务，包含定时任务
             TaskDataBase::instance().deleteTaskFoMap(SegmentationDataBase::instance().getDbMap().id);
             // 在此地图下，重置禁行区域，并备份
-            MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true);
+            MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false, true);
             // 删除多个分区的相关信息
             SegmentationCenter::instance().resetSegmentation();
             // 删除闸机相关信息
@@ -234,6 +234,10 @@ std::string ModifyMapNameStrategy::handler(ModifyMapName params) {
 }
 
 std::string DeleteMapStrategy::handler(std::string params) {
+    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+    if (oldMap.id == params) {
+        throw app::exception(make_error_code(error::cannot_switch_to_the_current_map));
+    }
     SegmentationDataBase::instance().removeMap(params);
     return "";
 }
@@ -241,7 +245,7 @@ std::string DeleteMapStrategy::handler(std::string params) {
 std::string EditMapStrategy::handler(std::vector<std::vector<float>> params) {
     //操作，将编辑信息写入当前地图对应的编辑文件内
     int prohibition_num = params.size();
-    reset_prohibition();
+    reset_prohibition(path::prohibition_areas_path());
 
     for (int i = 0; i < prohibition_num; i++) {
         int type = params[i][0];//是区域还是线
@@ -267,7 +271,7 @@ std::string EditMapStrategy::handler(std::vector<std::vector<float>> params) {
     MapAttributeSingleton::instance().resetProhibition();
     MapAttributeSingleton::instance().loadVirtualWall();
     MapAttributeSingleton::instance().loadPenaltyZone();
-    MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false);
+    MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true, false);
     ExplorationCenter::instance().repaintCoveragePath();
     return "";
 }
@@ -299,6 +303,7 @@ int ManualPushStartStrategy::handler(std::string params) {
 
 int ManualPushResetStrategy::handler(std::string params) {
     LOG_IF(INFO, DEBUG_REQUEST) << "MapStrategy manual_push_reset ...";
+
     std_msgs::Int32 map_start;
     map_start.data = 0;
     PublishInnerManager::instance().publishManualPush(map_start);
