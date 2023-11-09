@@ -72,6 +72,8 @@ public:
 
     void updateMapName(const std::string &map_id, const std::string &map_name);
 
+    void removeMap(const std::string &map_id);
+
     RoomPo selectRoomById(long roomId);
 
     std::vector<RoomPo> selectRoomByMapId(const std::string &mapId);

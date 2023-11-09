@@ -234,6 +234,7 @@ std::string ModifyMapNameStrategy::handler(ModifyMapName params) {
 }
 
 std::string DeleteMapStrategy::handler(std::string params) {
+    SegmentationDataBase::instance().removeMap(params);
     return "";
 }
 

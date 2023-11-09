@@ -121,6 +121,10 @@ void SegmentationDataBase::updateMapName(const std::string &map_id, const std::s
     }
 }
 
+void SegmentationDataBase::removeMap(const std::string &map_id) {
+    segmentationStorage.remove<MapPo>(map_id);
+}
+
 RoomPo SegmentationDataBase::selectRoomById(long roomId) {
     return segmentationStorage.get<RoomPo>(roomId);
 }
