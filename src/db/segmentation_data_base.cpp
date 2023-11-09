@@ -84,6 +84,13 @@ MapPo SegmentationDataBase::installMap(std::string name) {
     return map;
 }
 
+void SegmentationDataBase::changeMap(const std::string &map_id) {
+    segmentationStorage.update_all(sqlite_orm::set(c(&MapPo::main) = false));
+    MapPo map = segmentationStorage.get<MapPo>(map_id);
+    map.main = true;
+    segmentationStorage.update(map);
+}
+
 MapPo SegmentationDataBase::installDefaultMap() {
     auto mapList = segmentationStorage.get_all<MapPo>();
     for (const auto &item: mapList) {

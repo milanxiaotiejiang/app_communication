@@ -120,6 +120,7 @@ bool is_valid_crontab(const std::string &expression) {
 //    std::cout << "name " << is_valid_name("1234567891234567891234567891234") << std::endl; // 输出 true
 //    std::cout << "name " << is_valid_name("匹配3-30个中文、英文字母、数字、下划线") << std::endl; // 输出 true
 //    std::cout << "name " << is_valid_name("匹配330个中文英文字母数字_下划线") << std::endl; // 输出 true
+//    std::cout << "name " << is_valid_name("地图0001") << std::endl; // 输出 true
 //}
 //TEST_CASE() {
 //    std::string expression = "0 */5 * * * *";

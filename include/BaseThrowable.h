@@ -153,7 +153,9 @@ namespace error {
         mark_points_in_the_gate_as_much_as_possible,
         gate_value_error,
         passing_through_the_gate_manual_control_is_not_supported,
-        please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station
+        please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station,
+        the_base_station_is_no_longer_able_to_switch_maps,
+        cannot_switch_maps_in_non_sleep_mode
     };// enum value
 
     class category : public std::error_category {
@@ -440,6 +442,10 @@ namespace error {
                     return "机器正在通过闸机，不支持控制";
                 case error::please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station:
                     return "请确保在基站开启/结束闸机设置";
+                case error::the_base_station_is_no_longer_able_to_switch_maps:
+                    return "请推回基站再切换地图";
+                case error::cannot_switch_maps_in_non_sleep_mode:
+                    return "未退出睡眠模式，清重新启动";
                 default:
                     return "Unknown";
             }

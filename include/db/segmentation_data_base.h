@@ -64,6 +64,8 @@ public:
 
     MapPo installMap(std::string name);
 
+    void changeMap(const std::string &map_id);
+
     MapPo installDefaultMap();
 
     std::vector<MapPo> loadAllMap();

@@ -37,12 +37,16 @@ public:
         j = json{
                 {"save",  b.save},
                 {"reset", b.reset},
+                {"new_map", b.new_map},
+                {"map_name", b.map_name},
         };
     }
 
     friend void from_json(const json &j, MapParam &b) {
         j.at("save").get_to(b.save);
         j.at("reset").get_to(b.reset);
+        j.at("new_map").get_to(b.new_map);
+        j.at("map_name").get_to(b.map_name);
     }
 };
 

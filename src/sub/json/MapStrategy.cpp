@@ -106,6 +106,7 @@ MapScore EndMapStrategy::handler(MapParam params) {
         }
 
         if (params.isNewMap()) {
+            // 插入新地图信息
             SegmentationDataBase::instance().installMap(params.getMapName());
             SegmentationDataBase::instance().loadMainMap();
         }
@@ -166,9 +167,17 @@ std::vector<MapInfo> GetMultiMapsStrategy::handler(std::string params) {
 }
 
 std::string ChangeMapStrategy::handler(std::string params) {
+    if (!ZooInnerStatus::instance().getIsCharging()) {
+        throw app::exception(make_error_code(error::the_base_station_is_no_longer_able_to_switch_maps));
+    }
+    if (!NodeControl::instance().isSleep()) {
+//        CartographerPublisher::instance().publishStartCartoLocalization();
+//        CartographerServiceClient::instance().callStartLocalization();
+        throw app::exception(make_error_code(error::cannot_switch_maps_in_non_sleep_mode));
+    }
     MapPo oldMap = SegmentationDataBase::instance().getDbMap();
     if (oldMap.id == params) {
-        throw app::exception(make_error_code(error::create_map_fail));
+        throw app::exception(make_error_code(error::cannot_switch_to_the_current_map));
     }
 
     const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
@@ -182,18 +191,28 @@ std::string ChangeMapStrategy::handler(std::string params) {
     if (!isFind) {
         throw app::exception(make_error_code(error::map_id_does_not_exist));
     }
+    // 确保文件存在
     if (!MapControl::instance().checkMapInformation(params)) {
         throw app::exception(make_error_code(error::map_id_does_not_exist));
     }
-
+    // 备份之前的地图
     MapControl::instance().backupAndRetrieve(oldMap.id);
-
+    // 改变为新地图信息
+    SegmentationDataBase::instance().changeMap(params);
+    SegmentationDataBase::instance().loadMainMap();
+    // 加载新资源
     MapControl::instance().loadInformation(params);
+    // 重新加载基站信息
+    MapAttributeSingleton::instance().loadStation();
+    // 更新内存中定时任务
+    ScheduleManagerSingleton::instance().trigger_task_update();
+    // 发布给 move_base 最新的禁行区域
+    PublishInnerManager::instance().publishResetProhibition();
+    // 重新规划牛耕田算法的全覆盖
+    ExplorationCenter::instance().repaintCoveragePath();
+
     MapControl::instance().changeMapServer();
-    if (NodeControl::instance().isWork()) {
-//        CartographerPublisher::instance().publishStartCartoLocalization();
-        CartographerServiceClient::instance().callStartLocalization();
-    }
+
     return "";
 }
 
