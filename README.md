@@ -1,24 +1,32 @@
+<img src="https://octodex.github.com/images/minion.png" alt="Minion" align="center" width="400px">
+
 # 请严格遵守以下约定
 
 ## 程序员的职业素养
 
+<img src="doc/professional_ethics.webp" alt="职业素养" align="center" width="700px">
+
 ### 专业主义
+
 1. 认清雇主；
 2. 扎实的专业技能；
 3. 善于分享；
 
 ### 职业道德
+
 1. 常与同好争高下，不与傻瓜论长短；
 2. 要明白和公司之间的关系，个人的职业成长充电是需要付出额外的时间；
 3. 保护好自己的代码;
 
 ### 说“不“
+
 1. 能就是能，不能就是不能，不要说"试试看";
 2. 要说“不”的前提是对需求或者安排的任务以及自身的实际水平和项目有足够的认知;
 3. 对于不合理的需求或者安排可以通过分析去拒绝；
 4. 切勿一味接受最后发现完成不了草草了事敷衍交差，然后不停修补bug，没人帮你；
 
 ### 说“是”
+
 1. 当承诺一件事情的时候，就要不惜一切代价去完成，因为是你承诺的，就要对这负责。
 2. 没有借口，如果发现自己兑现不了，就需要及时的说出，而不是藏着掖着最后耽误的更多；
 3. 早点发出预警，还可以采取其他措施挽救；
@@ -27,15 +35,20 @@
 
 ## 代码整洁之道
 
+<img src="doc/code_cleanliness.jpg" alt="代码整洁" align="center" width="700px">
+
 ### 测试用例
+
 不必写测试用例。
 可能你会举例TDD，我先说下它的三条定律
+
 1. 在编写不能通过的单元测试前，不可编写生产代码；
 2. 只可编写刚好无法通过的单元测试，不能编译也算不通过；
 3. 只可编写刚好足以通过当前失败测试的生产代码；
-我了解它的优势，你有时间可以写
+   我了解它的优势，你有时间可以写
 
 ### 最低要求
+
 1. reformat(clion)
 2. 有意义的命名
 3. 代码逻辑直截了当
@@ -44,20 +57,29 @@
 ### 每个周期会进行 Code Review
 
 ## Gitlab flow 工作流
-Gitlab flow 是 Git-flow 与 Github flow 的综合。它吸取了两者的优点，既有适应不同开发环境的弹性，又有单一主分支的简单和便利。它是 Gitlab.com 推荐的做法。
+
+Gitlab flow 是 Git-flow 与 Github flow 的综合。它吸取了两者的优点，既有适应不同开发环境的弹性，又有单一主分支的简单和便利。它是
+Gitlab.com 推荐的做法。
 Gitlab flow 的最大原则叫做”上游优先”（upsteam first），即只存在一个主分支 master，它是所有其他分支的”上游”。只有上游分支采纳的代码变化，才能应用到其他分支。
 
+<img src="doc/gitflow.png" alt="gitflow" align="center" width="900px">
+
 ### 持续发布
+
 对于”持续发布”的项目，它建议在 master 分支以外，再建立不同的环境分支。
 比如，”开发环境”的分支是 master，”预发环境”的分支是 pre-production，”生产环境”的分支是 production。
-开发分支是预发分支的"上游"，预发分支又是生产分支的"上游"。代码的变化，必须由"上游"向"下游"发展。比如，生产环境出现了 bug，这时就要新建一个功能分支，先把它合并到 master，确认没有问题，再 cherry-pick 到 pre-production，这一步也没有问题，才进入 production。
+开发分支是预发分支的"上游"，预发分支又是生产分支的"上游"。代码的变化，必须由"上游"向"下游"发展。比如，生产环境出现了
+bug，这时就要新建一个功能分支，先把它合并到 master，确认没有问题，再 cherry-pick 到 pre-production，这一步也没有问题，才进入
+production。
 只有紧急情况，才允许跳过上游，直接合并到下游分支。
 
 ### 版本发布
+
 对于"版本发布"的项目，建议的做法是每一个稳定版本，都要从 master 分支拉出一个分支，比如 2-3-stable、2-4-stable 等等。
 以后，只有修补 bug，才允许将代码合并到这些分支，并且此时要更新小版本号。
 
 ### Gitlab flow开发流程
+
 1. 新的迭代开始，所有开发人员从主干 master 拉个人分支开发特性, 分支命名规范 feature-name；
 2. 开发完成后，在迭代结束前，合入 master 分支；
 3. master 分支合并后，自动 cicd 到 dev 环境（暂无 gitlab、cicd）；
@@ -66,4 +88,13 @@ Gitlab flow 的最大原则叫做”上游优先”（upsteam first），即只�
 6. 正式发布版本，如果上线后，又有 bug，根据5的方式处理；
 7. 等发布版本稳定后，将 release-$version 反合入主干 master 分支；
 
-值得注意的是，按照 Github flow 规范，第5步如果测出 bug,应该在 master 上修改，然后 cherry-pick 到 releases 上来，但是这样做太麻烦了，直接在 releases 分支上修复 bug 然后再反合入 master 分支应该是一个简单而且可以接受的做法
+值得注意的是，按照 Github flow 规范，第5步如果测出 bug,应该在 master 上修改，然后 cherry-pick 到 releases 上来，但是这样做太麻烦了，直接在
+releases 分支上修复 bug 然后再反合入 master 分支应该是一个简单而且可以接受的做法
+
+## 建图流程
+
+![任务](doc/mapping.png)
+
+## 任务流程
+
+![建图](doc/task_flow.png)
