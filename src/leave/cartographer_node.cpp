@@ -145,6 +145,18 @@ void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_re
             }
         }
 
+        auto gateList = SegmentationDataBase::instance().loadGate(map.id);
+        for (const auto &gate: gateList) {
+            // 直线是否穿越区域， 直线点位个数：240 , 相交后点位个数：126 ???
+            cv::Point2d startPoint(gate.start_x, gate.start_y);
+            auto changeStartPoint = startPoint + diffPoint;
+            cv::Point2d endPoint(gate.end_x, gate.end_y);
+            auto changeEndPoint = endPoint + diffPoint;
+            SegmentationDataBase::instance().modifyGateLine(gate.id,
+                                                            changeStartPoint.x, changeStartPoint.y,
+                                                            changeEndPoint.x, changeEndPoint.y);
+        }
+
         MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
 
         MapAttributeSingleton::instance().loadStation();

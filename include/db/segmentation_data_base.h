@@ -91,25 +91,25 @@ public:
     PlanPo loadDefaultPlanParam(const std::string &mapId);
 
     PlanPo setPlanParam(const std::string &mapId,
-                      double robotRadius,
-                      int mapCorrectionClosingNeighborhoodSize,
-                      double gridObstacleOffset,
-                      double pathEps,
-                      double minCellArea,
-                      double maxDeviationFromTrack,
-                      int rangeNearBaseStation,
-                      double roomAreaFactorLowerLimit,
-                      double roomAreaFactorUpperLimit,
-                      int neighborhoodIndex,
-                      int maxIterations,
-                      double minCriticalPointDistanceFactor,
-                      double maxAreaForMerging,
-                      int distanceFromObstacles,
-                      int numberExtension,
-                      int multipleContourSpacing,
-                      int random_number_generation_ratio,
-                      int boundary_min_area,
-                      int version = CURRENT_PLAN_VERSION
+                        double robotRadius,
+                        int mapCorrectionClosingNeighborhoodSize,
+                        double gridObstacleOffset,
+                        double pathEps,
+                        double minCellArea,
+                        double maxDeviationFromTrack,
+                        int rangeNearBaseStation,
+                        double roomAreaFactorLowerLimit,
+                        double roomAreaFactorUpperLimit,
+                        int neighborhoodIndex,
+                        int maxIterations,
+                        double minCriticalPointDistanceFactor,
+                        double maxAreaForMerging,
+                        int distanceFromObstacles,
+                        int numberExtension,
+                        int multipleContourSpacing,
+                        int random_number_generation_ratio,
+                        int boundary_min_area,
+                        int version = CURRENT_PLAN_VERSION
     );
 
     void removePlanParam(const std::string &mapId);
@@ -127,6 +127,8 @@ public:
     void deleteGateForId(long id);
 
     long modifyGateInfo(const GateInfo &gateInfo);
+
+    void modifyGateLine(long id, double start_x, double start_y, double end_x, double end_y);
 
     std::vector<GateInfo> loadGateInfo(const std::string &mapId);
 

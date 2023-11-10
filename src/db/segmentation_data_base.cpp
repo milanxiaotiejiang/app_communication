@@ -332,6 +332,15 @@ long SegmentationDataBase::modifyGateInfo(const GateInfo &gateInfo) {
     segmentationStorage.update(info2Gate(gateInfo));
 }
 
+void SegmentationDataBase::modifyGateLine(long id, double start_x, double start_y, double end_x, double end_y) {
+    auto gate = segmentationStorage.get<Gate>(id);
+    gate.start_x = start_x;
+    gate.start_y = start_y;
+    gate.end_x = end_x;
+    gate.end_y = end_y;
+    segmentationStorage.update(gate);
+}
+
 std::vector<GateInfo> SegmentationDataBase::loadGateInfo(const std::string &mapId) {
     auto gates = segmentationStorage.get_all<Gate>(where(c(&Gate::o_map_id) == mapId));
     std::vector<GateInfo> gateInfos;

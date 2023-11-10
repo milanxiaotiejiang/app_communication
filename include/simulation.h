@@ -22,7 +22,7 @@
 #define DEBUG_SENSOR false
 #define DEBUG_RESTORE true
 #define DEBUG_GATE true
-#define DEBUG_CLEAN_MECHANISM true
+#define DEBUG_CLEAN_MECHANISM false
 #define DEBUG_MULTIPLE_MAP true
 
 
