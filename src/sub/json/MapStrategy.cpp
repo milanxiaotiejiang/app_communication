@@ -238,7 +238,18 @@ std::string DeleteMapStrategy::handler(std::string params) {
     if (oldMap.id == params) {
         throw app::exception(make_error_code(error::cannot_switch_to_the_current_map));
     }
+    // plan_param
+    SegmentationDataBase::instance().removePlanParam(params);
+    // segmentation
+    SegmentationDataBase::instance().removeAllRoom(params);
+    // gate
+    SegmentationDataBase::instance().purgeGate(params);
+    // 地图id
     SegmentationDataBase::instance().removeMap(params);
+    // task
+    TaskDataBase::instance().deleteTaskFoMap(params);
+
+    MapControl::instance().removeInformation(params);
     return "";
 }
 

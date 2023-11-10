@@ -66,6 +66,16 @@ bool MapControl::loadInformation(const std::string &map_id) {
     return true;
 }
 
+bool MapControl::removeInformation(const std::string &map_id) {
+    LOG_IF(INFO, DEBUG_MULTIPLE_MAP) << "remove " << map_id << " map information ...";
+    std::string dir = path::robot_slam_map_dir() + map_id + path::separator();
+    cppfs::FileHandle dirHandle = cppfs::fs::open(dir);
+    if (dirHandle.exists() && dirHandle.isDirectory()) {
+        dirHandle.removeDirectoryRec();
+    }
+    return true;
+}
+
 bool MapControl::checkMapInformation(const std::string &map_id) {
     std::string dir = path::robot_slam_map_dir() + map_id + path::separator();
 
