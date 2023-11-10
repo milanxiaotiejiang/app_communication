@@ -5,7 +5,7 @@
 #ifndef APP_COMMUNICATION_HISTOGRAM_H
 #define APP_COMMUNICATION_HISTOGRAM_H
 
-#include <stddef.h>
+#include <cstddef>
 #include <vector>
 
 template<typename T>

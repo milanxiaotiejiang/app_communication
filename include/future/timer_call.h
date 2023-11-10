@@ -15,6 +15,14 @@ namespace async {
     private:
         TimerCall();
 
+        TimerCall(TimerCall &) = delete;
+
+        TimerCall &operator=(const TimerCall &) = delete;
+
+    public:
+        ~TimerCall() = default;
+
+    private:
         void _startWorkers();
 
         EventLoop base_;
@@ -36,8 +44,6 @@ namespace async {
             return obj;
         }
 
-        ~TimerCall() = default;
-
         void run();
 
         void exit();
@@ -52,6 +58,16 @@ namespace async {
     };
 
     class TimerInitCall : public AsyncCall {
+    private:
+        TimerInitCall() = default;
+
+        TimerInitCall(TimerInitCall &) = delete;
+
+        TimerInitCall &operator=(const TimerInitCall &) = delete;
+
+    public:
+        ~TimerInitCall() = default;
+
     private:
         pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
         pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;

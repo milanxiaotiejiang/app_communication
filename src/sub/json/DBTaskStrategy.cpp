@@ -9,6 +9,7 @@
 #include "tool/regex_valid.h"
 #include "tool/param_check.h"
 #include "schedule/schedule_manager_singleton.h"
+#include "leave/ParamManager.h"
 
 long AddTaskStrategy::handler(TaskVo params) {
     checkWorkStatus(params.getWorkStatus());
@@ -27,12 +28,39 @@ long AddTaskStrategy::handler(TaskVo params) {
     return TaskDataBase::instance().addTask(map.id, params);
 }
 
-string DeleteTaskStrategy::handler(long params) {
+std::string DeleteTaskStrategy::handler(long params) {
+    if (ParamManager::instance().getRainSnow()) {
+        MapPo map = SegmentationDataBase::instance().getDbMap();
+        const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params);
+        //开启“雨雪天模式”后，已勾选的雨雪天任务不能取消勾选或删除任务。
+        if (taskVo.isRainSnow()) {
+            throw app::exception(make_error_code(
+                    error::the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled));
+        }
+    }
     TaskDataBase::instance().deleteTaskFoId(params);
     return "";
 }
 
-vector<TaskVo> ListTaskStrategy::handler(string params) {
+std::string DeleteMultipleTaskStrategy::handler(std::vector<long> params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    if (ParamManager::instance().getRainSnow()) {
+        for (const auto &item: params) {
+            const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(item);
+            //开启“雨雪天模式”后，已勾选的雨雪天任务不能取消勾选或删除任务。
+            if (taskVo.isRainSnow()) {
+                throw app::exception(make_error_code(
+                        error::the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled));
+            }
+        }
+    }
+    for (const auto &item: params) {
+        TaskDataBase::instance().deleteTaskFoId(item);
+    }
+    return "";
+}
+
+std::vector<TaskVo> ListTaskStrategy::handler(std::string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTaskFoMap(map.id);
 }
@@ -61,18 +89,26 @@ long AddTimerTaskStrategy::handler(TimerVo params) {
     return timer;
 }
 
-string DeleteTimerTaskStrategy::handler(long params) {
+std::string DeleteTimerTaskStrategy::handler(long params) {
     TaskDataBase::instance().deleteTimerForId(params);
     ScheduleManagerSingleton::instance().trigger_task_update();
     return "";
 }
 
-vector<TimerVo> ListTimerTaskStrategy::handler(string params) {
+std::string DeleteMultipleTimerTaskStrategy::handler(std::vector<long> params) {
+    for (const auto &item: params) {
+        TaskDataBase::instance().deleteTimerForId(item);
+    }
+    ScheduleManagerSingleton::instance().trigger_task_update();
+    return "";
+}
+
+std::vector<TimerVo> ListTimerTaskStrategy::handler(std::string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTimerFoMap(map.id);
 }
 
-string ModifyTimerTaskStrategy::handler(TimerVo params) {
+std::string ModifyTimerTaskStrategy::handler(TimerVo params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
 
     checkName(params.getTimerName());
@@ -94,7 +130,7 @@ TaskVo CancelPrincipalTaskStrategy::handler(long params) {
     return TaskDataBase::instance().modifyPrincipalTask(map.id, params, false);
 }
 
-TaskVo PrincipalTaskStrategy::handler(string params) {
+TaskVo PrincipalTaskStrategy::handler(std::string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     const TaskVo &vo = TaskDataBase::instance().loadPrincipalTask(map.id);
     if (vo.getId() == -1) {
@@ -103,28 +139,80 @@ TaskVo PrincipalTaskStrategy::handler(string params) {
     return vo;
 }
 
-string ModifyTaskNameStrategy::handler(ModifyTaskName params) {
+TaskVo BuildRainSnowTaskStrategy::handler(long params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params);
+    if (SqliteDataBase::TaskModeFromInt(taskVo.getMode()) != TaskMode::Zoned) {
+        throw app::exception(make_error_code(error::non_zoning_tasks_cannot_be_set_as_rainy_and_snowy_tasks));
+    }
+    return TaskDataBase::instance().modifyRainSnowTask(map.id, params, true);
+}
+
+TaskVo CancelRainSnowTaskStrategy::handler(long params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params);
+    if (ParamManager::instance().getRainSnow()) {
+        //开启“雨雪天模式”后，已勾选的雨雪天任务不能取消勾选或删除任务。
+        if (taskVo.isRainSnow()) {
+            throw app::exception(make_error_code(
+                    error::the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled));
+        }
+    }
+    if (SqliteDataBase::TaskModeFromInt(taskVo.getMode()) != TaskMode::Zoned) {
+        throw app::exception(make_error_code(error::non_zoning_tasks_cannot_be_set_as_rainy_and_snowy_tasks));
+    }
+    return TaskDataBase::instance().modifyRainSnowTask(map.id, params, false);
+}
+
+TaskVo RainSnowTaskStrategy::handler(std::string params) {
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    const TaskVo &vo = TaskDataBase::instance().loadRainSnowTask(map.id);
+    if (vo.getId() == -1) {
+        throw app::exception(make_error_code(error::the_rain_snow_task_is_not_set));
+    }
+    return vo;
+}
+
+std::string ModifyTaskNameStrategy::handler(ModifyTaskName params) {
     checkName(params.name);
     TaskDataBase::instance().modifyName(params.id, params.name);
     return "";
 }
 
-string ModifyTaskRateStrategy::handler(ModifyTaskRate params) {
+std::string ModifyTaskRateStrategy::handler(ModifyTaskRate params) {
     checkRate(params.rate);
     TaskDataBase::instance().modifyRate(params.id, params.rate);
     return "";
 }
 
-string ModifyTaskWorkStatusStrategy::handler(ModifyTaskWorkStatus params) {
+std::string ModifyTaskWorkStatusStrategy::handler(ModifyTaskWorkStatus params) {
     checkWorkStatus(params.workStatus);
     TaskDataBase::instance().modifyWorkStatus(params.id, params.workStatus);
     return "";
 }
 
-string ModifyTaskKnifeStrategy::handler(ModifyTaskKnife params) {
+std::string ModifyTaskKnifeStrategy::handler(ModifyTaskKnife params) {
     TaskDataBase::instance().modifyKnife(params.id, params.knife);
     return "";
 }
+
+TaskVo ModifyCompleteTaskStrategy::handler(TaskVo params) {
+    checkWorkStatus(params.getWorkStatus());
+    checkName(params.getName());
+    checkRate(params.getRate());
+    checkMode(params.getMode());
+    checkSource(params.getSource());
+
+    if (params.getMode() == static_cast<int>(TaskMode::Zoned)) {
+        checkZoned(params.getZones());
+    } else if (params.getMode() == static_cast<int>(TaskMode::Subregion)) {
+        checkSubregion(params.getSubregions());
+    }
+
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    return TaskDataBase::instance().modifyTask(params);
+}
+
 
 long OperateAddZoneStrategy::handler(ModifyTaskZone params) {
     checkZoned(params.zone);
@@ -135,18 +223,18 @@ long OperateAddZoneStrategy::handler(ModifyTaskZone params) {
     return zoneId;
 }
 
-string OperateDeleteZoneStrategy::handler(ModifyTaskZone params) {
+std::string OperateDeleteZoneStrategy::handler(ModifyTaskZone params) {
     TaskDataBase::instance().operateDeleteZone(params.id, params.zone);
     return "";
 }
 
-string OperateModifyZoneStrategy::handler(ModifyTaskZone params) {
+std::string OperateModifyZoneStrategy::handler(ModifyTaskZone params) {
     checkZoned(params.zone);
     TaskDataBase::instance().operateModifyZone(params.id, params.zone);
     return "";
 }
 
-string ModifyTaskPartitionStrategy::handler(ModifyTaskPartition params) {
+std::string ModifyTaskPartitionStrategy::handler(ModifyTaskPartition params) {
     TaskDataBase::instance().modifyPartition(params.id, params.partition);
     return "";
 }
@@ -160,11 +248,11 @@ long OperateAddSubregionStrategy::handler(ModifyTaskSubregion params) {
     return subregionId;
 }
 
-string OperateDeleteSubregionStrategy::handler(ModifyTaskSubregion params) {
+std::string OperateDeleteSubregionStrategy::handler(ModifyTaskSubregion params) {
     TaskDataBase::instance().operateDeleteSubregion(params.id, params.subregion);
 }
 
-string ModifyTimerNameStrategy::handler(ModifyTimerName params) {
+std::string ModifyTimerNameStrategy::handler(ModifyTimerName params) {
     checkName(params.timer_name);
     TaskDataBase::instance().modifyTimerName(params.id, params.timer_name);
     return "";

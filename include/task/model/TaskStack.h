@@ -7,14 +7,14 @@
 
 #include <ostream>
 #include "task/status/state_machine.h"
-#include "task/RealPoint.h"
+#include "task/RealBlock.h"
 
 class TaskStack {
 public:
     event::flow flow;
-    RealPoint suspendPoint;
+    RealBlock suspendBlock;
 
-    TaskStack(event::flow flow, const RealPoint &suspendPoint);
+    TaskStack(event::flow flow, const RealBlock &suspendBlock);
 
     friend std::ostream &operator<<(std::ostream &os, const TaskStack &stack);
 };

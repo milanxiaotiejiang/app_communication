@@ -11,22 +11,21 @@
 
 #include "nlohmann/json.hpp"
 
-using namespace std;
 using json = nlohmann::json;
 
 class VersionInfo {
 private:
-    string air_code_version;
-    string ds_hard_version;
-    string ds_soft_version;
-    string app_pad_version;
+    std::string air_code_version;
+    std::string ds_hard_version;
+    std::string ds_soft_version;
+    std::string app_pad_version;
 public:
 
-    VersionInfo(string airCodeVersion, string dsHardVersion, string dsSoftVersion,
-                string appPadVersion) : air_code_version(std::move(airCodeVersion)),
-                                        ds_hard_version(std::move(dsHardVersion)),
-                                        ds_soft_version(std::move(dsSoftVersion)),
-                                        app_pad_version(std::move(appPadVersion)) {}
+    VersionInfo(std::string airCodeVersion, std::string dsHardVersion, std::string dsSoftVersion,
+                std::string appPadVersion) : air_code_version(std::move(airCodeVersion)),
+                                             ds_hard_version(std::move(dsHardVersion)),
+                                             ds_soft_version(std::move(dsSoftVersion)),
+                                             app_pad_version(std::move(appPadVersion)) {}
 
     friend void to_json(json &j, const VersionInfo &info) {
         j = json{

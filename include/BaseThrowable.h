@@ -109,6 +109,7 @@ namespace error {
         failed_to_parse_fall_prevention_related_files,
         mode_switching_is_not_supported,
         create_map_fail,
+        create_map_fail_to_sleep,
         the_main_task_is_not_set,
         invalid_sweep_status,
         invalid_mop_status,
@@ -128,7 +129,34 @@ namespace error {
         cannot_switch_to_the_current_map,
         map_id_does_not_exist,
         no_run_task,
-        dispatcher_maintenance_mode
+        dispatcher_maintenance_mode,
+        map_creation_needs_to_start_at_the_base_station,
+        the_map_needs_to_be_saved_at_the_base_station_location,
+        quit_map_needs_to_be_saved_at_the_base_station_location,
+        please_ensure_to_start_end_the_mapping_at_the_base_station,
+        area_too_small,
+        non_zoning_tasks_cannot_be_set_as_rainy_and_snowy_tasks,
+        the_rain_snow_task_is_not_set,
+        the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled,
+        please_exit_the_rain_and_snow_mode_first,
+        during_the_automatic_maintenance_period_the_task_cannot_be_started,
+        please_ensure_to_start_end_the_self_at_the_base_station,
+        please_ensure_to_start_end_the_self_non_emergency_stop_status,
+        during_self_check_the_task_cannot_be_started,
+        secondary_detection,
+        not_on_the_map,
+        the_ferry_point_is_in_the_same_area,
+        no_straight_line_crossing_map_area_detected,
+        in_the_setting_of_gate_the_task_cannot_be_started,
+        mark_points_as_perpendicular_as_possible_to_the_gate,
+        gate_mark_points_too_far_away,
+        mark_points_in_the_gate_as_much_as_possible,
+        gate_value_error,
+        passing_through_the_gate_manual_control_is_not_supported,
+        please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station,
+        the_base_station_is_no_longer_able_to_switch_maps,
+        cannot_switch_maps_in_non_sleep_mode,
+        cannot_delete_to_the_current_map
     };// enum value
 
     class category : public std::error_category {
@@ -325,8 +353,10 @@ namespace error {
                     return "暂不支持模式切换，请稍后调用";
                 case error::create_map_fail:
                     return "保存地图失败，请稍后调用";
+                case error::create_map_fail_to_sleep:
+                    return "保存地图失败，请重新启动";
                 case error::the_main_task_is_not_set:
-                    return "The main task is not set";
+                    return "默认任务尚未设置";
                 case error::invalid_sweep_status:
                     return "Invalid sweep_status";
                 case error::invalid_mop_status:
@@ -365,6 +395,60 @@ namespace error {
                     return "no run task";
                 case error::dispatcher_maintenance_mode:
                     return "维护模式不能启动任务";
+                case error::map_creation_needs_to_start_at_the_base_station:
+                    return "请在基站创建地图";
+                case error::the_map_needs_to_be_saved_at_the_base_station_location:
+                    return "地图保存需要在基站位置";
+                case error::quit_map_needs_to_be_saved_at_the_base_station_location:
+                    return "请在基站位置退出建图模式";
+                case error::please_ensure_to_start_end_the_mapping_at_the_base_station:
+                    return "开始 / 结束建图请保证在基站";
+                case error::area_too_small:
+                    return "建图面积过小，请重新保存";
+                case error::non_zoning_tasks_cannot_be_set_as_rainy_and_snowy_tasks:
+                    return "非划区任务不能设置为雨雪天任务";
+                case error::the_rain_snow_task_is_not_set:
+                    return "雨雪天任务没有设置，请在任务管理中设置雨雪天任务";
+                case error::the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled:
+                    return "雨雪天模式已开启，不能删除或取消此任务";
+                case error::please_exit_the_rain_and_snow_mode_first:
+                    return "请先退出雨雪天模式";
+                case error::during_the_automatic_maintenance_period_the_task_cannot_be_started:
+                    return "自动维护时段内，任务无法启动";
+                case error::please_ensure_to_start_end_the_self_at_the_base_station:
+                    return "开始 / 结束自检请保证在基站";
+                case error::please_ensure_to_start_end_the_self_non_emergency_stop_status:
+                    return "急停状态不支持当前操作";
+                case error::during_self_check_the_task_cannot_be_started:
+                    return "自检中，任务无法启动";
+                case error::secondary_detection:
+                    return "secondary_detection";
+                case error::not_on_the_map:
+                    return "不在地图内";
+                case error::the_ferry_point_is_in_the_same_area:
+                    return "两个摆渡点在同一区域";
+                case error::no_straight_line_crossing_map_area_detected:
+                    return "未检测到直线穿越地图区域";
+                case error::in_the_setting_of_gate_the_task_cannot_be_started:
+                    return "闸机设置中，任务无法启动";
+                case error::mark_points_as_perpendicular_as_possible_to_the_gate:
+                    return "标记点尽量与闸机保持垂直";
+                case error::gate_mark_points_too_far_away:
+                    return "闸机摆渡点位相距过大";
+                case error::mark_points_in_the_gate_as_much_as_possible:
+                    return "标记点尽量均衡分布在闸机两侧";
+                case error::gate_value_error:
+                    return "gate_value_error";
+                case error::passing_through_the_gate_manual_control_is_not_supported:
+                    return "机器正在通过闸机，不支持控制";
+                case error::please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station:
+                    return "请确保在基站开启/结束闸机设置";
+                case error::the_base_station_is_no_longer_able_to_switch_maps:
+                    return "请推回基站再切换地图";
+                case error::cannot_switch_maps_in_non_sleep_mode:
+                    return "未退出睡眠模式，清重新启动";
+                case error::cannot_delete_to_the_current_map:
+                    return "不能删除当前地图";
                 default:
                     return "Unknown";
             }

@@ -142,10 +142,22 @@ protected:
                                   std::vector<cv::Point> &polygon_centers);
 
     void computeBoustrophedonPath(const cv::Mat &room_map, const float map_resolution, const GeneralizedPolygon &cell,
-                                  std::vector<cv::Point2f> &fov_middlepoint_path, cv::Point &robot_pos,
+                                  std::vector<cv::Point2f> &fov_middlepoint_path,
+                                  std::vector<std::vector<cv::Point2f>> &complex_middle_path,
+                                  cv::Point &robot_pos,
                                   const int grid_spacing_as_int, const int half_grid_spacing_as_int,
                                   const double path_eps, const int max_deviation_from_track,
-                                  const int grid_obstacle_offset = 0);
+                                  const int grid_obstacle_offset = 0, bool interpolation_operation = false);
+
+    void computeRectangularAmbulatoryPlanePath(const cv::Mat &room_map, const float map_resolution,
+                                               const GeneralizedPolygon &cell,
+                                               std::vector<cv::Point2f> &fov_middlepoint_path,
+                                               std::vector<std::vector<cv::Point2f>> &complex_middle_path,
+                                               cv::Point &robot_pos,
+                                               const int grid_spacing_as_int, const int half_grid_spacing_as_int,
+                                               const double path_eps, const int max_deviation_from_track,
+                                               const int grid_obstacle_offset = 0,
+                                               bool interpolation_operation = false);
 
     int mergeCells(cv::Mat &cell_map, cv::Mat &cell_map_labels, const double min_cell_area, const int min_cell_width);
 
@@ -163,14 +175,20 @@ protected:
     void downsamplePathReverse(const std::vector<cv::Point> &original_path, std::vector<cv::Point> &downsampled_path,
                                cv::Point &robot_pos, const double path_eps);
 
+    std::vector<cv::Point> splitPoints(const cv::Point &p1, const cv::Point &p2, double distance);
+
+    void splitPointsIfNeeded(const std::vector<cv::Point> &ins, std::vector<cv::Point> &outs, double distance);
+
 public:
     void
-    getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &path, const float map_resolution,
+    getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &path,
+                       std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
+                       const float map_resolution,
                        const cv::Point &starting_position, const cv::Point2d &map_origin,
                        const double grid_spacing_in_pixel,
                        const double grid_obstacle_offset, const double path_eps,
                        const double min_cell_area, const int max_deviation_from_track,
-                       int tsp_solver);
+                       int tsp_solver, int explorer_mode, bool interpolation_operation);
 };
 
 #endif //APP_COMMUNICATION_BOUSTROPHEDON_EXPLORATOR_H

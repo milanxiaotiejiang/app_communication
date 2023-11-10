@@ -7,26 +7,18 @@
 
 #include "sub/JsonSubscribeCloud.h"
 #include "net/WsServerManager.h"
-#include "sub/json/TTStrategy.h"
-#include "sub/json/CombinationStartegy.h"
 #include "sub/json/DeviceStrategy.h"
 #include "sub/json/MapStrategy.h"
 #include "sub/json/TaskStrategy.h"
-#include "sub/json/TeachModeStrategy.h"
-#include "sub/json/TimerStrategy.h"
-#include "sub/json/ViewPartStrategy.h"
 #include <sub/json/GetCleanHistoryStrategy.h>
 #include <sub/json/ModeStrategy.h>
 #include <sub/json/StatusStrategy.h>
 #include <sub/json/otaStrategy.h>
 #include <utility>
 
-#include "glog/logging.h"
-#include "sub/json/LocationStrategy.h"
-#include "sub/json/ProjectStrategy.h"
+#include "simulation.h"
 
 #include "sub/json/MaterialStrategy.h"
-#include "sub/json/NoticeStrategy.h"
 #include "sub/json/CloudDeviceStrategy.h"
 #include "sub/json/KnobControlStrategy.h"
 #include "manager/cloud_robot_control.h"
@@ -51,7 +43,9 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
     // auto entrance = jdecode.get<Entrance>();
     auto requestModel = jdecode.get<RequestModel<Entrance>>();
     auto entrance = requestModel.getMsg();
-    // LOG(ERROR) << "JsonSubscribeCloud method : " << entrance.getMethod();
+
+//    LOG_IF(INFO, DEBUG_REQUEST) << "JsonSubscribeCloud method : " << entrance.getMethod();
+    int start_time = ros::Time::now().sec;
 
     MessageBaseStrategy *messageStrategy = nullptr;
 
@@ -70,9 +64,6 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             messageStrategy = new GetEditMapStrategy();
             break;
 
-        case GET_TASK_LIST_:
-            messageStrategy = new GetTaskListStrategyV2();
-            break;
         case APP_SPOT_:
             messageStrategy = new StatusResumeStrategy();
             break;
@@ -88,24 +79,6 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case CLEAN_HISTORY_REQUEST_:
             messageStrategy = new GetCloudCleanHistoryStrategy();
             break;
-        case COMBINATION_PART_LIST_:
-            messageStrategy = new CombinationPartListStrategyV2();
-            break;
-        case COMBINATION_COMBINATION_LIST_:
-            messageStrategy = new CombinationCombinationListStrategyV2();
-            break;
-        case COMBINATION_COMBINATION_DETAILS_:
-            messageStrategy = new CombinationCombinationDetailsStrategyV2();
-            break;
-        case COMBINATION_PART_DELETE_:
-            messageStrategy = new CombinationPartDeleteStrategy();
-            break;
-        case COMBINATION_PART_DELETE_FORCE_:
-            messageStrategy = new CombinationPartDeleteForceStrategy();
-            break;
-        case COMBINATION_COMBINATION_DELETE_:
-            messageStrategy = new CombinationCombinationDeleteStrategy();
-            break;
         case IS_IN_BASEMENT_:
             messageStrategy = new IsInBasementStrategy();
             break;
@@ -113,24 +86,6 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             messageStrategy = new GetRosVersionStrategy();
             break;
 
-        case UPD_TIMER_:
-            messageStrategy = new UpdateTimerStrategy();
-            break;
-        case SET_TIMER_:
-            messageStrategy = new SetTimerStrategy();
-            break;
-        case GET_TIMER_LIST_:
-            messageStrategy = new GetTimerListStrategy();
-            break;
-        case DEL_TIMER_:
-            messageStrategy = new DelTimerStrategy();
-            break;
-        case SAVE_LOCATION:
-            messageStrategy = new LocationStrategy();
-            break;
-        case GET_LOCATION:
-            messageStrategy = new getLocationStrategy();
-            break;
         case OTA_CORE:
         case OTA_PAD:
         case OTA_LOWER:
@@ -143,6 +98,9 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             break;
         case DELETE_TASK:
             messageStrategy = new DeleteTaskStrategy();
+            break;
+        case DELETE_MULTIPLE_TASK:
+            messageStrategy = new DeleteMultipleTaskStrategy();
             break;
         case LIST_TASK:
             messageStrategy = new ListTaskStrategy();
@@ -161,6 +119,13 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             messageStrategy = new PrincipalTaskStrategy();
             break;
 
+        case BUILD_RAIN_SNOW_TASK:
+            messageStrategy = new BuildRainSnowTaskStrategy();
+            break;
+        case CANCEL_RAIN_SNOW_TASK:
+            messageStrategy = new CancelRainSnowTaskStrategy();
+            break;
+
         case CLEAR_CURRENT_LIST_TASK:
             messageStrategy = new ClearCurrentListTaskStrategy();
             break;
@@ -176,6 +141,9 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             break;
         case MODIFY_TASK_KNIFE:
             messageStrategy = new ModifyTaskKnifeStrategy();
+            break;
+        case MODIFY_COMPLETE_TASK:
+            messageStrategy = new ModifyCompleteTaskStrategy();
             break;
         case OPERATE_ADD_ZONE:
             messageStrategy = new OperateAddZoneStrategy();
@@ -202,6 +170,9 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case DELETE_TIMER_TASK:
             messageStrategy = new DeleteTimerTaskStrategy();
             break;
+        case DELETE_MULTIPLE_TIMER_TASK:
+            messageStrategy = new DeleteMultipleTimerTaskStrategy();
+            break;
         case LIST_TIMER_TASK:
             messageStrategy = new ListTimerTaskStrategy();
             break;
@@ -218,12 +189,51 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case PERFORM_TASK:
             messageStrategy = new PerformTaskStrategy();
             break;
+
+        case GET_RAIN_SNOW:
+            messageStrategy = new GetRainSnowStrategy();
+            break;
+        case SET_RAIN_SNOW:
+            messageStrategy = new SetRainSnowStrategy();
+            break;
+
+        case START_MAP:
+            messageStrategy = new StartMapStrategy();
+            break;
+        case END_MAP:
+            messageStrategy = new EndMapStrategy();
+            break;
+        case MAP_FEASIBLE_ZONE:
+            messageStrategy = new MapFeasibleZoneStrategy();
+            break;
+        case MANUAL_PUSH_START:
+            messageStrategy = new ManualPushStartStrategy();
+            break;
+        case MANUAL_PUSH_RESET:
+            messageStrategy = new ManualPushResetStrategy();
+            break;
+        case TRY_TO_ENTER_:
+            messageStrategy = new RobotTryEnterModeStrategy();
+            break;
+        case FORCED_TO_ENTER_:
+            messageStrategy = new RobotForceEnterModeStrategy();
+            break;
+        case WORK_TO_ENTER_:
+            messageStrategy = new RobotPreparetoWorkStrategy();
+            break;
+        case WORK_TO_MAP_APP_:
+            messageStrategy = new MapPreparetoWorkStrategy();
+            break;
     }
     if (messageStrategy != nullptr) {
 
         MessageContext messageContext = MessageContext(messageStrategy);
 
         messageContext.startDateProgressing(MessageSource::Cloud, jdecode);
+
+        int end_time = ros::Time::now().sec;
+//        LOG_IF(INFO, DEBUG_REQUEST) << "----------------" << "JsonSubscribeCloud end : " << entrance.getMethod() << " "
+//                                    << end_time - start_time << " s " << "----------------";
 
         res.resp = CloudRobotControl::instance().useInfo();
         CloudRobotControl::instance().reset();

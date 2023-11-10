@@ -16,10 +16,20 @@ enum WorkMode {
 };
 
 const int MAXIMUM_TIME_LIMIT_FOR_QUICK_EXIT = 20;
-const long MAXIMUM_LIMIT_TIME_OF_TIMEOUT = 25;
+const long MAXIMUM_LIMIT_TIME_OF_TIMEOUT = 45;
 const int MAXIMUM_NUMBER_OF_FORCED_ENTRY = 3;
 
 class NodeWorkModeManager {
+private:
+    NodeWorkModeManager() = default;
+
+    NodeWorkModeManager(NodeWorkModeManager &) = delete;
+
+    NodeWorkModeManager &operator=(const NodeWorkModeManager &) = delete;
+
+public:
+    ~NodeWorkModeManager() = default;
+
 private:
     ros::Publisher pub_node_;
 
@@ -45,6 +55,8 @@ public:
     void forceToWork();
 
     void forceToMap();
+
+    bool tryToSleep();
 
     void toSleep();
 

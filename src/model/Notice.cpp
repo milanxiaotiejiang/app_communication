@@ -4,9 +4,10 @@
 
 #include "model/Notice.h"
 
-Notice::Notice(int noticeCode, long noticeTime, const string &noticeTitle, const string &noticeMessage,
-               const string &solution) : notice_code(noticeCode), notice_time(noticeTime), notice_title(noticeTitle),
-                                         notice_message(noticeMessage), solution(solution) {}
+Notice::Notice(int noticeCode, long noticeTime, const std::string &noticeTitle, const std::string &noticeMessage,
+               const std::string &solution) : notice_code(noticeCode), notice_time(noticeTime),
+                                              notice_title(noticeTitle),
+                                              notice_message(noticeMessage), solution(solution) {}
 
 Notice::Notice() {}
 
@@ -26,31 +27,31 @@ void Notice::setNoticeTime(long noticeTime) {
     notice_time = noticeTime;
 }
 
-const string &Notice::getNoticeTitle() const {
+const std::string &Notice::getNoticeTitle() const {
     return notice_title;
 }
 
-void Notice::setNoticeTitle(const string &noticeTitle) {
+void Notice::setNoticeTitle(const std::string &noticeTitle) {
     notice_title = noticeTitle;
 }
 
-const string &Notice::getNoticeMessage() const {
+const std::string &Notice::getNoticeMessage() const {
     return notice_message;
 }
 
-void Notice::setNoticeMessage(const string &noticeMessage) {
+void Notice::setNoticeMessage(const std::string &noticeMessage) {
     notice_message = noticeMessage;
 }
 
-const string &Notice::getSolution() const {
+const std::string &Notice::getSolution() const {
     return solution;
 }
 
-void Notice::setSolution(const string &solution) {
+void Notice::setSolution(const std::string &solution) {
     Notice::solution = solution;
 }
 
-ostream &operator<<(ostream &os, const Notice &notice) {
+std::ostream &operator<<(std::ostream &os, const Notice &notice) {
     os << "notice_code: " << notice.notice_code << " notice_time: " << notice.notice_time << " notice_title: "
        << notice.notice_title << " notice_message: " << notice.notice_message << " solution: " << notice.solution;
     return os;

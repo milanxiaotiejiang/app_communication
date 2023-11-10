@@ -1,9 +1,3 @@
-//
-// Created by lijiang on 2021/12/18.
-//
-// Modified by liquan on 2022/4/18
-
-// Modified by siyu.zhu on 2022/05/26.
 
 #include "sub/json/DeviceStrategy.h"
 #include "task/manager/MechanismManager.h"
@@ -11,6 +5,8 @@
 #include "task/subscribe/zoo_inner_status.h"
 #include "leave/ParamManager.h"
 #include "db/segmentation_data_base.h"
+#include "db/task_data_base.h"
+#include "leave/auto_maintenance_mode.h"
 
 /**
  * @brief Get the Device Status Strategy::date Progressing object获取机器当前状态
@@ -20,7 +16,7 @@
  * @param jdecode 
  */
 
-DeviceStatus GetDeviceStatusStrategy::handler(string method) {
+DeviceStatus GetDeviceStatusStrategy::handler(std::string method) {
     //追加几行，每当有连接时候获取下版本号
     std_msgs::Int32 version;
     version.data = 0;
@@ -50,7 +46,7 @@ DeviceStatus GetDeviceStatusStrategy::handler(string method) {
     return ds;
 }
 
-DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
+DeviceStatusV2 GetDeviceStatusStrategyV2::handler(std::string params) {
     /*
     int sweep_status{-1};//清扫
     int mop_status{-1};//湿拖
@@ -95,13 +91,13 @@ DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
     bool has_basestation = Variable::get_instance()->getBaseExist();
     bool hasknob = Variable::get_instance()->getknob();
     bool hasvoice = Variable::get_instance()->getvoice();
-    string ss = VersionManager::instance().getAirCodeVersion();
+    std::string ss = VersionManager::instance().getAirCodeVersion();
     std::size_t found3 = ss.find_last_of("_");
-    string fff = ss.substr(0, ss.length() - 4);
-    string rosv = fff;//VersionManager::instance().getAirCodeVersion();
-    string ecusv = VersionManager::instance().getDsSoftVersion();
-    string ecuhv = VersionManager::instance().getDsHardVersion();
-    string padv = VersionManager::instance().getAppPadVersion();
+    std::string fff = ss.substr(0, ss.length() - 4);
+    std::string rosv = fff;//VersionManager::instance().getAirCodeVersion();
+    std::string ecusv = VersionManager::instance().getDsSoftVersion();
+    std::string ecuhv = VersionManager::instance().getDsHardVersion();
+    std::string padv = VersionManager::instance().getAppPadVersion();
 
     int machineCode = AsyncMachine::instance().getMachineCode();
     std::string machineMessage = AsyncMachine::instance().getMachineMessage(machineCode);
@@ -115,19 +111,19 @@ DeviceStatusV2 GetDeviceStatusStrategyV2::handler(string params) {
     return ds;
 }
 
-string ChangeWorkModeStrategy::handler(WorkStatus params) {
+std::string ChangeWorkModeStrategy::handler(WorkStatus params) {
     MechanismManager::instance().controlWorkStatus(params, false);
     return "";
 }
 
-string ChangeAromStatusStrategy::handler(bool params) {
+std::string ChangeAromStatusStrategy::handler(bool params) {
     std_msgs::Int32 arom_status;
     arom_status.data = params;
     PublishInnerManager::instance().publishAromStatus(arom_status);
     return "";
 }
 
-int GetHotWindModeStrategy::handler(string params) {
+int GetHotWindModeStrategy::handler(std::string params) {
     return ParamManager::instance().getDry();
 }
 
@@ -137,16 +133,59 @@ int SetHotWindModeStrategy::handler(int params) {
 }
 
 void AutomaticOilingStrategy::handler() {
-    std_msgs::Int32 message;
-    message.data = 1;
-    PublishInnerManager::instance().publishOil(message);
+    PublishInnerManager::instance().publishOil();
 }
 
-string SetBaseStationStrategy::handler(bool params) {
+std::string SetBaseStationStrategy::handler(bool params) {
     ParamManager::instance().setBaseStation(params);
     return "";
 }
 
-bool GetBaseStationStrategy::handler(string params) {
+bool GetBaseStationStrategy::handler(std::string params) {
     return ParamManager::instance().isBaseStation();
+}
+
+std::string SetRainSnowStrategy::handler(bool params) {
+    if (params) {
+        //开启“雨雪天模式”时：如果没有雨雪天任务，不可切换；如果有雨雪天任务，允许切换；
+        MapPo map = SegmentationDataBase::instance().getDbMap();
+        const TaskVo &rainSnowTask = TaskDataBase::instance().loadRainSnowTask(map.id);
+        if (rainSnowTask.getId() == -1) {
+            throw app::exception(make_error_code(error::the_rain_snow_task_is_not_set));
+        }
+    }
+    ParamManager::instance().setRainSnow(params);
+    return "";
+}
+
+bool GetRainSnowStrategy::handler(std::string params) {
+    return ParamManager::instance().getRainSnow();
+}
+
+std::string SetCollectDustStrategy::handler(bool params) {
+    ParamManager::instance().setCollectDust(params);
+    return "";
+}
+
+bool GetCollectDustStrategy::handler(std::string params) {
+    return ParamManager::instance().getCollectDust();
+}
+
+std::string SetAutoOilStrategy::handler(bool params) {
+    ParamManager::instance().setAutoOil(params);
+    return "";
+}
+
+bool GetAutoOilStrategy::handler(std::string params) {
+    return ParamManager::instance().getAutoOil();
+}
+
+std::string SetMaintenanceStartTimeStrategy::handler(long params) {
+    ParamManager::instance().setMaintenanceStartTime(params);
+    AutoMaintenanceModeManager::instance().reset();
+    return "";
+}
+
+long GetMaintenanceStartTimeStrategy::handler(std::string params) {
+    return ParamManager::instance().getMaintenanceStartTime();
 }

@@ -15,15 +15,15 @@ void StatusResumeStrategy::handler() {
 }
 
 void StatusChargeStrategy::handler() {
-    ManualManager::instance().backToBase(false);
+    ManualManager::instance().backToBase(true);
 }
 
 void EnterManualStrategy::handler() {
-    ManualManager::instance().enter_manul_mode();
+    ManualManager::instance().enter_manual_mode();
 }
 
-void QuitManualStrategy::handler() {
-    ManualManager::instance().quit_manual_mode();
+ManualModel QuitManualStrategy::handler(std::string params) {
+    return ManualManager::instance().quit_manual_mode();;
 }
 
 void ShutDownStrategy::handler() {

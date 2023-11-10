@@ -8,26 +8,26 @@
 #include "future/timer_call.h"
 #include "task/manager/MechanismManager.h"
 
-void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
-    if (point.id == FLOW_SEIZE_SEAT) {
+void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
+    if (block.id == FLOW_SEIZE_SEAT) {
 //        setFlow(event::flow::out_base_station);
         setFlow(event::flow::switch_node_work_mode);
-    } else if (point.id == FLOW_OUT_STATION) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_OUT_STATION) {
+        if (block.arrive) {
 //            setFlow(event::flow::switch_node_work_mode);
             setFlow(event::flow::preliminary_preparation_completed);
         } else {
             setFlow(event::flow::software_interrupt_task);
         }
-    } else if (point.id == FLOW_END_SLEEP) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_END_SLEEP) {
+        if (block.arrive) {
 //            setFlow(event::flow::preliminary_preparation_completed);
             setFlow(event::flow::out_base_station);
         } else {
             setFlow(event::flow::software_interrupt_task);
         }
-    } else if (point.id == FLOW_IN_BASE_POINT) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_IN_BASE_POINT) {
+        if (block.arrive) {
             if (rechargeRetryCount == 0) {
                 setFlow(event::flow::arrive_base_point_success);
             } else {
@@ -38,11 +38,16 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
                 backBaseRetryCount++;
                 setFlow(event::flow::try_move_base_point_again);
             } else {
-                setFlow(event::flow::software_interrupt_task);
+//                setFlow(event::flow::software_interrupt_task);
+                LOG_IF(INFO, DEBUG_TASK)
+                                << "HeadTailPointCall : 多次返回摆渡点失败， 直接记为“任务执行完成且返回了基站点”， " <<
+                                "  backBaseRetryCount : " << backBaseRetryCount <<
+                                "  rechargeRetryCount : " << rechargeRetryCount << " ...";
+                setFlow(event::flow::flowing_water_execution_completed);
             }
         }
-    } else if (point.id == FLOW_IN_STATION) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_IN_STATION) {
+        if (block.arrive) {
             setFlow(event::flow::arrive_base_station_success);
         } else {
             if (rechargeRetryCount < MAX_RECHARGE_RETRY_COUNT) {
@@ -52,14 +57,14 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
                 setFlow(event::flow::software_interrupt_task);
             }
         }
-    } else if (point.id == FLOW_CLOSE_MECHANISM) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_CLOSE_MECHANISM) {
+        if (block.arrive) {
             setFlow(event::flow::flowing_water_execution_completed);
         } else {
             setFlow(event::flow::hardware_interrupt_task);
         }
-    } else if (point.id == FLOW_OPEN_MECHANISM) {
-        if (point.arrive) {
+    } else if (block.id == FLOW_OPEN_MECHANISM) {
+        if (block.arrive) {
             setFlow(event::flow::cleaning_mechanism_ready);
         } else {
             setFlow(event::flow::hardware_interrupt_task);
@@ -67,7 +72,7 @@ void HeadTailPointCall::handleFlowPoint(const RealPoint &point) {
     }
 }
 
-void HeadTailPointCall::processControl(const RealPoint &point) {
+void HeadTailPointCall::processControl(const RealBlock &block) {
     switch (currentFlow()) {
         case event::flow::out_base_station: {
             callOutBaseStation();
@@ -76,105 +81,169 @@ void HeadTailPointCall::processControl(const RealPoint &point) {
         case event::flow::switch_node_work_mode: {
             callSwitchWorkMode([this](bool work) {
                 flowEndSleepPoint.arrive = work;
-                pushPoint(flowEndSleepPoint);
+                pushBlock(flowEndSleepPoint);
             });
             break;
         }
         case event::flow::preliminary_preparation_completed: {
-            LOG(INFO) << "HeadTailPointCall : 前期的出站、睡眠等流程执行成功，现在启动清洁机构 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 前期的出站、睡眠等流程执行成功，现在启动清洁机构 ...";
 //            callOpenMechanism(point.getWorkStatus(), [this]() {
 //                flowOpenMechanismPoint.realError.arrive = true;
 //                pushPoint(flowOpenMechanismPoint);
 //            });
-            callOpenMechanism(baseWorkStatus(), isKnife(), []() {});
+            if (baseTaskMode() == static_cast<int>(TaskMode::Zoned)) {
+                LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 矩形任务无需打开清洁机构 ...";
+                flowOpenMechanismPoint.arrive = true;
+                notify_one([this]() {
+                    pushBlock(flowOpenMechanismPoint);
+                });
+            } else
+                callOpenMechanism(baseWorkStatus(), isKnife(), []() {});
             break;
         }
         case event::flow::cleaning_mechanism_ready: {
-            LOG(INFO) << "HeadTailPointCall : 清洁机构下放成功，准备执行规划点位任务，当前去第一个点 ...";
-            recordEmergencyStop(event::flow::ensure_move_to_start_point, point);
+            LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 清洁机构准备完成，准备执行规划点位任务，当前去第一个点 ...";
+            recordEmergencyStop(event::flow::ensure_move_to_start_point, block);
             setFlow(event::flow::ensure_move_to_start_point);
-            RealPoint front = plannerQueue.front();
+            RealBlock front = plannerQueue.front();
             callGoFirstPoint(front);
             break;
         }
         case event::flow::ensure_move_to_start_point: {
-            if (point.arrive) {
-                LOG(INFO) << "HeadTailPointCall : 到达第一个点位，开始流水线作业 ...";
+            if (block.arrive) {
+                LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 到达第一个区域，开始流水线作业 ...";
                 setFlow(event::flow::flowing_water_production);
-                pushPoint(point);
+                pushBlock(block);
             } else {
-                auto currentPoint = findFrontPoint();
+                auto currentPoint = findFrontBlock();
                 if (firstRetryCount < MAX_FIRST_RETRY_COUNT) {
-                    LOG(INFO) << "HeadTailPointCall : 未到达第一个点位，重试中 ...";
+                    LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 未到达第一个区域，重试中 ...";
                     firstRetryCount++;
                     exchangeFrontPoint(currentPoint);
                     callGoFirstPoint(currentPoint);
                 } else {
-                    LOG(INFO) << "HeadTailPointCall : 第一个点位重试后不能到达，跳点进入后续流程 ...";
+                    LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 第一个区域重试后不能到达，跳点进入后续流程 ...";
                     setFlow(event::flow::flowing_water_production);
-                    pushPoint(point);
+                    pushBlock(block);
                 }
             }
             break;
         }
         case event::flow::flowing_water_production: {
-            if (plannerQueue.size() == 1) {
-                //最后一个已经走完，移除最后一个再次执行一次，走收拖头
-                LOG(INFO) << "HeadTailPointCall : 清扫结束，准备回基站点 ...";
-                callPointComplete([this]() {
-                    callBackBasePoint();
-                });
+            if (block.retry) {
+                auto nextBlock = findFrontBlock();
+                if (nextBlock.inClean) {
+                    if (nextBlock.timely_step > 0) {
+                        nextBlock.already_step = nextBlock.already_step + nextBlock.timely_step + 1;
+                        nextBlock.timely_step = 0;
+                        exchangeFrontPoint(nextBlock);
+                    }
+                }
+                callGoNextBlock(nextBlock);
             } else {
-                auto nextPoint = findFrontNextPoint();
-                callGoNextPoint(nextPoint);
+                if (plannerQueue.size() == 1) {
+                    //最后一个已经走完，移除最后一个再次执行一次，走收拖头
+                    LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 清扫结束，准备回基站点 ...";
+                    if (baseTaskMode() == static_cast<int>(TaskMode::Zoned)) {
+                        LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 矩形任务及时收起清洁机构 ...";
+                        MechanismManager::instance().resetWorkStatus();
+                    }
+                    callBlockComplete([this]() {
+                        callBackBasePoint();
+                    });
+                } else {
+                    auto currentBlock = findFrontBlock();
+                    auto plannerPoints = currentBlock.plannerPoints;
+                    if (!plannerPoints.empty()) {
+                        auto cmcMode = plannerPoints[plannerPoints.size() - 1].cmcMode;
+                        LOG_IF(INFO, DEBUG_CLEAN_MECHANISM)
+                                        << "DEBUG_CLEAN_MECHANISM 取已完成的点列队尾，清洁机构操控 mode 为 "
+                                        << static_cast<int>(cmcMode)
+                                        << " ... ";
+                        if (cmcMode == CmcMode::Open) {
+                            //
+                        } else if (cmcMode == CmcMode::Close) {
+                            MechanismManager::instance().resetWorkStatus();
+                        }
+                    }
+
+                    auto nextBlockPair = findFrontNextBlock();
+                    if (nextBlockPair.first) {
+                        auto nextBlock = nextBlockPair.second;
+                        if (nextBlock.inClean) {
+                            if (nextBlock.timely_step > 0) {
+                                nextBlock.already_step = nextBlock.already_step + nextBlock.timely_step + 1;
+                                nextBlock.timely_step = 0;
+                                exchangeFrontPoint(nextBlock);
+                            }
+                        }
+                        callGoNextBlock(nextBlock);
+                    }
+                }
             }
             break;
         }
         case event::flow::arrive_base_point_success: {
-            LOG(INFO) << "HeadTailPointCall : 成功到达基站前点位，收起清洁机构 ...";
-//            callCloseMechanism([this]() {
-//                flowCloseMechanismPoint.realError.arrive = true;
-//                pushPoint(flowCloseMechanismPoint);
-//            });
-            callCloseMechanism([]() {});
+            if (baseTaskMode() == static_cast<int>(TaskMode::Zoned) && !MechanismManager::instance().isOpening()) {
+                LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 矩形任务 并且 已经收起 无需再次收起清洁机构 ...";
+                flowCloseMechanismPoint.arrive = true;
+                notify_one([this]() {
+                    pushBlock(flowCloseMechanismPoint);
+                });
+            } else {
+                LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 成功到达基站前点位，收起清洁机构 ...";
+//                callCloseMechanism([this]() {
+//                    flowCloseMechanismPoint.realError.arrive = true;
+//                    pushPoint(flowCloseMechanismPoint);
+//                });
+                callCloseMechanism([]() {});
+            }
             break;
         }
         case event::flow::flowing_water_execution_completed: {
-            LOG(INFO) << "HeadTailPointCall : 任务执行完成且返回了基站点，准备回充 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 任务执行完成且返回了基站点，准备回充 ...";
             callBackStation();
             break;
         }
         case event::flow::arrive_base_station_success: {
-            LOG(INFO) << "HeadTailPointCall : 回到基站，且已充电 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 回到基站，且已充电 ...";
             goodGame(event::GG::gg_normal_flow);
             break;
         }
         case event::flow::try_recharging_again: {
-            LOG(INFO) << "HeadTailPointCall : 回充失败 rechargeRetryCount : " << rechargeRetryCount << " , 再次返回基站点位置 ...";
+            LOG_IF(INFO, DEBUG_TASK)
+                            << "HeadTailPointCall : 回充失败 rechargeRetryCount : " << rechargeRetryCount
+                            << " , 再次返回基站点位置 ...";
             backBaseRetryCount = 0;
             callBackBasePoint();
             break;
         }
         case event::flow::try_move_base_point_again: {
-            LOG(INFO) << "HeadTailPointCall : 返回基站点位失败 backBaseRetryCount : " << backBaseRetryCount << " , 重试中 ...";
+            LOG_IF(INFO, DEBUG_TASK)
+                            << "HeadTailPointCall : 返回基站点位失败 backBaseRetryCount : " << backBaseRetryCount
+                            << " , 重试中 ...";
             callBackBasePoint();
             break;
         }
         case event::flow::hardware_interrupt_task: {
-            LOG(INFO) << "HeadTailPointCall : 清洁机构出错，执行返回基站命令 错误 ： " << output_interpolation_point(point.id);
+            LOG_IF(INFO, DEBUG_TASK)
+                            << "HeadTailPointCall : 清洁机构出错，执行返回基站命令 错误 ： "
+                            << output_interpolation_block(block.id);
             callBackBasePoint();
             break;
         }
         case event::flow::software_interrupt_task: {
             LOG(ERROR) << "HeadTailPointCall software_interrupt_task ...";
             cancelTask();
-            softwareInterruptTask(point);
+            softwareInterruptTask(block);
             break;
         }
+        case event::waiting_for_task:
+            break;
     }
 }
 
-void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, bool knife, function<void()> f) {
+void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, bool knife, std::function<void()> f) {
 //    AsyncTaskFramework::callOpenMechanism(status, f);
 
     flowOpenMechanismPoint.arrive = true;
@@ -182,25 +251,25 @@ void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, bool knife, 
     MechanismManager::instance().controlWorkStatus(status, knife);
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this]() {
-            LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
             notify_one([this]() {
-                pushPoint(flowOpenMechanismPoint);
+                pushBlock(flowOpenMechanismPoint);
             });
         });
     } else {
         async::TimerCall::instance().baseLoop()->scheduleLater(
                 std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this]() {
-                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
+                    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
                     notify_one([this]() {
-                        pushPoint(flowOpenMechanismPoint);
+                        pushBlock(flowOpenMechanismPoint);
                     });
                 });
     }
 }
 
-void HeadTailPointCall::callCloseMechanism(function<void()> f) {
+void HeadTailPointCall::callCloseMechanism(std::function<void()> f) {
 //    AsyncTaskFramework::callCloseMechanism(f);
-    LOG(INFO) << "AsyncTaskFramework : 准备关闭相应的清洁机构 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备关闭相应的清洁机构 ...";
 
     flowCloseMechanismPoint.arrive = true;
 
@@ -209,36 +278,29 @@ void HeadTailPointCall::callCloseMechanism(function<void()> f) {
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()
                 ->scheduleLater(std::chrono::seconds(1), [this]() {
-                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
+                    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
                     notify_one([this]() {
-                        pushPoint(flowCloseMechanismPoint);
+                        pushBlock(flowCloseMechanismPoint);
                     });
                 });
     } else {
         async::TimerCall::instance().baseLoop()
                 ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this]() {
-                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
+                    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
                     notify_one([this]() {
-                        pushPoint(flowCloseMechanismPoint);
+                        pushBlock(flowCloseMechanismPoint);
                     });
                 });
     }
 }
 
-void HeadTailPointCall::callGoFirstPoint(RealPoint point) {
-    PointPlanner::instance().gotoPlannerFirstPoint(point);
-    async::TimerCall::instance().baseLoop()
-            ->scheduleLater(std::chrono::seconds(point.timeout), [this, &point]() {
-                auto currentPoint = findFrontPoint();
-                if (currentPoint.id == point.id) {
-                    executeOnNext(event::error::TIMEOUT);
-                }
-            });
+void HeadTailPointCall::callGoFirstPoint(const RealBlock &block) {
+    callGoNextBlock(block, true);
 }
 
-void HeadTailPointCall::exchangeFrontPoint(const RealPoint &point) {
+void HeadTailPointCall::exchangeFrontPoint(const RealBlock &block) {
     plannerQueue.pop_front();
-    plannerQueue.push_front(point);
+    plannerQueue.push_front(block);
 }
 
 bool HeadTailPointCall::canIssuedTask(const RealTask &task) {

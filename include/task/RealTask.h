@@ -7,7 +7,7 @@
 
 #include "string"
 #include "model/WorkStatus.h"
-#include "model/Task.h"
+#include "RealBlock.h"
 #include "RealPoint.h"
 #include "model/RoomVo.h"
 #include "model/task.h"
@@ -15,8 +15,6 @@
 class RealTask {
 private:
     std::string id;
-
-    bool renew;//新旧任务标志位
 
     std::string map_id;//当前任务所在的地图
     long task_id;//关联的新任务id
@@ -33,9 +31,6 @@ private:
     std::vector<SubregionVo> subregions;//新任务区域
     bool knife{false};//风刀开关
 
-    std::vector<float> zoned0;//app手动划区
-    Combination combination;//组合任务
-    int combination_type;//全覆盖 or 组合
     std::string time_mode;
 
     std::string source;//创建任务的源头
@@ -47,33 +42,27 @@ private:
     int totalStep;
     int totalFrequency;
 
-    std::vector<RealPoint> planPoints;
-    std::vector<RealPoint> realPoints;
+    std::vector<RealBlock> planBlocks;
+    std::vector<RealBlock> realBlocks;
+
+    bool verify_mode = false;
 
 public:
     RealTask() = default;
 
-    const string &getId() const {
+    const std::string &getId() const {
         return id;
     }
 
-    void setId(const string &id) {
+    void setId(const std::string &id) {
         RealTask::id = id;
     }
 
-    bool isRenew() const {
-        return renew;
-    }
-
-    void setRenew(bool renew) {
-        RealTask::renew = renew;
-    }
-
-    const string &getMapId() const {
+    const std::string &getMapId() const {
         return map_id;
     }
 
-    void setMapId(const string &mapId) {
+    void setMapId(const std::string &mapId) {
         map_id = mapId;
     }
 
@@ -85,11 +74,11 @@ public:
         task_id = taskId;
     }
 
-    const string &getName() const {
+    const std::string &getName() const {
         return name;
     }
 
-    void setName(const string &name) {
+    void setName(const std::string &name) {
         RealTask::name = name;
     }
 
@@ -125,11 +114,11 @@ public:
         RealTask::principal = principal;
     }
 
-    const vector<ZoneVo> &getZoned() const {
+    const std::vector<ZoneVo> &getZoned() const {
         return zoned;
     }
 
-    void setZoned(const vector<ZoneVo> &zoned) {
+    void setZoned(const std::vector<ZoneVo> &zoned) {
         RealTask::zoned = zoned;
     }
 
@@ -141,11 +130,11 @@ public:
         RealTask::partition = partition;
     }
 
-    const vector<SubregionVo> &getSubregions() const {
+    const std::vector<SubregionVo> &getSubregions() const {
         return subregions;
     }
 
-    void setSubregions(const vector<SubregionVo> &subregions) {
+    void setSubregions(const std::vector<SubregionVo> &subregions) {
         RealTask::subregions = subregions;
     }
 
@@ -157,51 +146,27 @@ public:
         RealTask::knife = knife;
     }
 
-    const vector<float> &getZoned0() const {
-        return zoned0;
-    }
-
-    void setZoned0(const vector<float> &zoned0) {
-        RealTask::zoned0 = zoned0;
-    }
-
-    const Combination &getCombination() const {
-        return combination;
-    }
-
-    void setCombination(const Combination &combination) {
-        RealTask::combination = combination;
-    }
-
-    int getCombinationType() const {
-        return combination_type;
-    }
-
-    void setCombinationType(int combinationType) {
-        combination_type = combinationType;
-    }
-
-    const string &getTimeMode() const {
+    const std::string &getTimeMode() const {
         return time_mode;
     }
 
-    void setTimeMode(const string &timeMode) {
+    void setTimeMode(const std::string &timeMode) {
         time_mode = timeMode;
     }
 
-    const string &getSource() const {
+    const std::string &getSource() const {
         return source;
     }
 
-    void setSource(const string &source) {
+    void setSource(const std::string &source) {
         RealTask::source = source;
     }
 
-    const string &getLaunchPeople() const {
+    const std::string &getLaunchPeople() const {
         return launch_people;
     }
 
-    void setLaunchPeople(const string &launchPeople) {
+    void setLaunchPeople(const std::string &launchPeople) {
         launch_people = launchPeople;
     }
 
@@ -213,11 +178,11 @@ public:
         launch_time = launchTime;
     }
 
-    const string &getOnSource() const {
+    const std::string &getOnSource() const {
         return on_source;
     }
 
-    void setOnSource(const string &onSource) {
+    void setOnSource(const std::string &onSource) {
         on_source = onSource;
     }
 
@@ -237,47 +202,53 @@ public:
         RealTask::totalFrequency = totalFrequency;
     }
 
-    const vector<RealPoint> &getPlanPoints() const {
-        return planPoints;
+    const std::vector<RealBlock> &getPlanBlocks() const {
+        return planBlocks;
     }
 
-    void setPlanPoints(const vector<RealPoint> &planPoints) {
-        RealTask::planPoints = planPoints;
+    void setPlanPoints(const std::vector<RealBlock> &planBlocks) {
+        RealTask::planBlocks = planBlocks;
     }
 
-    const vector<RealPoint> &getRealPoints() const {
-        return realPoints;
+    const std::vector<RealBlock> &getRealBlocks() const {
+        return realBlocks;
     }
 
-    void setRealPoints(const vector<RealPoint> &realPoints) {
-        RealTask::realPoints = realPoints;
+    void setRealPoints(const std::vector<RealBlock> &realBlocks) {
+        RealTask::realBlocks = realBlocks;
     }
 
-    void assignmentPoint(RealPoint &realPoint, int pointId) const {
-        realPoint.id = pointId;
-        if (isRenew()) {
-            realPoint.newTaskId = getTaskId();
-        } else {
-            realPoint.oldTaskId = getId();
-        }
+    bool isVerifyMode() const {
+        return verify_mode;
     }
 
-    void changeArrivalStatus(const RealPoint &point) {
+    void setVerifyMode(bool verifyMode) {
+        verify_mode = verifyMode;
+    }
+
+    void assignmentPoint(RealBlock &block, int blockId) const {
+        block.id = blockId;
+        block.newTaskId = getTaskId();
+    }
+
+    void changeArrivalStatus(const RealBlock &block) {
         bool isContains;
-        for (auto realPoint: realPoints) {
-            if (realPoint.id == point.id) {
+        for (auto &realBlock: realBlocks) {
+            if (realBlock.id == block.id) {
+                realBlock.timely_step = block.timely_step;
+                realBlock.already_step = block.already_step;
                 isContains = true;
-                if (realPoint.arrive) {
+                if (realBlock.arrive) {
                     break;
                 } else {
-                    if (point.arrive) {
-                        realPoint.arrive = point.arrive;
+                    if (block.arrive) {
+                        realBlock.arrive = block.arrive;
                     }
                 }
             }
         }
         if (!isContains) {
-            realPoints.push_back(point);
+            realBlocks.push_back(block);
         }
 
     }

@@ -11,6 +11,12 @@ class ReservedCall : public HeadTailPointCall {
 private:
     bool first_urgency_stop = true;
 
+    bool low_battery_back_charge_escalation = false;
+    bool clean_water_level_check_failed_escalation = false;
+    bool dirty_water_level_check_failed_escalation = false;
+    bool motor_error_recovery_failed_escalation = false;
+    bool mop_error_recovery_success_escalation = false;
+
 protected:
 
     void handleManualOperation() override;
@@ -23,11 +29,11 @@ protected:
 
     void handleExecuteTask(const RealTask &task) override;
 
-    void handleFlowPoint(const RealPoint &point) override;
+    void handleFlowBlock(const RealBlock &block) override;
 
-    void processControl(const RealPoint &point) override;
+    void processControl(const RealBlock &block) override;
 
-    void softwareInterruptTask(const RealPoint &point) override;
+    void softwareInterruptTask(const RealBlock &block) override;
 
     void forceInterruptTask(event::SB sb) override;
 
@@ -35,20 +41,16 @@ protected:
 
     void garbage(event::SB sb) override;
 
-    void handlePlannerPoint(const RealPoint &point) override;
+    void handlePlannerBlock(const RealBlock &block) override;
+
+    void feedBackPose(const geometry_msgs::Pose &pose) override;
+
+    void reset() override;
 
 public:
 
-
     std::tuple<int, std::string, std::string> generateErrorByRealPoint(int errorId);
 
-    void recordMotorError();
-
-    void recordMopError();
-
-    void recordHlsError(int error_event);
-
-    void recordLaserError(std::string error_event);
 };
 
 

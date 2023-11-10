@@ -5,10 +5,12 @@
 #include "task/manager/MechanismManager.h"
 #include "manager/PublishInnerManager.h"
 #include "task/subscribe/zoo_inner_status.h"
-#include "glog/logging.h"
+#include "simulation.h"
 
 void MechanismManager::resetWorkStatus() {
-    LOG(INFO) << "MechanismManager : 收起清洁机构 . ";
+    LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 收起清洁机构 . ";
+    opening = false;
+
     std_msgs::Int32 sweep_status;
 //    if (ZooInnerStatus::instance().getSweepStatus() != 0 && ZooInnerStatus::instance().getSweepStatus() != -1) {
     sweep_status.data = 0;
@@ -45,7 +47,7 @@ void MechanismManager::resetWorkStatus() {
 }
 
 void MechanismManager::resetBelowWorkStatus() {
-    LOG(INFO) << "MechanismManager : 收起下方清洁机构.";
+    LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 收起下方清洁机构.";
 //    std_msgs::Int32 sweep_status;
 //    sweep_status.data = 0;
 //    PublishInnerManager::instance().publishSweepMode(sweep_status);
@@ -66,7 +68,9 @@ void MechanismManager::resetBelowWorkStatus() {
 }
 
 void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knife) {
-    LOG(INFO) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
+    LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
+    opening = true;
+
     //扫
     std_msgs::Int32 sweep_status;
     if (workStatus.getSweepStatus() >= 0 && workStatus.getSweepStatus() <= 2) {
@@ -122,7 +126,9 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knif
 }
 
 void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus, bool knife) {
-    LOG(INFO) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
+    LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
+    opening = true;
+
     //扫
     std_msgs::Int32 sweep_status;
     sweep_status.data = workStatus.getSweepStatus();
@@ -159,25 +165,29 @@ void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus, bool
 void MechanismManager::enterManualControl() {
     std_msgs::Int32 map_start;
     map_start.data = 2;
-    PublishInnerManager::instance().publishKnobTask(map_start);
+    PublishInnerManager::instance().publishManualPush(map_start);
 }
 
 void MechanismManager::quitManualControl() {
     std_msgs::Int32 map_start;
     map_start.data = 0;
-    PublishInnerManager::instance().publishKnobTask(map_start);
+    PublishInnerManager::instance().publishManualPush(map_start);
 }
 
 void MechanismManager::openKnife() {
-    LOG(INFO) << "MechanismManager : 开启风刀.";
+    LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 开启风刀.";
     std_msgs::Int32 msg;
     msg.data = 1;
     PublishInnerManager::instance().pubKnife(msg);
 }
 
 void MechanismManager::closeKnife() {
-    LOG(INFO) << "MechanismManager : 关闭风刀.";
+    LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 关闭风刀.";
     std_msgs::Int32 msg;
     msg.data = 0;
     PublishInnerManager::instance().pubKnife(msg);
+}
+
+bool MechanismManager::isOpening() const {
+    return opening;
 }

@@ -11,7 +11,7 @@
 #include <utility>
 #include "string"
 #include "future/thread_pool.h"
-#include "glog/logging.h"
+#include "simulation.h"
 #include "node_manager.h"
 #include "child_activate_node.h"
 #include "node_observer_mode.h"
@@ -22,6 +22,16 @@
 #define  THREAD_POOL_MAX_NUM 16
 
 class NodeControl {
+private:
+    NodeControl() = default;
+
+    NodeControl(NodeControl &) = delete;
+
+    NodeControl &operator=(const NodeControl &) = delete;
+
+public:
+    ~NodeControl() = default;
+
 private:
     ros::NodeHandle nodeHandle;
     async::ThreadPool pool_;

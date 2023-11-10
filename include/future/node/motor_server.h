@@ -14,6 +14,7 @@ class MotorServerSingleton {
 private:
     bool initialize_start = false;
     ros::ServiceClient start_motor;
+    ros::ServiceClient stop_motor;
 
 public:
 
@@ -25,6 +26,8 @@ public:
     void init(ros::NodeHandle handle);
 
     bool start();
+
+    bool stop();
 
     MotorServerSingleton(const MotorServerSingleton &) = delete;
 

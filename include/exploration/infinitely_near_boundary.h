@@ -8,28 +8,41 @@
 #include <opencv2/core/mat.hpp>
 #include <geometry_msgs/Pose2D.h>
 #include "A_star_pathplanner.h"
+#include "exploration/douglas/Point2D.h"
 
 class InfinitelyNearBoundary {
 private:
     AStarPlanner path_planner;
 
-    void transformPointPathToPosePath(const std::vector<cv::Point2f> &point_path,
-                                      std::vector<geometry_msgs::Pose2D> &pose_path);
+    std::vector<Point2D> splitPoints(const Point2D &p1, const Point2D &p2, double distance);
+
+    void splitPointsIfNeeded(const std::vector<Point2D> &points, std::vector<Point2D> &results, double distance);
+
+    std::vector<geometry_msgs::Pose2D> transformPointPathToPosePath(const std::vector<Point2D> &point_path);
 
 public:
     void getExplorationPath(const cv::Mat &original_map,
                             const cv::Mat &room_map,
                             std::vector<geometry_msgs::Pose2D> &pose_path,
                             std::vector<cv::Point> &point_path,
+                            std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
                             float map_resolution,
                             const cv::Point &starting_position,
                             const cv::Point2d &map_origin,
-                            double robot_radius,
-                            int number_extension,
-                            int distance_from_obstacles,
-                            int multiple_contour_spacing,
-                            int random_number_generation_ratio,
-                            int boundary_min_area);
+                            const double robot_radius,
+                            const int number_extension,
+                            const int distance_from_obstacles,
+                            const int multiple_contour_spacing,
+                            const int random_number_generation_ratio,
+                            const int boundary_min_area,
+                            const double path_eps,
+                            bool interpolation_operation);
+
+    void boundary_distance(const cv::Mat &original_map, const std::vector<cv::Point2f> &points,
+                           const std::string &name) const;
+
+    void
+    boundary_distance(const cv::Mat &original_map, const std::vector<Point2D> &points, const std::string &name) const;
 };
 
 

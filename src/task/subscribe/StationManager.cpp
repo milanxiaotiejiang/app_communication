@@ -22,9 +22,11 @@ void StationManager::initialize(ros::NodeHandle handle) {
 }
 
 void StationManager::outStation() {
-    std_msgs::Int32 flag;
-    flag.data = FLAG_OUT_STATION;
-    pub_flag_out.publish(flag);
+    if (Environment::instance().isRealEnvironment) {
+        std_msgs::Int32 flag;
+        flag.data = FLAG_OUT_STATION;
+        pub_flag_out.publish(flag);
+    }
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(3), []() {
             StationManager::instance().stationOutResult(FLAG_RESULT_SUCCESS);
@@ -37,9 +39,11 @@ void StationManager::stationOutResult(int flag) {
 }
 
 void StationManager::backStation() {
-    std_msgs::Int32 flag;
-    flag.data = FLAG_IN_STATION;
-    pub_flag_in.publish(flag);
+    if (Environment::instance().isRealEnvironment) {
+        std_msgs::Int32 flag;
+        flag.data = FLAG_IN_STATION;
+        pub_flag_in.publish(flag);
+    }
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(3), []() {
             if (!Environment::instance().will()) {

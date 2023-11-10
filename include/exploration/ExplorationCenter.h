@@ -14,9 +14,13 @@
 #include "exploration_generate.h"
 #include "future/thread_pool.h"
 
-#define  EXPLORATION_THREAD_POOL_MAX_NUM 1
+#define EXPLORATION_THREAD_POOL_MAX_NUM 1
 
-const int BOUSTROPHEDON_EXPLORER_MODE = 1;
+const int ENERGY_FUNCTIONAL_EXPLORER_MODE = 1;
+const int BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE = 2;
+const int BOUSTROPHEDON_RETROFLEX_EXPLORER_MODE = 3;
+
+#define INTERPOLATION_OPERATION true
 
 enum ExplorationModel {
     FULL,
@@ -25,6 +29,16 @@ enum ExplorationModel {
 };
 
 class ExplorationCenter {
+private:
+    ExplorationCenter() = default;
+
+    ExplorationCenter(ExplorationCenter &) = delete;
+
+    ExplorationCenter &operator=(const ExplorationCenter &) = delete;
+
+public:
+    ~ExplorationCenter() = default;
+
 private:
     bool initialize_finish = false;
     std::recursive_mutex cv_mut;
@@ -36,13 +50,15 @@ private:
     cache::lru_cache<std::string, RoomCoverage> coverageCache = cache::lru_cache<std::string, RoomCoverage>(3);
 
     void generatePlanningPath(const cv::Mat &room_map, ExplorationModel model, int explorer_mode,
-                              bool ordain_start, const cv::Point &start_position,
+                              bool ordain_start, const cv::Point &start_position, bool addProhibition,
                               std::vector<geometry_msgs::Pose2D> &exploration_path,
-                              std::vector<cv::Point> &point_path);
+                              std::vector<cv::Point> &point_path,
+                              std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
     void optimizePlanningPath(const cv::Mat &room_map,
                               std::vector<geometry_msgs::Pose2D> &exploration_path,
                               std::vector<cv::Point> &point_path,
+                              std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path,
                               bool distance = true);
 
     bool baseStationAvailable(cv::Mat &room_map, const cv::Point &point);
@@ -62,11 +78,11 @@ private:
     void cvPoint2Pose(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &postList,
                       const std::vector<cv::Point> &pointList, const cv::Point2d &map_origin);
 
-    cv::Mat loadGenerateMap(int grid_spacing_in_pixel);
+    cv::Mat loadGenerateMap(int grid_spacing_in_pixel, int expansive_layer_pixel);
 
     bool detectionTooSmallRoom(const cv::Mat &map, int iterations) const;
 
-    cv::Point &findBaseNearReachable(cv::Mat &map, cv::Point &reachablePoint, int range);
+    void findBaseNearReachable(cv::Mat &map, cv::Point &reachablePoint, int range);
 
 public:
     static auto &instance() {
@@ -83,7 +99,7 @@ public:
 
     void uninstall();
 
-    void repaintCoveragePath(bool isMapChange);
+    void repaintCoveragePath();
 
     void repaintSubregionPath();
 
@@ -91,27 +107,47 @@ public:
 
     RoomCoverage obtainSubregionPath();
 
-    void infinitelyNearBoundary(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
-                                std::vector<cv::Point> &point_path);
+    void infinitelyNearBoundary(const cv::Mat &room_map,
+                                bool addProhibition,
+                                std::vector<geometry_msgs::Pose2D> &pose_path,
+                                std::vector<cv::Point> &point_path,
+                                std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
-    void generatePlanningPathRect(const cv::Mat &room_map, int explorer_mode,
-                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                  std::vector<cv::Point> &point_path);
+    void
+    generatePlanningPathRect(const cv::Mat &room_map,
+                             int explorer_mode,
+                             bool addProhibition,
+                             std::vector<geometry_msgs::Pose2D> &exploration_path,
+                             std::vector<cv::Point> &point_path,
+                             std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
-    void generatePlanningPathSub(const cv::Mat &room_map, int explorer_mode,
-                                 std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                 std::vector<cv::Point> &point_path);
+    void
+    generatePlanningPathSub(const cv::Mat &room_map,
+                            int explorer_mode,
+                            bool addProhibition,
+                            std::vector<geometry_msgs::Pose2D> &exploration_path,
+                            std::vector<cv::Point> &point_path,
+                            std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
-    void generatePlanningPathFull(const cv::Mat &room_map, int explorer_mode,
-                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                  std::vector<cv::Point> &point_path);
+    void
+    generatePlanningPathFull(const cv::Mat &room_map,
+                             int explorer_mode,
+                             bool addProhibition,
+                             std::vector<geometry_msgs::Pose2D> &exploration_path,
+                             std::vector<cv::Point> &point_path,
+                             std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
-    void generatePlanningSegmentationPath(const cv::Mat &room_map, cv::Mat segmented_map, std::vector<Room> rooms,
+    void generatePlanningSegmentationPath(const cv::Mat &room_map,
+                                          cv::Mat segmented_map, std::vector<Room> rooms,
                                           int explorer_mode,
+                                          bool addProhibition,
                                           std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                          std::vector<cv::Point> &point_path);
+                                          std::vector<cv::Point> &point_path,
+                                          std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
     void pathPublish(const std::vector<geometry_msgs::Pose2D> &exploration_path) const;
+
+    void pathPublish(const std::vector<std::vector<geometry_msgs::Pose2D>> &exploration_path) const;
 
     void cacheRoomCoverage(const RoomCoverage &coverage);
 

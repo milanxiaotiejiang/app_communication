@@ -91,7 +91,7 @@ namespace async {
         auto &loop = *timerCall.baseLoop();
 
         loop.scheduleAfter(std::chrono::seconds(1), [this]() {
-            LOG(INFO) << "init TimerInitCall. " << pthread_self();
+            LOG_IF(INFO, DEBUG_FIRING) << "init TimerInitCall. " << pthread_self();
             pthread_cond_signal(&cond);
         });
 

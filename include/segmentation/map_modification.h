@@ -17,7 +17,7 @@ public:
 
     void addFeasibleZone(const std::vector<std::vector<cv::Point>> &points);
 
-    void applyIncreaseArea(const std::vector<int>& daubs);
+    void applyIncreaseArea(const std::vector<int> &daubs);
 
 };
 

@@ -6,20 +6,96 @@
 #define APP_COMMUNICATION_MAPINFO_H
 
 #include <string>
+#include <ostream>
 
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
+
+class BuildMapParam {
+private:
+    bool save{false};
+    bool reset{false};
+    bool new_map{false};
+    std::string map_name{""};
+public:
+    BuildMapParam();
+
+    bool isSave() const;
+
+    bool isReset() const;
+
+    bool isNewMap() const;
+
+    const std::string &getMapName() const;
+
+    BuildMapParam(bool save, bool reset, bool newMap, const std::string &mapName);
+
+    void setReset(bool reset);
+
+    friend void to_json(json &j, const BuildMapParam &b) {
+        j = json{
+                {"save",     b.save},
+                {"reset",    b.reset},
+                {"new_map",  b.new_map},
+                {"map_name", b.map_name},
+        };
+    }
+
+    friend void from_json(const json &j, BuildMapParam &b) {
+        j.at("save").get_to(b.save);
+        j.at("reset").get_to(b.reset);
+        j.at("new_map").get_to(b.new_map);
+        j.at("map_name").get_to(b.map_name);
+    }
+};
+
+class MapScore {
+private:
+    std::string id;//real id
+    double score;
+    std::string map_name;
+public:
+    MapScore();
+
+    MapScore(const std::string &id, double score);
+
+    const std::string &getId() const;
+
+    void setId(const std::string &id);
+
+    double getScore() const;
+
+    void setScore(double score);
+
+    friend void to_json(json &j, const MapScore &b) {
+        j = json{
+                {"id",    b.id},
+                {"score", b.score},
+        };
+    }
+
+    friend void from_json(const json &j, MapScore &b) {
+        j.at("id").get_to(b.id);
+        j.at("score").get_to(b.score);
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const MapScore &score);
+};
 
 class MapInfo {
 private:
     int map_id;
     std::string id;//real id
     std::string map_name;
+    bool reset;
+    double score;
 public:
     MapInfo();
 
     MapInfo(const std::string &id, const std::string &mapName);
+
+    MapInfo(const std::string &id, const std::string &mapName, double score);
 
     virtual ~MapInfo();
 
@@ -35,11 +111,21 @@ public:
 
     void setMapName(const std::string &mapName);
 
+    bool isReset() const;
+
+    void setReset(bool reset);
+
+    double getScore() const;
+
+    void setScore(double score);
+
     friend void to_json(json &j, const MapInfo &b) {
         j = json{
                 {"id",       b.id},
                 {"map_id",   b.map_id},
                 {"map_name", b.map_name},
+                {"reset",    b.reset},
+                {"score",    b.score},
         };
     }
 
@@ -49,8 +135,139 @@ public:
         }
         j.at("map_id").get_to(b.map_id);
         j.at("map_name").get_to(b.map_name);
+        if (j.contains("reset")) {
+            j.at("reset").get_to(b.reset);
+        } else {
+            b.reset = false;
+        }
+        if (j.contains("score")) {
+            j.at("score").get_to(b.score);
+        }
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const MapInfo &info);
+};
+
+class MultiMapInfo {
+private:
+    std::string id;
+    std::string name;
+    bool main;
+    std::string path;
+public:
+    MultiMapInfo();
+
+    MultiMapInfo(const std::string &id, const std::string &name, bool main, const std::string &path);
+
+    const std::string &getId() const;
+
+    void setId(const std::string &id);
+
+    const std::string &getName() const;
+
+    void setName(const std::string &name);
+
+    bool isMain() const;
+
+    void setMain(bool main);
+
+    const std::string &getPath() const;
+
+    void setPath(const std::string &path);
+
+    friend void to_json(json &j, const MultiMapInfo &b) {
+        j = json{
+                {"id",   b.id},
+                {"name", b.name},
+                {"main", b.main},
+                {"path", b.path},
+        };
+    }
+
+    friend void from_json(const json &j, MultiMapInfo &b) {
+        j.at("id").get_to(b.id);
+        j.at("name").get_to(b.name);
+        j.at("main").get_to(b.main);
+        j.at("path").get_to(b.path);
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const MultiMapInfo &info);
+};
+
+class ModifyMapName {
+private:
+    std::string id;
+    std::string name;
+public:
+    ModifyMapName() {}
+
+    ModifyMapName(const std::string &id, const std::string &name) : id(id), name(name) {}
+
+    const std::string &getId() const {
+        return id;
+    }
+
+    void setId(const std::string &id) {
+        ModifyMapName::id = id;
+    }
+
+    const std::string &getName() const {
+        return name;
+    }
+
+    void setName(const std::string &name) {
+        ModifyMapName::name = name;
+    }
+
+    friend void to_json(json &j, const ModifyMapName &b) {
+        j = json{
+                {"id",   b.id},
+                {"name", b.name},
+        };
+    }
+
+    friend void from_json(const json &j, ModifyMapName &b) {
+        j.at("id").get_to(b.id);
+        j.at("name").get_to(b.name);
+    }
+
+};
+
+struct MapImageRequest {
+    std::string map_id;
+
+    friend void to_json(json &j, const MapImageRequest &mapImage) {
+        j = json{
+                {"map_id", mapImage.map_id},
+        };
+    }
+
+    friend void from_json(const json &j, MapImageRequest &mapImage) {
+        j.at("map_id").get_to(mapImage.map_id);
     }
 };
 
+struct MapImageResponse {
+    int type{1};
+    std::string image;
+    int width;
+    int height;
+
+    friend void to_json(json &j, const MapImageResponse &mapImage) {
+        j = json{
+                {"type",   mapImage.type},
+                {"image",  mapImage.image},
+                {"width",  mapImage.width},
+                {"height", mapImage.height},
+        };
+    }
+
+    friend void from_json(const json &j, MapImageResponse &mapImage) {
+        j.at("type").get_to(mapImage.type);
+        j.at("image").get_to(mapImage.image);
+        j.at("width").get_to(mapImage.width);
+        j.at("height").get_to(mapImage.height);
+    }
+};
 
 #endif //APP_COMMUNICATION_MAPINFO_H

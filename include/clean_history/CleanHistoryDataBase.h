@@ -65,13 +65,28 @@ namespace clean_history_db {
                                            make_column("oper_event", &CleanHistory::oper_event_),
                                            make_column("error_code", &CleanHistory::error_code_),
                                            make_column("error_code2", &CleanHistory::error_code2_),
-                                           make_column("error_msg", &CleanHistory::error_msg_)));
+                                           make_column("error_msg", &CleanHistory::error_msg_),
+                                           make_column("renew", &CleanHistory::renew, default_value(true)),
+                                           make_column("old_task_id", &CleanHistory::old_task_id, default_value("")),
+                                           make_column("new_task_id", &CleanHistory::new_task_id, default_value(0))
+                                )
+            );
         }
     };
 
     using Storage = decltype(SqliteDataBase::initStorage());
 
     class CleanHistoryDataBase {
+    private:
+        CleanHistoryDataBase() = default;
+
+        CleanHistoryDataBase(CleanHistoryDataBase &) = delete;
+
+        CleanHistoryDataBase &operator=(const CleanHistoryDataBase &) = delete;
+
+    public:
+        ~CleanHistoryDataBase() = default;
+
     private:
         Storage clean_history_storage_ = SqliteDataBase::initStorage();
     public:
@@ -81,22 +96,26 @@ namespace clean_history_db {
         }
 
         //初始化清洁历史数据库
-        bool initalize() {
+        void initalize() {
             clean_history_storage_.sync_schema();
         }
 
+        void removeCleanHistory(){
+            clean_history_storage_.remove_all<CleanHistory>();
+        }
+
         //添加一条清洁历史
-        bool addCleanHistory(CleanHistory clean_history) {
+        void addCleanHistory(CleanHistory clean_history) {
             clean_history_storage_.replace(clean_history);
         }
 
         //清除所有清洁历史
-        bool removeAll() {
+        void removeAll() {
             clean_history_storage_.remove_all<CleanHistory>();
         }
 
         //更新清洁历史
-        bool updateHistory(CleanHistory clean_history) {
+        void updateHistory(CleanHistory clean_history) {
             clean_history_storage_.replace(clean_history);
         }
 
@@ -107,7 +126,8 @@ namespace clean_history_db {
 
         //获取task_id的清洁历史
         CleanHistory getCleanHistory(std::string task_id) {
-            return clean_history_storage_.get_all<CleanHistory>(where(c(&CleanHistory::task_id_) == std::move(task_id)))[0];
+            return clean_history_storage_.get_all<CleanHistory>(
+                    where(c(&CleanHistory::task_id_) == std::move(task_id)))[0];
         }
 
         //获取所有未完成的历史

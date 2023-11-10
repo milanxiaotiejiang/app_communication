@@ -8,9 +8,9 @@
 #include "sub/json/MessageStrategy.h"
 #include "model/RoomVo.h"
 
-class RoomMapDataStrategy : public MessageStrategy<string, MapRoomVo> {
+class RoomMapDataStrategy : public MessageStrategy<std::string, MapRoomVo> {
 public:
-    MapRoomVo handler(string params) override;
+    MapRoomVo handler(std::string params) override;
 };
 
 class RoomMergeStrategy : public MessageStrategy<RoomMergeTarget, MapRoomVo> {
@@ -28,14 +28,14 @@ public:
     void handler() override;
 };
 
-class RoomRenameStrategy : public MessageStrategy<RoomNameTarget, string> {
+class RoomRenameStrategy : public MessageStrategy<RoomNameTarget, std::string> {
 public:
-    string handler(RoomNameTarget params) override;
+    std::string handler(RoomNameTarget params) override;
 };
 
-class AutoSegmentationStrategy : public MessageStrategy<string, MapRoomVo> {
+class AutoSegmentationStrategy : public MessageStrategy<std::string, MapRoomVo> {
 public:
-    MapRoomVo handler(string params) override;
+    MapRoomVo handler(std::string params) override;
 };
 
 #endif //APP_COMMUNICATION_SEGMENTATIONSTRATEGY_H

@@ -15,7 +15,7 @@
 
 AsyncTaskFramework::AsyncTaskFramework() {
     int err = AsyncTaskCall::make_thread(run, this);
-    LOG(INFO) << "AsyncTaskFramework : " << err;
+    LOG_IF(INFO, DEBUG_FIRING) << "AsyncTaskFramework : " << err;
 }
 
 void AsyncTaskFramework::execute() {
@@ -29,23 +29,23 @@ void AsyncTaskFramework::execute() {
         //如果满足条件表达式返回 true，则 wait 函数调用结束，走下面的代码流程。
         cv.wait(lock, [this] {
             return !manualEpollDeque.empty() || !specialEpollDeque.empty() || !errorEpollDeque.empty() ||
-                   !urgencyStopDeque.empty() || !taskEpollDeque.empty() || !pointEpollDeque.empty();
+                   !urgencyStopDeque.empty() || !taskEpollDeque.empty() || !blockEpollDeque.empty();
         });
 
         if (manualEpollDeque.size() + specialEpollDeque.size() + errorEpollDeque.size()
-            + urgencyStopDeque.size() + taskEpollDeque.size() + pointEpollDeque.size() != 1) {
+            + urgencyStopDeque.size() + taskEpollDeque.size() + blockEpollDeque.size() != 1) {
             LOG(WARNING) << "数据有误，请上传当前日志文件并联系开发者 "
                          << " manualEpollDeque " << manualEpollDeque.size()
                          << ", specialEpollDeque " << specialEpollDeque.size()
                          << ", errorEpollDeque " << errorEpollDeque.size()
                          << ", urgencyStopDeque " << urgencyStopDeque.size()
                          << ", taskEpollDeque " << taskEpollDeque.size()
-                         << ", pointEpollDeque " << pointEpollDeque.size();
+                         << ", pointEpollDeque " << blockEpollDeque.size();
         }
 
         loop::execute_handle handle = loop::execute_handle::handle_unknown;
         RealTask realTask;
-        RealPoint realPoint;
+        RealBlock realBlock;
         if (!manualEpollDeque.empty()) {
             handle = function_manual_epoll();
         } else if (!specialEpollDeque.empty()) {
@@ -58,9 +58,9 @@ void AsyncTaskFramework::execute() {
             realTask = taskEpollDeque.back();
             taskEpollDeque.clear();
             handle = loop::execute_handle::handle_task;
-        } else if (!pointEpollDeque.empty()) {
-            realPoint = pointEpollDeque.back();
-            pointEpollDeque.clear();
+        } else if (!blockEpollDeque.empty()) {
+            realBlock = blockEpollDeque.back();
+            blockEpollDeque.clear();
             handle = loop::execute_handle::handle_point;
         }
         lock.unlock();
@@ -76,7 +76,7 @@ void AsyncTaskFramework::execute() {
         } else if (handle == loop::execute_handle::handle_task) {
             handleTask(realTask);
         } else if (handle == loop::execute_handle::handle_point) {
-            handlePoint(realPoint);
+            handleBlock(realBlock);
         }
 
     }
@@ -140,6 +140,9 @@ loop::execute_handle AsyncTaskFramework::function_special_epoll() {
         case loop::special_epoll::special_dust_push_anomaly:
             epoll_special = loop::special_epoll::special_dust_push_anomaly;
             break;
+        case loop::special_epoll::special_wet_tow_anomaly:
+            epoll_special = loop::special_epoll::special_wet_tow_anomaly;
+            break;
         default:
             epoll_special = loop::special_epoll::special_unknown;
             break;
@@ -163,6 +166,9 @@ loop::execute_handle AsyncTaskFramework::function_error_epoll() {
             break;
         case loop::error_epoll::error_lift:
             epoll_error = loop::error_epoll::error_lift;
+            break;
+        case loop::error_epoll::error_electric_move:
+            epoll_error = loop::error_epoll::error_electric_move;
             break;
         case loop::error_epoll::error_unrecoverable:
             epoll_error = loop::error_epoll::error_unrecoverable;
@@ -215,24 +221,24 @@ void AsyncTaskFramework::setUrgencyStop(loop::urgency_stop urgency_stop) {
 }
 
 void AsyncTaskFramework::callOutBaseStation() {
-    LOG(INFO) << "AsyncTaskFramework : 获得新的任务了，准备请求出站啦 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备齐全，请求出站啦 ...";
     StationManager::instance().outStation();
 }
 
 void AsyncTaskFramework::callBackStation() {
-    LOG(INFO) << "AsyncTaskFramework : 任务结束，准备返回基站充电啦 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 任务结束，准备返回基站充电啦 ...";
     StationManager::instance().backStation();
 }
 
 void AsyncTaskFramework::callCancelBackStation() {
-    LOG(INFO) << "AsyncTaskFramework : 取消回充动作 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 取消回充动作 ...";
     StationManager::instance().cancelBackStation();
 }
 
-void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
-    LOG(INFO) << "AsyncTaskFramework : 出站成功，查看当前是否处于工作状态 ...";
+void AsyncTaskFramework::callSwitchWorkMode(const std::function<void(bool work)> f) {
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 新任务来了，查看当前是否处于工作状态 ...";
     if (!isWorkMode()) {
-        LOG(INFO) << "AsyncTaskFramework : 不是工作状态，准备启动工作状态 ...";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 不是工作状态，准备启动工作状态 ...";
 
         NodeWorkModeManager::instance().forceToWork();
 
@@ -245,11 +251,11 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
             if (!sleepTimeout) {
                 async::TimerCall::instance().baseLoop()->cancelAny();
             }
-            LOG(INFO) << "AsyncTaskFramework : 工作模式启动状态 "
-                      << " 是否是工作 ： " << NodeControl::instance().isWork()
-                      << " 是否是建图 ： " << NodeControl::instance().isMap()
-                      << " 是否是睡眠 ： " << NodeControl::instance().isSleep()
-                      << " ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 工作模式启动状态 "
+                                     << "  是否是工作 ： " << NodeControl::instance().isWork()
+                                     << "  是否是建图 ： " << NodeControl::instance().isMap()
+                                     << "  是否是睡眠 ： " << NodeControl::instance().isSleep()
+                                     << " ...";
             notify_one([this, &f]() {
                 f(isWorkMode());
             });
@@ -259,7 +265,7 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
                     sleepTimeout = true;
                 });
     } else {
-        LOG(INFO) << "AsyncTaskFramework : 是工作状态 ...";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 是工作状态 ...";
         notify_one([&f]() {
             f(true);
         });
@@ -267,39 +273,39 @@ void AsyncTaskFramework::callSwitchWorkMode(const function<void(bool work)> f) {
 }
 
 void AsyncTaskFramework::callOpenMechanism(const WorkStatus &status, bool knife, std::function<void()> f) {
-    LOG(INFO) << "AsyncTaskFramework : 准备打开相应的清洁机构 " << status << " ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备打开相应的清洁机构 " << status << " ...";
     MechanismManager::instance().controlWorkStatus(status, knife);
     auto fun = std::move(f);
     if (!Environment::instance().isRealEnvironment) {
-        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this, &fun]() {
-            LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
-            LOG(INFO) << "thread " << pthread_self();
+        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this, fun]() {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "thread " << pthread_self();
             notify_one(fun);
         });
     } else {
         async::TimerCall::instance().baseLoop()->scheduleLater(
-                std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this, &fun]() {
-                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
+                std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this, fun]() {
+                    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
                     notify_one(fun);
                 });
     }
 }
 
 void AsyncTaskFramework::callCloseMechanism(std::function<void()> f) {
-    LOG(INFO) << "AsyncTaskFramework : 准备关闭相应的清洁机构 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备关闭相应的清洁机构 ...";
     //这个函数里面关闭所有清洁机构
     MechanismManager::instance().resetWorkStatus();
     auto fun = std::move(f);
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::seconds(1), [this, &fun]() {
-                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
+                ->scheduleLater(std::chrono::seconds(1), [this, fun]() {
+                    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
                     notify_one(fun);
                 });
     } else {
         async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this, &fun]() {
-                    LOG(INFO) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
+                ->scheduleLater(std::chrono::seconds(CLOSING_TIME_OF_CLEANING_MECHANISM), [this, fun]() {
+                    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已关闭 ...";
                     notify_one(fun);
                 });
     }
@@ -322,6 +328,7 @@ bool AsyncTaskFramework::isManualMode() {
 bool AsyncTaskFramework::isUnrecoverableError() {
     return epoll_error == loop::error_epoll::error_unrecoverable ||
            epoll_error == loop::error_epoll::error_lift ||
+           epoll_error == loop::error_epoll::error_electric_move ||
            epoll_manual == loop::manual_epoll::manual_unknown ||
            epoll_special == loop::special_epoll::special_unknown ||
            epoll_error == loop::error_epoll::error_unknown;
@@ -343,7 +350,8 @@ bool AsyncTaskFramework::isSpecialDevice() {
            epoll_special == loop::special_epoll::special_branch_water ||
            epoll_special == loop::special_epoll::special_sewage_water ||
            epoll_special == loop::special_epoll::special_branch_sewage_water ||
-           epoll_special == loop::special_epoll::special_dust_push_anomaly;
+           epoll_special == loop::special_epoll::special_dust_push_anomaly ||
+           epoll_special == loop::special_epoll::special_wet_tow_anomaly;
 }
 
 bool AsyncTaskFramework::isCharging() {
@@ -351,12 +359,12 @@ bool AsyncTaskFramework::isCharging() {
 }
 
 void AsyncTaskFramework::callBackBasePoint() {
-//    LOG(INFO) << "AsyncTaskFramework : 准备返回摆渡点了 ...";
+//    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备返回摆渡点了 ...";
     PointPlanner::instance().backBasePoint();
 }
 
 void AsyncTaskFramework::callNeedPublishSleep() {
-    LOG(INFO) << "AsyncTaskFramework : 等待充电成功即可发布睡眠模式 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 等待充电成功即可发布睡眠模式 ...";
     ZooInnerStatus::instance().setNeedSleep(true);
 }
 
@@ -384,7 +392,7 @@ void AsyncTaskFramework::pushTask(const RealTask &data) {
     taskEpollDeque.push_back(data);
 }
 
-void AsyncTaskFramework::pushPoint(const RealPoint &data) {
-    pointEpollDeque.push_back(data);
+void AsyncTaskFramework::pushBlock(const RealBlock &data) {
+    blockEpollDeque.push_back(data);
 }
 

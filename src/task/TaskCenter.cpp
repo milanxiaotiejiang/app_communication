@@ -36,24 +36,21 @@
 #include "exploration/path_exploration_preview_task.h"
 #include "task/manager/MechanismManager.h"
 #include "leave/MaintenanceMode.h"
+#include "leave/auto_maintenance_mode.h"
+
+#include "leave/ParamManager.h"
+#include "db/task_data_base.h"
+#include "db/segmentation_data_base.h"
+#include "leave/sensor/sensor_center.h"
+#include "segmentation/GateComprehensive.h"
 
 std::string TaskCenter::preTask(const RealTask &task) {
-    LOG(INFO) << "preTask ------------------" << task.getRate();
     //拦截手动下发的任务且前期出站后期进站
-    if (task.isRenew()) {
-        const std::string &source = task.getSource();
-        TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
-        if (taskSource == TaskSource::App || taskSource == TaskSource::Pad) {
-            if (!asyncTaskCall->canIssuedTask(task)) {
-                throw app::exception(make_error_code(error::the_current_task_is_not_completed));
-            }
-        }
-    } else {
-        const std::string &launchPeople = task.getLaunchPeople();
-        if (launchPeople == "App" || launchPeople == "Pad") {
-            if (!asyncTaskCall->canIssuedTask(task)) {
-                throw app::exception(make_error_code(error::the_current_task_is_not_completed));
-            }
+    const std::string &source = task.getOnSource();
+    TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
+    if (taskSource == TaskSource::App || taskSource == TaskSource::Pad || taskSource == TaskSource::Cloud) {
+        if (!asyncTaskCall->canIssuedTask(task)) {
+            throw app::exception(make_error_code(error::the_current_task_is_not_completed));
         }
     }
 
@@ -64,13 +61,13 @@ std::string TaskCenter::preTask(const RealTask &task) {
     } catch (app::exception const &e) {
         //如果错误，会走到此处，历史更新错误信息
         clean_history_db::CleanHistoryCenter::instance().launchFailed(task, e);
-        const error_code &code = e.code();
+        const std::error_code &code = e.code();
         throw e;
     }
 }
 
 std::string TaskCenter::proTask(const RealTask &task) {
-    LOG(INFO) << "TASK ID : " << task.getId();
+    LOG_IF(INFO, DEBUG_TASK) << "TASK ID : " << task.getId();
     if (AsyncMachine::instance().getError() == loop::error_epoll::error_unrecoverable) {
         throw app::exception(make_error_code(error::operation_failure_please_restart_the_machine));
     }
@@ -104,6 +101,19 @@ std::string TaskCenter::proTask(const RealTask &task) {
         throw app::exception(make_error_code(error::dispatcher_task_low_rsoc));
     }
 
+    if (AutoMaintenanceModeManager::instance().isMaintenanceMode()) {
+        throw app::exception(
+                make_error_code(error::during_the_automatic_maintenance_period_the_task_cannot_be_started));
+    }
+    if (SensorCenter::instance().isSensorSelfMode()) {
+        throw app::exception(
+                make_error_code(error::during_self_check_the_task_cannot_be_started));
+    }
+    if (GateSettingCenter::instance().isGateSettingMode()) {
+        throw app::exception(
+                make_error_code(error::in_the_setting_of_gate_the_task_cannot_be_started));
+    }
+
     //没有传感器数据的情况下，不能够分发任务
     //todo /imu /scan /odom without any data reject
     //todo /knob
@@ -112,20 +122,18 @@ std::string TaskCenter::proTask(const RealTask &task) {
         throw app::exception(make_error_code(error::the_current_task_is_not_completed));
     }
 
-    if (task.isRenew()) {
-        //如果任务是湿拖任务，清水箱已空或者污水箱已满，不能分发任务
-        if (task.getWorkStatus().getMopStatus() == 1) {
-            if (ZooInnerStatus::instance().getCleanWaterLevel() == 0) {
-                throw app::exception(make_error_code(error::clean_water_level_check_failed));
-            }
-            if (ZooInnerStatus::instance().getDirtyWaterLevel() == 100) {
-                throw app::exception(make_error_code(error::dirty_water_level_check_failed));
-            }
+    //如果任务是湿拖任务，清水箱已空或者污水箱已满，不能分发任务
+    if (task.getWorkStatus().getMopStatus() == 1) {
+        if (ZooInnerStatus::instance().getCleanWaterLevel() == 0) {
+            throw app::exception(make_error_code(error::clean_water_level_check_failed));
         }
-        if (task.getWorkStatus().getVacuumStatus() == 1) {
-            if (ZooInnerStatus::instance().getDirtyWaterLevel() == 100) {
-                throw app::exception(make_error_code(error::dirty_water_level_check_failed));
-            }
+        if (ZooInnerStatus::instance().getDirtyWaterLevel() == 100) {
+            throw app::exception(make_error_code(error::dirty_water_level_check_failed));
+        }
+    }
+    if (task.getWorkStatus().getVacuumStatus() == 1) {
+        if (ZooInnerStatus::instance().getDirtyWaterLevel() == 100) {
+            throw app::exception(make_error_code(error::dirty_water_level_check_failed));
         }
     }
 
@@ -139,7 +147,7 @@ std::string TaskCenter::realTask(RealTask task) {
 
 void TaskCenter::initialize(ros::NodeHandle handle) {
 
-    asyncTaskCall = new ReservedCall();
+    asyncTaskCall = std::make_shared<ReservedCall>();
 
     PointProgressPublish::instance().initialize(handle);
 
@@ -185,14 +193,12 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
 
     if (!Environment::instance().isRealEnvironment) {
         std::thread moveBaseThread([]() {
-            sleep(10);
+            sleep(5);
             NodeControl::instance().emulate();
             int last_machine_code = 10006;
+            long ii = 0;
             while (1) {
                 sleep(1);
-//                LOG(ERROR) << "isSleep : " << NodeControl::instance().isSleep()
-//                           << " isWork : " << NodeControl::instance().isWork()
-//                           << " isMap : " << NodeControl::instance().isMap();
                 NativeSystemManager::instance().urgencyStop(ZooInnerStatus::instance().getUrgencyStopStatus());
                 long current_execute_time = clean_history_db::CleanHistoryCenter::instance().getCurrentCleanTime();
                 WorkStatus workStatus(0, 0, 0, 0, 0, 0);
@@ -211,6 +217,12 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
                                              ZooInnerStatus::instance().getAromStatus());
                 VersionSubscribe<ShowWorkStatus> statusResponse(1, status);
                 PublishOutManager::instance().publishStatus(statusResponse);
+
+                if (ZooInnerStatus::instance().getNeedSleep() && ZooInnerStatus::instance().getIsCharging()) {
+                    SwitchModePublish::instance().publish();
+                    ZooInnerStatus::instance().setNeedSleep(false);
+                }
+
             }
         });
         moveBaseThread.detach();
@@ -223,22 +235,25 @@ void TaskCenter::initialize(ros::NodeHandle handle) {
 }
 
 void TaskCenter::uninstall() {
-    delete asyncTaskCall;
-    asyncTaskCall = nullptr;
     delete zooRobotStatusSubscribe;
     delete flagOutSubscribe;
     delete flagInSubscribe;
     delete carpetDetectSubscribe;
 }
 
-void TaskCenter::executeTask(const Task &task) {
-    RealTask realTask;
-    TaskExploration::task2RealTask(task, realTask);
-    preTask(realTask);
-}
-
 std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int on_rate) {
-    auto task = TaskDataBase::instance().loadTaskFoId(taskId);
+    long perform_task_id = taskId;
+    //雨雪天模式
+    if (ParamManager::instance().getRainSnow()) {
+        MapPo map = SegmentationDataBase::instance().getDbMap();
+        const TaskVo &rainSnowTask = TaskDataBase::instance().loadRainSnowTask(map.id);
+        if (rainSnowTask.getId() == -1) {
+            throw app::exception(make_error_code(error::the_rain_snow_task_is_not_set));
+        }
+        perform_task_id = rainSnowTask.getId();
+    }
+
+    auto task = TaskDataBase::instance().loadTaskFoId(perform_task_id);
     RealTask realTask;
     realTask.setRate(task.getRate() * on_rate);
     realTask.setOnSource(SqliteDataBase::SourceToString(on_source));

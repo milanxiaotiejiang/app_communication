@@ -5,8 +5,7 @@
 #ifndef APP_COMMUNICATION_TASKCENTER_H
 #define APP_COMMUNICATION_TASKCENTER_H
 
-#include "glog/logging.h"
-#include "model/Task.h"
+#include "simulation.h"
 #include "model/task.h"
 #include "task/RealTask.h"
 #include "task/subscribe/ZooRobotStatusSubscribe.h"
@@ -24,9 +23,19 @@ const int LOW_RSOC = 10;
  */
 class TaskCenter {
 private:
+    TaskCenter() = default;
+
+    TaskCenter(TaskCenter &) = delete;
+
+    TaskCenter &operator=(const TaskCenter &) = delete;
+
+public:
+    ~TaskCenter() = default;
+
+private:
     ros::NodeHandle nodeHandle;
 
-    ReservedCall *asyncTaskCall = nullptr;
+    std::shared_ptr<ReservedCall> asyncTaskCall;
 
     ZooRobotStatusSubscribe *zooRobotStatusSubscribe;
     FlagOutSubscribe *flagOutSubscribe;
@@ -49,8 +58,6 @@ public:
     void initialize(ros::NodeHandle handle);
 
     void uninstall();
-
-    void executeTask(const Task &task);
 
     std::string performTask(const long taskId, TaskSource on_source, int on_rate);
 

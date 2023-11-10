@@ -1,7 +1,9 @@
 #include "rec_app.h"
 #include "simulation.h"
-#include "manager/UpgradeManager.h"
 
+/**
+ * pull requests
+ */
 /**
  * https://github.com/fnc12/sqlite_orm
  * https://github.com/cginternals/cppfs
@@ -22,14 +24,8 @@ int Factorial(int number) {
 //}
 
 Variable *Variable::m_instance_ptr = nullptr;
-TeachModePoint *TeachModePoint::m_instance_ptr = nullptr;
-ViewPartManager *ViewPartManager::m_instance_ptr = nullptr;
-CombinationManager *CombinationManager::m_instance_ptr = nullptr;
-FullCleanManager *FullCleanManager::m_instance_ptr = nullptr;
 
 internal_event::InternalEventPubManager *internal_event::InternalEventPubManager::instance_ = nullptr;
-
-ScheduleThread *sThd = nullptr;
 
 int main(int argc, char **argv) {
 
@@ -42,7 +38,7 @@ int main(int argc, char **argv) {
 
     //初始化ros节点
     ros::init(argc, argv, "rec_app_node");
-    LOG(INFO) << sys_gettid() << " start to listening!";
+    LOG_IF(INFO, DEBUG_FIRING) << "启动 rec_app_node " << sys_gettid() << " start to listening ! ";
 
     //新清洁历史
     clean_history_db::CleanHistoryCenter::instance().initialize();
@@ -52,6 +48,10 @@ int main(int argc, char **argv) {
     UdpManager::instance().start();
 
     ros::NodeHandle handle;
+
+    initNodeParams(handle);
+
+    AsyncMachine::instance().initialize(handle);
     PublishInnerManager::instance().initialize(handle);
     PublishOutManager::instance().initialize(handle);
 
@@ -62,8 +62,14 @@ int main(int argc, char **argv) {
         LOG(ERROR) << "data DB Map load fail !";
         return 0;
     }
+    ros::Time::init();
 
-    SegmentationCenter::instance().initialize(handle);
+    SensorCenter::instance().initialize(handle);
+    AutoMaintenanceModeManager::instance().run();
+    if (!SegmentationCenter::instance().initialize(handle)) {
+        LOG(ERROR) << "data Map File load fail !";
+        return 0;
+    }
     ExplorationCenter::instance().initialize(handle);
 //    AlignmentCenter::instance().initialize(handle);
     TaskCenter::instance().initialize(handle);
@@ -80,22 +86,12 @@ int main(int argc, char **argv) {
     SelfCheckSubscribe selfCheckSubscribe(handle);
     MoveBaseRecoveryFailureSubscribe moveBaseRecoveryFailureSubscribe(handle);
 
-    ros::NodeHandle nh;
-    initNodeParams(nh);
-
     WsServerManager::instance().startWebSocket();
     AiServerManager::instance().startWebSocket();
 
-
-    UpgradeManager::instance().upgradeTask();
-    UpgradeManager::instance().upgradeTimer();
-    UpgradeManager::instance().deleteExcessive();
-
     ScheduleManagerSingleton::instance().start(handle);
 
-    sThd = new ScheduleThread(handle);
-    sThd->start();
-    sThd->detach();
+    ManualManager::instance().restore();
 
     ros::MultiThreadedSpinner spinner;
     spinner.spin();
@@ -113,7 +109,7 @@ std::string getenv_rec(const std::string &name) {
     if (pAdmin != nullptr) {
         closedir(pAdmin);
     }
-    return isRealEnvironment ? "/home/admin1" : "/home/lijiang";
+    return isRealEnvironment ? "/home/admin1" : "/home/io";
 }
 
 void judgeEnvironment() {
@@ -152,15 +148,15 @@ void initLog(char *const *argv) {
     time_t timestamp_ = std::time(0);
     struct ::tm tm_time;
     localtime_r(&timestamp_, &tm_time);
-    ostringstream time_pid_stream;
+    std::ostringstream time_pid_stream;
     time_pid_stream.fill('0');
     time_pid_stream << 1900 + tm_time.tm_year
-                    << setw(2) << 1 + tm_time.tm_mon
-                    << setw(2) << tm_time.tm_mday
+                    << std::setw(2) << 1 + tm_time.tm_mon
+                    << std::setw(2) << tm_time.tm_mday
                     << '-'
-                    << setw(2) << tm_time.tm_hour
-                    << setw(2) << tm_time.tm_min
-                    << setw(2) << tm_time.tm_sec
+                    << std::setw(2) << tm_time.tm_hour
+                    << std::setw(2) << tm_time.tm_min
+                    << std::setw(2) << tm_time.tm_sec
                     << '.'
                     << getpid();
     const string &time_pid_string = time_pid_stream.str();
@@ -177,7 +173,7 @@ void initLog(char *const *argv) {
     //    LOG(WARNING) << "This is my first glog WARNING";
     //    LOG(ERROR) << "This is my first glog ERROR 1";
 
-    LOG(INFO) << "glog file is " << glog_info_time_pid_string;
+    LOG_IF(INFO, DEBUG_FIRING) << "glog file is " << glog_info_time_pid_string;
 }
 
 /**
@@ -193,6 +189,8 @@ void initLog(char *const *argv) {
 //    minidump_stackwalk b0b3ee65-051a-414a-84065a83-9c8461c2.dmp symbols > b0b3ee65-051a-414a-84065a83-9c8461c2.txt
  */
 static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, void *context, bool succeeded) {
+    std::system("rosparam set /rec_app_node_crash true");
+
     std::string crash_file_path = descriptor.path();
     unsigned long start = crash_file_path.find("app_dump/") + 9;
     auto crash_file = crash_file_path.substr(start);
@@ -252,7 +250,7 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
             if ((pid = fork()) < 0) {
                 LOG(ERROR) << "fork error";
             } else if (pid == 0) {
-                LOG(INFO) << "fork success, this is son process" << " " << getpid();
+                LOG_IF(INFO, DEBUG_DUMP) << "fork success, this is son process" << " " << getpid();
 
                 if (execl(dump_upload_executable_file.data(),
                           dump_upload_executable_file.data(),
@@ -261,11 +259,11 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
                           glog_info_time_pid_string.c_str(),
                           (char *) 0)
                         ) {
-                    LOG(INFO) << "execle error";
+                    LOG_IF(INFO, DEBUG_DUMP) << "execle error";
                 }
             }
 
-            LOG(INFO) << "son process" << " " << pid;
+            LOG_IF(INFO, DEBUG_DUMP) << "son process" << " " << pid;
 
             if (waitpid(pid, nullptr, 0) != pid) {
                 LOG(ERROR) << "wait error";
@@ -283,7 +281,7 @@ static bool filterCallback(void *context) {
 void initDump() {
     std::string dumpDirStr = string(getenv_rec("HOME")) + "/app_dump";
 
-    LOG(INFO) << "dumpDirStr  " << dumpDirStr;
+    LOG_IF(INFO, DEBUG_FIRING) << "dumpDirStr " << dumpDirStr;
     mkdir(dumpDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
     google_breakpad::MinidumpDescriptor descriptor(dumpDirStr);
     exceptionHandler = new google_breakpad::ExceptionHandler(descriptor,//minidump文件写入的目录
@@ -331,8 +329,52 @@ void initNodeParams(const ros::NodeHandle &nh) {
     bool direct_start_move_base;
     nh.param<bool>("direct_start_move_base", direct_start_move_base, false); //direct_start_move_base
     Environment::instance().direct_start_move_base = direct_start_move_base;
+    int explorer_mode;
+    nh.param<int>("explorer_mode", explorer_mode, 2);
+    Environment::instance().explorer_mode = explorer_mode;
+    int dry_accumulation;
+    nh.param<int>("dry_accumulation", dry_accumulation, 0);
+    Environment::instance().dry_accumulation = dry_accumulation;
+    int complex_path_num_splits;
+    nh.param<int>("complex_path_num_splits", complex_path_num_splits, 1000);
+    Environment::instance().complex_path_num_splits = complex_path_num_splits;
+    bool rectangular_ambulatory_plane;
+    nh.param<bool>("rectangular_ambulatory_plane", rectangular_ambulatory_plane, true);
+    Environment::instance().rectangular_ambulatory_plane = rectangular_ambulatory_plane;
+    bool gzip_map;
+    nh.param<bool>("gzip_map", gzip_map, false);
+    Environment::instance().gzip_map = gzip_map;
 
     LOG(INFO) << "core version : " << ros_version;
+
+    bool crash = false;
+    ros::param::get("/rec_app_node_crash", crash);
+    Environment::instance().rec_app_node_crash = crash;
+    nh.setParam("/rec_app_node_crash", false);
+
+    std::string nebula_base_url;
+    nh.param<std::string>("nebula_base_url", nebula_base_url, "http://192.168.2.53:8080/nebula");
+    Environment::instance().nebula_base_url = nebula_base_url;
+
+    std::string nebula_account;
+    nh.param<std::string>("nebula_account", nebula_account, "robot");
+    Environment::instance().nebula_account = nebula_account;
+
+    std::string nebula_secret;
+    nh.param<std::string>("nebula_secret", nebula_secret, "robot1");
+    Environment::instance().nebula_secret = nebula_secret;
+
+    std::string path;
+    path.append("/opt/robot/robot_hw_info.yaml");
+    if (sh::File::exists(path)) {
+        YAML::Node config = YAML::LoadFile(path);
+        YAML::Node deviceSecretNode = config["device_secret"];
+        YAML::Node deviceNameNode = config["device_name"];
+        if (!deviceNameNode.IsNull()) {
+            std::string deviceName = deviceNameNode.as<std::string>();
+            Environment::instance().device_name = deviceName;
+        }
+    }
 }
 
 void release() {

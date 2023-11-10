@@ -5,56 +5,56 @@
 #ifndef APP_COMMUNICATION_POINT_GENERATOR_H
 #define APP_COMMUNICATION_POINT_GENERATOR_H
 
+#include <geometry_msgs/PoseStamped.h>
 #include "vector"
 #include "RealTask.h"
-#include "RealPoint.h"
+#include "task/RealBlock.h"
+#include "task/RealPoint.h"
 #include "model/RoomVo.h"
-#include "model/ViewPart.h"
-#include "task/model/CombinationPoseVo.h"
+#include "model/Point.h"
+
+struct PoseStamped {
+    geometry_msgs::PoseStamped poseStamped;
+    CmcMode cmcMode{CmcMode::Omission};
+};
 
 /**
  * 点位生成节点，包含矩形、全覆盖、分区全覆盖等
  */
 class PointGenerator {
 protected:
-    static RealPoint buildPoint(int id, const RealTask &task);
+    static RealBlock buildBlock(int id, const RealTask &task);
 
-    static void pose2RealPoint(RealTask &realTask, std::vector<PoseVo> poseList,
-                               std::vector<RealPoint> &realPointList);
+    static std::vector<PoseMo> recalculateAngle(const cv::Point2d &point2D, const std::vector<PoseMo> &poseList);
 
-    static void combinationPose2RealPoint(RealTask realTask, std::vector<CombinationPoseVo> poseList,
-                                          std::vector<RealPoint> &realPointList);
+    static std::vector<PoseStamped> convertToGeometry(const std::vector<PoseMo> &complex);
+
+    static void addSinglePoint(std::vector<RealBlock> &blockList,
+                               const RealTask &realTask,
+                               const RealPoint &singlePoint);
+
+    static void complexPathToRealBlock(RealTask &realTask,
+                                       const std::vector<std::vector<PoseMo>> &complexList,
+                                       std::vector<RealBlock> &blockList);
 
 public:
-    virtual std::vector<RealPoint> taskGeneratePointList(RealTask &task) = 0;
-};
+    virtual std::vector<RealBlock> taskGeneratePointList(RealTask &task) = 0;
 
-class CoveragePointGenerator : public PointGenerator {
-protected:
-    std::vector<RealPoint> taskGeneratePointList(RealTask &task) override;
-};
+    static bool generateRecPointListForViewPart(std::vector<Point> zoned,
+                                                std::vector<PoseVo> &pointList);
 
-class RectanglePointGenerator : public PointGenerator {
-protected:
-    std::vector<RealPoint> taskGeneratePointList(RealTask &task) override;
-};
+    static bool generateBowPointListForViewPart(std::vector<Point> zoned, std::vector<PoseVo> &pointList);
 
-class CombinationPointGenerator : public PointGenerator {
-private:
-    bool generateRecPointListForViewPart(std::vector<Point> zoned, std::vector<CombinationPoseVo> &pointList);
+    static void
+    generateChildPointFlow(const std::vector<PoseVo> &points, std::vector<PoseVo> &cpList, float resolution_);
 
-protected:
-    std::vector<RealPoint> taskGeneratePointList(RealTask &task) override;
-};
-
-class FullPointGenerator : public PointGenerator {
-protected:
-    std::vector<RealPoint> taskGeneratePointList(RealTask &task) override;
 };
 
 class ExplorationGenerator : public PointGenerator {
 public:
-    std::vector<RealPoint> taskGeneratePointList(RealTask &task) override;
+    std::vector<RealBlock> taskGeneratePointList(RealTask &task) override;
+
+    bool cleanMechanismControlMode(const ZoneVo &currentZone, const ZoneVo &nextZone, int rows, int cols);
 };
 
 #endif //APP_COMMUNICATION_POINT_GENERATOR_H

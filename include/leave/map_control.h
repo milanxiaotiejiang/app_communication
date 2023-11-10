@@ -10,6 +10,16 @@
 
 class MapControl {
 private:
+    MapControl() = default;
+
+    MapControl(MapControl &) = delete;
+
+    MapControl &operator=(const MapControl &) = delete;
+
+public:
+    ~MapControl() = default;
+
+private:
     ros::ServiceClient change_map_service_client;
 public:
     static auto &instance() {
@@ -21,11 +31,13 @@ public:
 
     bool loadInformation(const std::string &map_id);
 
+    bool removeInformation(const std::string &map_id);
+
     bool checkMapInformation(const std::string &map_id);
 
     bool backupAndRetrieve(const std::string &map_id);
 
-    bool backupProhibition(const std::string &map_id, bool retrieve);
+    bool backupProhibition(const std::string &map_id, bool complete, bool reset);
 
     bool backupMap(const std::string &map_id, bool retrieve);
 

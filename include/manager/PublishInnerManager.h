@@ -14,8 +14,19 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int8.h>
+#include <ai_msgs/MultiRectangles.h>
 
 class PublishInnerManager {
+private:
+    PublishInnerManager() = default;
+
+    PublishInnerManager(PublishInnerManager &) = delete;
+
+    PublishInnerManager &operator=(const PublishInnerManager &) = delete;
+
+public:
+    ~PublishInnerManager() = default;
+
 private:
     ros::Publisher//
     pub_push_mode_, //尘推
@@ -33,14 +44,18 @@ private:
     pub_ds_version,     //下位机版本
     pub_reset_prohibition,//禁行区
     pub_knob_available,  //
-    pub_knob_task,//
+    pub_manual_push,//
     pub_shutdown,//
     pub_reboot,//
     pub_oil,//
     pub_knife,//
     acceptAppSchedule,//
     pub_collect_dust,//
-    pub_maintenance_mode;
+    pub_maintenance_mode,//
+    pub_detection,//
+    pub_open_gate,//
+    pub_hardware_reset;
+
 public:
     static auto &instance() {
         static PublishInnerManager obj;
@@ -79,13 +94,13 @@ public:
 
     void publishKnobAvailable(const std_msgs::Bool &message) const;
 
-    void publishKnobTask(const std_msgs::Int32 &message) const;
+    void publishManualPush(const std_msgs::Int32 &message) const;
 
     void publishShutDown(const std_msgs::Int32 &message) const;
 
     void publishReboot(const std_msgs::Int32 &message) const;
 
-    void publishOil(const std_msgs::Int32 &message) const;
+    void publishOil() const;
 
     void pubKnife(const std_msgs::Int32 &message) const;
 
@@ -94,6 +109,12 @@ public:
     void publishCollectDust() const;
 
     void publishMaintenanceMode(const std_msgs::Int32 &message) const;
+
+    void pubDetection(const ai_msgs::MultiRectangles &message);
+
+    void pubOpenGate();
+
+    void pubHardwareReset();
 };
 
 #endif //APP_COMMUNICATION_PUBLISHINNERMANAGER_H

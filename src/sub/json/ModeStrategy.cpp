@@ -1,10 +1,15 @@
+//
+// Created by lijiang on 2021/12/18.
+//
+
 #include "sub/json/ModeStrategy.h"
 #include "task/subscribe/async_machine.h"
 #include "task/manager/manual.h"
 #include "task/manager/NodeWorkModeManager.h"
 #include "future/node/node_control.h"
+#include "leave/sensor/sensor_center.h"
 
-string RobotTryEnterModeStrategy::handler(int params) {
+std::string RobotTryEnterModeStrategy::handler(int params) {
     if (ManualManager::instance().taskRunning()) {
         throw app::exception(make_error_code(error::current_in_task));
     } else {
@@ -15,23 +20,36 @@ string RobotTryEnterModeStrategy::handler(int params) {
     }
 }
 
-string RobotForceEnterModeStrategy::handler(int params) {
-    ManualManager::instance().backToBase(true);
-    NodeWorkModeManager::instance().forceEnterWorkMode(params);
+std::string RobotForceEnterModeStrategy::handler(int params) {
+//    ManualManager::instance().backToBase(true);
+//    NodeWorkModeManager::instance().forceEnterWorkMode(params);
     return "";
 }
 
-string RobotPreparetoWorkStrategy::handler(string params) {
-    if (NodeControl::instance().isWork()) {
-        return "";
-    }
-    if (!NodeWorkModeManager::instance().tryToWork()) {
-        throw app::exception(make_error_code(error::mode_switching_is_not_supported));
-    }
+std::string RobotPreparetoWorkStrategy::handler(std::string params) {
+//    if (NodeControl::instance().isWork()) {
+//        return "";
+//    }
+//    if (!NodeWorkModeManager::instance().tryToWork()) {
+//        throw app::exception(make_error_code(error::mode_switching_is_not_supported));
+//    }
+
+    NodeWorkModeManager::instance().toSleep();
+
     return "";
 }
 
-string MapPreparetoWorkStrategy::handler(string params) {
+std::string MapPreparetoWorkStrategy::handler(std::string params) {
     PublishOutManager::instance().publishMap(Variable::get_instance()->getMapApp());
+    return "";
+}
+
+std::string OpenSelfCheckStrategy::handler(std::string params) {
+    SensorCenter::instance().startInspect();
+    return "";
+}
+
+std::string CloseSelfCheckStrategy::handler(std::string params) {
+    SensorCenter::instance().stopInspect();
     return "";
 }

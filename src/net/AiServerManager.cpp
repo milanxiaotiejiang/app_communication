@@ -12,7 +12,7 @@
 
 #include "net/kill_port.h"
 
-#include "glog/logging.h"
+#include "simulation.h"
 
 #include "future/CThread.h"
 
@@ -20,22 +20,75 @@
 #include "vector"
 
 #include <boost/bind.hpp>
+#include <utility>
+
+#include "manager/PublishInnerManager.h"
+#include "ai_msgs/MultiRectangles.h"
+#include "ai_msgs/Rectangle.h"
 
 using json = nlohmann::json;
 
 typedef websocketpp::server<websocketpp::config::asio> server;
 
+//{"num_results":1,"results":[{"conf":0.73,"obj_id":1,"x_max":415,"x_min":359,"y_max":322,"y_min":268}]}
+
+struct AiResult {
+    float conf;
+    int obj_id;
+    int x_max;
+    int x_min;
+    int y_max;
+    int y_min;
+
+    friend void to_json(json &j, const AiResult &b) {
+        j = json{
+                {"conf",   b.conf},
+                {"obj_id", b.obj_id},
+                {"x_max",  b.x_max},
+                {"x_min",  b.x_min},
+                {"y_max",  b.y_max},
+                {"y_min",  b.y_min},
+        };
+    }
+
+    friend void from_json(const json &j, AiResult &b) {
+        j.at("conf").get_to(b.conf);
+        j.at("obj_id").get_to(b.obj_id);
+        j.at("x_max").get_to(b.x_max);
+        j.at("x_min").get_to(b.x_min);
+        j.at("y_max").get_to(b.y_max);
+        j.at("y_min").get_to(b.y_min);
+    }
+};
+
+struct AiData {
+    int num_results;
+    std::vector<AiResult> results;
+
+    friend void to_json(json &j, const AiData &b) {
+        j = json{
+                {"num_results", b.num_results},
+                {"results",     b.results},
+        };
+    }
+
+    friend void from_json(const json &j, AiData &b) {
+        j.at("num_results").get_to(b.num_results);
+        j.at("results").get_to(b.results);
+    }
+};
+
 
 void ai_fail(server *s, websocketpp::connection_hdl hdl) {
-    server::connection_ptr con = s->get_con_from_hdl(hdl);
+    server::connection_ptr con = s->get_con_from_hdl(std::move(hdl));
     LOG(WARNING) << "Fail handler: " << con->get_ec() << " " << con->get_ec().message();
 }
 
-void ai_close(websocketpp::connection_hdl hdl) {
+void ai_close(const websocketpp::connection_hdl& hdl) {
     LOG(WARNING) << "Close handler";
 }
 
-void ai_open(server *s, websocketpp::connection_hdl hdl) {
+void ai_open(server *s, const websocketpp::connection_hdl& hdl) {
     LOG(WARNING) << "Open handler" << std::endl;
 
 }
@@ -46,7 +99,24 @@ void ai_message(server *s, const websocketpp::connection_hdl &hdl, const server:
               << " and message: " << msg->get_payload()
               << " and " << msg->get_opcode()
               << std::endl;
+    try {
+        json jDecode = json::parse(msg->get_payload());
+        AiData aiData = jDecode.get<AiData>();
 
+        ai_msgs::MultiRectangles detect_results;
+        for (int i = 0; i < aiData.num_results; i++) {
+            AiResult aiResult = aiData.results[i];
+            ai_msgs::Rectangle rect;
+            rect.x = aiResult.x_min;
+            rect.y = aiResult.y_min;
+            rect.width = aiResult.x_max - aiResult.x_min;
+            rect.height = aiResult.y_max - aiResult.y_min;
+            detect_results.rectangles.push_back(rect);
+        }
+        PublishInnerManager::instance().pubDetection(detect_results);
+    } catch (const std::exception &e) {
+        std::cout << "Error parsing JSON message: " << e.what() << std::endl;
+    }
 }
 
 class AiServerThread : public CThread {
@@ -92,6 +162,7 @@ public:
         } catch (...) {
             LOG(ERROR) << "other start exception";
         }
+        return nullptr;
     }
 
     void stopThread() {
@@ -104,7 +175,7 @@ AiServerThread *aiServerThread;
 void AiServerManager::startWebSocket() {
     std::string pid = get_pid_using_port(9095);
     if (!pid.empty()) {
-        LOG(INFO) << "进程 pid 为 " << pid << " 占用 9095 端口 ！！";
+        LOG_IF(INFO, DEBUG_FIRING) << "进程 pid 为 " << pid << " 占用 9095 端口 ！！";
         kill_process(pid);
     }
 

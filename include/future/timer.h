@@ -84,7 +84,7 @@ namespace async {
 
             void cancelAny();
 
-            DurationMs nearestTimer() const;
+            DurationMs nearestTimer();
 
             /**
              * 在指定的时间点，执行任务一次

@@ -18,12 +18,14 @@ void ManualManager::pause() {
     asyncTaskCall->manualPause();
 }
 
-void ManualManager::enter_manul_mode() {
+void ManualManager::enter_manual_mode() {
     asyncTaskCall->enterManual();
 }
 
-void ManualManager::quit_manual_mode() {
-    asyncTaskCall->quitManual();
+ManualModel ManualManager::quit_manual_mode() {
+    auto result = asyncTaskCall->quitManual();
+    LOG(INFO) << result;
+    return result;
 }
 
 void ManualManager::shutdown() {
@@ -54,6 +56,10 @@ std::vector<RealTask> ManualManager::runTaskList() {
     return asyncTaskCall->runTaskList();
 }
 
-std::vector<RealPoint> ManualManager::runTaskPoint() {
-    return asyncTaskCall->runTaskPoint();
+std::vector<PointProgressVo> ManualManager::runTaskPointList() {
+    return asyncTaskCall->runTaskPointList();
+}
+
+void ManualManager::restore() {
+    asyncTaskCall->restore();
 }

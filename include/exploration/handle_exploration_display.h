@@ -11,6 +11,10 @@
 #include <geometry_msgs/Pose2D.h>
 
 void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origin,
+                                const std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path,
+                                float resize, const std::string &winname);
+
+void planning_pose_path_display(const cv::Mat &map, const cv::Point2d &map_origin,
                                 std::vector<geometry_msgs::Pose2D> exploration_path,
                                 float resize, const std::string &winname);
 
@@ -31,5 +35,7 @@ void save_planning_point_segmentation_path(const cv::Mat &map, cv::Mat segmented
                                            std::vector<cv::Point> polygon_centers,
                                            std::map<int, std::vector<cv::Point>> each_map,
                                            std::map<int, std::vector<std::vector<cv::Point>>> each_contours_map);
+
+void save_dynamic_map(const std::string& save_name);
 
 #endif //APP_COMMUNICATION_HANDLE_EXPLORATION_DISPLAY_H

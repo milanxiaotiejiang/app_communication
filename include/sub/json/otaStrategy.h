@@ -7,13 +7,11 @@
 
 #include "MessageStrategy.h"
 #include "tool/write_file.hpp"
-#include "model/Notice.h"
-#include "manager/NoticeManager.h"
 #include "model/OtaInfo.h"
 
-class otaStrategy : public MessageStrategy<OtaInfo, string> {
+class otaStrategy : public MessageStrategy<OtaInfo, std::string> {
 public:
-    string handler(OtaInfo params) override;
+    std::string handler(OtaInfo params) override;
 
     int handleCore(OtaInfo &params);
 

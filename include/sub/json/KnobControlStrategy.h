@@ -10,17 +10,15 @@
 #include "std_msgs/Bool.h"
 
 using json = nlohmann::json;
-using namespace std;
 
-
-class KnobControlStrategy : public MessageStrategy<bool, string> {
+class KnobControlStrategy : public MessageStrategy<bool, std::string> {
 public:
-    string handler(bool method) override;
+    std::string handler(bool method) override;
 };
 
-class CollectDustStrategy : public MessageStrategy<string, string> {
+class CollectDustStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string method) override;
+    std::string handler(std::string method) override;
 };
 
 

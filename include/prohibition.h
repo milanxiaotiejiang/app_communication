@@ -15,13 +15,8 @@
 #include<geometry_msgs/Pose.h>
 #include<std_msgs/String.h>
 
-using namespace std;
-
 int set_prohibition(float *, int);
 
-int reset_prohibition(void);
+int reset_prohibition(std::string prohibition_path);
 
-bool get_prohibition(vector<vector<float>> &prohibition_position);
-
-
-bool write_into_file(char const *fileName, char const *content);
+bool get_prohibition(std::vector<std::vector<float>> &prohibition_position);

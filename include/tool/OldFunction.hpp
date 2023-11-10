@@ -35,8 +35,6 @@
 #include "stdlib.h"
 #include "sstream"
 
-using namespace std;
-
 static int hex2int(char c) {
     if ((c >= 'A') && (c <= 'Z')) {
         return c - 'A' + 10;

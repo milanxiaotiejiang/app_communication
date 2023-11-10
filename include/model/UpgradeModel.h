@@ -7,89 +7,6 @@
 
 #include <nlohmann/json.hpp>
 #include "model/Point.h"
-#include "CleanContinuity.h"
-#include "CleanPolygon.h"
-#include "TeachModePoint.h"
-#include "FullPath.h"
-#include "Task.h"
-
-using namespace std;
-
-using json = nlohmann::json;
-
-class CombinationBriefUpgrade {
-private:
-    std::string combination_id;
-    std::string name;
-    int rate;
-    std::vector<string> part_id_list;
-    int combination_type; //0--combination;1--full clean
-
-public:
-    CombinationBriefUpgrade();
-
-    CombinationBriefUpgrade(const string &combinationId, const string &name, int rate,
-                            const vector<string> &partIdList);
-
-    const string &getCombinationId() const;
-
-    void setCombinationId(const string &combinationId);
-
-    const string &getName() const;
-
-    void setName(const string &name);
-
-    int getRate() const;
-
-    void setRate(int rate);
-
-    const int &getCombinationType() const;
-
-    void setCombinationType(int type);
-
-    const vector<string> &getPartIdList() const;
-
-    void setPartIdList(const vector<string> &partIdList);
-
-    friend void to_json(json &j, const CombinationBriefUpgrade &model) {
-        j = json{
-                {"combination_id", model.combination_id},
-                {"name",           model.name},
-                {"rate",           model.rate},
-                {"part_id_list",   model.part_id_list}
-        };
-    }
-
-    friend void from_json(const json &j, CombinationBriefUpgrade &model) {
-        j.at("combination_id").get_to(model.combination_id);
-        j.at("name").get_to(model.name);
-        j.at("rate").get_to(model.rate);
-        j.at("part_id_list").get_to(model.part_id_list);
-    }
-};
-
-//class CombinationBriefUpgradeList {//简化路径组合列表
-//private:
-//    std::vector<CombinationBriefUpgrade> m_combination_brief_list;
-//public:
-//    CombinationBriefUpgradeList();
-//
-//    CombinationBriefUpgradeList(const vector<CombinationBriefUpgrade> &mCombinationBriefList);
-//
-//    const vector<CombinationBriefUpgrade> &getMCombinationBriefList() const;
-//
-//    void setMCombinationBriefList(const vector<CombinationBriefUpgrade> &mCombinationBriefList);
-//
-//    friend void to_json(json &j, const CombinationBriefUpgradeList &b) {
-//        j = json{
-//                {"m_combination_brief_list", b.m_combination_brief_list},
-//        };
-//    }
-//
-//    friend void from_json(const json &j, CombinationBriefUpgradeList &b) {
-//        j.at("m_combination_brief_list").get_to(b.m_combination_brief_list);
-//    }
-//};
 
 class WorkStatusUpgrade {
 private:
@@ -123,14 +40,6 @@ public:
 
     void setAromatherapyStatus(int st);
 
-    std::string getPushMsg() const;
-
-    void setPushMsg(std::string ss);
-
-    std::string getSweepMsg() const;
-
-    void setSweepMsg(std::string ss);
-
     friend void to_json(json &j, const WorkStatusUpgrade &b) {
         j = json{
                 {"sweep_status",        b.sweep_status},
@@ -150,109 +59,6 @@ public:
     }
 };
 
-class ViewPartUpgrade {
-private:
-    int mode;
-    std::string name;
-    std::string part_id;
-    std::vector<Point> polygon;
-    int rate;
-    std::vector<Point> teach;
-    std::string path_id;
-    WorkStatusUpgrade work_status;
-    std::vector<Point> zoned;
-public:
-
-    ViewPartUpgrade();
-
-    ViewPartUpgrade(int mode, const string &name, const string &partId, const vector<Point> &polygon, int rate,
-                    const vector<Point> &teach, const string &pathId, const WorkStatusUpgrade &workStatus,
-                    const vector<Point> &zoned);
-
-    int getMode() const;
-
-    void setMode(int mode);
-
-    const string &getName() const;
-
-    void setName(const string &name);
-
-    const string &getPartId() const;
-
-    void setPartId(const string &partId);
-
-    const vector<Point> &getPolygon() const;
-
-    void setPolygon(const vector<Point> &polygon);
-
-    int getRate() const;
-
-    void setRate(int rate);
-
-    const vector<Point> &getTeach() const;
-
-    void setTeach(const vector<Point> &teach);
-
-    const string &getPathId() const;
-
-    void setPathId(const string &pathId);
-
-    const WorkStatusUpgrade &getWorkStatus() const;
-
-    void setWorkStatus(const WorkStatusUpgrade &workStatus);
-
-    const vector<Point> &getZoned() const;
-
-    void setZoned(const vector<Point> &zoned);
-
-    friend void to_json(json &j, const ViewPartUpgrade &b) {
-        j = json{
-                {"mode",        b.mode},
-                {"name",        b.name},
-                {"part_id",     b.part_id},
-                {"polygon",     b.polygon},
-                {"rate",        b.rate},
-                {"teach",       b.teach},
-                {"path_id",     b.path_id},
-                {"work_status", b.work_status},
-                {"zoned",       b.zoned}};
-    }
-
-    friend void from_json(const json &j, ViewPartUpgrade &b) {
-        j.at("mode").get_to(b.mode);
-        j.at("name").get_to(b.name);
-        j.at("part_id").get_to(b.part_id);
-        j.at("polygon").get_to(b.polygon);
-        j.at("rate").get_to(b.rate);
-        j.at("teach").get_to(b.teach);
-        j.at("path_id").get_to(b.path_id);
-        j.at("work_status").get_to(b.work_status);
-        j.at("zoned").get_to(b.zoned);
-    }
-};
-
-//class ViewPartListUpgrade {
-//private:
-//    std::vector<ViewPartUpgrade> m_view_part_list;
-//public:
-//    ViewPartListUpgrade();
-//
-//    ViewPartListUpgrade(const vector<ViewPartUpgrade> &mViewPartList);
-//
-//    const vector<ViewPartUpgrade> &getMViewPartList() const;
-//
-//    void setMViewPartList(const vector<ViewPartUpgrade> &mViewPartList);
-//
-//    friend void to_json(json &j, const ViewPartListUpgrade &b) {
-//        j = json{
-//                {"m_view_part_list", b.m_view_part_list},
-//        };
-//    }
-//
-//    friend void from_json(const json &j, ViewPartListUpgrade &b) {
-//        j.at("m_view_part_list").get_to(b.m_view_part_list);
-//    }
-//};
 
 class CleanHistoryUpgrade {
 private:
@@ -261,19 +67,19 @@ private:
     long execute_time;
     long end_time;
     int task_mode;
-    string task_id;
+    std::string task_id;
     int clean_area;
     int clean_time;
     int error_code;
-    string error_code2;
-    string error_message;
+    std::string error_code2;
+    std::string error_message;
 
     // Ewen change begin
     bool m_base_complete;
     int task_type;
-    vector<std::string> component_id_list_;
+    std::vector<std::string> component_id_list_;
     int skip_path_point_count_;
-    vector<int> oper_event;
+    std::vector<int> oper_event;
     int rate_;
     int sweep_status_;
     int mop_status_;
@@ -303,26 +109,32 @@ private:
     int close_mechanism_;
     int open_mechanism_;
 
+    bool renew;
+    std::string old_task_id;
+    long new_task_id;
+
 public:
     CleanHistoryUpgrade();
 
     CleanHistoryUpgrade(bool isComplete, long launchTime, long executeTime, long endTime, int taskMode,
-                        const string &taskId, int cleanArea, int cleanTime,
-                        int errorCode, const string errorCode2, const string &errorMessage, bool mBaseComplete,
+                        const std::string &taskId, int cleanArea, int cleanTime,
+                        int errorCode, const std::string errorCode2, const std::string &errorMessage,
+                        bool mBaseComplete,
                         int taskType,
-                        const vector<std::string> &componentIdList, int skipPathPointCount,
-                        const vector<int> &operEvent, int rate, int sweepStatus, int mopStatus, int vacuumStatus,
+                        const std::vector<std::string> &componentIdList, int skipPathPointCount,
+                        const std::vector<int> &operEvent, int rate, int sweepStatus, int mopStatus, int vacuumStatus,
                         int pushStatus, int aromatherapyStatus, int disinfectStatus, int currentStep,
                         int currentFrquency, int totalStep, int totalFrequency, int historyState, int currentFlow,
                         int urgencyStop, int pauseNum, int manualBack, int lowPowerBack, int forceBack, int outStation,
                         int endSleep, int backBaseRetries, int backBasePointArrived, int stationArrived,
-                        int rechargeRetries, int closeMechanism, int openMechanism);
+                        int rechargeRetries, int closeMechanism, int openMechanism,
+                        bool renew, const std::string &old_task_id, long new_task_id);
 
     bool isBaseComplete() const;
 
     int getTaskType() const;
 
-    vector<int> getOperEvent() const;
+    std::vector<int> getOperEvent() const;
 
     // Ewen change end
     bool isComplete() const;
@@ -345,13 +157,9 @@ public:
 
     void setTaskMode(int taskMode);
 
-    const string &getTaskId() const;
+    const std::string &getTaskId() const;
 
-    void setTaskId(const string &taskId);
-
-    const WorkStatusUpgrade &getWorkStatus() const;
-
-    void setWorkStatus(const WorkStatusUpgrade &workStatus);
+    void setTaskId(const std::string &taskId);
 
     int getCleanArea() const;
 
@@ -365,9 +173,9 @@ public:
 
     void setErrorCode(int errorCode);
 
-    const string &getErrorMessage() const;
+    const std::string &getErrorMessage() const;
 
-    void setErrorMessage(const string &errorMessage);
+    void setErrorMessage(const std::string &errorMessage);
 
     friend void to_json(json &j, const CleanHistoryUpgrade &b) {
         j = json{
@@ -415,7 +223,12 @@ public:
                 {"station_arrived",         b.station_arrived_},
                 {"recharge_retries",        b.recharge_retries_},
                 {"close_mechanism",         b.close_mechanism_},
-                {"open_mechanism",          b.open_mechanism_}};
+                {"open_mechanism",          b.open_mechanism_},
+
+                {"renew",                   b.renew},
+                {"old_task_id",             b.old_task_id},
+                {"new_task_id",             b.new_task_id}
+        };
     }
 
     friend void from_json(const json &j, CleanHistoryUpgrade &b) {
@@ -464,270 +277,10 @@ public:
         j.at("recharge_retries").get_to(b.recharge_retries_);
         j.at("close_mechanism").get_to(b.close_mechanism_);
         j.at("open_mechanism").get_to(b.open_mechanism_);
-    }
-};
 
-class CleanHistoryListUpgrade {//清洁历史列表，储存用
-private:
-    vector<CleanHistoryUpgrade> m_clean_history_list;
-public:
-    CleanHistoryListUpgrade();
-
-    CleanHistoryListUpgrade(const vector<CleanHistoryUpgrade> &mCleanHistoryList);
-
-    const vector<CleanHistoryUpgrade> &getMCleanHistoryList() const;
-
-    void setMCleanHistoryList(const vector<CleanHistoryUpgrade> &mCleanHistoryList);
-
-    friend void to_json(json &j, const CleanHistoryListUpgrade &b) {
-        j = json{
-                {"m_clean_history_list", b.m_clean_history_list},
-        };
-    }
-
-    friend void from_json(const json &j, CleanHistoryListUpgrade &b) {
-        j.at("m_clean_history_list").get_to(b.m_clean_history_list);
-    }
-};
-
-class TaskUpgrade {
-private:
-    string task_id;
-    int mode;
-    int rate;
-    WorkStatusUpgrade work_status;
-    CleanPolygon polygon;
-    vector<float> zoned;
-    CleanContinuity continuity;
-    TeachPathInfo teach_path;
-    std::string launch_people;
-    long launch_time;
-    std::string time_mode;
-    bool in_execute;
-    Combination combination;
-    FullPath full_path;
-
-public:
-    TaskUpgrade();
-
-    TaskUpgrade(const string &taskId, int mode, int rate, const WorkStatusUpgrade &workStatus,
-                const CleanPolygon &polygon, const vector<float> &zoned, const CleanContinuity &continuity,
-                const TeachPathInfo &teachPath, const string &launchPeople, long launchTime, const string &timeMode,
-                bool inExecute, const Combination &combination, const FullPath &fullPath);
-
-    const string &getTaskId() const;
-
-    void setTaskId(const string &taskId);
-
-    int getMode() const;
-
-    void setMode(int mode);
-
-    int getRate() const;
-
-    void setRate(int rate);
-
-    const WorkStatusUpgrade &getWorkStatus() const;
-
-    void setWorkStatus(const WorkStatusUpgrade &workStatus);
-
-    const CleanPolygon &getPolygon() const;
-
-    void setPolygon(const CleanPolygon &polygon);
-
-    const vector<float> &getZoned() const;
-
-    void setZoned(const vector<float> &zoned);
-
-    const CleanContinuity &getContinuity() const;
-
-    void setContinuity(const CleanContinuity &continuity);
-
-    const TeachPathInfo &getTeachPath() const;
-
-    void setTeachPath(const TeachPathInfo &teachPath);
-
-    const string &getLaunchPeople() const;
-
-    void setLaunchPeople(const string &launchPeople);
-
-    long getLaunchTime() const;
-
-    void setLaunchTime(long launchTime);
-
-    const string &getTimeMode() const;
-
-    void setTimeMode(const string &timeMode);
-
-    bool isInExecute() const;
-
-    void setInExecute(bool inExecute);
-
-    const Combination &getCombination() const;
-
-    void setCombination(const Combination &combination);
-
-    const FullPath &getFullPath() const;
-
-    void setFullPath(const FullPath &fullPath);
-
-    friend void to_json(json &j, const TaskUpgrade &b) {
-        j = json{
-                {"task_id",       b.task_id},
-                {"mode",          b.mode},
-                {"rate",          b.rate},
-                {"work_status",   b.work_status},
-                {"zoned",         b.zoned},
-                {"polygon",       b.polygon},
-                {"continuity",    b.continuity},
-                {"teach_path",    b.teach_path},
-                {"launch_people", b.launch_people},
-                {"launch_time",   b.launch_time},
-                {"time_mode",     b.time_mode},
-                {"in_execute",    b.in_execute},
-                {"full_path",     b.full_path},
-                {"combination",   b.combination}};
-    }
-
-    friend void from_json(const json &j, TaskUpgrade &b) {
-        j.at("task_id").get_to(b.task_id);
-        j.at("mode").get_to(b.mode);
-        j.at("rate").get_to(b.rate);
-        j.at("work_status").get_to(b.work_status);
-        j.at("zoned").get_to(b.zoned);
-        j.at("polygon").get_to(b.polygon);
-        j.at("continuity").get_to(b.continuity);
-        j.at("teach_path").get_to(b.teach_path);
-        j.at("launch_people").get_to(b.launch_people);
-        j.at("launch_time").get_to(b.launch_time);
-        j.at("time_mode").get_to(b.time_mode);
-        j.at("in_execute").get_to(b.in_execute);
-        j.at("full_path").get_to(b.full_path);
-        j.at("combination").get_to(b.combination);
-    }
-};
-
-class CombinationDetailUpgrade {
-private:
-    std::string combination_id;
-    std::string name;
-    int rate;
-    std::vector<ViewPartUpgrade> view_part_list;
-public:
-    CombinationDetailUpgrade();
-
-    CombinationDetailUpgrade(const string &combinationId, const string &name, int rate,
-                             const vector<ViewPartUpgrade> &viewPartList);
-
-    const string &getCombinationId() const;
-
-    void setCombinationId(const string &combinationId);
-
-    const string &getName() const;
-
-    void setName(const string &name);
-
-    int getRate() const;
-
-    void setRate(int rate);
-
-    const vector<ViewPartUpgrade> &getViewPartList() const;
-
-    void setViewPartList(const vector<ViewPartUpgrade> &viewPartList);
-
-    friend void to_json(json &j, const CombinationDetailUpgrade &b) {
-        j = json{
-                {"combination_id", b.combination_id},
-                {"name",           b.name},
-                {"rate",           b.rate},
-                {"view_part_list", b.view_part_list}
-        };
-    }
-
-    friend void from_json(const json &j, CombinationDetailUpgrade &b) {
-        j.at("combination_id").get_to(b.combination_id);
-        j.at("name").get_to(b.name);
-        j.at("rate").get_to(b.rate);
-        j.at("view_part_list").get_to(b.view_part_list);
-    }
-};
-
-
-class CombinationBriefWork {//单个路径组合简表
-private:
-    std::string combination_id;
-    std::string name;
-    int rate;
-    std::vector<string> part_id_list;
-    bool principal{false};
-
-public:
-
-    CombinationBriefWork();
-
-    CombinationBriefWork(const string &combinationId, const string &name, int rate, const vector<string> &partIdList,
-                         bool principal);
-
-    const string &getCombinationId() const;
-
-    void setCombinationId(const string &combinationId);
-
-    const string &getName() const;
-
-    void setName(const string &name);
-
-    int getRate() const;
-
-    void setRate(int rate);
-
-    const vector<string> &getPartIdList() const;
-
-    void setPartIdList(const vector<string> &partIdList);
-
-    bool isPrincipal() const;
-
-    void setPrincipal(bool principal);
-
-    friend void to_json(json &j, const CombinationBriefWork &b) {
-        j = json{
-                {"combination_id", b.combination_id},
-                {"name",           b.name},
-                {"rate",           b.rate},
-                {"part_id_list",   b.part_id_list},
-                {"principal",      b.principal}
-        };
-    }
-
-    friend void from_json(const json &j, CombinationBriefWork &b) {
-        j.at("combination_id").get_to(b.combination_id);
-        j.at("name").get_to(b.name);
-        j.at("rate").get_to(b.rate);
-        j.at("part_id_list").get_to(b.part_id_list);
-        j.at("principal").get_to(b.principal);
-    }
-};
-
-class CombinationBriefWorkList {//简化路径组合列表
-private:
-    std::vector<CombinationBriefWork> m_combination_brief_list;
-
-public:
-    CombinationBriefWorkList();
-
-    CombinationBriefWorkList(const vector<CombinationBriefWork> &mCombinationBriefList);
-
-    const vector<CombinationBriefWork> &getMCombinationBriefList() const;
-
-    void setMCombinationBriefList(const vector<CombinationBriefWork> &mCombinationBriefList);
-
-    friend void to_json(json &j, const CombinationBriefWorkList &b) {
-        j = json{
-                {"m_combination_brief_list", b.m_combination_brief_list},
-        };
-    }
-
-    friend void from_json(const json &j, CombinationBriefWorkList &b) {
-        j.at("m_combination_brief_list").get_to(b.m_combination_brief_list);
+        j.at("renew").get_to(b.renew);
+        j.at("old_task_id").get_to(b.old_task_id);
+        j.at("new_task_id").get_to(b.new_task_id);
     }
 };
 

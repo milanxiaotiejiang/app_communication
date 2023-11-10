@@ -9,10 +9,10 @@
 #include <iomanip>
 #include <queue>
 #include <string>
-#include <math.h>
+#include <cmath>
 #include <ctime>
 #include <cstdlib>
-#include <stdio.h>
+#include <cstdio>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>

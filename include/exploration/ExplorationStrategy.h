@@ -13,9 +13,9 @@ public:
     RoomCoverage handler(RoomExplorationTarget params) override;
 };
 
-class PlanParamGetStrategy : public MessageStrategy<string, PlanParam> {
+class PlanParamGetStrategy : public MessageStrategy<std::string, PlanParam> {
 public:
-    PlanParam handler(string params) override;
+    PlanParam handler(std::string params) override;
 };
 
 class PlanParamSetStrategy : public MessageStrategy<PlanParam, bool> {
@@ -23,9 +23,9 @@ public:
     bool handler(PlanParam params) override;
 };
 
-class PlanParamResetStrategy : public MessageStrategy<string, PlanParam> {
+class PlanParamResetStrategy : public MessageStrategy<std::string, PlanParam> {
 public:
-    PlanParam handler(string params) override;
+    PlanParam handler(std::string params) override;
 };
 
 class SetExplorerEnergyStrategy : public MessageStrategy<bool, bool> {
@@ -33,9 +33,9 @@ public:
     bool handler(bool params) override;
 };
 
-class GetExplorerEnergyStrategy : public MessageStrategy<string, bool> {
+class GetExplorerEnergyStrategy : public MessageStrategy<std::string, bool> {
 public:
-    bool handler(string params) override;
+    bool handler(std::string params) override;
 };
 
 class ExplorationTaskStrategy : public MessageStrategy<long, RoomCoverage> {

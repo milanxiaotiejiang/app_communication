@@ -12,6 +12,11 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "task/status/state_machine.h"
 #include "task/subscribe/async_machine.h"
+#include "task/model/PointProgressVo.h"
+#include "task/callback/EventNotifier.h"
+#include "model/ManualModel.h"
+#include "task/framework/AsyncGateFramework.h"
+#include "segmentation/GateComprehensive.h"
 
 const int MAX_FIRST_RETRY_COUNT = 2;
 const int MAX_BASE_POINT_RETRY_COUNT = 3;
@@ -24,24 +29,36 @@ const int MAX_RECHARGE_RETRY_COUNT = 5;
 class AsyncTaskCall : public AsyncTaskRecord {
 private:
 
-    std::atomic<event::flow> event_flow;;
+    std::atomic<event::flow> event_flow;
+    std::mutex event_flow_mtx;  // 互斥量用于保护写操作
+
+    std::shared_ptr<TaskFeedback> feedback;
+    std::shared_ptr<AsyncGateDistribution> mGateDistribution;
+    std::shared_ptr<GateComprehensive> mGateComprehensive;
 
 protected:
 
-    atomic<int> firstRetryCount;
-    atomic<int> backBaseRetryCount;
-    atomic<int> rechargeRetryCount;
+    std::atomic<int> firstRetryCount;
+    std::atomic<int> backBaseRetryCount;
+    std::atomic<int> rechargeRetryCount;
 
     void setFlow(event::flow flow) {
-        event_flow = flow;
+        std::lock_guard<std::mutex> lock(event_flow_mtx);  // 自动加锁并在离开作用域时自动解锁
+        event_flow.store(flow);
         AsyncMachine::instance().setFlow(flow);
     }
 
     event::flow currentFlow() {
-        return event_flow;
+        return event_flow.load();
     }
 
-    atomic<bool> isCarpetAndPack;
+    std::atomic<bool> isCarpetAndPack;
+
+    std::atomic<bool> cancelTaskUpdateMap;
+
+    std::deque<PointProgressVo> finishedPoints;
+
+    TaskEventNotifier notifier;
 
 protected:
 
@@ -55,41 +72,43 @@ protected:
 
     void handleTask(const RealTask &task) override;
 
-    void handlePoint(const RealPoint &point) override;
+    void handleBlock(const RealBlock &block) override;
 
 
     virtual void handleExecuteTask(const RealTask &task);
 
-    void handleAutoPoint(const RealPoint &point);
+    void handleAutoBlock(const RealBlock &block);
 
-    void handlePointManualControl(const RealPoint &point);
+    void handleBlockManualControl(const RealBlock &block);
 
-    void handlePointSpecialDevice(const RealPoint &point);
+    void handleBlockSpecialDevice(const RealBlock &block);
 
-    void initTaskPoint(const RealTask &realTask);
+    void initTaskBlock(const RealTask &realTask);
 
     virtual void goodGame(event::GG gg);
 
     virtual void garbage(event::SB sb);
 
-    void reset();
+    virtual void reset();
 
-    virtual void handleFlowPoint(const RealPoint &point) = 0;
+    virtual void handleFlowBlock(const RealBlock &block) = 0;
 
-    virtual void processControl(const RealPoint &point) = 0;
+    virtual void processControl(const RealBlock &block) = 0;
 
-    virtual void handlePlannerPoint(const RealPoint &point);
+    virtual void handlePlannerBlock(const RealBlock &block);
 
-    RealPoint findFrontPoint();
+    virtual void feedBackPose(const geometry_msgs::Pose &pose) = 0;
 
-    RealPoint findFrontNextPoint();
+    RealBlock findFrontBlock();
+
+    std::pair<bool, RealBlock> findFrontNextBlock();
 
     bool isBasePointReached(float disAccuracy, float angleAccuracy);
 
 
-    void callGoNextPoint(const RealPoint &nextPoint);
+    void callGoNextBlock(const RealBlock &realBlock, bool first = false);
 
-    void callPointComplete(const std::function<void()> &f);
+    void callBlockComplete(const std::function<void()> &f);
 
     void callManualCleanStart();
 
@@ -99,7 +118,7 @@ protected:
 
     void callSelfCleanClose();
 
-    void callSubsequentMode(int mode);
+    void callSubsequentMode(int mode, double cleanedRatio);
 
     void callUrgencyStop();
 
@@ -109,13 +128,19 @@ protected:
 
     void callResume();
 
-    void callPause();
+    void callPause(bool skipManual);
 
-    void cancelTaskAndBack();
+    void callManualPause();
+
+    void cancelTaskAndBack(bool force);
 
     void cancelTask();
 
+    void cancelAny();
+
     virtual void forceInterruptTask(event::SB sb);
+
+    void callBackBasePoint() override;
 
 public:
     AsyncTaskCall();
@@ -124,9 +149,12 @@ public:
 
     void executeOneTask(const RealTask &task);
 
-    void executeOnNext(event::error error);
+    void executeOnPointDone(event::error error);
 
-    void executePointFeedback(geometry_msgs::Pose2D);
+    void executeOnPathDone(int blockId, event::error error, const std::string &message);
+
+    void executeOnPathFeedBack(int blockId, int current_step, int goal_step, int current_goal,
+                               const geometry_msgs::Pose &pose);
 
     void executeOutStation(bool result);
 
@@ -143,7 +171,7 @@ public:
 
     void enterManual();
 
-    void quitManual();
+    ManualModel quitManual();
 
 
     void executeUrgencyStop(bool isUrgencyStop);
@@ -160,12 +188,20 @@ public:
 
     void executeLift(bool lift);
 
+    void executeElectricMove();
+
 
     RealTask runningTask() const;
 
     std::vector<RealTask> runTaskList();
 
-    std::vector<RealPoint> runTaskPoint();
+    std::vector<PointProgressVo> runTaskPointList();
+
+    void restore();
+
+    TaskEventNotifier getNotifier() {
+        return notifier;
+    }
 
 };
 

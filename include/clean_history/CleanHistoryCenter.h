@@ -15,6 +15,16 @@
 namespace clean_history_db {
     class CleanHistoryCenter {
     private:
+        CleanHistoryCenter() = default;
+
+        CleanHistoryCenter(CleanHistoryCenter &) = delete;
+
+        CleanHistoryCenter &operator=(const CleanHistoryCenter &) = delete;
+
+    public:
+        ~CleanHistoryCenter() = default;
+
+    private:
         CleanHistory current_history_;
         std::mutex history_update_mutex_;
     public:
@@ -25,6 +35,8 @@ namespace clean_history_db {
 
         //初始化
         bool initialize();
+
+        void removeCleanHistory();
 
         //下任务时新增一条历史
         bool addCleanHistory(const RealTask &task);
@@ -59,7 +71,8 @@ namespace clean_history_db {
         //水箱返回基站
         bool equipmentErrorBack(bool clean_water_level_check_failed_,
                                 bool dirty_water_level_check_failed_,
-                                bool motor_error_);
+                                bool motor_error_,
+                                bool mop_error_);
 
         //强制返回基站
         bool forceBack();
@@ -74,7 +87,7 @@ namespace clean_history_db {
         bool setBackBaseRetries(int retries);
 
         // 清洁中更新清洁面积和清洁时间
-        bool updateCleanHistory(const RealPoint &real_point);
+        bool updateCleanHistory(const RealBlock &realBlock, const RealPoint &realPoint);
 
         //设置返回摆渡点是否成功
         bool setBackBasePointArrived(int state);
@@ -103,7 +116,7 @@ namespace clean_history_db {
 
         bool laserInterrupt();
 
-        void updateProperty(const WorkStatus& workStatus, long cleanTime);
+        void updateProperty(const WorkStatus &workStatus, long cleanTime);
 
         //错误完成历史
         bool errorComplete(int error_code, std::string error_string, std::string error_code2);

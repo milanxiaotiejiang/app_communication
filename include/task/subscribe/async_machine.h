@@ -8,8 +8,20 @@
 #include "task/status/state_machine.h"
 #include "task/subscribe/zoo_inner_status.h"
 #include "clean_history/CleanHistoryCenter.h"
+#include "simulation.h"
+#include "future/node/node_control.h"
 
 class AsyncMachine {
+private:
+    AsyncMachine() = default;
+
+    AsyncMachine(AsyncMachine &) = delete;
+
+    AsyncMachine &operator=(const AsyncMachine &) = delete;
+
+public:
+    ~AsyncMachine() = default;
+
 private:
 
     loop::manual_epoll epoll_manual = loop::manual_epoll::manual_normal;
@@ -17,13 +29,46 @@ private:
     loop::error_epoll epoll_error = loop::error_epoll::error_normal;
     loop::urgency_stop urgency_stop = loop::urgency_stop::trigger_urgency_stop;
 
-
     event::flow flow;
 
+    ros::NodeHandle mHandle;
+    EnterStatus enterStatus;
+
+    bool inGateMachine;
 public:
     static auto &instance() {
         static AsyncMachine obj;
         return obj;
+    }
+
+    void initialize(const ros::NodeHandle &handle) {
+        mHandle = handle;
+
+        int node_work_mode = 0;
+        mHandle.getParam(NODE_CONTROLLER_WORK_MODE, node_work_mode);
+        int carto_mode = 0;
+        mHandle.getParam(CARTOGRAPHER_WORK_MODE, carto_mode);
+
+        int async_task_flow = 0;
+        mHandle.getParam(ASYNC_TASK_FLOW, async_task_flow);
+
+        int async_task_epoll_manual = 0;
+        mHandle.getParam(ASYNC_TASK_EPOLL_MANUAL, async_task_epoll_manual);
+        int async_task_epoll_special = 0;
+        mHandle.getParam(ASYNC_TASK_EPOLL_SPECIAL, async_task_epoll_special);
+        int async_task_epoll_error = 0;
+        mHandle.getParam(ASYNC_TASK_EPOLL_ERROR, async_task_epoll_error);
+        int async_task_urgency_stop = 0;
+        mHandle.getParam(ASYNC_TASK_URGENCY_STOP, async_task_urgency_stop);
+
+        enterStatus = EnterStatus(async_task_epoll_manual,
+                                  async_task_epoll_special,
+                                  async_task_epoll_error,
+                                  async_task_urgency_stop,
+                                  async_task_flow,
+                                  node_work_mode,
+                                  carto_mode);
+        LOG_IF(INFO, DEBUG_RESTORE) << "enterStatus : " << enterStatus;
     }
 
     void setEpoll(loop::manual_epoll epoll_manual,
@@ -31,10 +76,19 @@ public:
                   loop::error_epoll epoll_error,
                   loop::urgency_stop urgency_stop
     ) {
+        mHandle.setParam(ASYNC_TASK_EPOLL_MANUAL, static_cast<int>(epoll_manual));
+        mHandle.setParam(ASYNC_TASK_EPOLL_SPECIAL, static_cast<int>(epoll_special));
+        mHandle.setParam(ASYNC_TASK_EPOLL_ERROR, static_cast<int>(epoll_error));
+        mHandle.setParam(ASYNC_TASK_URGENCY_STOP, static_cast<int>(urgency_stop));
+
         AsyncMachine::epoll_manual = epoll_manual;
         AsyncMachine::epoll_special = epoll_special;
         AsyncMachine::epoll_error = epoll_error;
         AsyncMachine::urgency_stop = urgency_stop;
+    }
+
+    void setGateMachine(bool inGateMachine) {
+        AsyncMachine::inGateMachine = inGateMachine;
     }
 
     loop::error_epoll getError() {
@@ -46,6 +100,8 @@ public:
     }
 
     void setFlow(event::flow flow) {
+        mHandle.setParam(ASYNC_TASK_FLOW, static_cast<int>(flow));
+
         clean_history_db::CleanHistoryCenter::instance().setCurrentFlow(flow);
         AsyncMachine::flow = flow;
     }
@@ -89,6 +145,12 @@ public:
     int getMachineCode() {
         if (urgency_stop != loop::urgency_stop::release_urgency_stop) {
             return 10004;
+        }
+        if (NodeControl::instance().isMap()) {
+            return 10015;
+        }
+        if (inGateMachine) {
+            return 10016;
         }
         if (epoll_error == loop::error_epoll::error_manual_clean_start) {
             return 10013;
@@ -147,6 +209,8 @@ public:
                 return "转场中";
             case 10006:
                 return "待机中";
+            case 10007:
+                return "暂停中";
             case 10009:
                 return "回充中";
             case 10010:
@@ -157,13 +221,19 @@ public:
                 return "充电完成";
             case 10013:
                 return "手动模式";
-            case 10007:
-                return "暂停中";
             case 10014:
                 return "进站中";
+            case 10015:
+                return "建图中";
+            case 10016:
+                return "过闸机中";
             default:
                 return "未知";
         }
+    }
+
+    EnterStatus getEnterStatus() const {
+        return enterStatus;
     }
 };
 

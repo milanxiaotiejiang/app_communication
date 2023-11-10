@@ -14,94 +14,38 @@
 #include "task/TaskCenter.h"
 #include "segmentation/map_modification.h"
 #include "leave/map_control.h"
+#include "task/manager/manual.h"
 #include "leave/HotWindNote.h"
+#include "leave/auto_maintenance_mode.h"
+#include "leave/ParamManager.h"
+#include "leave/sensor/sensor_center.h"
 
 SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
     sub_node_control_ = handle.subscribe("/segmentation_task", 1, &SegmentationSubscribe::segmentationSubscribeCallback,
                                          this);
+    sub_order_control_ = handle.subscribe("/segmentation_order", 1,
+                                          &SegmentationSubscribe::segmentationOrderSubscribeCallback,
+                                          this);
+    sub_test_control_ = handle.subscribe("/segmentation_test", 1,
+                                         &SegmentationSubscribe::segmentationTestSubscribeCallback,
+                                         this);
+    sub_open_gate_ = handle.subscribe("/tt_open_gate", 1,
+                                      &SegmentationSubscribe::gateOpenSubscribeCallback,
+                                      this);
+    sub_close_gate_ = handle.subscribe("/tt_close_gate", 1,
+                                       &SegmentationSubscribe::gateCloseSubscribeCallback,
+                                       this);
 }
 
 void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 &flag_result) {
     auto flag = flag_result.data;
-//    const TaskVo &task = TaskDataBase::instance().loadTaskFoId(flag);
-//    RealTask realTask;
-//    TaskExploration::task2RealTask(task, realTask);
-//    auto coverage = TaskExploration::explorationPlanningPath(realTask);
-    MapPo map = SegmentationDataBase::instance().getDbMap();
-    auto generateMat = SegmentationCenter::instance().generateMat();
 
-
-//    vector<vector<PointVo>> params;
-//    vector<PointVo> ps;
-//    ps.emplace_back(0, 0);
-//    ps.emplace_back(0, generateMat.rows / 2);
-//    ps.emplace_back(generateMat.rows / 2, generateMat.rows / 2);
-//    ps.emplace_back(generateMat.rows / 2, 0);
-//    params.push_back(ps);
-//
-//    std::vector<std::vector<cv::Point>> points;
-//
-//    for (const auto &vector: params) {
-//        std::vector<cv::Point> cvs;
-//        for (const auto &pointVo: vector) {
-//            cv::Point point(pointVo.getX(), pointVo.getY());
-//            cvs.push_back(point);
-//        }
-//        points.push_back(cvs);
-//    }
-//
-//    MapModification mapModification;
-//    mapModification.addFeasibleZone(points);
-//    MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
-//    MapControl::instance().changeMapServer();
-
-//    const std::vector<MapPo> &allMap1 = SegmentationDataBase::instance().loadAllMap();
-//
-//    std::string params = allMap1[flag].id;
-//
-//    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
-//    if (oldMap.id == params) {
-//        return;
-//    }
-//
-//    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
-//    bool isFind = false;
-//    for (const auto &item: allMap) {
-//        if (item.id == params) {
-//            isFind = true;
-//            break;
-//        }
-//    }
-//    if (isFind) {
-//        MapControl::instance().backupAndRetrieve(oldMap.id);
-//
-//        MapControl::instance().loadInformation(params);
-//        MapControl::instance().changeMapServer();
-//        // todo 关注睡眠模式
-//        CartographerPublisher::instance().publishStartCartoLocalization();
-//    }
-
-//    std::vector<std::vector<cv::Point>> points;
-//    std::vector<cv::Point> ps;
-//    ps.emplace_back(0, 0);
-//    ps.emplace_back(0, 200);
-//    ps.emplace_back(100, 200);
-//    ps.emplace_back(100, 0);
-//    points.push_back(ps);
-//
-//    MapModification mapModification;
-////    mapModification.addFeasibleZone(points);
-//    mapModification.addObstacles(points);
-
-//    if (flag == 0) {
-//        HotWindNoteSingleton::instance().openHotWind();
-//    } else {
-//        HotWindNoteSingleton::instance().closeHotWind();
-//    }
+//    MapPo map = SegmentationDataBase::instance().getDbMap();
+//    auto generateMat = SegmentationCenter::instance().generateMat();
 
     try {
-        TaskCenter::instance().performTask(flag, TaskSource::App, 2);
-//        TaskDataBase::instance().modifyPrincipalTask(map.id, flag, true);
+        TaskCenter::instance().performTask(flag, TaskSource::Cloud, 1);
+
     } catch (app::exception const &e) {
         LOG(ERROR) << e.what();
     } catch (const std::exception &e) {
@@ -110,4 +54,117 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
         LOG(ERROR) << "MessageStrategy other start exception";
     }
 
+}
+
+void SegmentationSubscribe::segmentationOrderSubscribeCallback(const std_msgs::Int32 &flag_result) {
+    auto flag = flag_result.data;
+    try {
+        if (flag == 0) {
+            ManualManager::instance().pause();
+        } else if (flag == 1) {
+            ManualManager::instance().resume();
+        } else if (flag == 2) {
+            ZooInnerStatus::instance().setUrgencyStopStatus(true);
+        } else if (flag == 3) {
+            ZooInnerStatus::instance().setUrgencyStopStatus(false);
+        } else if (flag == 100) {
+            ManualManager::instance().backToBase(true);
+        } else if (flag == 1010) {
+            ZooInnerStatus::instance().setIsCharging(true);
+        } else if (flag == 1011) {
+            ZooInnerStatus::instance().setIsCharging(false);
+        } else if (flag == 10000) {
+            ManualManager::instance().quit_manual_mode();
+        } else if (flag == 10001) {
+            ManualManager::instance().enter_manual_mode();
+        }
+    } catch (app::exception const &e) {
+        LOG(ERROR) << e.what();
+    } catch (const std::exception &e) {
+        LOG(ERROR) << e.what();
+    } catch (...) {
+        LOG(ERROR) << "MessageStrategy other start exception";
+    }
+}
+
+void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::Int32 &flag_result) {
+//    auto flag = flag_result.data;
+//    if (flag == 0) {
+//        volatile int *a = (int *) (NULL);
+//        *a = 1;
+//    } else if (flag == 1) {
+//        throw app::exception(make_error_code(error::the_current_state_is_uncontrollable));
+//    }
+    const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//    bool isOffMap = false;
+//    bool isRestrictedZone = false;
+//    bool isMaxPassable = false;
+//    bool isPlanPath = false;
+//    SegmentationCenter::instance()
+//            .isRestrictedZone(map, isOffMap, isRestrictedZone, isMaxPassable, isPlanPath, true);
+//    LOG(INFO) << "  isOffMap : " << isOffMap
+//              << "  isRestrictedZone : " << isRestrictedZone
+//              << "  isMaxPassable : " << isMaxPassable
+//              << "  isPlanPath : " << isPlanPath;
+    if (flag_result.data == 0) {
+        MapPo &po = SegmentationDataBase::instance().getDbMap();
+        SegmentationDataBase::instance().purgeGate(po.id);
+    } else if (flag_result.data == 1) {
+        int height = 250;
+        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height - 15));
+        auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height + 15));
+
+        MapPo &po = SegmentationDataBase::instance().getDbMap();
+        Gate gate(-1, po.id, 15, height, 280, height,
+                  pl.getX(), pl.getY(), 0, 0, 0, 0, 0,
+                  pr.getX(), pr.getY(), 0, 0, 0, 0, 0,
+                  "59a9dbd3c8424bf598ff71ca5bb0be6e", "9b40dce9ebcf440f8290112b36e69f6f", "01A", CURRENT_GATE_VERSION);
+        SegmentationDataBase::instance().saveGate(gate);
+        try {
+            auto segmented_map = SegmentationCenter::instance().generateMat();
+            std::vector<Room> rooms;
+            SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, gate);
+
+        } catch (app::exception const &e) {
+            LOG(ERROR) << e.what();
+        } catch (const std::exception &e) {
+            LOG(ERROR) << e.what();
+        } catch (...) {
+            LOG(ERROR) << "MessageStrategy other start exception";
+        }
+    } else if (flag_result.data == 2) {
+        int height = 110;
+        auto pl = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height - 15));
+        auto pr = MapAttributeSingleton::instance().mapPoint2RosPoint(map.rows, map.cols, cv::Point(180, height + 15));
+
+        MapPo &po = SegmentationDataBase::instance().getDbMap();
+        Gate gate(-1, po.id, 15, height, 280, height,
+                  pl.getX(), pl.getY(), 0, 0, 0, 0, 0,
+                  pr.getX(), pr.getY(), 0, 0, 0, 0, 0,
+                  "59a9dbd3c8424bf598ff71ca5bb0be6e", "9b40dce9ebcf440f8290112b36e69f6f", "01A", CURRENT_GATE_VERSION);
+        SegmentationDataBase::instance().saveGate(gate);
+        try {
+            auto segmented_map = SegmentationCenter::instance().generateMat();
+            std::vector<Room> rooms;
+            SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, gate);
+
+        } catch (app::exception const &e) {
+            LOG(ERROR) << e.what();
+        } catch (const std::exception &e) {
+            LOG(ERROR) << e.what();
+        } catch (...) {
+            LOG(ERROR) << "MessageStrategy other start exception";
+        }
+    }
+
+}
+
+void SegmentationSubscribe::gateOpenSubscribeCallback(const std_msgs::String &flag) {
+    auto data = flag.data;
+    AsyncGateImplement::openGate("01A", data);
+}
+
+void SegmentationSubscribe::gateCloseSubscribeCallback(const std_msgs::String &flag) {
+    auto data = flag.data;
+    AsyncGateImplement::closeGate("01A", data);
 }

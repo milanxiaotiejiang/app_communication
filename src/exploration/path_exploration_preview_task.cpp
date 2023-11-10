@@ -14,22 +14,9 @@
 
 #include "segmentation/SegmentationCenter.h"
 #include "exploration/ExplorationCenter.h"
-
-void TaskExploration::task2RealTask(const Task &task, RealTask &realTask) {
-    realTask.setRenew(false);
-
-    realTask.setId(task.getTaskId());
-    realTask.setRate(task.getRate());
-    realTask.setMode(task.getMode());
-    realTask.setZoned0(task.getZoned());
-    realTask.setCombination(task.getCombination());
-    realTask.setLaunchPeople(task.getLaunchPeople());
-    realTask.setLaunchTime(task.getLaunchTime());
-}
+#include "simulation.h"
 
 void TaskExploration::task2RealTask(const TaskVo &task, RealTask &realTask) {
-    realTask.setRenew(true);
-
     auto uuid = boost::uuids::to_string(boost::uuids::random_generator()());
     realTask.setId(uuid);
 
@@ -63,13 +50,14 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
 
     std::vector<geometry_msgs::Pose2D> exploration_path;
     std::vector<cv::Point> point_path;
+    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
 
     RoomCoverage coverage;
     bool preLoaded = false;
 
 
     if (mode == TaskMode::Zoned) {
-        vector<ZoneVo> zones = task.getZoned();
+        std::vector<ZoneVo> zones = task.getZoned();
         for (const auto &zone: zones) {
             std::vector<std::vector<cv::Point>> polygon_array;
 
@@ -84,9 +72,13 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             cv::fillPoly(zoned_image, polygon_array, cv::Scalar(255));
             std::vector<geometry_msgs::Pose2D> sub_exploration_path;
             std::vector<cv::Point> sub_point_path;
+            std::vector<std::vector<geometry_msgs::Pose2D>> sub_complex_path;
             try {
-                explorationCenter.generatePlanningPathRect(zoned_image, BOUSTROPHEDON_EXPLORER_MODE,
-                                                           sub_exploration_path, sub_point_path);
+                explorationCenter.generatePlanningPathRect(zoned_image,
+                                                           task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
+                                                                               : Environment::instance().explorer_mode,
+                                                           !task.isVerifyMode(),
+                                                           sub_exploration_path, sub_point_path, sub_complex_path);
 
             } catch (app::exception const &e) {
                 LOG(ERROR) << e.what();
@@ -97,6 +89,9 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             }
             for (const auto &item: sub_point_path) {
                 point_path.push_back(item);
+            }
+            for (const auto &vec: sub_complex_path) {
+                complex_path.emplace_back(vec.begin(), vec.end());
             }
         }
 
@@ -154,6 +149,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             auto obtainSubregion = explorationCenter.obtainSubregionPath();
             coverage.setPoseList(obtainSubregion.getPoseList());
             coverage.setPointList(obtainSubregion.getPointList());
+            coverage.setComplexList(obtainSubregion.getComplexList());
         } else {
 //            explorationCenter.generatePlanningPathFull(baseMap, BOUSTROPHEDON_EXPLORER_MODE,
 //                                                       exploration_path, point_path);
@@ -161,6 +157,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             auto obtainCoverage = explorationCenter.obtainCoveragePath();
             coverage.setPoseList(obtainCoverage.getPoseList());
             coverage.setPointList(obtainCoverage.getPointList());
+            coverage.setComplexList(obtainCoverage.getComplexList());
         }
 
     } else if (mode == TaskMode::Subregion) {
@@ -172,10 +169,15 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
         for (const auto &subregion: subregions) {
             std::vector<geometry_msgs::Pose2D> sub_exploration_path;
             std::vector<cv::Point> sub_point_path;
+            std::vector<std::vector<geometry_msgs::Pose2D>> sub_complex_path;
 
-            const cv::Mat &oneMap = segmentationCenter.choiceOneRoom(segmented_map, rooms, subregion.getSubregionValue());
-            explorationCenter.generatePlanningPathSub(oneMap, BOUSTROPHEDON_EXPLORER_MODE,
-                                                      sub_exploration_path, sub_point_path);
+            const cv::Mat &oneMap = segmentationCenter.choiceOneRoom(segmented_map, rooms,
+                                                                     subregion.getSubregionValue());
+            explorationCenter.generatePlanningPathSub(oneMap,
+                                                      task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
+                                                                          : Environment::instance().explorer_mode,
+                                                      !task.isVerifyMode(),
+                                                      sub_exploration_path, sub_point_path, sub_complex_path);
 
             for (const auto &item: sub_exploration_path) {
                 exploration_path.push_back(item);
@@ -183,35 +185,54 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             for (const auto &item: sub_point_path) {
                 point_path.push_back(item);
             }
+            for (const auto &item: sub_complex_path) {
+                complex_path.emplace_back(item.begin(), item.end());
+            }
         }
 
     } else if (mode == TaskMode::Line) {
-        explorationCenter.infinitelyNearBoundary(baseMap, exploration_path, point_path);
+        explorationCenter.infinitelyNearBoundary(baseMap, true, exploration_path, point_path, complex_path);
     }
 
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
-    string uuid_string = boost::uuids::to_string(uuid);
+    std::string uuid_string = boost::uuids::to_string(uuid);
     coverage.setCoverageId(uuid_string);
 
     if (preLoaded) {
 
     } else {
-        explorationCenter.pathPublish(exploration_path);
+        if (!task.isVerifyMode())
+            explorationCenter.pathPublish(exploration_path);
 
-        std::vector<PoseVo> poseList;
-        std::vector<PointVo> pointList;
-        for (const auto &item: exploration_path) {
-            poseList.emplace_back(item.y, item.x, item.theta);
-        }
-        for (const auto &item: point_path) {
-            pointList.emplace_back(item.x, item.y);
-        }
-
-        coverage.setPointList(pointList);
-        coverage.setPoseList(poseList);
+        TaskExploration::planningPath2RoomCoverage(coverage, exploration_path, point_path, complex_path);
     }
 
     explorationCenter.cacheRoomCoverage(coverage);
 
     return coverage;
+}
+
+void TaskExploration::planningPath2RoomCoverage(RoomCoverage &roomCoverage,
+                                                const std::vector<geometry_msgs::Pose2D> &exploration_path,
+                                                const std::vector<cv::Point> &point_path,
+                                                const std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
+    std::vector<PoseVo> poseList;
+    std::vector<PointVo> pointList;
+    std::vector<std::vector<PoseVo>> complexList;
+    for (const auto &item: exploration_path) {
+        poseList.emplace_back(item.y, item.x, item.theta);
+    }
+    for (const auto &item: point_path) {
+        pointList.emplace_back(item.x, item.y);
+    }
+    for (const auto &vec: complex_path) {
+        std::vector<PoseVo> complex;
+        for (const auto &item: vec) {
+            complex.emplace_back(item.y, item.x, item.theta);
+        }
+        complexList.push_back(complex);
+    }
+    roomCoverage.setPointList(pointList);
+    roomCoverage.setPoseList(poseList);
+    roomCoverage.setComplexList(complexList);
 }

@@ -9,7 +9,7 @@
 #include <opencv2/opencv.hpp>
 #include "A_star_pathplanner.h"
 #include "timer.h"
-#include "glog/logging.h"
+#include "simulation.h"
 
 class DistanceMatrix {
 protected:
@@ -30,7 +30,7 @@ public:
                                  double downsampling_factor, double robot_radius, double map_resolution,
                                  AStarPlanner &path_planner,
                                  std::vector<std::vector<std::vector<cv::Point> > > *paths = nullptr) {
-        LOG(INFO) << "DistanceMatrix::constructDistanceMatrix: Constructing distance matrix...";
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "DistanceMatrix::constructDistanceMatrix: Constructing distance matrix...";
         Timer tim;
 
         /**
@@ -45,12 +45,10 @@ public:
         cv::Mat downsampled_map;
         path_planner.downsampleMap(original_map, downsampled_map, downsampling_factor, robot_radius, map_resolution);
 
-        if (points.size() > 500)
-            std::cout
-                    << "0         10        20        30        40        50        60        70        80        90        100"
-                    << std::endl;
+        if (DEBUG_EXPLORATION)
+            std::cout << "matrix speed " << points.size() << " " << std::flush;
         for (int i = 0; i < points.size(); i++) {
-            if (points.size() > 500 && i % (std::max(1, (int) points.size() / 100)) == 0)
+            if (DEBUG_EXPLORATION)
                 std::cout << "." << std::flush;
             for (int j = 0; j < points.size(); j++) {
                 if (j != i) {
@@ -117,7 +115,8 @@ public:
                 }
             }
         }
-        std::cout << "\n";
+        if (DEBUG_EXPLORATION)
+            std::cout << "\n";
 
 //        std::cout
 //                << "Distance matrix data ================================================================================================================================ ";
@@ -136,7 +135,8 @@ public:
 //            std::cout << " " << std::endl;
 //        }
 
-        LOG(INFO) << "Distance matrix created in " << (tim.getElapsedTimeInMilliSec() / 1000) << " s";
+        LOG_IF(INFO, DEBUG_EXPLORATION)
+        << "Distance matrix created in " << (tim.getElapsedTimeInMilliSec() / 1000) << " s";
     }
 
     void cleanDistanceMatrix(const cv::Mat &distance_matrix, cv::Mat &distance_matrix_cleaned,
@@ -189,13 +189,14 @@ public:
                 number_entries_to_be_removed++;
 
         if (number_entries_to_be_removed > 0) {
-            LOG(INFO) << "  DistanceMatrix::cleanDistanceMatrix: Need to remove " << number_entries_to_be_removed
-                      << " elements out of " << distance_matrix.rows << " elements from the distance matrix.";
+            LOG_IF(INFO, DEBUG_EXPLORATION)
+            << "  DistanceMatrix::cleanDistanceMatrix: Need to remove " << number_entries_to_be_removed
+            << " elements out of " << distance_matrix.rows << " elements from the distance matrix.";
 
             const int new_size = distance_matrix.rows - number_entries_to_be_removed;
             if (new_size == 0) {
-                LOG(INFO)
-                        << "  DistanceMatrix::cleanDistanceMatrix: Warning: Would need to remove all elements of distance_matrix. Aborting.";
+                LOG_IF(INFO, DEBUG_EXPLORATION)
+                << "  DistanceMatrix::cleanDistanceMatrix: Warning: Would need to remove all elements of distance_matrix. Aborting.";
                 return;
             }
             distance_matrix_cleaned.create(new_size, new_size, CV_64F);
@@ -217,8 +218,8 @@ public:
                 }
             }
             if (new_index != new_size)
-                LOG(INFO)
-                        << "##################################################\nDistanceMatrix::cleanDistanceMatrix: Warning: new_index != new_size.\n##################################################";
+                LOG_IF(INFO, DEBUG_EXPLORATION)
+                << "##################################################\nDistanceMatrix::cleanDistanceMatrix: Warning: new_index != new_size.\n##################################################";
         }
     }
 
@@ -227,7 +228,8 @@ public:
                                       AStarPlanner &path_planner,
                                       cv::Mat &distance_matrix,
                                       std::map<int, int> &cleaned_index_to_original_index_mapping, int &start_node) {
-        LOG(INFO) << "DistanceMatrix::computeCleanedDistanceMatrix: Constructing distance matrix...";
+        LOG_IF(INFO, DEBUG_EXPLORATION)
+        << "DistanceMatrix::computeCleanedDistanceMatrix: Constructing distance matrix...";
         cv::Mat distance_matrix_raw;
         constructDistanceMatrix(distance_matrix_raw, original_map, points, downsampling_factor, robot_radius,
                                 map_resolution, path_planner);

@@ -5,7 +5,7 @@
 #include "leave/robot_speed.h"
 #include "ros/ros.h"
 #include "ros/package.h"
-#include "glog/logging.h"
+#include "simulation.h"
 #include "yaml-cpp/yaml.h"
 #include "BaseThrowable.h"
 #include "db/path.h"

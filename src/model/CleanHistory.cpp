@@ -17,14 +17,18 @@ CleanHistory::CleanHistory(bool is_complete, bool base_complete,
                            long execute_time,
                            long end_time,
                            int task_mode,
-                           string task_id,
+                           std::string task_id,
                            WorkStatus work_status,
                            int clean_area,
                            int clean_time,
                            int error_code,
-                           string error_message,
+                           std::string error_message,
 
-                           int task_type) {
+                           int task_type,
+
+                           bool renew,
+                           std::string old_task_id,
+                           long new_task_id) {
     m_is_complete = is_complete;
     m_base_complete = base_complete;
     m_launch_time = launch_time;
@@ -38,6 +42,10 @@ CleanHistory::CleanHistory(bool is_complete, bool base_complete,
     m_error_code = error_code;
     m_error_message = error_message;
     m_task_type = task_type;
+
+    this->renew = renew;
+    this->old_task_id = old_task_id;
+    this->new_task_id = new_task_id;
 }
 
 CleanHistory::~CleanHistory() {}
@@ -82,11 +90,11 @@ void CleanHistory::setTaskMode(const int &task_mode) {
     m_task_mode = task_mode;
 }
 
-const string &CleanHistory::getTaskID() const {
+const std::string &CleanHistory::getTaskID() const {
     return m_task_id;
 }
 
-void CleanHistory::setTaskID(const string &task_id) {
+void CleanHistory::setTaskID(const std::string &task_id) {
     m_task_id = task_id;
 }
 
@@ -118,61 +126,3 @@ CleanHistoryList::CleanHistoryList() {}
 
 CleanHistoryList::~CleanHistoryList() {}
 
-const vector<CleanHistory> &CleanHistoryList::GetCleanHistoryList() const {
-    return m_clean_history_list;
-}
-
-void CleanHistoryList::SetCleanHistoryList(const vector<CleanHistory> &clean_history_list) {
-    m_clean_history_list = clean_history_list;
-}
-
-bool CleanHistoryList::AddCleanHistory(const CleanHistory &clean_history) {
-    //Ewen change begin
-    if (m_clean_history_list.size() > 0 && m_clean_history_list.back().getTaskID() == clean_history.getTaskID()) {
-        //Ewen change end
-        cout << "new task id equals to the latest task id, refuse to add" << std::endl;
-    } else {
-        m_clean_history_list.push_back(clean_history);
-    }
-    for (auto &item: m_clean_history_list) {
-//        cout<<"taskID"<<item.getTaskID()<<endl;
-    }
-}
-
-bool CleanHistoryList::GetCleanHistory(CleanHistory &clean_history, const string &taskId) {
-    for (auto &item: m_clean_history_list) {
-//        cout<<"taskID"<<item.getTaskID()<<endl;
-        if (item.getTaskID() == taskId) {
-            clean_history = item;
-//            cout << "At CleanHistoryList::GetCleanHistory successfully match taskid:"<<taskId << endl;
-            return true;
-        }
-    }
-//    cout << "At CleanHistoryList::GetCleanHistory can't match taskid:"<<taskId << endl;
-    return false;
-}
-
-bool CleanHistoryList::ResetCleanHistory(const CleanHistory &clean_history, const string &taskId) {
-    for (auto &item: m_clean_history_list) {
-        if (item.getTaskID() == taskId) {
-//            cout << "At CleanHistoryList::ResetCleanHistory successfully match taskid:"<<taskId << endl;
-            item = clean_history;
-            return true;
-        }
-    }
-//    cout << "At CleanHistoryList::ResetCleanHistory can't match taskid:"<<taskId << endl;
-    return false;
-}
-
-void CleanHistoryList::ShowAllCleanHistory() {
-    for (auto &item: m_clean_history_list) {
-//        cout<<"是否完成"<<item.getIsComplete()<<endl;
-//        cout<<"下发时间"<<item.getLaunchTime()<<endl;
-//        cout<<"执行时间"<<item.getExecuteTime()<<endl;
-//        cout<<"结束时间"<<item.getEndTime()<<endl;
-//        cout<<"任务模式"<<item.getTaskMode()<<endl;
-//        cout<<"任务ID"<<item.getTaskID()<<endl;
-//        // cout<<"工作状态"<<item.getWorkStatus()<<endl;
-//        cout<<"清洁面积"<<item.getCleanArea()<<endl;
-    }
-}

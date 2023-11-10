@@ -11,7 +11,11 @@
 #include <geometry_msgs/Pose2D.h>
 
 OdomSubscribe::OdomSubscribe(ros::NodeHandle handle) : handle(handle) {
-    sub_odom_ = handle.subscribe("/odom_app", 10, &OdomSubscribe::subscribeCallback, this);
+    if (Environment::instance().isRealEnvironment) {
+        sub_odom_ = handle.subscribe("/odom_app", 10, &OdomSubscribe::subscribeCallback, this);
+    } else {
+        sub_odom_ = handle.subscribe("/odom", 10, &OdomSubscribe::subscribeCallback, this);
+    }
 }
 
 void OdomSubscribe::subscribeCallback(const nav_msgs::OdometryConstPtr &msg) {
@@ -26,7 +30,7 @@ void OdomSubscribe::subscribeCallback(const nav_msgs::OdometryConstPtr &msg) {
     pose2D.x = point.x;
     pose2D.y = point.y;
     pose2D.theta = tf::getYaw(orientation);
-    MapAttribute::instance().setRobotPositionPose(pose2D);
+    MapAttributeSingleton::instance().setRobotPositionPose(pose2D);
 
     nav_msgs::Path passed_path;
     passed_path.header = msg->header;

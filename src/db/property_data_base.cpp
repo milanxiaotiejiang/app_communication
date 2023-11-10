@@ -19,11 +19,17 @@ void PropertyDataBase::initProperty() {
                 PUSH_EXPECTED_DURATION,
                 AROMATHERAPY_EXPECTED_DURATION,
                 DISINFECT_EXPECTED_DURATION,
-                0, 0, 0, 0, 0, 0
+                0, 0, 0, 0, 0, 0,
+                CURRENT_CONSUMABLE_VERSION
         );
         consumableId = propertyStorage.insert(consumable);
     } else {
-        consumableId = consumableList[0].id;
+        auto consumable = consumableList[0];
+        if (consumable.push_expected != 50 * 60 * 60) {
+            consumable.push_expected = 50 * 60 * 60;
+            propertyStorage.replace(consumable);
+        }
+        consumableId = consumable.id;
     }
 }
 

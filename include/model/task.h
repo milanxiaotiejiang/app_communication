@@ -98,19 +98,20 @@ private:
     long update_time;
     long create_time;
 
+    bool rain_snow = false;
+
 public:
     TaskVo();
 
     TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode, bool principal,
            bool partition, bool knife, const std::string &source, const std::string &launchPeople, long launchTime,
-           long updateTime, long createTime);
+           long updateTime, long createTime, bool rain_snow);
 
     TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode,
            const WorkStatus &workStatus, bool principal, const std::vector<ZoneVo> &zones, bool partition,
            const std::vector<SubregionVo> &subregions, bool knife, const std::string &source,
            const std::string &launchPeople,
-           long launchTime, long updateTime, long createTime);
-
+           long launchTime, long updateTime, long createTime, bool rain_snow);
 
     void setId(long id);
 
@@ -154,6 +155,10 @@ public:
 
     long getCreateTime() const;
 
+    bool isRainSnow() const;
+
+    void setRainSnow(bool rainSnow);
+
     friend std::ostream &operator<<(std::ostream &os, const TaskVo &vo);
 
     friend void to_json(json &j, const TaskVo &vo) {
@@ -174,7 +179,8 @@ public:
                 {"launch_time",   vo.launch_time},
                 {"partition",     vo.partition},
                 {"update_time",   vo.update_time},
-                {"create_time",   vo.create_time}
+                {"create_time",   vo.create_time},
+                {"rain_snow",     vo.rain_snow}
         };
     }
 
@@ -195,6 +201,9 @@ public:
         j.at("launch_time").get_to(vo.launch_time);
         j.at("update_time").get_to(vo.update_time);
         j.at("create_time").get_to(vo.create_time);
+        if (j.contains("rain_snow")) {
+            j.at("rain_snow").get_to(vo.rain_snow);
+        }
     }
 
 };

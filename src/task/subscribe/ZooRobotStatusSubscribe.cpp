@@ -127,15 +127,6 @@ void ZooRobotStatusSubscribe::subscribeCallback(const zoo_bringup::robot_status 
     }
 }
 
-void ZooRobotStatusSubscribe::pubKnob(const zoo_bringup::robot_status &robot_status) const {
-    bool knob_available = robot_status.knob_available;
-    auto knob_task = robot_status.knob_task;
-    KnobStatus knobStatus;
-    knobStatus.setIsAvailable(knob_available);
-    VersionSubscribe<KnobStatus> knobResponse(WORK_STATUS_VERSION, knobStatus);
-    PublishOutManager::instance().publishKnob(knobResponse);
-}
-
 //电机堵转
 void ZooRobotStatusSubscribe::motorErrorCallback(const std_msgs::Int32 &motor_error) {
     NativeSystemManager::instance().motorErrorEvent(motor_error.data);

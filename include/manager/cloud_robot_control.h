@@ -9,6 +9,16 @@
 
 class CloudRobotControl {
 private:
+    CloudRobotControl() = default;
+
+    CloudRobotControl(CloudRobotControl &) = delete;
+
+    CloudRobotControl &operator=(const CloudRobotControl &) = delete;
+
+public:
+    ~CloudRobotControl() = default;
+
+private:
     std::string staging_information;
 
 public:

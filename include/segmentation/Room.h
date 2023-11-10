@@ -12,7 +12,7 @@
 #include "set"
 #include <opencv2/opencv.hpp>
 
-#include "glog/logging.h"
+#include "simulation.h"
 
 class Room {
 public:

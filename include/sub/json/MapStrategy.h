@@ -19,66 +19,75 @@
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
-using namespace std;
 
-class SaveMapStrategy : public MessageStrategy<MapInfo, MapInfo> {
+class FactoryResetStrategy: public MessageStrategy<std::string, std::string> {
 public:
-    MapInfo handler(MapInfo params) override;
+    std::string handler(std::string params) override;
 };
 
-class GetMultiMapsStrategy : public MessageStrategy<string, std::vector<MapInfo>> {
+class StartMapStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    vector<MapInfo> handler(string params) override;
+    std::string handler(std::string params) override;
 };
 
-class ChangeMapStrategy : public MessageStrategy<string, string> {
+class EndMapStrategy : public MessageStrategy<BuildMapParam, MapScore> {
 public:
-    string handler(string params) override;
+    MapScore handler(BuildMapParam params) override;
 };
 
-class ModifyMapNameStrategy : public MessageStrategy<MapInfo, string> {
+class GetMultiMapsStrategy : public MessageStrategy<std::string, std::vector<MultiMapInfo>> {
 public:
-    string handler(MapInfo params) override;
+    std::vector<MultiMapInfo> handler(std::string params) override;
 };
 
-class DeleteMapStrategy : public MessageStrategy<string, string> {
+class ChangeMapStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(string params) override;
+    std::string handler(std::string params) override;
 };
 
-class EditMapStrategy : public MessageStrategy<std::vector<std::vector<float>>, string> {
+class ModifyMapNameStrategy : public MessageStrategy<ModifyMapName, std::string> {
 public:
-    string handler(vector<std::vector<float>> params) override;
+    std::string handler(ModifyMapName params) override;
 };
 
-class GetEditMapStrategy : public MessageStrategy<string, std::vector<std::vector<float>>> {
+class DeleteMapStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    vector<std::vector<float>> handler(string params) override;
+    std::string handler(std::string params) override;
 };
 
-class ManualPushStartStrategy : public MessageStrategy<string, int> {
+class EditMapStrategy : public MessageStrategy<std::vector<std::vector<float>>, std::string> {
 public:
-    int handler(string params) override;
+    std::string handler(std::vector<std::vector<float>> params) override;
 };
 
-class ManualPushResetStrategy : public MessageStrategy<string, int> {
+class GetEditMapStrategy : public MessageStrategy<std::string, std::vector<std::vector<float>>> {
 public:
-    int handler(string params) override;
+    std::vector<std::vector<float>> handler(std::string params) override;
 };
 
-class MapObstaclesStrategy : public MessageStrategy<vector<vector<PointVo>>, string> {
+class ManualPushStartStrategy : public MessageStrategy<std::string, int> {
 public:
-    string handler(vector<vector<PointVo>> params) override;
+    int handler(std::string params) override;
 };
 
-class MapFeasibleZoneStrategy : public MessageStrategy<vector<vector<PointVo>>, string> {
+class ManualPushResetStrategy : public MessageStrategy<std::string, int> {
 public:
-    string handler(vector<vector<PointVo>> params) override;
+    int handler(std::string params) override;
 };
 
-class MapApplyIncreaseArea : public MessageStrategy<vector<int>, string> {
+class MapObstaclesStrategy : public MessageStrategy<std::vector<std::vector<PointVo>>, std::string> {
 public:
-    string handler(vector<int> params) override;
+    std::string handler(std::vector<std::vector<PointVo>> params) override;
+};
+
+class MapFeasibleZoneStrategy : public MessageStrategy<std::vector<std::vector<PointVo>>, std::string> {
+public:
+    std::string handler(std::vector<std::vector<PointVo>> params) override;
+};
+
+class MapApplyIncreaseArea : public MessageStrategy<std::vector<int>, std::string> {
+public:
+    std::string handler(std::vector<int> params) override;
 };
 
 #endif //APP_COMMUNICATION_MAPSTRATEGY_H

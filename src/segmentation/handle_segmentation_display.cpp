@@ -3,6 +3,8 @@
 //
 
 #include "segmentation/handle_segmentation_display.h"
+#include "model/Point.h"
+#include "segmentation/map_attribute.h"
 #include <cv_bridge/cv_bridge.h>
 
 void calculation_center_point(cv::Mat &segmented_map, std::vector<Room> &rooms,
@@ -276,8 +278,197 @@ void whole_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms,
     cv::imshow(winname, roomMat);
     cv::waitKey();
 
-    auto cloneMat = roomMat.clone();
-    cv::resize(cloneMat, cloneMat, cv::Size(), 0.5, 0.5, cv::INTER_LINEAR);
-    cv::imshow(winname, cloneMat);
+//    auto cloneMat = roomMat.clone();
+//    cv::resize(cloneMat, cloneMat, cv::Size(), 0.5, 0.5, cv::INTER_LINEAR);
+//    cv::imshow(winname, cloneMat);
+//    cv::waitKey();
+}
+
+void whole_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms, cv::Point pl, cv::Point pr,
+                   const std::string &winname) {
+    cv::Mat roomMat = cv::Mat::zeros(segmented_map.rows, segmented_map.cols, CV_8UC3);
+    for (int i = 0; i < rooms.size(); ++i) {
+        int blue = (rand() % 250) + 2;
+        int green = (rand() % 250) + 2;
+        int red = (rand() % 250) + 2;
+
+        auto current_room = rooms[i];
+        std::map<int, int, std::greater<int> > neighbor_room_statistics_inverse;    // common border length, room_id
+        current_room.getNeighborStatisticsInverse(neighbor_room_statistics_inverse);
+        auto statistics = current_room.getNeighborStatistics();
+
+        auto members = current_room.getMembers();
+        for (const auto &item: members) {
+            roomMat.at<cv::Vec3b>(item)[0] = blue;
+            roomMat.at<cv::Vec3b>(item)[1] = green;
+            roomMat.at<cv::Vec3b>(item)[2] = red;
+        }
+
+        auto center = current_room.getCenter();
+        auto neighborIDs = current_room.getNeighborIDs();
+        int id = current_room.getID();
+
+        std::string idStr;
+        std::string neighborStr;
+        cv::Point point1(center.x - 10, center.y - 10);
+        cv::Point point2(center.x - 10, center.y + 10);
+
+        idStr.append(std::to_string(i) + "." + std::to_string(id));
+        cv::putText(roomMat, idStr, point1, cv::FONT_HERSHEY_TRIPLEX, 0.4,
+                    cv::Scalar(255, 200, 200), 1, CV_AA);
+
+        for (const auto &item: neighborIDs) {
+            neighborStr.append(std::to_string(item) + ",");
+        }
+        cv::putText(roomMat, neighborStr, point2, cv::FONT_HERSHEY_TRIPLEX, 0.3,
+                    cv::Scalar(255, 200, 200), 1, CV_AA);
+    }
+
+    cv::circle(roomMat, pl, 5, cv::Scalar(0, 200, 0), CV_FILLED);
+    cv::circle(roomMat, pr, 5, cv::Scalar(200, 0, 0), CV_FILLED);
+
+    cv::imshow(winname, roomMat);
     cv::waitKey();
+
+//    auto cloneMat = roomMat.clone();
+//    cv::resize(cloneMat, cloneMat, cv::Size(), 0.5, 0.5, cv::INTER_LINEAR);
+//    cv::imshow(winname, cloneMat);
+//    cv::waitKey();
+}
+
+void whole_display(const cv::Mat &segmented_map, std::vector<Room> &rooms, const std::vector<Gate> &gateList,
+                   std::map<std::pair<int, int>, std::pair<Gate, bool>> planMap, float resize,
+                   const std::string &winname) {
+
+    cv::Mat roomMat = cv::Mat::zeros(segmented_map.rows, segmented_map.cols, CV_8UC3);
+    for (auto &room: rooms) {
+
+        int blue = (rand() % 250) + 2;
+        int green = (rand() % 250) + 2;
+        int red = (rand() % 250) + 2;
+
+        std::vector<cv::Point> members = room.getMembers();
+        for (const auto &member: members) {
+//                roomMat.at<int>(member) = room.getID();
+            roomMat.at<cv::Vec3b>(member)[0] = blue;
+            roomMat.at<cv::Vec3b>(member)[1] = green;
+            roomMat.at<cv::Vec3b>(member)[2] = red;
+        }
+    }
+
+    cv::resize(roomMat, roomMat, cv::Size(), resize, resize, cv::INTER_LINEAR);
+    for (auto &room: rooms) {
+        auto center = room.getCenter();
+        cv::putText(roomMat, "   " + std::to_string(room.getID()), center * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
+                    cv::Scalar(255, 200, 200), 1, CV_AA);
+
+        cv::circle(roomMat, center * resize, 4, cv::Scalar(255, 200, 200), CV_FILLED);
+    }
+
+    for (const auto &gate: gateList) {
+
+        int blue = (rand() % 250) + 2;
+        int green = (rand() % 250) + 2;
+        int red = (rand() % 250) + 2;
+        auto scalar = cv::Scalar(blue, green, red);
+
+        cv::Point ps(gate.start_x, gate.start_y);
+        cv::Point pe(gate.end_x, gate.end_y);
+
+        cv::line(roomMat, ps * resize, pe * resize, scalar, 4, cv::LINE_8);
+
+        Point gateLeftPoint(gate.left_position_x, gate.left_position_y);
+        Point gateRightPoint(gate.right_position_x, gate.right_position_y);
+
+        auto cvGateLeftPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
+                                                                                   segmented_map.cols,
+                                                                                   gateLeftPoint);
+        auto cvGateRightPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
+                                                                                    segmented_map.cols,
+                                                                                    gateRightPoint);
+
+        cv::circle(roomMat, cvGateLeftPoint * resize, 4, scalar, CV_FILLED);
+        cv::putText(roomMat, " L", cvGateLeftPoint * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
+                    cv::Scalar(255, 200, 200), 1, CV_AA);
+
+        cv::circle(roomMat, cvGateRightPoint * resize, 2, scalar, CV_FILLED);
+        cv::putText(roomMat, " R", cvGateRightPoint * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
+                    cv::Scalar(255, 200, 200), 1, CV_AA);
+
+        cv::Point midPoint((ps.x + pe.x) / 2, (ps.y + pe.y) / 2);
+        cv::putText(roomMat, std::to_string(gate.id), midPoint * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
+                    cv::Scalar(255, 200, 200), 1, CV_AA);
+
+    }
+    cv::imshow(winname, roomMat);
+    cv::waitKey();
+
+    for (const auto &plan: planMap) {
+
+        auto directionMat = roomMat.clone();
+
+        std::pair<int, int> region = plan.first;
+        std::pair<Gate, bool> gatePoint = plan.second;
+
+        int originRegionId = region.first;
+        int finishRegionId = region.second;
+
+        Room roomStart(0);
+        Room roomEnd(0);
+        for (const auto &room: rooms) {
+            if (room.getID() == originRegionId) {
+                roomStart = room;
+            } else if (room.getID() == finishRegionId) {
+                roomEnd = room;
+            }
+        }
+
+        if (roomStart.getID() == 0 || roomEnd.getID() == 0) {
+            throw std::runtime_error("no find room .");
+        }
+
+
+        Gate &gate = gatePoint.first;
+        bool direction = gatePoint.second;
+
+        cv::putText(directionMat, std::to_string(originRegionId) + " -> " + std::to_string(finishRegionId),
+                    cv::Point(0, 50), cv::FONT_HERSHEY_TRIPLEX, 0.4, cv::Scalar(255, 200, 200), 1, CV_AA);
+
+        Point gateLeftPoint(gate.left_position_x, gate.left_position_y);
+        Point gateRightPoint(gate.right_position_x, gate.right_position_y);
+
+        auto cvGateLeftPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
+                                                                                   segmented_map.cols,
+                                                                                   gateLeftPoint);
+        auto cvGateRightPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(segmented_map.rows,
+                                                                                    segmented_map.cols,
+                                                                                    gateRightPoint);
+
+        cv::Point directionStart;
+        cv::Point directionEnd;
+        if (direction) {
+            directionStart = cvGateLeftPoint;
+            directionEnd = cvGateRightPoint;
+        } else {
+            directionStart = cvGateRightPoint;
+            directionEnd = cvGateLeftPoint;
+        }
+
+        cv::line(directionMat, roomStart.getCenter() * resize, directionStart * resize,
+                 cv::Scalar(0, 0, 0), 1, cv::LINE_8);
+        cv::line(directionMat, directionStart * resize, directionEnd * resize,
+                 cv::Scalar(0, 0, 0), 1, cv::LINE_8);
+        cv::line(directionMat, directionEnd * resize, roomEnd.getCenter() * resize,
+                 cv::Scalar(0, 0, 0), 1, cv::LINE_8);
+
+        cv::putText(directionMat, " S",
+                    roomStart.getCenter() * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
+                    cv::Scalar(255, 200, 200), 1, CV_AA);
+        cv::putText(directionMat, " E",
+                    roomEnd.getCenter() * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
+                    cv::Scalar(255, 200, 200), 1, CV_AA);
+
+        cv::imshow(std::to_string(originRegionId) + " -> " + std::to_string(finishRegionId), directionMat);
+        cv::waitKey();
+    }
 }

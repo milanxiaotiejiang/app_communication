@@ -13,24 +13,34 @@
 #include <visualization_msgs/Marker.h>
 #include "ros/ros.h"
 #include "model/ShowWorkStatus.h"
-#include "model/SelfCheckStatus.h"
 #include "model/Notice.h"
 #include "net/base/VersionSubscribe.h"
-#include "model/KnobStatus.h"
 #include "model/InternalEvent.h"
+#include "std_msgs/Int32.h"
+#include "net/ros/SensorSelfModel.h"
 
 class PublishOutManager {
+private:
+    PublishOutManager() = default;
+
+    PublishOutManager(PublishOutManager &) = delete;
+
+    PublishOutManager &operator=(const PublishOutManager &) = delete;
+
+public:
+    ~PublishOutManager() = default;
+
 private:
     ros::Publisher pub_response_,//原协议
     pub_response_json_,  //新协议
     pub_robot_status_,   //机器人状态
     pub_map_,            //地图
-    pub_self_check_,     //目标点
     pub_notice_,         //notice
-    pub_knob_,           //knob
+    pub_sensor_check_,  //
     pub_internal_event_;//发送给云端
     ros::Publisher acceptAppJsonV1;
     ros::Publisher acceptAppCommunication;
+    ros::Publisher pubCarpet;
 public:
     static auto &instance() {
         static PublishOutManager obj;
@@ -45,19 +55,18 @@ public:
 
     void publishMap(const nav_msgs::OccupancyGrid &message) const;
 
-    void publishSelfCheck(const VersionSubscribe<SelfCheckStatus> &versionSubscribe) const;
-
     void publishNotice(const Notice &notice) const;
+
+    void publishSensorCheck(const SensorSelf &model) const;
 
     void publishAppJson(int version, const std_msgs::String &message) const;
 
     void publishAppCommunication(const std_msgs::String &message) const;
 
-    void publishAlarm(const internal_event::AlarmEvent& alarmEvent) const;
-
-    void publishKnob(const VersionSubscribe<KnobStatus> &versionSubscribe) const;
+    void publishAlarm(const internal_event::AlarmEvent &alarmEvent) const;
 
     void publishInternalEvent(const std_msgs::String &message) const;
+
 };
 
 

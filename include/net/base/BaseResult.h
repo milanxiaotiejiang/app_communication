@@ -36,7 +36,7 @@ public:
     BaseResult(int id, int errorCode, const std::string &errorMessage) : id(id), error_code(errorCode),
                                                                          error_message(errorMessage) {
         result = false;
-        params = "";
+//        params = "";
     }
 
     BaseResult(int id, bool result, int errorCode, const std::string &errorMessage, T params)

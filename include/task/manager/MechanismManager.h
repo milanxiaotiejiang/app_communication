@@ -9,6 +9,19 @@
 #include "leave/HotWindNote.h"
 
 class MechanismManager {
+private:
+    MechanismManager() = default;
+
+    MechanismManager(MechanismManager &) = delete;
+
+    MechanismManager &operator=(const MechanismManager &) = delete;
+
+
+    std::atomic<bool> opening;
+
+public:
+    ~MechanismManager() = default;
+
 public:
     static auto &instance() {
         static MechanismManager obj;
@@ -16,6 +29,7 @@ public:
     }
 
 public:
+    bool isOpening() const;
 
     void resetWorkStatus();
 

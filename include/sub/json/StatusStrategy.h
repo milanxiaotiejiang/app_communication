@@ -7,11 +7,10 @@
 
 #include "MessageStrategy.h"
 #include "ros/ros.h"
+#include "model/ManualModel.h"
 #include <nlohmann/json.hpp>
 
-
 using json = nlohmann::json;
-using namespace std;
 
 class StatusPauseStrategy : public MessageStringStrategy {
 public:
@@ -33,9 +32,9 @@ public:
     void handler() override;
 };
 
-class QuitManualStrategy : public MessageStringStrategy {
+class QuitManualStrategy : public MessageStrategy<std::string, ManualModel> {
 public:
-    void handler() override;
+    ManualModel handler(std::string params) override;
 };
 
 class EmergencyStopStrategy : public MessageStringStrategy {

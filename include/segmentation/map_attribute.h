@@ -12,76 +12,85 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <opencv2/opencv.hpp>
 #include <condition_variable>
+#include <ostream>
 #include "yaml-cpp/yaml.h"
 
-#include "glog/logging.h"
+#include "simulation.h"
 #include "model/Point.h"
 #include "db/path.h"
+#include "task/RealPoint.h"
 
 const double map_resolution_from_subscription = 0.05;
 
 const int VIRTUAL_WALL_DUS_COUNT = 2;
 const int PENALTY_ZONE_DUS_COUNT = 4;
 
-class MapAttribute {
-private:
-    bool initialize_finish = false;
+struct MapAttribute {
+    std::string attrPath;
+    geometry_msgs::Pose originPose;
+    std::string mapPath;
+    int mapCols;//width
+    int mapRows;//height
+    cv::Point2d originPoint;
 
+    MapAttribute() = default;
+
+    MapAttribute(const std::string &attrPath) : attrPath(attrPath) {}
+
+    friend std::ostream &operator<<(std::ostream &os, const MapAttribute &attribute) {
+        os << "attrPath: " << attribute.attrPath << " originPoseX: " << attribute.originPose.position.x
+           << " originPoseY: " << attribute.originPose.position.y << " mapPath: "
+           << attribute.mapPath << " mapCols: " << attribute.mapCols << " mapRows: " << attribute.mapRows
+           << " originPoint: " << attribute.originPoint;
+        return os;
+    }
+};
+
+class MapAttributeSingleton {
+private:
+    MapAttributeSingleton() = default;
+
+    MapAttributeSingleton(MapAttributeSingleton &) = delete;
+
+    MapAttributeSingleton &operator=(const MapAttributeSingleton &) = delete;
+
+public:
+    ~MapAttributeSingleton() = default;
+
+private:
     std::atomic<bool> creating_map{false};
     std::condition_variable wait_cv;
     std::mutex wait_mutex;
 
-    geometry_msgs::Pose map_origin_pose;
-    cv::Point2d map_origin;
+    MapAttribute currentMapAttribute;
 
     geometry_msgs::Pose2D starting_position_pose;
 
     std::vector<std::vector<Point>> virtualWallList;
     std::vector<std::vector<Point>> penaltyZoneList;
 
-    const double robot_radius_ = 0.26;
-    const int map_correction_closing_neighborhood_size_ = 1;
-    const double grid_obstacle_offset_ = 0.16;
-    const double path_eps_ = 7.0;
-    const double min_cell_area_ = 60.0;
-    const int max_deviation_from_track_ = -1;
-    const int range_near_base_station_ = 5;
-
-    const double room_area_factor_lower_limit_ = 0.1;
-    const double room_area_factor_upper_limit_ = 1000000;
-    const int neighborhood_index_ = 280;
-    const int max_iterations_ = 150;
-    const double min_critical_point_distance_factor_ = 0.5;
-    const double max_area_for_merging_ = 12.5;
-
-    const int distance_from_obstacles_ = 2;
-    const int number_extension_ = 1;
-    const int multiple_contour_spacing_ = 0;
-    const int random_number_generation_ratio_ = 100;
-    const int boundary_min_area_ = 1;
-
 public:
     static auto &instance() {
-        static MapAttribute obj;
+        static MapAttributeSingleton obj;
         return obj;
-    }
-
-    bool isInitializeFinish() const {
-        return initialize_finish;
     }
 
     bool isCreatingMap() const;
 
     const geometry_msgs::Pose &getMapOriginPose() const {
-        return map_origin_pose;
+        return currentMapAttribute.originPose;
     }
 
-    const cv::Point2d &getMapOrigin() const {
-        return map_origin;
+    cv::Point2d getMapOrigin() const {
+        return {currentMapAttribute.originPose.position.x, currentMapAttribute.originPose.position.y};
     }
 
     const std::vector<std::vector<Point>> &getVirtualWallList() const {
         return virtualWallList;
+    }
+
+    const MapAttribute &getCurrentMapAttribute() const {
+        return currentMapAttribute;
     }
 
     const std::vector<std::vector<Point>> &getPenaltyZoneList() const {
@@ -96,7 +105,9 @@ public:
 
     cv::Point getRobotPositionPoint(const cv::Mat &room_map) const;
 
-    void loadStation();
+    cv::Point getRobotPositionPoint(int rows, int cols) const;
+
+    bool loadStation();
 
     void resetProhibition();
 
@@ -113,11 +124,17 @@ public:
 
     cv::Point rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const;
 
-    cv::Point rosPoint2MapPoint(double rows, double cols, const Point &point) const;
+    cv::Point rosPoint2MapPoint(int rows, int cols, const Point &point) const;
+
+    Point mapPoint2RosPoint(int rows, int cols, const cv::Point &point) const;
 
     bool saveMap();
 
     void notifySaveMap();
+
+    static bool readAnyMapInfo(MapAttribute &mapAttribute);
+
+    static RealPoint createCurrentPoint();
 };
 
 

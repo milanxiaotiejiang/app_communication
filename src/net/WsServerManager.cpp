@@ -27,7 +27,7 @@
 
 #include <std_msgs/String.h>
 
-#include "glog/logging.h"
+#include "simulation.h"
 
 #include "net/MessageBusManager.h"
 
@@ -36,8 +36,18 @@
 #include "manager/PublishInnerManager.h"
 
 #include <opencv2/opencv.hpp>
+#include <utility>
 
 #include "tool/map_compress.h"
+
+#include "boost/iostreams/filtering_streambuf.hpp"
+#include "boost/iostreams/copy.hpp"
+#include "boost/iostreams/filter/gzip.hpp"
+
+#include "tool/base64.h"
+#include "net/base/BaseResult.h"
+#include "net/http_handler.h"
+#include "model/MapInfo.h"
 
 //#include "tool/ZLibString.hpp"
 
@@ -49,18 +59,18 @@ using json = nlohmann::json;
 
 struct Ask {
     websocketpp::connection_hdl hdl;
-    map<string, bool> subMap;
-    string osVersion = "";
-    string osSystem = "";
-    string osModel = "";
-    string osSource = "";
+    std::map<std::string, bool> subMap;
+    std::string osVersion = "";
+    std::string osSystem = "";
+    std::string osModel = "";
+    std::string osSource = "";
 
-    friend ostream &operator<<(ostream &os, const Ask &ask) {
+    friend std::ostream &operator<<(std::ostream &os, const Ask &ask) {
         std_msgs::String mapStr;
         for (const auto &item: ask.subMap) {
             mapStr.data.append(item.first);
             mapStr.data.append(" ");
-            mapStr.data.append(to_string(item.second));
+            mapStr.data.append(std::to_string(item.second));
             mapStr.data.append(" | ");
         }
         os << "hdl: " << ask.hdl.lock().get() << " subMap: " << mapStr;
@@ -69,8 +79,8 @@ struct Ask {
 };
 
 
-vector<websocketpp::connection_hdl> list;
-map<void *, Ask> mMap;
+std::vector<websocketpp::connection_hdl> list;
+std::map<void *, Ask> mMap;
 std::mutex askMutex;
 
 typedef websocketpp::server<websocketpp::config::asio> server;
@@ -82,14 +92,14 @@ using websocketpp::lib::placeholders::_2;
 // pull out the type of messages sent by our config
 typedef server::message_ptr message_ptr;
 
-code_machina::BlockingCollection<string> serverCollection;
+code_machina::BlockingCollection<std::string> serverCollection;
 code_machina::BlockingCollection<NetModel> serverDataCollection;
 
 PolyM::Queue transformQueue;
 
 void wsServerSend(server *server, websocketpp::connection_hdl hdl, std::string const &payload, std::string tag) {
     try {
-        server->send(hdl, payload, websocketpp::frame::opcode::text);
+        server->send(std::move(hdl), payload, websocketpp::frame::opcode::text);
 //        server->get_alog().write(websocketpp::log::alevel::app, data);
     } catch (const std::exception &e) {
         LOG(ERROR) << "WsServerManager : " << tag << " " << e.what();
@@ -107,31 +117,38 @@ void on_http(server *s, websocketpp::connection_hdl hdl) {
     server::connection_ptr con = s->get_con_from_hdl(hdl);
 
     std::string res = con->get_request_body();
-    auto path = con->get_resource();//"/nebula/sys/randomImage/5585"
-    string host = con->get_host();//"192.168.2.87"
-    uint16_t port = con->get_port();//9090
-    string reason = con->get_local_close_reason();
-    string proxy = con->get_proxy();
-    auto request = con->get_request();//post uri
-    string requestBody = con->get_request_body();//"{\"captcha\":\"\",\"checkKey\":\"5585\",\"password\":\"demo@123\",\"username\":\"demo\"}"
-    auto resource = con->get_resource();//"/nebula/sys/login"
-    string responseMsg = con->get_response_msg();//"[::ffff:192.168.2.83]:42898"
-    string remoteEndPoint = con->get_remote_endpoint();
-    string uri = request.get_uri();//"/nebula/sys/login"
-    string method = request.get_method();//"POST"
-    string body = request.get_body();//"{\"captcha\":\"\",\"checkKey\":\"5585\",\"password\":\"demo@123\",\"username\":\"demo\"}"
-    string version = request.get_version();
+    auto path = con->get_resource();
+    std::string host = con->get_host();
+    uint16_t port = con->get_port();
+    std::string reason = con->get_local_close_reason();
+    std::string proxy = con->get_proxy();
+    auto request = con->get_request();
+    std::string requestBody = con->get_request_body();
+    auto resource = con->get_resource();
+    std::string responseMsg = con->get_response_msg();
+    std::string remoteEndPoint = con->get_remote_endpoint();
+    std::string uri = request.get_uri();//"/map_image
+    std::string method = request.get_method();
+    std::string body = request.get_body();//"{\r\n  \"map_id\": \"59a9dbd3c8424bf598ff71ca5bb0be6e\"\r\n}"
+    std::string version = request.get_version();
     auto headers = request.get_headers();
 
-    std::stringstream ss;
-    ss << "got HTTP request with " << res.size() << " bytes of body data.";
-
-    con->set_body(ss.str());
+    if (WsServerManager::startsWith(uri, "/map_image")) {
+        json jDecode = json::parse(body);
+        auto entrance = jDecode.get<MapImageRequest>();
+        auto result = HttpHandler::imageProgressing(entrance.map_id);
+        json jsonResult = result;
+        con->set_body(jsonResult.dump());
+    } else {
+        BaseResult<std::string> templateResult(0, "");
+        json jsonResult = templateResult;
+        con->set_body(jsonResult.dump());
+    }
     con->set_status(websocketpp::http::status_code::ok);
 }
 
 void on_fail(server *s, websocketpp::connection_hdl hdl) {
-    server::connection_ptr con = s->get_con_from_hdl(hdl);
+    server::connection_ptr con = s->get_con_from_hdl(std::move(hdl));
     {
         std::unique_lock<std::mutex> lock(askMutex);
         mMap.clear();
@@ -140,7 +157,7 @@ void on_fail(server *s, websocketpp::connection_hdl hdl) {
     LOG(WARNING) << "Fail handler: " << con->get_ec() << " " << con->get_ec().message();
 }
 
-void on_close(websocketpp::connection_hdl hdl) {
+void on_close(const websocketpp::connection_hdl &hdl) {
     LOG(WARNING) << "Close handler";
     {
         std::unique_lock<std::mutex> lock(askMutex);
@@ -148,33 +165,33 @@ void on_close(websocketpp::connection_hdl hdl) {
     }
 }
 
-void on_open(server *s, websocketpp::connection_hdl hdl) {
+void on_open(server *s, const websocketpp::connection_hdl &hdl) {
     LOG(WARNING) << "Open handler" << std::endl;
 
     auto con = s->get_con_from_hdl(hdl);
     auto path = con->get_resource();
-    string host = con->get_host();
+    std::string host = con->get_host();
     uint16_t port = con->get_port();
-    string origin = con->get_origin();
-    string reason = con->get_local_close_reason();
-    string proxy = con->get_proxy();
+    std::string origin = con->get_origin();
+    std::string reason = con->get_local_close_reason();
+    std::string proxy = con->get_proxy();
     auto request = con->get_request();
-    string requestBody = con->get_request_body();
+    std::string requestBody = con->get_request_body();
     auto resource = con->get_resource();
-    string responseMsg = con->get_response_msg();
-    string remoteEndPoint = con->get_remote_endpoint();
-    string uri = request.get_uri();
-    string method = request.get_method();
-    string body = request.get_body();
-    string version = request.get_version();
+    std::string responseMsg = con->get_response_msg();
+    std::string remoteEndPoint = con->get_remote_endpoint();
+    std::string uri = request.get_uri();
+    std::string method = request.get_method();
+    std::string body = request.get_body();
+    std::string version = request.get_version();
     auto headers = request.get_headers();
-    string osVersion = headers["os-version"];
-    string osSystem = headers["os-system"];
-    string osModel = headers["os-model"];
-    string osSource = headers["os-source"];
-    LOG(INFO) << "Connected to remote : " << remoteEndPoint
-              << " , osVersion : " + osVersion + " , osSystem : " + osSystem +
-                 " , osModel : " + osModel + " , osSource : " + osSource;
+    std::string osVersion = headers["os-version"];
+    std::string osSystem = headers["os-system"];
+    std::string osModel = headers["os-model"];
+    std::string osSource = headers["os-source"];
+    LOG_IF(INFO, DEBUG_REQUEST) << "Connected to remote : " << remoteEndPoint
+                                << " , osVersion : " + osVersion + " , osSystem : " + osSystem +
+                                   " , osModel : " + osModel + " , osSource : " + osSource;
 
     Ask ask = Ask();
     ask.hdl = hdl;
@@ -183,15 +200,31 @@ void on_open(server *s, websocketpp::connection_hdl hdl) {
     ask.osModel = osModel;
     ask.osSource = osSource;
     ask.subMap[MAP_APP] = false;
+    ask.subMap[GZIP_MAP_APP] = false;
     ask.subMap[ODOM_APP] = false;
     ask.subMap[ROBOT_STATUS] = false;
     ask.subMap[NOTICE_APP] = false;
     ask.subMap[TASK_POINT] = false;
-    ask.subMap[CHECK_APP] = false;
-    ask.subMap[KNOB_APP] = false;
     ask.subMap[ALARM_EVENT] = false;
     ask.subMap[RESPONSE] = false;
     ask.subMap[RESPONSE_JSON] = false;
+
+    ask.subMap[SENSOR_CHECK] = false;
+    ask.subMap[APP_MRROBOT_UL_SENSOR1] = false;
+    ask.subMap[APP_MRROBOT_UL_SENSOR2] = false;
+    ask.subMap[APP_MRROBOT_UL_SENSOR3] = false;
+    ask.subMap[APP_MRROBOT_UL_SENSOR4] = false;
+    ask.subMap[APP_MRROBOT_LS_FRONT_LEFT] = false;
+    ask.subMap[APP_MRROBOT_LS_FRONT_RIGHT] = false;
+    ask.subMap[APP_1_DEPTH_DEPTH2PC] = false;
+    ask.subMap[APP_2_DEPTH_DEPTH2PC] = false;
+    ask.subMap[APP_SCAN_RAW] = false;
+    ask.subMap[APP_WHEEL_ODOM] = false;
+    ask.subMap[APP_MRROBOT_ON_LADDER] = false;
+    ask.subMap[APP_HANDSFREE_IMU] = false;
+    ask.subMap[APP_MRROBOT_BUMP_SENSOR] = false;
+    ask.subMap[APP_MRROBOT_CARPET_DETECT] = false;
+
     {
         std::unique_lock<std::mutex> lock(askMutex);
         mMap[hdl.lock().get()] = ask;
@@ -206,27 +239,27 @@ void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr m
     //              << std::endl;
 
     auto con = s->get_con_from_hdl(hdl);
-    string remoteEndPoint = con->get_remote_endpoint();
-    string payload = msg->get_payload();
+    std::string remoteEndPoint = con->get_remote_endpoint();
+    std::string payload = msg->get_payload();
 
-    string header = msg->get_header();
-    string data = msg->get_extension_data();
-    string raw = msg->get_raw_payload();
+    std::string header = msg->get_header();
+    std::string data = msg->get_extension_data();
+    std::string raw = msg->get_raw_payload();
 
-//    LOG(INFO) << "on_message remote : " << remoteEndPoint << " , payload : " << payload;
+//    LOG_IF(INFO, DEBUG_REQUEST) << "on_message remote : " << remoteEndPoint << " , payload : " << payload;
     {
         std::unique_lock<std::mutex> lock(askMutex);
         if (mMap.find(hdl.lock().get()) != mMap.end()) {
             Ask *ask = &mMap[hdl.lock().get()];
-            string osSystem = ask->osSystem;
-            string osVersion = ask->osVersion;
+            std::string osSystem = ask->osSystem;
+            std::string osVersion = ask->osVersion;
 
             AcceptRequestModel entrance;
             try {
                 json jDecode = json::parse(payload);
                 entrance = jDecode.get<AcceptRequestModel>();
-                string op = entrance.getOp();
-                string topic = entrance.getTopic();
+                std::string op = entrance.getOp();
+                std::string topic = entrance.getTopic();
 
                 if (op == "subscribe") {
                     ask->subMap[topic] = true;
@@ -272,7 +305,7 @@ public:
     explicit WsServerMapThread(websocketpp::server<websocketpp::config::asio> *server) : server(server) {}
 
     void *run() override {
-        LOG(INFO) << "WsServerMapThread : " << syscall(SYS_gettid);
+        LOG_IF(INFO, DEBUG_FIRING) << "WsServerMapThread : " << syscall(SYS_gettid);
         NetModel netModel;
         while (!serverDataCollection.is_completed()) {
             auto status = serverDataCollection.take(netModel);
@@ -291,23 +324,38 @@ public:
 class WsServerSubThread : public CThread {
 private:
     websocketpp::server<websocketpp::config::asio> *server;
-    map<string, string> dataMap;
-    string mapData;
+    std::map<std::string, std::string> dataMap;
+    std::string mapData;
 
 public:
     explicit WsServerSubThread(websocketpp::server<websocketpp::config::asio> *server) : server(server) {
         dataMap[ODOM_APP] = "";
         dataMap[ROBOT_STATUS] = "";
         dataMap[NOTICE_APP] = "";
+        dataMap[SENSOR_CHECK] = "";
         dataMap[TASK_POINT] = "";
-        dataMap[CHECK_APP] = "";
-        dataMap[KNOB_APP] = "";
         dataMap[ALARM_EVENT] = "";
         dataMap[RESPONSE] = "";
         dataMap[RESPONSE_JSON] = "";
+
+        dataMap[SENSOR_CHECK] = "";
+        dataMap[APP_MRROBOT_UL_SENSOR1] = "";
+        dataMap[APP_MRROBOT_UL_SENSOR2] = "";
+        dataMap[APP_MRROBOT_UL_SENSOR3] = "";
+        dataMap[APP_MRROBOT_UL_SENSOR4] = "";
+        dataMap[APP_MRROBOT_LS_FRONT_LEFT] = "";
+        dataMap[APP_MRROBOT_LS_FRONT_RIGHT] = "";
+        dataMap[APP_1_DEPTH_DEPTH2PC] = "";
+        dataMap[APP_2_DEPTH_DEPTH2PC] = "";
+        dataMap[APP_SCAN_RAW] = "";
+        dataMap[APP_WHEEL_ODOM] = "";
+        dataMap[APP_MRROBOT_ON_LADDER] = "";
+        dataMap[APP_HANDSFREE_IMU] = "";
+        dataMap[APP_MRROBOT_BUMP_SENSOR] = "";
+        dataMap[APP_MRROBOT_CARPET_DETECT] = "";
     }
 
-    void setMapApp(const string &data) {
+    void setMapApp(const std::string &data) {
         mapData = data;
     }
 
@@ -328,61 +376,60 @@ public:
 //        dataMap[key] = jsonResult.dump();
 //    }
 
-    void sendRequestData(const string &key, const std::string &value) {
+    void sendRequestData(const std::string &key, const std::string &value) {
         dataMap[key] = value;
     }
 
     void *run() override {
-        LOG(INFO) << "WsServerSubThread : " << syscall(SYS_gettid);
+        LOG_IF(INFO, DEBUG_FIRING) << "WsServerSubThread : " << syscall(SYS_gettid);
 
         while (ros::ok()) {
-            sleep(2);
+            std::this_thread::sleep_for(std::chrono::milliseconds(2000));
             {
                 std::unique_lock<std::mutex> lock(askMutex);
                 for (const auto &ask: mMap) {
                     auto hdl = ask.second.hdl;
                     auto subMap = ask.second.subMap;
                     for (const auto &item: subMap) {
-                        string key = item.first;
+                        bool isSend = false;
+                        std::string key = item.first;
                         bool send = item.second;
                         if (send) {
-                            if (key == MAP_APP) {
-                                if (!mapData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, mapData, key);
-                                    dataMap[key] = "";
-                                }
-                            }
-                            if (key == NOTICE_APP) {
-                                auto realData = dataMap[key];
-                                if (!realData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, realData, key);
-                                    dataMap[key] = "";
-                                }
-                            } else if (key == ALARM_EVENT) {
-                                auto realData = dataMap[key];
-                                if (!realData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, realData, key);
-                                    dataMap[key] = "";
-                                }
-                            } else if (key == TASK_POINT) {
-                                auto realData = dataMap[key];
-                                if (!realData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, realData, key);
-                                    dataMap[key] = "";
-                                }
+                            if (key == MAP_APP || key == GZIP_MAP_APP) {
+                                isSend = sendMap(ask, key);
+                            } else if (key == NOTICE_APP || key == ALARM_EVENT || key == TASK_POINT ||
+                                       key == SENSOR_CHECK || key == APP_SCAN_RAW) {
+                                isSend = sendData(ask, key);
                             } else {
-                                auto realData = dataMap[key];
-                                if (!realData.empty()) {
-                                    wsServerSend(server, ask.second.hdl, realData, key);
-//                                dataMap[key] = "";
-                                }
+                                isSend = sendData(ask, key, false);
                             }
                         }
+                        if (isSend)
+                            std::this_thread::sleep_for(std::chrono::milliseconds(200));
                     }
-                    //                    server->get_alog().write(websocketpp::log::alevel::app, data);
                 }
             }
         }
+    }
+
+    bool sendMap(const std::pair<void *const, Ask> &ask, std::string &key) {
+        if (!mapData.empty()) {
+            wsServerSend(server, ask.second.hdl, mapData, key);
+            dataMap[key] = "";
+            return true;
+        }
+        return false;
+    }
+
+    bool sendData(const std::pair<void *const, Ask> &ask, std::string &key, bool clear = true) {
+        auto realData = dataMap[key];
+        if (!realData.empty()) {
+            wsServerSend(server, ask.second.hdl, realData, key);
+            if (clear)
+                dataMap[key] = "";
+            return true;
+        }
+        return false;
     }
 };
 
@@ -394,8 +441,8 @@ public:
     explicit WsServerDataThread(websocketpp::server<websocketpp::config::asio> *server) : server(server) {}
 
     void *run() override {
-        LOG(INFO) << "WsServerDataThread : " << syscall(SYS_gettid);
-        string data;
+        LOG_IF(INFO, DEBUG_FIRING) << "WsServerDataThread : " << syscall(SYS_gettid);
+        std::string data;
         while (!serverCollection.is_completed()) {
             auto status = serverCollection.take(data);
             if (status == BlockingCollectionStatus::Ok) {
@@ -443,7 +490,7 @@ public:
     WsServerThread() {}
 
     void *run() override {
-        LOG(INFO) << "WsServerThread : " << syscall(SYS_gettid);
+        LOG_IF(INFO, DEBUG_FIRING) << "WsServerThread : " << syscall(SYS_gettid);
 
         try {
             //设置日志级别
@@ -515,7 +562,7 @@ public:
                 websocketpp::lib::error_code ec;
                 echo_server.close(item.second.hdl, websocketpp::close::status::going_away, "", ec);
                 if (ec) {
-                    LOG(INFO) << " Error closing connection " << ec.message();
+                    LOG_IF(INFO, DEBUG_REQUEST) << " Error closing connection " << ec.message();
                 }
             }
         }
@@ -526,21 +573,21 @@ public:
 
 WsServerThread *wsServerThread;
 
-void messageBusTopic(const string &message) {
-    LOG(INFO) << "messageBusTopic : " << message;
+void messageBusTopic(const std::string &message) {
+    LOG_IF(INFO, DEBUG_REQUEST) << "messageBusTopic : " << message;
 }
 
 void WsServerManager::startWebSocket() {
 
     std::string pid = get_pid_using_port(9090);
     if (!pid.empty()) {
-        LOG(INFO) << "进程 pid 为 " << pid << " 占用 9090 端口 ！！";
+        LOG_IF(INFO, DEBUG_FIRING) << "进程 pid 为 " << pid << " 占用 9090 端口 ！！";
         kill_process(pid);
     }
 
     //    MessageBusManager::get_instance()->getMessageBus()->attach(
     //            [](const string message) {
-    //                LOG(INFO) << "messageBusTopic : " << message;
+    //                LOG_IF(INFO, DEBUG_REQUEST) << "messageBusTopic : " << message;
     //            }, MESSAGE_BUS_TOPIC);
 
     wsServerThread = new WsServerThread();
@@ -665,7 +712,7 @@ void WsServerManager::setMapApp(const nav_msgs::OccupancyGrid &occupancyGrid) {
 //        LOG(ERROR) << item << " ";
 //    }
 
-    vector<int> dataList = compressValueQuantity(mapDataList);
+    std::vector<int> dataList = compressValueQuantity(mapDataList);
 
     RosMap map(dataList, header, info);
 
@@ -675,6 +722,60 @@ void WsServerManager::setMapApp(const nav_msgs::OccupancyGrid &occupancyGrid) {
     requestModel.setMsg(map);
 
     json jsonResult = requestModel;
+    NetModel netModel(NET_MODEL_MAP, jsonResult.dump());
+    serverDataCollection.add(netModel);
+}
+
+void WsServerManager::setMapApp2(const nav_msgs::OccupancyGrid &occupancyGrid) {
+    if (occupancyGrid.data.size() == 0) {
+        return;
+    }
+    if (occupancyGrid.data.size() != occupancyGrid.info.width * occupancyGrid.info.height) {
+        return;
+    }
+    RosOrientation orientation(occupancyGrid.info.origin.orientation.w,
+                               occupancyGrid.info.origin.orientation.x,
+                               occupancyGrid.info.origin.orientation.y,
+                               occupancyGrid.info.origin.orientation.z);
+    RosPosition position(occupancyGrid.info.origin.position.x,
+                         occupancyGrid.info.origin.position.y,
+                         occupancyGrid.info.origin.position.z);
+    RosOrigin origin(orientation, position);
+
+    RosMapLoadTime mapLoadTime(occupancyGrid.info.map_load_time.nsec, occupancyGrid.info.map_load_time.sec);
+
+    RosStamp stamp(occupancyGrid.header.stamp.nsec, occupancyGrid.header.stamp.sec);
+    RosHeader header(occupancyGrid.header.frame_id, occupancyGrid.header.seq, stamp);
+
+    RosInfo info(occupancyGrid.info.width, occupancyGrid.info.height, occupancyGrid.info.resolution,
+                 mapLoadTime, origin);
+
+    std::vector<int8_t> occupancyList = occupancyGrid.data;
+
+    std::stringstream input;
+    for (int8_t b: occupancyList) {
+        input << b;
+    }
+
+    std::stringstream compressed;
+    boost::iostreams::filtering_streambuf<boost::iostreams::input> outbuf;
+    outbuf.push(boost::iostreams::gzip_compressor());
+    outbuf.push(input);
+    boost::iostreams::copy(outbuf, compressed);
+
+    std::string compressedString = compressed.str();
+
+    const std::string &base64Encode = base64_encode(compressedString);
+
+    GRosMap map(base64Encode, header, info);
+
+    RequestModel<GRosMap> requestModel;
+    requestModel.setOp("publish");
+    requestModel.setTopic(GZIP_MAP_APP);
+    requestModel.setMsg(map);
+
+    json jsonResult = requestModel;
+
     NetModel netModel(NET_MODEL_MAP, jsonResult.dump());
     serverDataCollection.add(netModel);
 }
@@ -691,7 +792,7 @@ void WsServerManager::setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr) {
                          odomPtr->pose.pose.position.y,
                          odomPtr->pose.pose.position.z);
     RosOrigin origin(orientation, position);
-    vector<double> poseCovariance;
+    std::vector<double> poseCovariance;
     for (const auto &item: odomPtr->pose.covariance) {
         poseCovariance.push_back(item);
     }
@@ -704,7 +805,7 @@ void WsServerManager::setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr) {
                      odomPtr->twist.twist.linear.y,
                      odomPtr->twist.twist.linear.z);
     RosTwistX twistX(angular, linear);
-    vector<double> twistCovariance;
+    std::vector<double> twistCovariance;
     for (const auto &item: odomPtr->twist.covariance) {
         twistCovariance.push_back(item);
     }
@@ -722,14 +823,14 @@ void WsServerManager::setOdomApp(const nav_msgs::OdometryConstPtr &odomPtr) {
     serverDataCollection.add(netModel);
 }
 
-void WsServerManager::sendRequestData(const string &key, const std::string &data) {
+void WsServerManager::sendRequestData(const std::string &key, const std::string &data) {
     if (wsServerThread != nullptr)
         if (wsServerThread->getWsServerSubThread() != nullptr)
             wsServerThread->getWsServerSubThread()->sendRequestData(key, data);
 }
 
-void WsServerManager::sendMessageBusTopic(const string &message) {
-    LOG(INFO) << "sendMessageBusTopic : " << message;
-    MessageBusManager::instance().getMessageBus()->sendReq<void, string>(
+void WsServerManager::sendMessageBusTopic(const std::string &message) {
+    LOG_IF(INFO, DEBUG_REQUEST) << "sendMessageBusTopic : " << message;
+    MessageBusManager::instance().getMessageBus()->sendReq<void, std::string>(
             message.data(), MESSAGE_BUS_TOPIC);
 }

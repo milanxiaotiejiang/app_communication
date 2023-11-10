@@ -34,29 +34,56 @@ void ReservedCall::handleManualOperation() {
 void ReservedCall::handleSpecialOperation() {
     switch (epoll_special) {
         case loop::special_epoll::special_low_battery: {
-            InternalEventPubManager::get_instance()->pubOper(LOW_BATTERY_BACK_CHARGE);
-            CleanHistoryCenter::instance().lowPowerBack();
+            if (!low_battery_back_charge_escalation) {
+                low_battery_back_charge_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(LOW_BATTERY_BACK_CHARGE);
+                CleanHistoryCenter::instance().lowPowerBack();
+            }
             break;
         }
         case loop::special_epoll::special_branch_water: {
-            InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(true, false, false);
+            if (!clean_water_level_check_failed_escalation) {
+                clean_water_level_check_failed_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
+                CleanHistoryCenter::instance().equipmentErrorBack(true, false, false, false);
+            }
             break;
         }
         case loop::special_epoll::special_sewage_water: {
-            InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(false, true, false);
+            if (!dirty_water_level_check_failed_escalation) {
+                dirty_water_level_check_failed_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
+                CleanHistoryCenter::instance().equipmentErrorBack(false, true, false, false);
+            }
             break;
         }
         case loop::special_epoll::special_branch_sewage_water: {
-            InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
-            InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(true, true, false);
+            if (!clean_water_level_check_failed_escalation) {
+                clean_water_level_check_failed_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(CLEAN_WATER_LEVEL_CHECK_FAILED);
+                CleanHistoryCenter::instance().equipmentErrorBack(true, false, false, false);
+            }
+            if (!dirty_water_level_check_failed_escalation) {
+                dirty_water_level_check_failed_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(DIRTY_WATER_LEVEL_CHECK_FAILED);
+                CleanHistoryCenter::instance().equipmentErrorBack(false, true, false, false);
+            }
             break;
         }
         case loop::special_epoll::special_dust_push_anomaly: {
-            InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_FAILED);
-            CleanHistoryCenter::instance().equipmentErrorBack(false, false, true);
+            if (!motor_error_recovery_failed_escalation) {
+                motor_error_recovery_failed_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_FAILED);
+                CleanHistoryCenter::instance().equipmentErrorBack(false, false, true, false);
+            }
+            break;
+        }
+        case loop::special_epoll::special_wet_tow_anomaly: {
+            if (!mop_error_recovery_success_escalation) {
+                mop_error_recovery_success_escalation = true;
+                InternalEventPubManager::get_instance()->pubOper(MOP_ERROR_RECOVERY_SCCEED);
+                CleanHistoryCenter::instance().equipmentErrorBack(false, false, false, true);
+            }
             break;
         }
         default:
@@ -70,7 +97,7 @@ void ReservedCall::handleErrorOperation() {
         case loop::error_epoll::error_manual_clean_start:
             if (isRegularTask(currentFlow())) {
                 InternalEventPubManager::get_instance()->pubOper(ENTER_MANUAL_CLEAN_MODE);
-                CleanHistoryCenter::instance().enterManualCleanMode();
+//                CleanHistoryCenter::instance().enterManualCleanMode();
             }
             break;
         case loop::error_epoll::error_manual_clean_end:
@@ -78,12 +105,14 @@ void ReservedCall::handleErrorOperation() {
         case loop::error_epoll::error_lift:
             InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LIFT_FAILED);
             break;
+        case loop::error_epoll::error_electric_move:
+            break;
         case loop::error_epoll::error_unrecoverable:
             InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_FAILED);
             CleanHistoryCenter::instance().laserInterrupt();
             break;
         default:
-            LOG(INFO) << "AsyncTaskCall handleErrorOperation : " << epoll_error << " ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall handleErrorOperation : " << epoll_error << " ...";
             break;
     }
     AsyncTaskCall::handleErrorOperation();
@@ -112,44 +141,64 @@ void ReservedCall::handleStop() {
 }
 
 void ReservedCall::handleExecuteTask(const RealTask &task) {
-    fbPtr->triggerStart(task.getId(), task.getPlanPoints());
+    notifier.triggerTaskStart(task);
     InternalEventPubManager::get_instance()->taskStart(task.getId());
     CleanHistoryCenter::instance().executeTask(task);
     AsyncTaskCall::handleExecuteTask(task);
 }
 
-void ReservedCall::handleFlowPoint(const RealPoint &point) {
-    if (point.id == FLOW_SEIZE_SEAT) {
+void ReservedCall::handleFlowBlock(const RealBlock &block) {
+    if (block.id == FLOW_SEIZE_SEAT) {
         setFlow(event::flow::out_base_station);
-    } else if (point.id == FLOW_OUT_STATION) {
-        CleanHistoryCenter::instance().setOutStation(point.arrive ? SUCCEED : FAIL);
-    } else if (point.id == FLOW_END_SLEEP) {
-        CleanHistoryCenter::instance().setEndSleep(point.arrive ? SUCCEED : FAIL);
-    } else if (point.id == FLOW_IN_BASE_POINT) {
+    } else if (block.id == FLOW_OUT_STATION) {
+        CleanHistoryCenter::instance().setOutStation(block.arrive ? SUCCEED : FAIL);
+    } else if (block.id == FLOW_END_SLEEP) {
+        CleanHistoryCenter::instance().setEndSleep(block.arrive ? SUCCEED : FAIL);
+    } else if (block.id == FLOW_IN_BASE_POINT) {
         CleanHistoryCenter::instance().setBackBasePointArrived(
-                point.arrive ? SUCCEED :
+                block.arrive ? SUCCEED :
                 (backBaseRetryCount < MAX_BASE_POINT_RETRY_COUNT ? (int) backBaseRetryCount : FAIL));
-    } else if (point.id == FLOW_IN_STATION) {
+    } else if (block.id == FLOW_IN_STATION) {
         CleanHistoryCenter::instance().setStationArrived(
-                point.arrive ? SUCCEED :
+                block.arrive ? SUCCEED :
                 (rechargeRetryCount < MAX_RECHARGE_RETRY_COUNT) ? (int) rechargeRetryCount : FAIL);
-    } else if (point.id == FLOW_CLOSE_MECHANISM) {
-        CleanHistoryCenter::instance().setCloseMechanism(point.arrive ? SUCCEED : FAIL);
-    } else if (point.id == FLOW_OPEN_MECHANISM) {
-        CleanHistoryCenter::instance().setOpenMechanism(point.arrive ? SUCCEED : FAIL);
+    } else if (block.id == FLOW_CLOSE_MECHANISM) {
+        CleanHistoryCenter::instance().setCloseMechanism(block.arrive ? SUCCEED : FAIL);
+    } else if (block.id == FLOW_OPEN_MECHANISM) {
+        CleanHistoryCenter::instance().setOpenMechanism(block.arrive ? SUCCEED : FAIL);
     }
-    HeadTailPointCall::handleFlowPoint(point);
+    HeadTailPointCall::handleFlowBlock(block);
 }
 
-void ReservedCall::processControl(const RealPoint &point) {
-    HeadTailPointCall::processControl(point);
+void ReservedCall::processControl(const RealBlock &block) {
+    HeadTailPointCall::processControl(block);
 }
 
-void ReservedCall::handlePlannerPoint(const RealPoint &point) {
+void ReservedCall::handlePlannerBlock(const RealBlock &block) {
+    if (block.id < 0) {
+        return;
+    }
+    if (block.taskId.empty()) {
+        return;
+    }
+    auto plannerPoints = block.plannerPoints;
+    if (plannerPoints.empty()) {
+        return;
+    }
+    int current_step = block.already_step + block.timely_step;
+    if (current_step > plannerPoints.size()) {
+        return;
+    }
+    auto point = plannerPoints[current_step];
+
     //当前进度和清洁面积更新到历史记录中
-    CleanHistoryCenter::instance().updateCleanHistory(point);
+    CleanHistoryCenter::instance().updateCleanHistory(block, point);
 
-    AsyncTaskCall::handlePlannerPoint(point);
+    AsyncTaskCall::handlePlannerBlock(block);
+}
+
+void ReservedCall::feedBackPose(const geometry_msgs::Pose &pose) {
+    notifier.triggerTaskProgress(pose);
 }
 
 void ReservedCall::forceInterruptTask(event::SB sb) {
@@ -157,6 +206,9 @@ void ReservedCall::forceInterruptTask(event::SB sb) {
     switch (epoll_error) {
         case loop::error_epoll::error_lift:
             errorId = FLOW_ERROR_LIFT;
+            break;
+        case loop::error_epoll::error_electric_move:
+            errorId = FLOW_ELECTRIC_MOVE;
             break;
     }
     auto error_pair = generateErrorByRealPoint(errorId);
@@ -169,8 +221,8 @@ void ReservedCall::forceInterruptTask(event::SB sb) {
     garbage(sb);
 }
 
-void ReservedCall::softwareInterruptTask(const RealPoint &point) {
-    auto error_pair = generateErrorByRealPoint(point.id);
+void ReservedCall::softwareInterruptTask(const RealBlock &block) {
+    auto error_pair = generateErrorByRealPoint(block.id);
     CleanHistoryCenter::instance().errorComplete(
             std::get<0>(error_pair), std::get<1>(error_pair), std::get<2>(error_pair)
     );
@@ -179,7 +231,7 @@ void ReservedCall::softwareInterruptTask(const RealPoint &point) {
 }
 
 void ReservedCall::goodGame(event::GG gg) {
-    fbPtr->triggerEnd();
+    notifier.triggerTaskEnd();
     runTask;
     InternalEventPubManager::get_instance()->taskStop(runTaskId());
     CleanHistoryCenter::instance().complete();
@@ -190,6 +242,15 @@ void ReservedCall::garbage(event::SB sb) {
     InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::SOFTWARE_INTERRUPT);
     InternalEventPubManager::get_instance()->taskStop(runTaskId());
     AsyncTaskCall::garbage(sb);
+}
+
+void ReservedCall::reset() {
+    AsyncTaskCall::reset();
+    low_battery_back_charge_escalation = false;
+    clean_water_level_check_failed_escalation = false;
+    dirty_water_level_check_failed_escalation = false;
+    motor_error_recovery_failed_escalation = false;
+    mop_error_recovery_success_escalation = false;
 }
 
 std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint(int errorId) {
@@ -237,6 +298,11 @@ std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint
             error_code = 3332;
             error_code2 = "CCR_332";
             break;
+        case FLOW_ELECTRIC_MOVE:
+            error_string = "电机失能";
+            error_code = 3333;
+            error_code2 = "CCR_333";
+            break;
         case FLOW_ERROR_UNRECOVERABLE:
             error_string = "未知错误";
             error_code = 3220;
@@ -246,79 +312,10 @@ std::tuple<int, std::string, std::string> ReservedCall::generateErrorByRealPoint
             error_string = "未知错误";
             error_code = 3200 - errorId;
             std::string base_string = "CCR_";
-            std::string flow_string = to_string(200 - errorId);
+            std::string flow_string = std::to_string(200 - errorId);
             error_code2 = base_string + flow_string;
 
             break;
     }
     return make_tuple(error_code, error_string, error_code2);
 }
-
-void ReservedCall::recordMotorError() {
-    InternalEventPubManager::get_instance()->pubOper(MOTOR_ERROR_RECOVERY_SCCEED);
-}
-
-void ReservedCall::recordMopError() {
-    InternalEventPubManager::get_instance()->pubOper(MOP_ERROR_RECOVERY_SCCEED);
-}
-
-void ReservedCall::recordHlsError(int error_event) {
-    switch (error_event) {
-        case 1:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_1);
-            break;
-        case 2:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_2);
-            break;
-        case 3:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_3);
-            break;
-        case 4:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_4);
-            break;
-        case 5:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_5);
-            break;
-        case 6:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_6);
-            break;
-        case 7:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_7);
-            break;
-        case 8:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_8);
-            break;
-        case 9:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_9);
-            break;
-        case 10:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_10);
-            break;
-        case 11:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_11);
-            break;
-        case 12:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_12);
-            break;
-        case 13:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_13);
-            break;
-        case 14:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_14);
-            break;
-        case 15:
-            InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR_15);
-            break;
-    }
-//    InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::HLS_ERROR);
-}
-
-void ReservedCall::recordLaserError(std::string error_event) {
-    if (error_event == "laser_scan_4014") {
-        InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_START);
-    } else if (error_event == "laser_scan_4015") {
-        InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::LASER_RESTART_SUCCEED);
-    }
-}
-
-

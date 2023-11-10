@@ -23,7 +23,7 @@
 
 const int OPENING_TIME_OF_CLEANING_MECHANISM = 10;
 const int CLOSING_TIME_OF_CLEANING_MECHANISM = 5;
-const int WAITING_TIME_OF_NODE_WORK_MODE = 60;
+const int WAITING_TIME_OF_NODE_WORK_MODE = 80;
 
 class AsyncTaskFramework : public AsyncCall {
 private:
@@ -35,16 +35,14 @@ private:
     std::deque<loop::error_epoll> errorEpollDeque;
     std::deque<loop::urgency_stop> urgencyStopDeque;
     std::deque<RealTask> taskEpollDeque;
-    std::deque<RealPoint> pointEpollDeque;
+    std::deque<RealBlock> blockEpollDeque;
 
-    atomic<bool> sleepTimeout;
+    std::atomic<bool> sleepTimeout;
 
 public:
     AsyncTaskFramework();
 
 protected:
-
-    std::unique_ptr<TaskFeedback> fbPtr;
 
     std::atomic<loop::manual_epoll> epoll_manual;
     std::atomic<loop::special_epoll> epoll_special;
@@ -63,7 +61,7 @@ protected:
 
     virtual void handleTask(const RealTask &task) = 0;
 
-    virtual void handlePoint(const RealPoint &point) = 0;
+    virtual void handleBlock(const RealBlock &block) = 0;
 
 //    void notify_one(const std::function<void()> &triggerProcess);
 
@@ -78,6 +76,18 @@ protected:
             std::unique_lock<std::mutex> lock(cv_mut);
             std::forward<F>(f)(std::forward<Args>(args)...);
         }
+        cv.notify_one();
+    }
+
+    template<typename F, typename... Args>
+    void lock(F &&f, Args &&... args) {
+        {
+            std::unique_lock<std::mutex> lock(cv_mut);
+            std::forward<F>(f)(std::forward<Args>(args)...);
+        }
+    }
+
+    void notify_one() {
         cv.notify_one();
     }
 
@@ -103,13 +113,13 @@ protected:
 
     void callCancelBackStation();
 
-    void callSwitchWorkMode(function<void(bool work)> f);
+    void callSwitchWorkMode(std::function<void(bool work)> f);
 
-    virtual void callOpenMechanism(const WorkStatus &status, bool knife, function<void()> f) = 0;
+    virtual void callOpenMechanism(const WorkStatus &status, bool knife, std::function<void()> f) = 0;
 
-    virtual void callCloseMechanism(function<void()> f) = 0;
+    virtual void callCloseMechanism(std::function<void()> f) = 0;
 
-    void callBackBasePoint();
+    virtual void callBackBasePoint();
 
     void callNeedPublishSleep();
 
@@ -141,7 +151,7 @@ protected:
 
     void pushTask(const RealTask &data);
 
-    void pushPoint(const RealPoint &data);
+    void pushBlock(const RealBlock &data);
 
 };
 

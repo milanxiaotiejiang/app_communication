@@ -9,7 +9,7 @@
 #include <ros/ros.h>
 
 #include <utility>
-#include "glog/logging.h"
+#include "simulation.h"
 
 class DR {
 public:
@@ -23,11 +23,11 @@ private:
 
 public:
 
-    void d(double value)  ;
+    void d(double value);
 
-    void i(int value) ;
+    void i(int value);
 
-    void b(bool value) ;
+    void b(bool value);
 
 };
 

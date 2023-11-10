@@ -24,21 +24,31 @@ namespace internal_event {
         const AlarmEvent dirty_water_level_check_failed = AlarmEvent("alarm", 1011, "COR_111", "污水箱满", "");
 
 
-        const AlarmEvent global_planner_create_failed = AlarmEvent("alarm", 3000, "COR_300", "无法创建global_planner，初始化失败",
+        const AlarmEvent global_planner_create_failed = AlarmEvent("alarm", 3000, "COR_300",
+                                                                   "无法创建global_planner，初始化失败",
                                                                    "");
-        const AlarmEvent local_planner_create_failed = AlarmEvent("alarm", 3001, "COR_301", "无法创建local_planner, 初始化失败",
+        const AlarmEvent local_planner_create_failed = AlarmEvent("alarm", 3001, "COR_301",
+                                                                  "无法创建local_planner, 初始化失败",
                                                                   "");
         const AlarmEvent illegal_quaternion = AlarmEvent("alarm", 3002, "COR_302", "目标点方向四元数非法，无法抵达", "");
-        const AlarmEvent global_cost_map_get_failed = AlarmEvent("alarm", 3003, "COR_303", "全局路径规划器无法获得全局代价地图", "");
-        const AlarmEvent get_current_pose_failed = AlarmEvent("alarm", 3004, "COR_304", "全局路径获取机器人当前位姿失败，导致规划失败", "");
-        const AlarmEvent global_plan_failed = AlarmEvent("alarm", 3005, "COR_305", "全局规划失败，无法计算出可用路径", "");
+        const AlarmEvent global_cost_map_get_failed = AlarmEvent("alarm", 3003, "COR_303",
+                                                                 "全局路径规划器无法获得全局代价地图", "");
+        const AlarmEvent get_current_pose_failed = AlarmEvent("alarm", 3004, "COR_304",
+                                                              "全局路径获取机器人当前位姿失败，导致规划失败", "");
+        const AlarmEvent global_plan_failed = AlarmEvent("alarm", 3005, "COR_305", "全局规划失败，无法计算出可用路径",
+                                                         "");
         const AlarmEvent set_local_plan_failed = AlarmEvent("alarm", 3006, "COR_306", "局部规划器无法设置全局路径", "");
-        const AlarmEvent local_control_failed = AlarmEvent("alarm", 3007, "COR_307", "局部规划失败，无法计算出可用速度", "");
-        const AlarmEvent planning_recovery_failed_and_skip = AlarmEvent("alarm", 3010, "COR_310", "全局规划脱困失败，跳点", "");
-        const AlarmEvent local_control_failed_and_skip = AlarmEvent("alarm", 3011, "COR_311", "局部规划脱困失败，跳点", "");
-        const AlarmEvent oscillation_recovery_failed_and_skip = AlarmEvent("alarm", 3012, "COR_312", "震荡脱困失败，跳点", "");
+        const AlarmEvent local_control_failed = AlarmEvent("alarm", 3007, "COR_307", "局部规划失败，无法计算出可用速度",
+                                                           "");
+        const AlarmEvent planning_recovery_failed_and_skip = AlarmEvent("alarm", 3010, "COR_310",
+                                                                        "全局规划脱困失败，跳点", "");
+        const AlarmEvent local_control_failed_and_skip = AlarmEvent("alarm", 3011, "COR_311", "局部规划脱困失败，跳点",
+                                                                    "");
+        const AlarmEvent oscillation_recovery_failed_and_skip = AlarmEvent("alarm", 3012, "COR_312",
+                                                                           "震荡脱困失败，跳点", "");
         const AlarmEvent sonar_recovery_failed_and_skip = AlarmEvent("alarm", 3013, "COR_313", "超声脱困失败，跳点", "");
-        const AlarmEvent prohibition_recovery_failed_and_skip = AlarmEvent("alarm", 3014, "COR_314", "禁区脱困始终无法找到可达点",
+        const AlarmEvent prohibition_recovery_failed_and_skip = AlarmEvent("alarm", 3014, "COR_314",
+                                                                           "禁区脱困始终无法找到可达点",
                                                                            "");
         const AlarmEvent sonar_recovery_time_out = AlarmEvent("alarm", 3015, "COR_315", "超声脱困超时", "");
 
@@ -65,14 +75,17 @@ namespace internal_event {
         //雷达重启相关
         const AlarmEvent laser_restart_start = AlarmEvent("alarm", 4014, "COR_414", "雷达电压不足", "");
         const AlarmEvent laser_restart_succeed = AlarmEvent("alarm", 4015, "COR_415", "雷达重启后数据恢复", "");
-        const AlarmEvent laser_restart_failed = AlarmEvent("alarm", 3219, "CCR_219", "雷达连续重启失败任务提前结束", "");
+        const AlarmEvent laser_restart_failed = AlarmEvent("alarm", 3219, "CCR_219", "雷达连续重启失败任务提前结束",
+                                                           "");
 
         const AlarmEvent lift_failed = AlarmEvent("alarm", 3332, "CCR_332", "机器处于电梯上", "");
 
         //尘推电机堵转
-        const AlarmEvent motor_error_recovery_scceed = AlarmEvent("alarm", 4013, "COR_413", "尘推转速异常并成功恢复", "");
-        const AlarmEvent motor_error_recovery_failed = AlarmEvent("alarm", 3218, "CCR_218", "尘推堵转，任务提前结束", "");
-        const AlarmEvent mop_error_recovery_scceed = AlarmEvent("alarm", 4431, "COR_431", "湿拖堵转", "");
+        const AlarmEvent motor_error_recovery_scceed = AlarmEvent("alarm", 4013, "COR_413", "尘推转速异常并成功恢复",
+                                                                  "");
+        const AlarmEvent motor_error_recovery_failed = AlarmEvent("alarm", 3218, "CCR_218", "尘推堵转，任务提前结束",
+                                                                  "");
+        const AlarmEvent mop_error_recovery_scceed = AlarmEvent("alarm", 4431, "COR_431", "湿拖堵转，任务提前结束", "");
 
         //底盘电机失能
         const AlarmEvent hls_error_1 = AlarmEvent("alarm", 4016, "COR_416", "电机失能，编码器故障ABZ报警", "");
@@ -345,14 +358,14 @@ namespace internal_event {
                 case internal_event::DIRTY_WATER_LEVEL_CHECK_FAILED:
                     pubAlarmEvent(dirty_water_level_check_failed);
                     break;
+                case internal_event::LASER_ERROR_RECOVERY_FAILED:
+                    pubAlarmEvent(laser_restart_failed);
+                    break;
                 case internal_event::MOTOR_ERROR_RECOVERY_SCCEED:
                     pubAlarmEvent(motor_error_recovery_scceed);
                     break;
                 case internal_event::MOTOR_ERROR_RECOVERY_FAILED:
                     pubAlarmEvent(motor_error_recovery_failed);
-                    break;
-                case internal_event::LASER_ERROR_RECOVERY_FAILED:
-                    pubAlarmEvent(laser_restart_failed);
                     break;
                 case internal_event::MOP_ERROR_RECOVERY_SCCEED:
                     pubAlarmEvent(mop_error_recovery_scceed);

@@ -12,6 +12,7 @@
 #include "map"
 #include "segmentation/meanshift2d.h"
 #include "segmentation/Room.h"
+#include "db/segmentation_model.h"
 
 void
 calculation_center_point(cv::Mat &segmented_map, std::vector<Room> &rooms, double robot_radius, double map_resolution);
@@ -21,5 +22,12 @@ void single_display(const cv::Mat &roomMat, Room &room, const std::string &winna
 void ordinary_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms, const std::string &winname);
 
 void whole_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms, const std::string &winname);
+
+void whole_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms, cv::Point pl, cv::Point pr,
+                   const std::string &winname);
+
+void whole_display(const cv::Mat &segmented_map, std::vector<Room> &rooms, const std::vector<Gate> &gateList,
+                   std::map<std::pair<int, int>, std::pair<Gate, bool>> planMap, float resize,
+                   const std::string &winname);
 
 #endif //APP_COMMUNICATION_HANDLE_SEGMENTATION_DISPLAY_H

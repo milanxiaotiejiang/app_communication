@@ -5,31 +5,23 @@
 #include "sub/JsonSubscribe.h"
 
 #include "net/WsServerManager.h"
-#include "sub/json/TTStrategy.h"
-#include "sub/json/CombinationStartegy.h"
 #include "sub/json/DeviceStrategy.h"
 #include "sub/json/MapStrategy.h"
-#include "sub/json/ProjectStrategy.h"
 #include "sub/json/TaskStrategy.h"
-#include "sub/json/TeachModeStrategy.h"
-#include "sub/json/TimerStrategy.h"
-#include "sub/json/ViewPartStrategy.h"
 #include <sub/json/GetCleanHistoryStrategy.h>
-#include <sub/json/LocationStrategy.h>
 #include <sub/json/ModeStrategy.h>
 #include <sub/json/StatusStrategy.h>
 #include "sub/json/MaterialStrategy.h"
-#include "sub/json/NoticeStrategy.h"
 #include "sub/json/CloudDeviceStrategy.h"
 #include "sub/json/KnobControlStrategy.h"
-#include "sub/json/FullCleaningModeStrategy.h"
+#include "sub/json/DBTaskStrategy.h"
+#include "sub/json/GateStrategy.h"
+#include "sub/json/ProjectStrategy.h"
 #include "exploration/ExplorationStrategy.h"
 #include "segmentation/SegmentationStrategy.h"
 #include <utility>
 
-#include "glog/logging.h"
 #include "simulation.h"
-#include "sub/json/DBTaskStrategy.h"
 #include "sys/syscall.h"
 
 JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
@@ -39,7 +31,7 @@ JsonSubscribe::JsonSubscribe(ros::NodeHandle handle) : handle(handle) {
 JsonSubscribe::~JsonSubscribe() {}
 
 void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
-    LOG(INFO) << "subscribeCallback : " << syscall(SYS_gettid) << " " << result.data;
+    LOG_IF(INFO, DEBUG_REQUEST) << "subscribeCallback : " << syscall(SYS_gettid) << " " << result.data;
 
     json jDecode = json::parse(result.data);
 
@@ -55,8 +47,11 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case GET_DEVICE_STATUS_:
             messageStrategy = new GetDeviceStatusStrategy();
             break;
-        case SAVE_MAP_:
-            messageStrategy = new SaveMapStrategy();
+        case START_MAP:
+            messageStrategy = new StartMapStrategy();
+            break;
+        case END_MAP:
+            messageStrategy = new EndMapStrategy();
             break;
         case GET_MULTI_MAPS_:
             messageStrategy = new GetMultiMapsStrategy();
@@ -78,12 +73,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new GetEditMapStrategy();
             break;
 
-        case EXECUTE_TASK_:
-            messageStrategy = new ExecuteTaskStrategy();
-            break;
-        case GET_TASK_LIST_:
-            messageStrategy = new GetTaskListStrategy();
-            break;
         case RUNNING_TASK:
             messageStrategy = new RunningTaskStrategy();
             break;
@@ -106,29 +95,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new ChangeAromStatusStrategy();
             break;
 
-        case TEACH_MODE_START_:
-            messageStrategy = new StartTeachModeStrategy();
-            break;
-        case TEACH_MODE_STOP_:
-            messageStrategy = new StopTeachModeStrategy();
-            break;
-        case TEACH_HEART_BEAT_:
-            messageStrategy = new HeartBeatofTeachModeStrategy();
-            break;
-        case GET_TEACH_PATH_LIST_:
-            messageStrategy = new GetTeachModeListStrategy();
-            break;
-        case GET_TEACH_PATH_DETAIL_:
-            messageStrategy = new GetTeachModeDetialStrategy();
-            break;
-        case DELETE_TEACH_PATH_LIST_:
-            messageStrategy = new DeleteTeachModeStrategy();
-            break;
-
-        case GET_FULL_PLAN_:
-            messageStrategy = new GetFullPlanStrategy();
-            break;
-
         case TRY_TO_ENTER_:
             messageStrategy = new RobotTryEnterModeStrategy();
             break;
@@ -144,59 +110,11 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case CLEAN_HISTORY_REQUEST_:
             messageStrategy = new GetCleanHistoryStrategy();
             break;
-        case COMBINATION_PART_ADD_:
-            messageStrategy = new CombinationPartAddStrategy();
-            break;
-        case COMBINATION_COMBINATION_ADD_:
-            messageStrategy = new CombinationCombinationAddStartegy();
-            break;
-        case COMBINATION_PART_LIST_:
-            messageStrategy = new CombinationPartListStrategy();
-            break;
-        case COMBINATION_COMBINATION_LIST_:
-            messageStrategy = new CombinationCombinationListStrategy();
-            break;
-        case COMBINATION_COMBINATION_DETAILS_:
-            messageStrategy = new CombinationCombinationDetailsStrategy();
-            break;
-        case COMBINATION_PART_DELETE_:
-            messageStrategy = new CombinationPartDeleteStrategy();
-            break;
-        case COMBINATION_PART_DELETE_FORCE_:
-            messageStrategy = new CombinationPartDeleteForceStrategy();
-            break;
-        case COMBINATION_COMBINATION_DELETE_:
-            messageStrategy = new CombinationCombinationDeleteStrategy();
-            break;
-        case COMBINATION_PART_UPDATE_:
-            messageStrategy = new CombinationPartUpdateStrategy();
-            break;
-        case COMBINATION_COMBINATION_UPDATE_:
-            messageStrategy = new CombinationCombinationUpdateStrategy();
-            break;
         case IS_IN_BASEMENT_:
             messageStrategy = new IsInBasementStrategy();
             break;
         case GET_ROS_VERSION_:
             messageStrategy = new GetRosVersionStrategy();
-            break;
-        case UPD_TIMER_:
-            messageStrategy = new UpdateTimerStrategy();
-            break;
-        case SET_TIMER_:
-            messageStrategy = new SetTimerStrategy();
-            break;
-        case GET_TIMER_LIST_:
-            messageStrategy = new GetTimerListStrategy();
-            break;
-        case DEL_TIMER_:
-            messageStrategy = new DelTimerStrategy();
-            break;
-        case SAVE_LOCATION:
-            messageStrategy = new LocationStrategy();
-            break;
-        case SAVE_PROJECT:
-            messageStrategy = new ProjectStrategy();
             break;
         case PAD_VERSION_INTO:
             messageStrategy = new PadVersionStrategy();
@@ -204,23 +122,8 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case GET_MACHINE_MODEL:
             messageStrategy = new MachineModelStrategy();
             break;
-        case MAIN_COMBINATION_WAY:
-            messageStrategy = new CombinationMainStrategy();
-            break;
-        case CANCEL_MAIN_COMBINATION:
-            messageStrategy = new CancelCombinationMainStrategy();
-            break;
-        case NOTICE_LIST:
-            messageStrategy = new NoticeListStrategy();
-            break;
         case GET_DEVICE_SECRET:
             messageStrategy = new GetDeviceSecretStrategy();
-            break;
-        case TT_ERROR_CHECK:
-            messageStrategy = new TTErrorCheck();
-            break;
-        case KNOB_CONTROL:
-            messageStrategy = new KnobControlStrategy();
             break;
         case COLLECT_DUST:
             messageStrategy = new CollectDustStrategy();
@@ -295,6 +198,31 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case SET_HOT_WIND_MODE:
             messageStrategy = new SetHotWindModeStrategy();
             break;
+        case GET_RAIN_SNOW:
+            messageStrategy = new GetRainSnowStrategy();
+            break;
+        case SET_RAIN_SNOW:
+            messageStrategy = new SetRainSnowStrategy();
+            break;
+
+        case GET_COLLECT_DUST:
+            messageStrategy = new GetCollectDustStrategy();
+            break;
+        case SET_COLLECT_DUST:
+            messageStrategy = new SetCollectDustStrategy();
+            break;
+        case GET_AUTO_OIL:
+            messageStrategy = new GetAutoOilStrategy();
+            break;
+        case SET_AUTO_OIL:
+            messageStrategy = new SetAutoOilStrategy();
+            break;
+        case GET_MAINTENANCE_START_TIME:
+            messageStrategy = new GetMaintenanceStartTimeStrategy();
+            break;
+        case SET_MAINTENANCE_START_TIME:
+            messageStrategy = new SetMaintenanceStartTimeStrategy();
+            break;
 
         case MAP_OBSTACLES:
             messageStrategy = new MapObstaclesStrategy();
@@ -322,6 +250,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case DELETE_TASK:
             messageStrategy = new DeleteTaskStrategy();
             break;
+        case DELETE_MULTIPLE_TASK:
+            messageStrategy = new DeleteMultipleTaskStrategy();
+            break;
         case LIST_TASK:
             messageStrategy = new ListTaskStrategy();
             break;
@@ -339,6 +270,16 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new PrincipalTaskStrategy();
             break;
 
+        case BUILD_RAIN_SNOW_TASK:
+            messageStrategy = new BuildRainSnowTaskStrategy();
+            break;
+        case CANCEL_RAIN_SNOW_TASK:
+            messageStrategy = new CancelRainSnowTaskStrategy();
+            break;
+        case RAIN_SNOW_TASK:
+            messageStrategy = new RainSnowTaskStrategy();
+            break;
+
         case CLEAR_CURRENT_LIST_TASK:
             messageStrategy = new ClearCurrentListTaskStrategy();
             break;
@@ -354,6 +295,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case MODIFY_TASK_KNIFE:
             messageStrategy = new ModifyTaskKnifeStrategy();
+            break;
+        case MODIFY_COMPLETE_TASK:
+            messageStrategy = new ModifyCompleteTaskStrategy();
             break;
         case OPERATE_ADD_ZONE:
             messageStrategy = new OperateAddZoneStrategy();
@@ -379,6 +323,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case DELETE_TIMER_TASK:
             messageStrategy = new DeleteTimerTaskStrategy();
+            break;
+        case DELETE_MULTIPLE_TIMER_TASK:
+            messageStrategy = new DeleteMultipleTimerTaskStrategy();
             break;
         case LIST_TIMER_TASK:
             messageStrategy = new ListTimerTaskStrategy();
@@ -422,6 +369,43 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case GET_BASE_STATION:
             messageStrategy = new GetBaseStationStrategy();
             break;
+
+        case OPEN_SELF_CHECK:
+            messageStrategy = new OpenSelfCheckStrategy();
+            break;
+        case CLOSE_SELF_CHECK:
+            messageStrategy = new CloseSelfCheckStrategy();
+            break;
+        case FACTORY_RESET:
+            messageStrategy = new FactoryResetStrategy();
+            break;
+
+        case ADD_GATE:
+            messageStrategy = new AddGateStrategy();
+            break;
+        case DELETE_GATE:
+            messageStrategy = new DeleteGateStrategy();
+            break;
+        case PURGE_GATE:
+            messageStrategy = new PurgeGateStrategy();
+            break;
+        case MODIFY_GATE:
+            messageStrategy = new ModifyGateStrategy();
+            break;
+        case LIST_GATE:
+            messageStrategy = new ListGateStrategy();
+            break;
+        case QUERY_ID_GATE:
+            messageStrategy = new QueryIdGateStrategy();
+            break;
+
+        case OPEN_GATE_SETTING:
+            messageStrategy = new OpenGateSettingStrategy();
+            break;
+        case CLOSE_GATE_SETTING:
+            messageStrategy = new CloseGateSettingStrategy();
+            break;
+
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);
@@ -430,7 +414,7 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
     }
 
     int end_time = ros::Time::now().sec;
-    LOG(INFO) << "----------------" << "JsonSubscribe end : " << entrance.getMethod() << " "
-              << end_time - start_time << " s " << "----------------";
+    LOG_IF(INFO, DEBUG_REQUEST) << "----------------" << "JsonSubscribe end : " << entrance.getMethod() << " "
+                                << end_time - start_time << " s " << "----------------";
 
 }

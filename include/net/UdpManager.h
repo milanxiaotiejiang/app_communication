@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 
-#include "glog/logging.h"
+#include "simulation.h"
 
 #define SERV_PORT 9099
 #define INET_ADDR "255.255.255.255"
@@ -19,8 +19,6 @@
 class UdpThread : public CThread {
 public:
     void *run() override {
-
-        LOG(INFO) << "UdpThread Start";
 
         int udpFd;
         int sendSize;
@@ -46,11 +44,9 @@ public:
                 printf("sendto fail, errno=%d\n", errno);
                 return NULL;
             }
-            // LOG(INFO) << "UDP send size " << sendSize;
             sleep(5);
         }
 
-        LOG(INFO) << "UDP end .. ";
     }
 };
 

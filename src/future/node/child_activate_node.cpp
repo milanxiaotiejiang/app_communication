@@ -3,7 +3,6 @@
 //
 
 #include "future/node/child_activate_node.h"
-#include "glog/logging.h"
 #include "future/node/node_control.h"
 #include "simulation.h"
 
@@ -15,7 +14,7 @@ bool RvizActivateNode::execute(NodeChain chain) {
     if (chain.isPrevious()) {
         return asyncExecute(chain.getPool(), []() {
             int status = std::system(N_RVIZ.data());
-            LOG(INFO) << "status : " << status;
+            LOG_IF(INFO, DEBUG_NODE) << "status : " << status;
         });
     }
     return false;

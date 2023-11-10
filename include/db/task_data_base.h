@@ -6,10 +6,19 @@
 #define APP_COMMUNICATION_TASK_DATA_BASE_H
 
 #include "SqliteDataBase.h"
-#include "model/Task.h"
 #include "model/task.h"
 
 class TaskDataBase {
+private:
+    TaskDataBase() = default;
+
+    TaskDataBase(TaskDataBase &) = delete;
+
+    TaskDataBase &operator=(const TaskDataBase &) = delete;
+
+public:
+    ~TaskDataBase() = default;
+
 private:
     TaskStorage taskStorage = SqliteDataBase::initTaskStorage();
 
@@ -54,6 +63,8 @@ public:
     //改
     TaskVo modifyPrincipalTask(std::string mapId, long taskId, bool principal);
 
+    TaskVo modifyRainSnowTask(std::string mapId, long taskId, bool rainSnow);
+
     void modifyName(long taskId, std::string name);
 
     void modifyRate(long taskId, int rate);
@@ -61,6 +72,8 @@ public:
     void modifyWorkStatus(long taskId, const WorkStatus &status);
 
     void modifyKnife(long taskId, bool knife);
+
+    TaskVo modifyTask(const TaskVo &taskVo);
 
     long operateAddZone(long taskId, const ZoneVo &zone);
 
@@ -84,6 +97,8 @@ public:
     TaskVo loadTaskFoId(long taskId);
 
     TaskVo loadPrincipalTask(const std::string &mapId);
+
+    TaskVo loadRainSnowTask(const std::string &mapId);
 
     std::vector<TimerVo> loadTimerFoMap(const std::string &mapId);
 

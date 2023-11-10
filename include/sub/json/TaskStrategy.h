@@ -9,9 +9,7 @@
 #include <std_msgs/Int32.h>
 
 #include "net/base/BaseResult.h"
-#include "model/Partion.h"
 #include "model/Point.h"
-#include "model/Task.h"
 #include "string"
 #include "tool/write_file.hpp"
 #include "net/base/BaseMethod.h"
@@ -32,55 +30,35 @@
 #include <prohibition.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_listener.h>
-#include "glog/logging.h"
+#include "simulation.h"
 #include <chrono>
 #include "model/UpgradeModel.h"
 #include "task/model/PointProgressVo.h"
 #include "model/task.h"
 
-class ExecuteTaskStrategy : public MessageStrategy<Task, string> {
+class PerformTaskStrategy : public MessageStrategy<OnTask, std::string> {
 public:
-    string handler(Task params) override;
+    std::string handler(OnTask params) override;
 };
 
-class PerformTaskStrategy : public MessageStrategy<OnTask, string> {
+class RunningTaskStrategy : public MessageStrategy<std::string, RunTask> {
 public:
-    string handler(OnTask params) override;
+    RunTask handler(std::string params) override;
 };
 
-class GetTaskListStrategy : public MessageStrategy<string, std::vector<Task>> {
+class IsInBasementStrategy : public MessageStrategy<std::string, bool> {
 public:
-    vector<Task> handler(string params) override;
+    bool handler(std::string params) override;
 };
 
-class RunningTaskStrategy : public MessageStrategy<string, RunTask> {
+class GetRosVersionStrategy : public MessageStrategy<std::string, VersionInfo> {
 public:
-    RunTask handler(string params) override;
+    VersionInfo handler(std::string params) override;
 };
 
-class GetTaskListStrategyV2 : public MessageStrategy<string, std::vector<TaskUpgrade>> {
+class GetFinishedPointStrategy : public MessageStrategy<std::string, std::vector<PointProgressVo>> {
 public:
-    vector<TaskUpgrade> handler(string params) override;
-};
-
-class IsInBasementStrategy : public MessageStrategy<string, bool> {
-public:
-    bool handler(string params) override;
-};
-
-class GetRosVersionStrategy : public MessageStrategy<string, VersionInfo> {
-public:
-    VersionInfo handler(string params) override;
-};
-
-class GetFinishedPointStrategy : public MessageStrategy<string, deque<PointProgressVo>> {
-public:
-    deque<PointProgressVo> handler(string params) override;
-};
-
-class GetFullPlanStrategy : public MessageStrategy<vector<int>, Task> {
-public:
-    Task handler(vector<int> params) override;
+    std::vector<PointProgressVo> handler(std::string params) override;
 };
 
 #endif// APP_COMMUNICATION_TASKSTRATEGY_H

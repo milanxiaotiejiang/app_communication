@@ -7,18 +7,29 @@
 
 
 #include "task/call/head_tail_call.h"
+#include "model/ManualModel.h"
 
 class ManualManager {
 private:
-    HeadTailPointCall *asyncTaskCall;
+    ManualManager() = default;
+
+    ManualManager(ManualManager &) = delete;
+
+    ManualManager &operator=(const ManualManager &) = delete;
+
+public:
+    ~ManualManager() = default;
+
+private:
+    std::shared_ptr<HeadTailPointCall> asyncTaskCall;
 public:
     static auto &instance() {
         static ManualManager obj;
         return obj;
     }
 
-    void setAsyncTaskCall(HeadTailPointCall *asyncTaskCall) {
-        ManualManager::asyncTaskCall = asyncTaskCall;
+    void setAsyncTaskCall(std::shared_ptr<HeadTailPointCall> asyncTaskCallPtr) {
+        ManualManager::asyncTaskCall = asyncTaskCallPtr;
     }
 
     void backToBase(bool force);
@@ -27,9 +38,9 @@ public:
 
     void pause();
 
-    void enter_manul_mode();
+    void enter_manual_mode();
 
-    void quit_manual_mode();
+    ManualModel quit_manual_mode();
 
     bool taskRunning();
 
@@ -37,12 +48,13 @@ public:
 
     std::vector<RealTask> runTaskList();
 
-    std::vector<RealPoint> runTaskPoint();
+    std::vector<PointProgressVo> runTaskPointList();
 
     void shutdown();
 
     void reboot();
 
+    void restore();
 };
 
 

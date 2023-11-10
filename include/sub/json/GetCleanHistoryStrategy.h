@@ -11,14 +11,14 @@
 #include "model/UpgradeModel.h"
 
 
-class GetCleanHistoryStrategy : public MessageStrategy<string, std::vector<CleanHistory>> {//收到清洁历史
+class GetCleanHistoryStrategy : public MessageStrategy<std::string, std::vector<CleanHistory>> {//收到清洁历史
 public:
-    vector<CleanHistory> handler(string params) override;
+    std::vector<CleanHistory> handler(std::string params) override;
 };
 
-class GetCloudCleanHistoryStrategy : public MessageStrategy<string, std::vector<CleanHistoryUpgrade>> {//收到清洁历史
+class GetCloudCleanHistoryStrategy : public MessageStrategy<std::string, std::vector<CleanHistoryUpgrade>> {//收到清洁历史
 public:
-    vector<CleanHistoryUpgrade> handler(string params) override;
+    std::vector<CleanHistoryUpgrade> handler(std::string params) override;
 };
 
 

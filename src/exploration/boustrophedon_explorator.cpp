@@ -2,17 +2,23 @@
 // Created by Looper on 2022/9/30.
 //
 
+#include <nav_msgs/OccupancyGrid.h>
 #include "exploration/boustrophedon_explorator.h"
-#include "glog/logging.h"
 #include "exploration/room_rotator.h"
 #include "exploration/grid.h"
 #include "exploration/tsp/nearest_neighbor_TSP.h"
 #include "exploration/tsp/genetic_TSP.h"
 #include "exploration/tsp/tsp_solver_defines.h"
 #include "exploration/cv_extend.h"
+#include "exploration/voronoi/voronoi.hpp"
+#include "exploration/ExplorationCenter.h"
+#include "simulation.h"
+#include "exploration/line.h"
 
 static bool DISPLAY_TRAJECTORY = false;
 static bool DISPLAY_TRAJECTORY_RESULT = false;
+
+#define APPROX_EPSILON_BOUSTROPHEDON 1
 
 /**
  *
@@ -28,13 +34,14 @@ static bool DISPLAY_TRAJECTORY_RESULT = false;
  * @param max_deviation_from_track 为避免轨道上的障碍物，最大允许偏离轨道两侧的理想距离
  */
 void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
+                                               std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
                                                const float map_resolution, const cv::Point &starting_position,
                                                const cv::Point2d &map_origin, const double grid_spacing_in_pixel,
                                                const double grid_obstacle_offset, const double path_eps,
                                                const double min_cell_area, const int max_deviation_from_track,
-                                               int tsp_solver) {
+                                               int tsp_solver, int explorer_mode, bool interpolation_operation) {
 
-    LOG(INFO) << "Planning the boustrophedon path trough the room.";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "Planning the boustrophedon path trough the room.";
 
     const int grid_spacing_as_int = (int) std::floor(grid_spacing_in_pixel);
     const int half_grid_spacing_as_int = (int) std::floor(0.5 * grid_spacing_in_pixel);
@@ -69,10 +76,10 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         msg.append("Vertices Size=").append(std::to_string(generalizedPolygon.getVertices().size())).append(" ");
         msg.append("Area=").append(std::to_string((int) generalizedPolygon.getArea())).append(" ");
 
-//        LOG(INFO) << msg;
+//        LOG_IF(INFO, DEBUG_EXPLORATION) << msg;
     }
 
-    LOG(INFO) << "Found the cells in the given map.";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "Found the cells in the given map.";
 
     std::vector<cv::Point> starting_point_vector(1, starting_position);
     //线性图像变换
@@ -100,28 +107,28 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
     // 确定单元格的最佳访问顺序
     if (tsp_solver == TSP_GENETIC) {
         //ROS默认使用的计算TSP遍历顺序的算法是遗传算法，且会先将地图缩放0.25倍后进行计算。默认使用的是GeneticTSPSolver，即用遗传算法来求解区间遍历顺序
-        LOG(INFO) << "GeneticTSPSolver .. ";
-        GeneticTSPSolver tsp_solver;
-        optimal_order = tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 0.25, 0.0, map_resolution,
-                                                   start_cell_index, 0);
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "GeneticTSPSolver .. ";
+        GeneticTSPSolver genetic_tsp_solver;
+        optimal_order = genetic_tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 0.25, 0.0, map_resolution,
+                                                           start_cell_index, nullptr);
         if (optimal_order.size() != polygon_centers.size()) {
-            LOG(INFO)
-                    << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
-            optimal_order = tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
-                                                       map_resolution, start_cell_index, 0);
+            LOG_IF(INFO, DEBUG_EXPLORATION)
+                            << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
+            optimal_order = genetic_tsp_solver.solveGeneticTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
+                                                               map_resolution, start_cell_index, nullptr);
         }
     } else if (tsp_solver == TSP_NEAREST_NEIGHBOR) {
         // 一种通过计算最临近区域求出TSP近似解的方式，不追求下方的遗传学 TSP 的最优解，只求近似解为止（比下方步缺少一步）
         // 算法原理：每次都取离当前位置最近的区域为下一个清扫区域，到达下一个区域后，再取最近的区域为下一个清扫区域，即遗传学TSP前半段
-        LOG(INFO) << "NearestNeighborTSPSolver .. ";
+        LOG_IF(INFO, DEBUG_EXPLORATION) << "NearestNeighborTSPSolver .. ";
         NearestNeighborTSPSolver neighbor_tsp_solver;
         optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 0.2, 0.0,
-                                                            map_resolution, start_cell_index, 0);
+                                                            map_resolution, start_cell_index, nullptr);
         if (optimal_order.size() != polygon_centers.size()) {
-            LOG(INFO)
-                    << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
+            LOG_IF(INFO, DEBUG_EXPLORATION)
+                            << "=====================> Genetic TSP failed with 25% resolution, falling back to 100%. <=======================";
             optimal_order = neighbor_tsp_solver.solveNearestTSP(rotated_room_map, polygon_centers, 1.0, 0.0,
-                                                                map_resolution, start_cell_index, 0);
+                                                                map_resolution, start_cell_index, nullptr);
         }
     }
 
@@ -137,17 +144,34 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         cv::waitKey();
     }
 
-    LOG(INFO) << "Starting to get the paths for each cell, number of cells: " << (int) cell_polygons.size();
-    LOG(INFO) << "Boustrophedon grid_spacing_as_int = " << grid_spacing_as_int;
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+                    << "Starting to get the paths for each cell, number of cells: " << (int) cell_polygons.size();
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "Boustrophedon grid_spacing_as_int = " << grid_spacing_as_int;
     cv::Point robot_pos = rotated_starting_point;
 
     std::vector<cv::Point2f> fov_middlepoint_path;
+    std::vector<std::vector<cv::Point2f>> complex_middle_path;
+    if (DEBUG_EXPLORATION)
+        std::cout << "planned speed " << cell_polygons.size() << " " << std::flush;
     for (size_t cell = 0; cell < cell_polygons.size(); ++cell) {
-        computeBoustrophedonPath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
-                                 fov_middlepoint_path,
-                                 robot_pos, grid_spacing_as_int, half_grid_spacing_as_int, path_eps,
-                                 max_deviation_from_track, grid_obstacle_offset / map_resolution);
+        if (DEBUG_EXPLORATION)
+            std::cout << "." << std::flush;
+        if (explorer_mode == BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE) {
+            computeBoustrophedonPath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
+                                     fov_middlepoint_path, complex_middle_path,
+                                     robot_pos, grid_spacing_as_int, half_grid_spacing_as_int, path_eps,
+                                     max_deviation_from_track, grid_obstacle_offset / map_resolution,
+                                     interpolation_operation);
+        } else if (explorer_mode == BOUSTROPHEDON_RETROFLEX_EXPLORER_MODE) {
+            computeRectangularAmbulatoryPlanePath(rotated_room_map, map_resolution, cell_polygons[optimal_order[cell]],
+                                                  fov_middlepoint_path, complex_middle_path,
+                                                  robot_pos, grid_spacing_as_int, half_grid_spacing_as_int, path_eps,
+                                                  max_deviation_from_track, grid_obstacle_offset / map_resolution,
+                                                  interpolation_operation);
+        }
     }
+    if (DEBUG_EXPLORATION)
+        std::cout << std::endl;
 
     if (fov_middlepoint_path.empty()) {
         LOG(ERROR) << "Warning: there are no accessible points in this room.";
@@ -157,6 +181,12 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
     RoomRotator room_rotation;
     std::vector<geometry_msgs::Pose2D> fov_poses;
     room_rotation.transformPathBackToOriginalRotation(fov_middlepoint_path, fov_poses, R);
+    std::vector<std::vector<geometry_msgs::Pose2D>> complex_path;
+    for (const auto &complex_middle: complex_middle_path) {
+        std::vector<geometry_msgs::Pose2D> complex;
+        room_rotation.transformPathBackToOriginalRotation(complex_middle, complex, R);
+        complex_path.push_back(complex);
+    }
 
     if (DISPLAY_TRAJECTORY_RESULT) {
         cv::Mat room_map_path = room_map.clone();
@@ -173,12 +203,41 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         cv::waitKey();
     }
 
+    if (DISPLAY_TRAJECTORY_RESULT) {
+        cv::Mat room_map_path = room_map.clone();
+        cv::circle(room_map_path, starting_position, 3, cv::Scalar(160), CV_FILLED);
+        for (const auto &complex: complex_path) {
+            for (size_t i = 0; i < complex.size() - 1; ++i) {
+                cv::circle(room_map_path, cv::Point(cvRound(complex[i].x), cvRound(complex[i].y)), 1, cv::Scalar(200),
+                           CV_FILLED);
+                cv::line(room_map_path, cv::Point(cvRound(complex[i].x), cvRound(complex[i].y)),
+                         cv::Point(cvRound(complex[i + 1].x), cvRound(complex[i + 1].y)), cv::Scalar(100), 1);
+            }
+            cv::circle(room_map_path, cv::Point(cvRound(complex.back().x), cvRound(complex.back().y)), 1,
+                       cv::Scalar(200), CV_FILLED);
+            cv::imshow("room_map_path_intermediate", room_map_path);
+            cv::waitKey();
+        }
+    }
+
     for (std::vector<geometry_msgs::Pose2D>::iterator pose = fov_poses.begin(); pose != fov_poses.end(); ++pose) {
         geometry_msgs::Pose2D current_pose;
-        current_pose.x = (((room_map.cols - pose->x) * map_resolution) + map_origin.x);
-        current_pose.y = (((room_map.rows - pose->y) * map_resolution) + map_origin.y);
+        current_pose.x = (((room_map.cols - pose->x - 0.5) * map_resolution) + map_origin.x);
+        current_pose.y = (((room_map.rows - pose->y - 0.5) * map_resolution) + map_origin.y);
         current_pose.theta = pose->theta;
         pose_path.push_back(current_pose);
+    }
+
+    for (auto &complex: complex_path) {
+        std::vector<geometry_msgs::Pose2D> complex_pose;
+        for (std::vector<geometry_msgs::Pose2D>::iterator pose = complex.begin(); pose != complex.end(); ++pose) {
+            geometry_msgs::Pose2D current_pose;
+            current_pose.x = (((room_map.cols - pose->x - 0.5) * map_resolution) + map_origin.x);
+            current_pose.y = (((room_map.rows - pose->y - 0.5) * map_resolution) + map_origin.y);
+            current_pose.theta = pose->theta;
+            complex_pose.push_back(current_pose);
+        }
+        complex_pose_path.push_back(complex_pose);
     }
 
 }
@@ -383,14 +442,14 @@ void BoustrophedonExplorer::computeCellDecomposition(const cv::Mat &room_map, co
     const int number_of_cells = mergeCells(cell_map, cell_map_labels, min_cell_area, min_cell_width);
 
 
-    std::vector<std::vector<cv::Point> > cells;
+    std::vector<std::vector<cv::Point>> cells;
     for (int i = 1; i <= number_of_cells; ++i) {
         cv::Mat cell_copy(cell_map_labels == i);
         if (DISPLAY_TRAJECTORY) {
             cv::imshow("cell_copy", cell_copy);
             cv::waitKey();
         }
-        std::vector<std::vector<cv::Point> > cellsi;
+        std::vector<std::vector<cv::Point>> cellsi;
         // 只检测最外层轮廓   压缩水平方向、垂直方向和对角线方向的像素，只保留该方向的终点坐标
         cv::findContours(cell_copy, cellsi, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
         cells.insert(cells.end(), cellsi.begin(), cellsi.end());
@@ -412,10 +471,11 @@ void BoustrophedonExplorer::computeCellDecomposition(const cv::Mat &room_map, co
 void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, const float map_resolution,
                                                      const GeneralizedPolygon &cell,
                                                      std::vector<cv::Point2f> &fov_middlepoint_path,
+                                                     std::vector<std::vector<cv::Point2f>> &complex_middle_path,
                                                      cv::Point &robot_pos,//当前点，在每一次执行完都会修改该点数据
                                                      const int grid_spacing_as_int, const int half_grid_spacing_as_int,
                                                      const double path_eps, const int max_deviation_from_track,
-                                                     const int grid_obstacle_offset) {
+                                                     const int grid_obstacle_offset, bool interpolation_operation) {
 
     //cv::Mat &room_map 地图原始数据
 
@@ -433,7 +493,7 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
 
     cv::Mat inflated_room_map;//原始地图腐蚀之后的地图
     cv::Mat rotated_inflated_room_map;//仿射变换后的原始腐蚀图
-    explorationErode(room_map, inflated_room_map, half_grid_spacing_as_int + grid_obstacle_offset);
+    explorationErode(room_map, inflated_room_map, cv::MORPH_CROSS, half_grid_spacing_as_int + grid_obstacle_offset);
 
     cell_rotation.rotateRoom(inflated_room_map, rotated_inflated_room_map, R_cell, cell_bbox);
 
@@ -618,12 +678,63 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
         cv::waitKey();
     }
 
-    std::vector<cv::Point2f> fov_middlepoint_path_part;
-    for (std::vector<cv::Point>::iterator point = current_fov_path.begin(); point != current_fov_path.end(); ++point)
-        fov_middlepoint_path_part.push_back(cv::Point2f(point->x, point->y));
-    cv::transform(fov_middlepoint_path_part, fov_middlepoint_path_part, R_cell_inv);
-    fov_middlepoint_path.insert(fov_middlepoint_path.end(), fov_middlepoint_path_part.begin(),
-                                fov_middlepoint_path_part.end());
+    std::vector<std::vector<cv::Point>> distance_fov_path_list;
+
+    if (current_fov_path.size() > 1) {
+        std::vector<cv::Point> temp_points;
+        temp_points.push_back(current_fov_path[0]);
+
+        for (int i = 1; i < current_fov_path.size(); i++) {
+            auto font_point = current_fov_path[i - 1];
+            auto current_point = current_fov_path[i];
+            auto distance = conversion::cal_distance(font_point, current_point);
+
+            if (distance < path_eps * 2) {
+                temp_points.push_back(current_point);
+            } else {
+                auto add_points = std::vector<cv::Point>{temp_points.begin(), temp_points.end()};
+                distance_fov_path_list.push_back(add_points);
+                temp_points.clear();
+                temp_points.push_back(current_point);
+            }
+        }
+        if (!temp_points.empty()) {
+            distance_fov_path_list.push_back(temp_points);
+        }
+
+    } else {
+        distance_fov_path_list.push_back(current_fov_path);
+    }
+
+    for (const auto &pointLists: distance_fov_path_list) {
+
+        std::vector<cv::Point> approx_list;
+        cv::approxPolyDP(pointLists, approx_list, APPROX_EPSILON_BOUSTROPHEDON, false);
+
+        std::vector<cv::Point> split_list;
+        if (interpolation_operation) {
+            splitPointsIfNeeded(approx_list, split_list, static_cast<int>(std::floor(path_eps)));
+        } else {
+            split_list.insert(split_list.end(), approx_list.begin(), approx_list.end());
+        }
+
+        std::vector<cv::Point> inside_list;
+        for (const auto &point: split_list) {
+            if (rotated_cell_map.at<unsigned char>(point) >= 254) {
+                inside_list.push_back(point);
+            }
+        }
+
+        std::vector<cv::Point2f> fov_middlepoint_path_part;
+        for (std::vector<cv::Point>::iterator point = inside_list.begin(); point != inside_list.end(); ++point)
+            fov_middlepoint_path_part.push_back(cv::Point2f(point->x, point->y));
+        cv::transform(fov_middlepoint_path_part, fov_middlepoint_path_part, R_cell_inv);
+
+        fov_middlepoint_path.insert(fov_middlepoint_path.end(), fov_middlepoint_path_part.begin(),
+                                    fov_middlepoint_path_part.end());
+
+        complex_middle_path.push_back(fov_middlepoint_path_part);
+    }
 
     if (DISPLAY_TRAJECTORY) {
         cv::Mat cell_fov_path_disp = cell_map.clone();
@@ -632,6 +743,148 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
             cv::line(cell_fov_path_disp, fov_middlepoint_path[i - 1], fov_middlepoint_path[i], cv::Scalar(128), 1);
 //            cv::imshow("cell_fov_path", cell_fov_path_disp);
 //            cv::waitKey();
+        }
+        cv::imshow("cell_fov_path", cell_fov_path_disp);
+        cv::waitKey();
+    }
+
+    std::vector<cv::Point> current_pos_vector(1, cell_robot_pos);
+    cv::transform(current_pos_vector, current_pos_vector, R_cell_inv);
+    robot_pos = current_pos_vector[0];
+}
+
+void BoustrophedonExplorer::computeRectangularAmbulatoryPlanePath(const cv::Mat &room_map, const float map_resolution,
+                                                                  const GeneralizedPolygon &cell,
+                                                                  std::vector<cv::Point2f> &fov_middlepoint_path,
+                                                                  std::vector<std::vector<cv::Point2f>> &complex_middle_path,
+                                                                  cv::Point &robot_pos, const int grid_spacing_as_int,
+                                                                  const int half_grid_spacing_as_int,
+                                                                  const double path_eps,
+                                                                  const int max_deviation_from_track,
+                                                                  const int grid_obstacle_offset,
+                                                                  bool interpolation_operation) {
+    cv::Mat cell_map;//分区后的片段图，位置为 y 轴方向为图像大小，x 轴方向为在原图中大小
+    cell.drawPolygon(cell_map, cv::Scalar(255));
+
+    cv::Point cell_center = cell.getBoundingBoxCenter();
+
+    cv::Mat R_cell;//
+    cv::Rect cell_bbox;
+    cv::Mat rotated_cell_map;//仿射变换后的分区片段图，位置为 y 轴方向为图像大小，x 轴中心点为图像的中心位置
+    RoomRotator cell_rotation;
+    cell_rotation.computeRoomRotationMatrix(cell_map, R_cell, cell_bbox, map_resolution, &cell_center);
+    cell_rotation.rotateRoom(cell_map, rotated_cell_map, R_cell, cell_bbox);
+
+    cv::Mat inflated_room_map;//原始地图腐蚀之后的地图
+    cv::Mat rotated_inflated_room_map;//仿射变换后的原始腐蚀图
+    explorationErode(room_map, inflated_room_map, cv::MORPH_CROSS, half_grid_spacing_as_int + grid_obstacle_offset);
+
+    cell_rotation.rotateRoom(inflated_room_map, rotated_inflated_room_map, R_cell, cell_bbox);
+
+    cv::Mat rotated_inflated_cell_map = rotated_cell_map.clone();//仿射变换后的分区片段图，位置为 y 轴方向为图像大小，x 轴中心点为图像的中心位置，图像为外围腐蚀的区域为128
+    for (int v = 0; v < rotated_inflated_cell_map.rows; ++v)
+        for (int u = 0; u < rotated_inflated_cell_map.cols; ++u)
+            if (rotated_inflated_cell_map.at<uchar>(v, u) != 0 && rotated_inflated_room_map.at<uchar>(v, u) == 0)
+                rotated_inflated_cell_map.at<uchar>(v, u) = 128;
+
+    if (DISPLAY_TRAJECTORY) {
+        cv::imshow("rotated_cell_map_with_inflation", rotated_inflated_cell_map);
+        cv::waitKey();
+    }
+
+    cv::Mat R_cell_inv;
+    cv::invertAffineTransform(R_cell, R_cell_inv);//反转旋转矩阵，将确定的点重新映射到原始单元格
+
+    // use voronoi
+    nav_msgs::OccupancyGrid room_gridmap;
+    room_gridmap.info.width = rotated_inflated_cell_map.cols;
+    room_gridmap.info.height = rotated_inflated_cell_map.rows;
+    room_gridmap.data.resize(rotated_inflated_cell_map.cols * rotated_inflated_cell_map.rows);
+    for (int x = 0; x < rotated_inflated_cell_map.cols; x++)
+        for (int y = 0; y < rotated_inflated_cell_map.rows; y++)
+            room_gridmap.data[y * rotated_inflated_cell_map.cols + x] = rotated_inflated_cell_map.at<int8_t>(y, x) ?
+                                                                        0 : 100;
+    VoronoiMap vm(room_gridmap.data.data(), room_gridmap.info.width, room_gridmap.info.height, grid_spacing_as_int);
+    std::vector<cv::Point> voronoi_path;
+    auto mat = rotated_inflated_cell_map.clone();
+    int start_x = half_grid_spacing_as_int, start_y = half_grid_spacing_as_int;
+    bool find;
+    for (int y = half_grid_spacing_as_int; y < mat.rows; y = y + half_grid_spacing_as_int) {
+        for (int x = half_grid_spacing_as_int; x < mat.cols; x = x + half_grid_spacing_as_int) {
+            if (mat.at<unsigned char>(y, x) == 255) {
+                start_x = x;
+                start_y = y;
+                find = true;
+                if (find)
+                    break;
+            }
+        }
+        if (find)
+            break;
+    }
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+                    << "地图 " << mat.cols << "x" << mat.rows << ", 起始点为 (" << start_x << ", " << start_y << ")";
+    vm.generatePath(mat, voronoi_path, cv::Mat(), start_x, start_y);
+
+    std::vector<cv::Point> approx_list;
+    cv::approxPolyDP(voronoi_path, approx_list, APPROX_EPSILON_BOUSTROPHEDON, false);
+
+    std::vector<cv::Point> split_list;
+    if (interpolation_operation) {
+        splitPointsIfNeeded(approx_list, split_list, static_cast<int>(std::floor(path_eps)));
+    } else {
+        split_list.insert(split_list.end(), approx_list.begin(), approx_list.end());
+    }
+
+    cv::Point cell_robot_pos = split_list[split_list.size() - 1];
+
+
+    // 通过腐蚀+边界查找实现回字形规划路径
+//    cv::Point cell_robot_pos;
+//    std::vector<cv::Point> current_fov_path;
+//
+//    auto occupancyGrid = rotated_inflated_cell_map.clone();
+//    cv::Mat half_element = cv::getStructuringElement(cv::MORPH_RECT,
+//                                                     cv::Size(half_grid_spacing_as_int, half_grid_spacing_as_int),
+//                                                     cv::Point(-1, -1));
+//    cv::erode(occupancyGrid, occupancyGrid, half_element);
+//    cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT,
+//                                                cv::Size(grid_spacing_as_int, grid_spacing_as_int),
+//                                                cv::Point(-1, -1));
+//    while (true) {
+//        std::vector<std::vector<cv::Point>> contours;
+//        cv::findContours(occupancyGrid, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+//        if (contours.empty()) {
+//            break;  // No more contours found, exit the loop
+//        }
+//        for (const auto &contour: contours) {
+////            std::vector<cv::Point> list;
+////            cv::approxPolyDP(contour, list, 0.01, false);
+//            for (const auto &point: contour) {
+//                current_fov_path.push_back(point);
+//                cell_robot_pos = point;
+//            }
+//        }
+//        cv::erode(occupancyGrid, occupancyGrid, element);
+//    }
+
+    std::vector<cv::Point2f> fov_middlepoint_path_part;
+    for (std::vector<cv::Point>::iterator point = split_list.begin(); point != split_list.end(); ++point)
+        fov_middlepoint_path_part.push_back(cv::Point2f(point->x, point->y));
+    cv::transform(fov_middlepoint_path_part, fov_middlepoint_path_part, R_cell_inv);
+
+    fov_middlepoint_path.insert(fov_middlepoint_path.end(), fov_middlepoint_path_part.begin(),
+                                fov_middlepoint_path_part.end());
+
+    complex_middle_path.push_back(fov_middlepoint_path_part);
+
+    if (DISPLAY_TRAJECTORY) {
+        cv::Mat cell_fov_path_disp = cell_map.clone();
+        for (size_t i = 1; i < fov_middlepoint_path.size(); ++i) {
+            cv::circle(cell_fov_path_disp, fov_middlepoint_path[i], 1, cv::Scalar(196), 1);
+            cv::line(cell_fov_path_disp, fov_middlepoint_path[i - 1], fov_middlepoint_path[i], cv::Scalar(128), 1);
+            cv::imshow("cell_fov_path", cell_fov_path_disp);
+            cv::waitKey();
         }
         cv::imshow("cell_fov_path", cell_fov_path_disp);
         cv::waitKey();
@@ -669,7 +922,8 @@ int BoustrophedonExplorer::mergeCells(cv::Mat &cell_map, cv::Mat &cell_map_label
         }
     }
 
-    LOG(INFO) << "BoustrophedonExplorer::mergeCells: found " << label_index - 1 << " cells before merging.";
+    LOG_IF(INFO, DEBUG_EXPLORATION)
+                    << "BoustrophedonExplorer::mergeCells: found " << label_index - 1 << " cells before merging.";
 
     //配对响应的邻居
     for (int v = 1; v < cell_map_labels.rows - 1; ++v) {
@@ -715,7 +969,7 @@ int BoustrophedonExplorer::mergeCells(cv::Mat &cell_map, cv::Mat &cell_map_label
             for (const auto &item: set) {
                 msg.append(std::to_string(item->label_)).append(" ");
             }
-            LOG(INFO) << msg;
+            LOG_IF(INFO, DEBUG_EXPLORATION) << msg;
         }
         cv::imshow("merge before", cell_map);
         cv::waitKey();
@@ -728,6 +982,17 @@ int BoustrophedonExplorer::mergeCells(cv::Mat &cell_map, cv::Mat &cell_map_label
         cv::waitKey();
     }
 
+    if (DISPLAY_TRAJECTORY) {
+        cv::Mat orMat = cv::Mat::zeros(cell_map.rows, cell_map.cols, CV_8UC1);
+        for (const auto &item: cell_index_mapping) {
+            int first = item.first;
+            cv::Mat cell_copy(cell_map_labels == first);
+            cv::bitwise_or(orMat, cell_copy, orMat);
+            cv::imshow("cell_copy", orMat);
+            cv::waitKey();
+        }
+    }
+
     int new_cell_label = 1;
     for (std::map<int, boost::shared_ptr<BoustrophedonCell> >::iterator itc = cell_index_mapping.begin();
          itc != cell_index_mapping.end(); ++itc, ++new_cell_label)
@@ -736,8 +1001,8 @@ int BoustrophedonExplorer::mergeCells(cv::Mat &cell_map, cv::Mat &cell_map_label
                 if (cell_map_labels.at<int>(v, u) == itc->second->label_)
                     cell_map_labels.at<int>(v, u) = new_cell_label;
 
-    LOG(INFO) << "INFO: BoustrophedonExplorer::mergeCells: " << cell_index_mapping.size()
-              << " cells remaining after merging.";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "INFO: BoustrophedonExplorer::mergeCells: " << cell_index_mapping.size()
+                                    << " cells remaining after merging.";
     return cell_index_mapping.size();
 }
 
@@ -776,6 +1041,13 @@ void BoustrophedonExplorer::mergeCellsSelection(cv::Mat &cell_map, cv::Mat &cell
             area_sorted_neighbors.insert(std::pair<double, boost::shared_ptr<BoustrophedonCell> >((*itn)->area_, *itn));
 
         BoustrophedonCell &large_cell = *(area_sorted_neighbors.begin()->second);
+
+        if (DISPLAY_TRAJECTORY) {
+            LOG_IF(INFO, DEBUG_EXPLORATION) << "small_cell  small_area : " << it->first
+                                            << "   small_box_width : " << it->second->bounding_box_.width
+                                            << "   small_box_height : " << it->second->bounding_box_.height
+                                            << "   large_cell  large_area : " << large_cell.area_;
+        }
 
         //合并单元格
         mergeTwoCells(cell_map, cell_map_labels, small_cell, large_cell, cell_index_mapping);
@@ -836,6 +1108,21 @@ void BoustrophedonExplorer::mergeTwoCells(cv::Mat &cell_map, cv::Mat &cell_map_l
                 major_cell.area_ += 1;
             }
 
+    if (DISPLAY_TRAJECTORY) {
+        auto show_map = cell_map.clone();
+        for (int v = 0; v < cell_map_labels.rows; ++v)
+            for (int u = 0; u < cell_map_labels.cols; ++u)
+                if (cell_map_labels.at<int>(v, u) == minor_cell.label_)
+                    show_map.at<unsigned char>(v, u) = 100;
+        for (int v = 0; v < cell_map_labels.rows; ++v)
+            for (int u = 0; u < cell_map_labels.cols; ++u)
+                if (cell_map_labels.at<int>(v, u) == major_cell.label_)
+                    show_map.at<unsigned char>(v, u) = 200;
+        cv::resize(show_map, show_map, cv::Size(), 0.8, 0.8, cv::INTER_LINEAR);
+        cv::imshow("cell_copy", show_map);
+        cv::waitKey();
+    }
+
     //更新 cell_map_labels 中的标签
     for (int v = 0; v < cell_map_labels.rows; ++v)
         for (int u = 0; u < cell_map_labels.cols; ++u)
@@ -866,6 +1153,29 @@ void BoustrophedonExplorer::mergeTwoCells(cv::Mat &cell_map, cv::Mat &cell_map_l
                 (*itn)->label_ = major_cell.label_;
                 break;
             }
+
+    for (const auto &cell: cell_index_mapping) {
+        int cell_id = cell.first;
+        BoustrophedonCell::BoustrophedonCellSet &neighbors = cell.second->neighbors_;
+        for (BoustrophedonCell::BoustrophedonCellSetIterator it = neighbors.begin(); it != neighbors.end();) {
+            if ((*it)->label_ == cell_id) {
+                neighbors.erase(it++);
+            } else {
+                it++;
+            }
+        }
+    }
+
+    // check
+//    for (const auto &cell: cell_index_mapping) {
+//        int cell_id = cell.first;
+//        BoustrophedonCell::BoustrophedonCellSet &neighbors = cell.second->neighbors_;
+//        for (const auto &n: neighbors) {
+//            if (n->label_ == cell_id) {
+//                LOG(ERROR) << "检查邻居是否存在自己，这里 cell_id 为 " << cell_id << " 出现邻居存在自己的情况 ... ";
+//            }
+//        }
+//    }
 }
 
 /**
@@ -915,4 +1225,42 @@ void BoustrophedonExplorer::downsamplePathReverse(const std::vector<cv::Point> &
         downsampled_path.push_back(original_path[0]);
         robot_pos = original_path[0];
     }
+}
+
+std::vector<cv::Point> BoustrophedonExplorer::splitPoints(const cv::Point &p1, const cv::Point &p2, double distance) {
+    std::vector<cv::Point> split;
+
+    double dx = p2.x - p1.x;
+    double dy = p2.y - p1.y;
+    double dist = std::sqrt(dx * dx + dy * dy);
+    int numPoints = std::ceil(dist / distance);
+
+    for (int i = 0; i <= numPoints; ++i) {
+        double t = static_cast<double>(i) / numPoints;
+        double x = p1.x + t * dx;
+        double y = p1.y + t * dy;
+        split.emplace_back(x, y);
+    }
+
+    return split;
+}
+
+void BoustrophedonExplorer::splitPointsIfNeeded(const std::vector<cv::Point> &ins, std::vector<cv::Point> &outs,
+                                                double distance) {
+    for (size_t i = 0; i < ins.size() - 1; ++i) {
+        const cv::Point &currentPoint = ins[i];
+        const cv::Point &nextPoint = ins[i + 1];
+
+        double dx = nextPoint.x - currentPoint.x;
+        double dy = nextPoint.y - currentPoint.y;
+        double dist = std::sqrt(dx * dx + dy * dy);
+
+        if (dist > distance) {
+            std::vector<cv::Point> interpolatedPoints = splitPoints(currentPoint, nextPoint, distance);
+            outs.insert(outs.end(), interpolatedPoints.begin(), interpolatedPoints.end());
+        } else {
+            outs.push_back(currentPoint);
+        }
+    }
+    outs.push_back(ins.back());
 }

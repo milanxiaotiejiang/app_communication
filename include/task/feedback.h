@@ -10,55 +10,57 @@
 #include "future/async_call.h"
 #include "model/Point.h"
 #include "model/RoomVo.h"
-#include "RealPoint.h"
+#include "task/RealBlock.h"
+#include "task/callback/ICallback.h"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 #include <geometry_msgs/Pose2D.h>
+#include "alignment/rrmap2.h"
 
-class TaskFeedback : public AsyncCall {
+class TaskFeedback : public ITaskCallback {
 private:
     std::condition_variable cv;
     std::mutex cv_mut;
 
-    std::deque<int> orderDeque;
-    std::deque<geometry_msgs::Pose2D> dataDeque;
+    std::thread task_feedback_thread;
 
-    std::set<PointVo> points;
+    void task_feedback_thread_func();
 
-    std::string run_task_id;
-    std::vector<PoseVo> planPoseVos;
+    void generateRRMap();
 
+    void onTaskStart(const RealTask &task) override;
 
-    cv::Point2d map_origin;
-    int rows, cols;
+    void onTaskProgress(const geometry_msgs::Pose &pose) override;
 
+    void onTaskEnd() override;
+
+    std::atomic<bool> record;
+
+    std::string local_path;
     std::string savePath;
-    int spacing_half;
 
-    int area_px;
-    int plan_px;
+    int rows, cols;
+    std::vector<int8_t> mapArray;
 
-    void start();
+    MMapCharger rrMapCharger;
+    MMapProhibition rrMapArea;
+    MMapVirtually rrMapWall;
+    MMapTarget rrMapTarget;
+    MMapZone rrMapZone;
+    MMapPath rrMapPath;
+    MMapCover rrMapCover;
 
-    void end();
+    MMapValid rrMapValid;
 
-    void feedback(geometry_msgs::Pose2D data);
-
-    cv::Point poseTransferPoint(float x, float y);
+    PointVo currentPoint;
+    std::set<PointVo> pointList;
 
 public:
 
     TaskFeedback();
 
-    void execute() override;
-
-    void triggerStart(std::string taskId, const std::vector<RealPoint> &points);
-
-    void triggerEnd();
-
-    void triggerFeedback(geometry_msgs::Pose2D data);
-
+    void run();
 };
 
 

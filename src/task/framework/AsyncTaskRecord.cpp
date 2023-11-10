@@ -19,6 +19,14 @@ bool AsyncTaskRecord::isPreparation(event::flow flow) {
            flow == event::flow::preliminary_preparation_completed;
 }
 
+bool AsyncTaskRecord::isPreCompleted(event::flow flow) {
+    return flow == event::flow::preliminary_preparation_completed;
+}
+
+bool AsyncTaskRecord::isMechanismReady(event::flow flow) {
+    return flow == event::flow::cleaning_mechanism_ready;
+}
+
 bool AsyncTaskRecord::isFlowingWater(event::flow flow) {
     return flow == event::flow::cleaning_mechanism_ready ||
            flow == event::flow::ensure_move_to_start_point ||
@@ -34,11 +42,12 @@ bool AsyncTaskRecord::isReturningBase(event::flow flow) {
            isPlannerEmpty(flow);
 }
 
-bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend) {
-    LOG(INFO) << "AsyncTaskRecord : lastEmergencyStop : " << lastEmergencyStop();
-    if (isManualMode()) {
-        return false;
-    }
+bool AsyncTaskRecord::isContinueWork(event::flow flow, bool suspend, bool skipManual) {
+//    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskRecord : lastEmergencyStop : " << lastEmergencyStop();
+    if (!skipManual)
+        if (isManualMode()) {
+            return false;
+        }
     if (isUnrecoverableError()) {
         return false;
     }
@@ -66,16 +75,10 @@ bool AsyncTaskRecord::isRegularTask(event::flow flow) {
 }
 
 bool AsyncTaskRecord::isManualTask(const RealTask &realTask) {
-    if (realTask.isRenew()) {
-        const std::string &source = realTask.getSource();
-        TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
-        if (taskSource == TaskSource::App || taskSource == TaskSource::Pad) {
-            return true;
-        }
-    } else {
-        if (realTask.getLaunchPeople() == "App" || realTask.getLaunchPeople() == "Pad") {
-            return true;
-        }
+    const std::string &source = realTask.getOnSource();
+    TaskSource taskSource = SqliteDataBase::TaskSourceFromString(source);
+    if (taskSource == TaskSource::App || taskSource == TaskSource::Pad || taskSource == TaskSource::Cloud) {
+        return true;
     }
     return false;
 }
@@ -88,8 +91,8 @@ bool AsyncTaskRecord::isPlannerEmpty(event::flow flow) {
     return flow == event::flow::flowing_water_production && plannerQueue.empty();
 }
 
-void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint) {
-    TaskStack stack(event_flow, realPoint);
+void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealBlock &realBlock) {
+    TaskStack stack(event_flow, realBlock);
     stopStack.push_back(stack);
     if (stopStack.size() > MAX_RECORD_TASK_STACK_SIZE) {
         stopStack.pop_front();

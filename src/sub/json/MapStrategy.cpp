@@ -13,56 +13,171 @@
 #include "future/node/node_control.h"
 #include "task/manager/MechanismManager.h"
 #include "leave/HotWindNote.h"
+#include "db/task_data_base.h"
+#include <cppfs/fs.h>
+#include <cppfs/FileHandle.h>
+#include "exploration/tcr.h"
+#include "task/manager/manual.h"
+#include "task/manager/NodeWorkModeManager.h"
+#include "tool/Variable.h"
+#include "leave/ParamManager.h"
+#include "db/property_data_base.h"
+#include "tool/param_check.h"
+#include "schedule/schedule_manager_singleton.h"
 
-MapInfo SaveMapStrategy::handler(MapInfo params) {
-    // todo 此版本为单地图
-    if (MapAttribute::instance().saveMap()) {
-
-        SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id,
-                                                       params.getMapName());
-
-        MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
-        MapInfo param(mapPo.id, mapPo.name);
-
-        ExplorationCenter::instance().repaintCoveragePath(true);
-
-        return param;
-    } else {
-        throw app::exception(make_error_code(error::create_map_fail));
-    }
-
-//    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
-//    MapControl::instance().backupAndRetrieve(oldMap.id);
-//    if (MapAttribute::instance().saveMap()) {
-//        const MapPo &newMap = SegmentationDataBase::instance().installMap(params.getMapName());
-//        SegmentationDataBase::instance().loadMainMap();
-//        MapControl::instance().backupProhibition(newMap.id, false);
-//        MapControl::instance().backupMap(newMap.id, false);
-//
-//        ExplorationCenter::instance().repaintCoveragePath(true);
-//
-//        MapInfo param(newMap.id, newMap.name);
-//        return param;
-//    } else {
-//        MapControl::instance().loadInformation(oldMap.id);
-//        throw app::exception(make_error_code(error::create_map_fail));
-//    }
+std::string FactoryResetStrategy::handler(std::string params) {
+    PropertyDataBase::instance().resetConsumable(true, true, true, true, true, true);
+    ParamManager::instance().reset();
+    // 清除历史记录
+    clean_history_db::CleanHistoryCenter::instance().removeCleanHistory();
+    // 在此地图下，移除分区、与分区关联的任务
+    SegmentationDataBase::instance().removeAllRoom();
+    // 在此地图下，移除所有任务，包含定时任务
+    TaskDataBase::instance().deleteOwnTask();
+    // 在此地图下，重置禁行区域，并备份
+    MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false, true);
+    return "";
 }
 
-vector<MapInfo> GetMultiMapsStrategy::handler(string params) {
-    std::vector<MapInfo> mapInfos;
+std::string StartMapStrategy::handler(std::string params) {
+    if (ParamManager::instance().getRainSnow()) {
+        throw app::exception(make_error_code(error::please_exit_the_rain_and_snow_mode_first));
+    }
+    if (!ZooInnerStatus::instance().getIsCharging()) {
+        throw app::exception(make_error_code(error::please_ensure_to_start_end_the_mapping_at_the_base_station));
+    }
+    if (ManualManager::instance().taskRunning()) {
+        throw app::exception(make_error_code(error::current_in_task));
+    }
+    if (!NodeWorkModeManager::instance().enterWorkMode(0)) {
+        throw app::exception(make_error_code(error::mode_switching_is_not_supported));
+    }
+
+    HotWindNoteSingleton::instance().closeHotWind();
+
+    // 电机失能
+    std_msgs::Int32 map_start;
+    map_start.data = 2;
+    PublishInnerManager::instance().publishManualPush(map_start);
+
+    return "";
+}
+
+#define multiple true
+
+MapScore EndMapStrategy::handler(BuildMapParam params) {
+    if (multiple)
+        checkName(params.getMapName());
+    if (params.isNewMap()) {
+        params.setReset(false);
+    }
+
+    // 根据电量判断是否在基站，不在基站不处理开始/结束建图
+    if (!ZooInnerStatus::instance().getIsCharging()) {
+        if (params.isSave()) {
+            throw app::exception(make_error_code(error::the_map_needs_to_be_saved_at_the_base_station_location));
+        } else {
+            throw app::exception(make_error_code(error::quit_map_needs_to_be_saved_at_the_base_station_location));
+        }
+    }
+    // 最终结果，包含建图地图评分
+    MapScore mapScore;
+    if (params.isSave()) {
+        if (Variable::get_instance()->getMapApp().info.width *
+            Variable::get_instance()->getMapApp().info.height < 6000) {//41*118
+            throw app::exception(make_error_code(error::area_too_small));
+        }
+        //关键 保存地图
+        if (!MapAttributeSingleton::instance().saveMap()) {
+            bool isToSleep = NodeWorkModeManager::instance().tryToSleep();
+            MapControl::instance().loadInformation(SegmentationDataBase::instance().getDbMap().id);
+            MapControl::instance().changeMapServer();
+
+            // 电机使能
+            std_msgs::Int32 map_start;
+            map_start.data = 0;
+            PublishInnerManager::instance().publishManualPush(map_start);
+
+            if (isToSleep) {
+                throw app::exception(make_error_code(error::create_map_fail));
+            } else {
+                throw app::exception(make_error_code(error::create_map_fail_to_sleep));
+            }
+        }
+
+        if (params.isNewMap()) {
+            // 插入新地图信息
+            SegmentationDataBase::instance().installMap(params.getMapName());
+            SegmentationDataBase::instance().loadMainMap();
+        }
+
+//        // 更新本地内存中数据，单地图其实没必要更新
+//        SegmentationDataBase::instance().updateMapName(SegmentationDataBase::instance().getDbMap().id, "default");
+        //是否重置禁行区、任务等
+        if (params.isReset()) {
+            // 在此地图下，移除分区、与分区关联的任务
+            SegmentationDataBase::instance().removeAllRoom(SegmentationDataBase::instance().getDbMap().id);
+            // 在此地图下，移除所有任务，包含定时任务
+            TaskDataBase::instance().deleteTaskFoMap(SegmentationDataBase::instance().getDbMap().id);
+            // 在此地图下，重置禁行区域，并备份
+            MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false, true);
+            // 删除多个分区的相关信息
+            SegmentationCenter::instance().resetSegmentation();
+            // 删除闸机相关信息
+            SegmentationCenter::instance().resetGateSegmentation();
+        }
+        // 备份地图相关文件，不删除
+        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+        // 重新加载基站信息
+        MapAttributeSingleton::instance().loadStation();
+        // 使用全覆盖算法快速验证地图质量
+        double proportion = tcr::coverageProportion();
+        // 设置返回的结果
+        mapScore.setId(SegmentationDataBase::instance().getDbMap().id);
+        mapScore.setScore(proportion);
+        // 更新内存中定时任务
+        ScheduleManagerSingleton::instance().trigger_task_update();
+        // 发布给 move_base 最新的禁行区域
+        PublishInnerManager::instance().publishResetProhibition();
+        // 重新规划牛耕田算法的全覆盖
+        ExplorationCenter::instance().repaintCoveragePath();
+    } else {
+        // 本地的文件未变，重新更新地图信息
+        MapControl::instance().changeMapServer();
+    }
+
+    // 电机使能
+    std_msgs::Int32 map_start;
+    map_start.data = 0;
+    PublishInnerManager::instance().publishManualPush(map_start);
+
+    NodeWorkModeManager::instance().toSleep();
+
+    return mapScore;
+}
+
+std::vector<MultiMapInfo> GetMultiMapsStrategy::handler(std::string params) {
+    std::vector<MultiMapInfo> mapInfos;
     const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
     for (const auto &map: allMap) {
-        MapInfo mapInfo(map.id, map.name);
-        mapInfos.push_back(mapInfo);
+        MultiMapInfo multiMapInfo(map.id, map.name, map.main, map.path);
+        mapInfos.push_back(multiMapInfo);
     }
     return mapInfos;
 }
 
-string ChangeMapStrategy::handler(string params) {
+std::string ChangeMapStrategy::handler(std::string params) {
+    if (!ZooInnerStatus::instance().getIsCharging()) {
+        throw app::exception(make_error_code(error::the_base_station_is_no_longer_able_to_switch_maps));
+    }
+    if (!NodeControl::instance().isSleep()) {
+//        CartographerPublisher::instance().publishStartCartoLocalization();
+//        CartographerServiceClient::instance().callStartLocalization();
+        throw app::exception(make_error_code(error::cannot_switch_maps_in_non_sleep_mode));
+    }
     MapPo oldMap = SegmentationDataBase::instance().getDbMap();
     if (oldMap.id == params) {
-        throw app::exception(make_error_code(error::create_map_fail));
+        throw app::exception(make_error_code(error::cannot_switch_to_the_current_map));
     }
 
     const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
@@ -76,22 +191,33 @@ string ChangeMapStrategy::handler(string params) {
     if (!isFind) {
         throw app::exception(make_error_code(error::map_id_does_not_exist));
     }
+    // 确保文件存在
     if (!MapControl::instance().checkMapInformation(params)) {
         throw app::exception(make_error_code(error::map_id_does_not_exist));
     }
-
+    // 备份之前的地图
     MapControl::instance().backupAndRetrieve(oldMap.id);
-
+    // 改变为新地图信息
+    SegmentationDataBase::instance().changeMap(params);
+    SegmentationDataBase::instance().loadMainMap();
+    // 加载新资源
     MapControl::instance().loadInformation(params);
+    // 重新加载基站信息
+    MapAttributeSingleton::instance().loadStation();
+    // 更新内存中定时任务
+    ScheduleManagerSingleton::instance().trigger_task_update();
+    // 发布给 move_base 最新的禁行区域
+    PublishInnerManager::instance().publishResetProhibition();
+    // 重新规划牛耕田算法的全覆盖
+    ExplorationCenter::instance().repaintCoveragePath();
+
     MapControl::instance().changeMapServer();
-    if (NodeControl::instance().isWork()) {
-//        CartographerPublisher::instance().publishStartCartoLocalization();
-        CartographerServiceClient::instance().callStartLocalization();
-    }
+
     return "";
 }
 
-string ModifyMapNameStrategy::handler(MapInfo params) {
+std::string ModifyMapNameStrategy::handler(ModifyMapName params) {
+    checkName(params.getName());
     const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
     bool isFind = false;
     for (const auto &item: allMap) {
@@ -103,18 +229,34 @@ string ModifyMapNameStrategy::handler(MapInfo params) {
     if (!isFind) {
         throw app::exception(make_error_code(error::map_id_does_not_exist));
     }
-    SegmentationDataBase::instance().updateMapName(params.getId(), params.getMapName());
+    SegmentationDataBase::instance().updateMapName(params.getId(), params.getName());
     return "";
 }
 
-string DeleteMapStrategy::handler(string params) {
+std::string DeleteMapStrategy::handler(std::string params) {
+    MapPo oldMap = SegmentationDataBase::instance().getDbMap();
+    if (oldMap.id == params) {
+        throw app::exception(make_error_code(error::cannot_switch_to_the_current_map));
+    }
+    // plan_param
+    SegmentationDataBase::instance().removePlanParam(params);
+    // segmentation
+    SegmentationDataBase::instance().removeAllRoom(params);
+    // gate
+    SegmentationDataBase::instance().purgeGate(params);
+    // 地图id
+    SegmentationDataBase::instance().removeMap(params);
+    // task
+    TaskDataBase::instance().deleteTaskFoMap(params);
 
+    MapControl::instance().removeInformation(params);
+    return "";
 }
 
-string EditMapStrategy::handler(vector<std::vector<float>> params) {
+std::string EditMapStrategy::handler(std::vector<std::vector<float>> params) {
     //操作，将编辑信息写入当前地图对应的编辑文件内
     int prohibition_num = params.size();
-    reset_prohibition();
+    reset_prohibition(path::prohibition_areas_path());
 
     for (int i = 0; i < prohibition_num; i++) {
         int type = params[i][0];//是区域还是线
@@ -135,24 +277,17 @@ string EditMapStrategy::handler(vector<std::vector<float>> params) {
             ROS_ERROR("Failed to set wall!");
         }
     }
-    //更新costmap
-    std::string local_costmap =
-            "rosparam load " + path::prohibition_areas_path() + " /move_base/local_costmap/costmap_prohibition_layer";
-    std::string global_costmap =
-            "rosparam load " + path::prohibition_areas_path() + " /move_base/global_costmap/costmap_prohibition_layer";
-    std::system(local_costmap.data());
-    std::system(global_costmap.data());
     PublishInnerManager::instance().publishResetProhibition();
 
-    MapAttribute::instance().resetProhibition();
-    MapAttribute::instance().loadVirtualWall();
-    MapAttribute::instance().loadPenaltyZone();
-    MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false);
-    ExplorationCenter::instance().repaintCoveragePath(false);
+    MapAttributeSingleton::instance().resetProhibition();
+    MapAttributeSingleton::instance().loadVirtualWall();
+    MapAttributeSingleton::instance().loadPenaltyZone();
+    MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true, false);
+    ExplorationCenter::instance().repaintCoveragePath();
     return "";
 }
 
-vector<std::vector<float>> GetEditMapStrategy::handler(string params) {
+std::vector<std::vector<float>> GetEditMapStrategy::handler(std::string params) {
 
     //操作，打开当前地图对应的编辑文件，并读取编辑信息
     std::vector<std::vector<float>> result;
@@ -162,26 +297,31 @@ vector<std::vector<float>> GetEditMapStrategy::handler(string params) {
     return result;
 }
 
-int ManualPushStartStrategy::handler(string params) {
-    LOG(INFO) << "MapStrategy manual_push_start ...";
+int ManualPushStartStrategy::handler(std::string params) {
+    LOG_IF(INFO, DEBUG_REQUEST) << "MapStrategy manual_push_start ...";
+
+    if (!ZooInnerStatus::instance().getIsCharging()) {
+        throw app::exception(make_error_code(error::map_creation_needs_to_start_at_the_base_station));
+    }
 
     HotWindNoteSingleton::instance().closeHotWind();
 
     std_msgs::Int32 map_start;
     map_start.data = 2;
-    PublishInnerManager::instance().publishKnobTask(map_start);
+    PublishInnerManager::instance().publishManualPush(map_start);
     return 5;
 }
 
-int ManualPushResetStrategy::handler(string params) {
-    LOG(INFO) << "MapStrategy manual_push_reset ...";
+int ManualPushResetStrategy::handler(std::string params) {
+    LOG_IF(INFO, DEBUG_REQUEST) << "MapStrategy manual_push_reset ...";
+
     std_msgs::Int32 map_start;
     map_start.data = 0;
-    PublishInnerManager::instance().publishKnobTask(map_start);
+    PublishInnerManager::instance().publishManualPush(map_start);
     return 5;
 }
 
-string MapObstaclesStrategy::handler(vector<vector<PointVo>> params) {
+std::string MapObstaclesStrategy::handler(std::vector<std::vector<PointVo>> params) {
     std::vector<std::vector<cv::Point>> points;
 
     for (const auto &vector: params) {
@@ -197,11 +337,11 @@ string MapObstaclesStrategy::handler(vector<vector<PointVo>> params) {
     mapModification.addObstacles(points);
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
-    ExplorationCenter::instance().repaintCoveragePath(false);
+    ExplorationCenter::instance().repaintCoveragePath();
     return "";
 }
 
-string MapFeasibleZoneStrategy::handler(vector<vector<PointVo>> params) {
+std::string MapFeasibleZoneStrategy::handler(std::vector<std::vector<PointVo>> params) {
     std::vector<std::vector<cv::Point>> points;
 
     for (const auto &vector: params) {
@@ -217,15 +357,15 @@ string MapFeasibleZoneStrategy::handler(vector<vector<PointVo>> params) {
     mapModification.addFeasibleZone(points);
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
-    ExplorationCenter::instance().repaintCoveragePath(false);
+    ExplorationCenter::instance().repaintCoveragePath();
     return "";
 }
 
-string MapApplyIncreaseArea::handler(vector<int> params) {
+std::string MapApplyIncreaseArea::handler(std::vector<int> params) {
     MapModification mapModification;
     mapModification.applyIncreaseArea(params);
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
-    ExplorationCenter::instance().repaintCoveragePath(false);
+    ExplorationCenter::instance().repaintCoveragePath();
     return "";
 }

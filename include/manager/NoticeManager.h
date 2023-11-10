@@ -9,20 +9,21 @@
 #include "model/Notice.h"
 
 class NoticeManager {
-
+private:
     NoticeManager() = default;
 
     NoticeManager(NoticeManager &) = delete;
 
     NoticeManager &operator=(const NoticeManager &) = delete;
 
+public:
+    ~NoticeManager() = default;
 
 private:
 
     int planner_type = 0;
 
 public:
-    ~NoticeManager() = default;
 
     static auto &instance() {
         static NoticeManager obj;
@@ -33,8 +34,8 @@ public:
 
     void setPlannerType(int plannerType);
 
-    void sendNotice(int noticeCode, long noticeTime, const string &noticeTitle,
-                    const string &noticeMessage, const string &solution);
+    void sendNotice(int noticeCode, long noticeTime, const std::string &noticeTitle,
+                    const std::string &noticeMessage, const std::string &solution);
 
 };
 

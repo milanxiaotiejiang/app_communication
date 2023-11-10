@@ -49,13 +49,20 @@ protected:
              const double cell_size_in_pixel,
              const double previous_travel_angle);
 
+    std::vector<cv::Point> splitPoints(const cv::Point &p1, const cv::Point &p2, double distance);
+
+    void splitPointsIfNeeded(const std::vector<cv::Point> &ins, std::vector<cv::Point> &outs, double distance);
+
 public:
     EnergyFunctionalExplorator();
 
     void getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &path,
+                            std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
                             const float map_resolution,
-                            const cv::Point starting_position, const cv::Point2d map_origin,
-                            const double grid_spacing_in_pixel);
+                            const cv::Point &starting_position, const cv::Point2d &map_origin,
+                            const double grid_spacing_in_pixel,
+                            const double path_eps,
+                            bool interpolation_operation);
 };
 
 

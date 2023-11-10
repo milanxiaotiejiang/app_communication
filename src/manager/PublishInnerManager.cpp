@@ -3,6 +3,8 @@
 //
 
 #include "manager/PublishInnerManager.h"
+#include "db/path.h"
+#include "simulation.h"
 
 void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_push_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/push_mode_control", 1);
@@ -13,13 +15,17 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_darwer_cmd_ = handle.advertise<std_msgs::Int32>("/mrrobot/drawer_cmd", 1);
     pub_arom_status_ = handle.advertise<std_msgs::Int32>("/mrrobot/arom_status_control", 1);
     pub_light_mode_ = handle.advertise<std_msgs::Int32>("/mrrobot/light_mode", 1);
-    pub_velocity_ = handle.advertise<geometry_msgs::Twist>("/cmd_vel/app", 1);
+    if (Environment::instance().isRealEnvironment) {
+        pub_velocity_ = handle.advertise<geometry_msgs::Twist>("/cmd_vel/app", 1);
+    } else {
+        pub_velocity_ = handle.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+    }
     pub_passed_path_ = handle.advertise<nav_msgs::Path>("/clean_robot/passed_path", 10);
     pub_music = handle.advertise<std_msgs::Int32>("/play_music", 1);
     pub_otalow = handle.advertise<std_msgs::String>("/ota_low", 10);
     pub_ds_version = handle.advertise<std_msgs::Int32>("/dasheng/version", 1);
     pub_knob_available = handle.advertise<std_msgs::Bool>("/knob/available", 1);
-    pub_knob_task = handle.advertise<std_msgs::Int32>("/manual_push", 1);
+    pub_manual_push = handle.advertise<std_msgs::Int32>("/manual_push", 1);
     pub_reboot = handle.advertise<std_msgs::Int32>("/reboot_flag", 1);
     pub_shutdown = handle.advertise<std_msgs::Int32>("/shutdown_flag", 1);
     pub_oil = handle.advertise<std_msgs::Int32>("/mrrobot/pop_sweep_oil", 1);
@@ -28,6 +34,9 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     acceptAppSchedule = handle.advertise<std_msgs::String>("/app_schedule", 1);
     pub_collect_dust = handle.advertise<std_msgs::Int32>("/collect_dust", 1);
     pub_maintenance_mode = handle.advertise<std_msgs::Int32>("/maintenance_mode", 1);
+    pub_detection = handle.advertise<ai_msgs::MultiRectangles>("/detection_results", 1);
+    pub_open_gate = handle.advertise<std_msgs::Int32>("/open_gate", 1);
+    pub_hardware_reset = handle.advertise<std_msgs::Int32>("/hardware_reset", 1);
 }
 
 void PublishInnerManager::publishPushMode(const std_msgs::Int32 &message) const {
@@ -83,6 +92,13 @@ void PublishInnerManager::publishDSVersion(const std_msgs::Int32 &message) const
 }
 
 void PublishInnerManager::publishResetProhibition() {
+    //更新costmap
+    std::string local_costmap =
+            "rosparam load " + path::prohibition_areas_path() + " /move_base/local_costmap/costmap_prohibition_layer";
+    std::string global_costmap =
+            "rosparam load " + path::prohibition_areas_path() + " /move_base/global_costmap/costmap_prohibition_layer";
+    std::system(local_costmap.data());
+    std::system(global_costmap.data());
     std_msgs::Int32 data;
     data.data = 1;
     pub_reset_prohibition.publish(data);
@@ -92,8 +108,8 @@ void PublishInnerManager::publishKnobAvailable(const std_msgs::Bool &message) co
     pub_knob_available.publish(message);
 }
 
-void PublishInnerManager::publishKnobTask(const std_msgs::Int32 &message) const {
-    pub_knob_task.publish(message);
+void PublishInnerManager::publishManualPush(const std_msgs::Int32 &message) const {
+    pub_manual_push.publish(message);
 }
 
 void PublishInnerManager::publishShutDown(const std_msgs::Int32 &message) const {
@@ -104,7 +120,9 @@ void PublishInnerManager::publishReboot(const std_msgs::Int32 &message) const {
     pub_reboot.publish(message);
 }
 
-void PublishInnerManager::publishOil(const std_msgs::Int32 &message) const {
+void PublishInnerManager::publishOil() const {
+    std_msgs::Int32 message;
+    message.data = 1;
     pub_oil.publish(message);
 }
 
@@ -124,4 +142,20 @@ void PublishInnerManager::publishCollectDust() const {
 
 void PublishInnerManager::publishMaintenanceMode(const std_msgs::Int32 &message) const {
     pub_maintenance_mode.publish(message);
+}
+
+void PublishInnerManager::pubDetection(const ai_msgs::MultiRectangles &message) {
+    pub_detection.publish(message);
+}
+
+void PublishInnerManager::pubOpenGate() {
+    std_msgs::Int32 message;
+    message.data = 60;
+    pub_open_gate.publish(message);
+}
+
+void PublishInnerManager::pubHardwareReset() {
+    std_msgs::Int32 message;
+    message.data = 1;
+    pub_hardware_reset.publish(message);
 }

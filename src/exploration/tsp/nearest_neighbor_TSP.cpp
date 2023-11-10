@@ -5,6 +5,7 @@
 #include "exploration/tsp/nearest_neighbor_TSP.h"
 #include "exploration/distance_matrix.h"
 
+#include "simulation.h"
 
 NearestNeighborTSPSolver::NearestNeighborTSPSolver() {
 
@@ -48,7 +49,7 @@ std::vector<int>
 NearestNeighborTSPSolver::solveNearestTSP(const cv::Mat &original_map, const std::vector<cv::Point> &points,
                                           double downsampling_factor, double robot_radius, double map_resolution,
                                           const int start_node, cv::Mat *distance_matrix) {
-    LOG(INFO) << "NearestNeighborTSPSolver::solveNearestTSP: Constructing distance matrix...";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "NearestNeighborTSPSolver::solveNearestTSP: Constructing distance matrix...";
     cv::Mat distance_matrix_ref;
     if (distance_matrix != nullptr)
         distance_matrix_ref = *distance_matrix;

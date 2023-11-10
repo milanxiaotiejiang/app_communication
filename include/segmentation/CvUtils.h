@@ -7,7 +7,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "glog/logging.h"
+#include "simulation.h"
 
 namespace CvUtils {
     double sideInLine(const cv::Point &ps, const cv::Point &pe, const cv::Point &p);

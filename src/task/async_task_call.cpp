@@ -18,12 +18,19 @@
 #include "manager/PublishInnerManager.h"
 #include "leave/cartographer_node.h"
 #include "leave/HotWindNote.h"
+#include "exploration/ExplorationCenter.h"
+#include "future/node/mode_validate.h"
+#include "model/ManualModel.h"
+#include "task/manager/NodeWorkModeManager.h"
+#include "segmentation/GateComprehensive.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
  */
-AsyncTaskCall::AsyncTaskCall() {
-    fbPtr = make_unique<TaskFeedback>();
+AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
+                                 mGateDistribution(std::make_shared<AsyncGateDistribution>()) {
+    notifier.setOnTaskCallback(std::dynamic_pointer_cast<ITaskCallback>(feedback));
+    feedback->run();
 
     setFlow(event::flow::waiting_for_task);
     setEpollManual(loop::manual_epoll::manual_normal);
@@ -31,35 +38,57 @@ AsyncTaskCall::AsyncTaskCall() {
     setEpollError(loop::error_epoll::error_normal);
     setUrgencyStop(loop::urgency_stop::trigger_urgency_stop);
 
-    initTaskPoint(runTask);
+    initTaskBlock(runTask);
+
+    mGateDistribution->setCallbackDistributionStart([]() {
+        AsyncMachine::instance().setGateMachine(true);
+    });
+    mGateDistribution->setCallbackDistribution([this](bool success, int progress) {
+        AsyncMachine::instance().setGateMachine(false);
+        //int blockId, event::error error, const std::string &message
+        if (success) {
+            LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  假设通过闸机了 ";
+            executeOnPathDone(0, event::error::SUCCEEDED, "闸机");
+        } else {
+            if (progress == -1) {
+                PointPlanner::instance().cancelPoint();
+                LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  执行取消 ";
+                executeOnPathDone(0, event::error::SUCCEEDED, "闸机");
+            } else {
+                LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  执行错误 ";
+                setFlow(event::flow::software_interrupt_task);
+                executeOnPathDone(0, event::error::FAIL, "闸机");
+            }
+        }
+    });
 }
 
 void AsyncTaskCall::handleManualOperation() {
     switch (epoll_manual) {
         case loop::manual_epoll::manual_resume:
-            LOG(INFO) << "AsyncTaskCall : 手动继续任务，撤销暂停拦截 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动继续任务，撤销暂停拦截 ...";
             callResume();
             break;
         case loop::manual_epoll::manual_pause:
-            LOG(INFO) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
-            callPause();
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
+            callPause(false);
             break;
         case loop::manual_epoll::manual_back:
-            LOG(INFO) << "AsyncTaskCall : 手动取消任务，进入手动接管模式，手动需要返回基站点 ...";
-            cancelTaskAndBack();
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动取消任务，进入手动接管模式，手动需要返回基站点 ...";
+            cancelTaskAndBack(false);
             break;
         case loop::manual_epoll::manual_force_back:
-            LOG(INFO) << "AsyncTaskCall : 强制返回，进入强制接管模式，强制返回基站点 ...";
-            cancelTaskAndBack();
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 强制返回，进入强制接管模式，强制返回基站点 ...";
+            cancelTaskAndBack(true);
             break;
         case loop::manual_epoll::manual_task_over:
-            LOG(INFO) << "AsyncTaskCall : 有 App 或 Pad 下发任务，停止当前任务 ...";
-            PointPlanner::instance().cancelGoal();
-            async::TimerCall::instance().baseLoop()->cancelAny();
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 有 App 或 Pad 下发任务，停止当前任务 ...";
+            mGateDistribution->cancelDistribution();
+            cancelAny();
             goodGame(event::GG::gg_task_over);
             break;
         default:
-            LOG(INFO) << "AsyncTaskCall handleManualOperation : " << epoll_manual << " ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall handleManualOperation : " << epoll_manual << " ...";
             break;
     }
 }
@@ -67,52 +96,69 @@ void AsyncTaskCall::handleManualOperation() {
 void AsyncTaskCall::handleSpecialOperation() {
     switch (epoll_special) {
         case loop::special_epoll::special_low_battery: {
-            LOG(INFO) << "AsyncTaskCall : 低电量，低电量导致需要强制返回基站点 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 低电量，低电量导致需要强制返回基站点 ...";
             break;
         }
         case loop::special_epoll::special_branch_water: {
-            LOG(INFO) << "AsyncTaskCall : 清水箱空，清水箱空导致需要强制返回基站点 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 清水箱空，清水箱空导致需要强制返回基站点 ...";
+            MechanismManager::instance().resetWorkStatus();
             break;
         }
         case loop::special_epoll::special_sewage_water: {
-            LOG(INFO) << "AsyncTaskCall : 污水箱满，污水箱满导致需要强制返回基站点 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 污水箱满，污水箱满导致需要强制返回基站点 ...";
             break;
         }
         case loop::special_epoll::special_branch_sewage_water: {
-            LOG(INFO) << "AsyncTaskCall : 污水箱满/清水箱空，污水箱满/清水箱空导致需要强制返回基站点 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 污水箱满/清水箱空，污水箱满/清水箱空导致需要强制返回基站点 ...";
             break;
         }
         case loop::special_epoll::special_dust_push_anomaly: {
-            LOG(INFO) << "AsyncTaskCall : 电机堵转，尘推滚异常导致需要强制返回基站点 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 尘推电机堵转，导致需要强制返回基站点 ...";
+            break;
+        }
+        case loop::special_epoll::special_wet_tow_anomaly: {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 湿拖电机堵转，导致需要强制返回基站点 ...";
             break;
         }
         default:
-            LOG(INFO) << "AsyncTaskCall handleSpecialOperation : " << epoll_special << " ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall handleSpecialOperation : " << epoll_special << " ...";
             break;
     }
-    cancelTaskAndBack();
+    if (!isWaitTask(currentFlow())) {
+        if (!isManualMode()) {
+            cancelTaskAndBack(false);
+        } else {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall  手动模式无需返回 ...";
+        }
+    } else {
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall  无任务无需返回 ...";
+    }
 }
 
 void AsyncTaskCall::handleErrorOperation() {
     switch (epoll_error) {
         case loop::error_epoll::error_manual_clean_start:
-            LOG(INFO) << "AsyncTaskCall : 进入手动模式";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 进入手动模式";
             callManualCleanStart();
             break;
         case loop::error_epoll::error_manual_clean_end:
-            LOG(INFO) << "AsyncTaskCall : 退出手动模式";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 退出手动模式";
             callManualCleanEnd();
             break;
         case loop::error_epoll::error_lift:
-            LOG(INFO) << "AsyncTaskCall : 走到电梯上了 ... ";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 走到电梯上了 ... ";
             forceInterruptTask(event::SB::sb_lift);
             break;
+        case loop::error_epoll::error_electric_move:
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 电机失能了 ... ";
+            forceInterruptTask(event::SB::sb_electric_move);
+            break;
         case loop::error_epoll::error_unrecoverable:
-            LOG(INFO) << "AsyncTaskCall : 出现不可恢复的错误 ... ";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 出现不可恢复的错误 ... ";
             forceInterruptTask(event::SB::sb_unrecoverable);
             break;
         default:
-            LOG(INFO) << "AsyncTaskCall handleErrorOperation : " << epoll_error << " ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall handleErrorOperation : " << epoll_error << " ...";
             break;
     }
 }
@@ -120,22 +166,19 @@ void AsyncTaskCall::handleErrorOperation() {
 void AsyncTaskCall::handleStop() {
     switch (urgency_stop) {
         case loop::urgency_stop::trigger_urgency_stop:
-            LOG(INFO) << "AsyncTaskCall : 急停了 ... ";
-            if (!isWaitTask(currentFlow())) {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 急停了 ... ";
+            if (!isWaitTask(currentFlow()))
                 callUrgencyStop();
-            }
             break;
         case loop::urgency_stop::recovery_urgency_stop:
-            LOG(INFO) << "AsyncTaskCall : 急停后推回基站，任务结束 ... ";
-            if (!isWaitTask(currentFlow())) {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 急停后推回基站，任务结束 ... ";
+            if (!isWaitTask(currentFlow()))
                 callRecoveryStop();
-            }
             break;
         case loop::urgency_stop::release_urgency_stop:
-            LOG(INFO) << "AsyncTaskCall : 解除急停了 ... ";
-            if (!isWaitTask(currentFlow())) {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 解除急停了 ... ";
+            if (!isWaitTask(currentFlow()))
                 callReleaseStop();
-            }
             break;
         default:
             break;
@@ -144,97 +187,106 @@ void AsyncTaskCall::handleStop() {
 
 void AsyncTaskCall::handleTask(const RealTask &realTask) {
     if (isUnrecoverableError()) {
-        LOG(INFO) << "AsyncTaskCall : 程序达到不可恢复状态，不能接受任何数据，当前状态 "
-                  << "epoll_manual " << epoll_manual << " "
-                  << "epoll_special " << epoll_special << " "
-                  << "epoll_error " << epoll_error << " "
-                  << "urgency_stop " << urgency_stop << " ";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 程序达到不可恢复状态，不能接受任何数据，当前状态 "
+                                 << "epoll_manual " << epoll_manual << " "
+                                 << "epoll_special " << epoll_special << " "
+                                 << "epoll_error " << epoll_error << " "
+                                 << "urgency_stop " << urgency_stop << " ";
         return;
     }
     if (isUrgencyStop()) {
-        LOG(INFO) << "AsyncTaskCall : 急停拦截，不能接受 task 了 " << realTask.getId() << " "
-                  << "urgency_stop " << urgency_stop << " ";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 急停拦截，不能接受 task 了 " << realTask.getId() << " "
+                                 << "urgency_stop " << urgency_stop << " ";
         return;
     }
     if (isManualMode()) {
-        LOG(INFO) << "AsyncTaskCall : 手动模式开启，暂不接受 task " << realTask.getId() << " "
-                  << "epoll_error " << epoll_error << " ";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动模式开启，暂不接受 task " << realTask.getId() << " "
+                                 << "epoll_error " << epoll_error << " ";
         return;
     }
 
     SwitchModePublish::instance().cancel();
 
-    if (isWaitTask(event_flow)) {
+    if (isWaitTask(currentFlow())) {
 
         handleExecuteTask(realTask);
     } else {
-        if (isManualTask(realTask) && isFlowingWater(event_flow)) {
+        if (isManualTask(realTask) && isFlowingWater(currentFlow())) {
             notify_one([this, &realTask]() {
                 waitTaskQueue.push_back(realTask);
                 pushManual(loop::manual_epoll::manual_task_over);
             });
         } else {
-            LOG(INFO) << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : " << event_flow;
+            LOG_IF(INFO, DEBUG_TASK)
+                            << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : "
+                            << currentFlow();
         }
     }
 }
 
-void AsyncTaskCall::handlePoint(const RealPoint &realPoint) {
+void AsyncTaskCall::handleBlock(const RealBlock &block) {
     if (isUnrecoverableError()) {
-        LOG(INFO) << "AsyncTaskCall : 程序运行异常，抛弃 " << output_interpolation_point(realPoint.id) << " ...";
+        LOG_IF(INFO, DEBUG_TASK)
+                        << "AsyncTaskCall : 程序运行异常，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     if (isUrgencyStop()) {
-        LOG(INFO) << "AsyncTaskCall : 急停了，抛弃 " << output_interpolation_point(realPoint.id) << " ...";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 急停了，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     if (isManualMode()) {
-        LOG(INFO) << "AsyncTaskCall : 手动模式抛弃 " << output_interpolation_point(realPoint.id) << " ...";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动模式抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     if (isPause()) {
-        LOG(INFO) << "AsyncTaskCall : 暂停了，抛弃 " << output_interpolation_point(realPoint.id) << " ...";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 暂停了，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     if (isExchangeTask()) {
-        LOG(INFO) << "AsyncTaskCall : 切换新的任务中，抛弃 " << output_interpolation_point(realPoint.id) << " ...";
+        LOG_IF(INFO, DEBUG_TASK)
+                        << "AsyncTaskCall : 切换新的任务中，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
-    recordEmergencyStop(event_flow, realPoint);
+    recordEmergencyStop(currentFlow(), block);
     if (isManualControl()) {
-        handlePointManualControl(realPoint);
+        handleBlockManualControl(block);
     } else if (isSpecialDevice()) {
-        handlePointSpecialDevice(realPoint);
+        handleBlockSpecialDevice(block);
     } else {
-        handleAutoPoint(realPoint);
+        handleAutoBlock(block);
     }
 }
 
 void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
     runTask = task;
 
-    initTaskPoint(runTask);
+    initTaskBlock(runTask);
 
     //清扫队列中的正常点全部加入
     plannerQueue.clear();
-    for (const auto &point: planPoints()) {
-        plannerQueue.push_back(point);
+    for (const auto &block: planBlocks()) {
+        plannerQueue.push_back(block);
     }
 
     firstRetryCount = 0;
     backBaseRetryCount = 0;
     rechargeRetryCount = 0;
 
+    finishedPoints.clear();
+
     HotWindNoteSingleton::instance().closeHotWind();
+
+    auto gateList = SegmentationDataBase::instance().loadGate(SegmentationDataBase::instance().getDbMap().id);
+    mGateComprehensive = std::make_shared<GateComprehensive>(gateList);
 
     //预埋点，执行当期任务的第一个点，触发 handlePoint 流程
     notify_one([this]() {
-        pushPoint(flowSeizeSeatPoint);
+        pushBlock(flowSeizeSeatPoint);
     });
 }
 
-void AsyncTaskCall::handleAutoPoint(const RealPoint &point) {
-    switch (point.id) {
+void AsyncTaskCall::handleAutoBlock(const RealBlock &block) {
+    switch (block.id) {
         //中断，进基站，返回摆渡点，结束睡眠模式，出站，开关清洁机构，抢占，为流程点位，执行流程工作
         case FLOW_IN_STATION:
         case FLOW_IN_BASE_POINT:
@@ -243,46 +295,50 @@ void AsyncTaskCall::handleAutoPoint(const RealPoint &point) {
         case FLOW_CLOSE_MECHANISM:
         case FLOW_OPEN_MECHANISM:
         case FLOW_SEIZE_SEAT:
-            handleFlowPoint(point); //随后进行处理
+            handleFlowBlock(block); //随后进行处理
             break;
             //正常规划出的点位
         default:
-            handlePlannerPoint(point);
+            handlePlannerBlock(block);
             break;
     }
     //流程控制
-    processControl(point);
+    processControl(block);
 }
 
-void AsyncTaskCall::handlePointManualControl(const RealPoint &point) {
-    switch (point.id) {
+void AsyncTaskCall::handleBlockManualControl(const RealBlock &block) {
+    switch (block.id) {
         case FLOW_IN_BASE_POINT:
         case FLOW_CLOSE_MECHANISM:
         case FLOW_IN_STATION:
-            handleFlowPoint(point);
-            processControl(point);
+            handleFlowBlock(block);
+            processControl(block);
             break;
         default:
-            LOG(INFO) << "AsyncTaskCall : 手动接管期间不必要接受 " << output_interpolation_point(point.id) << " ...";
+            LOG_IF(INFO, DEBUG_TASK)
+                            << "AsyncTaskCall : 手动接管期间不必要接受 " << output_interpolation_block(block.id)
+                            << " ...";
             break;
     }
 }
 
-void AsyncTaskCall::handlePointSpecialDevice(const RealPoint &point) {
-    switch (point.id) {
+void AsyncTaskCall::handleBlockSpecialDevice(const RealBlock &block) {
+    switch (block.id) {
         case FLOW_IN_BASE_POINT:
         case FLOW_CLOSE_MECHANISM:
         case FLOW_IN_STATION:
-            handleFlowPoint(point);
-            processControl(point);
+            handleFlowBlock(block);
+            processControl(block);
             break;
         default:
-            LOG(INFO) << "AsyncTaskCall : 强制模式下不必要接受 " << output_interpolation_point(point.id) << " ...";
+            LOG_IF(INFO, DEBUG_TASK)
+                            << "AsyncTaskCall : 强制模式下不必要接受 " << output_interpolation_block(block.id)
+                            << " ...";
             break;
     }
 }
 
-void AsyncTaskCall::initTaskPoint(const RealTask &realTask) {
+void AsyncTaskCall::initTaskBlock(const RealTask &realTask) {
     //预埋点流转循环，打开清洁机构，关闭清洁机构，出站
     realTask.assignmentPoint(flowSeizeSeatPoint, FLOW_SEIZE_SEAT);
     realTask.assignmentPoint(flowOpenMechanismPoint, FLOW_OPEN_MECHANISM);
@@ -297,6 +353,21 @@ void AsyncTaskCall::initTaskPoint(const RealTask &realTask) {
 
 void AsyncTaskCall::goodGame(event::GG gg) {
     LOG(WARNING) << "AsyncTaskCall : goodGame " << gg;
+    finishedPoints;
+
+    double cleanedRatio = 0.0;
+    if (!finishedPoints.empty()) {
+        PointProgressVo &back = finishedPoints.back();
+        if (back.isRenew()) {
+            cleanedRatio = back.getValue() * back.getTotalFrequency();
+        }
+    }
+    if (gg != event::GG::gg_normal_flow) {
+        cleanedRatio = 0.0;
+    }
+    if (cancelTaskUpdateMap) {
+        cleanedRatio = 0.0;
+    }
 
     setEpollManual(loop::manual_epoll::manual_normal);
     setEpollSpecial(loop::special_epoll::special_normal);
@@ -319,40 +390,40 @@ void AsyncTaskCall::goodGame(event::GG gg) {
         if (gg == event::GG::gg_normal_flow) {
             callSubsequentSelfClean(baseWorkStatus());
         }
-        callSubsequentMode(baseTaskMode());
+        callSubsequentMode(baseTaskMode(), cleanedRatio);
     }
 }
 
 
 void AsyncTaskCall::garbage(event::SB sb) {
-    LOG(INFO) << "AsyncTaskCall : 程序出现严重错误，不可恢复，以下是现场可保存的信息 " << sb;
-    LOG(INFO) << " start ————————————————————————————————————————————————————";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 程序出现严重错误，不可恢复，以下是现场可保存的信息 " << sb;
+    LOG_IF(INFO, DEBUG_TASK) << " start ————————————————————————————————————————————————————";
 
     CartographerServiceClient::instance().callSensorStatus();
 
     for (const auto &item: stopStack) {
-        LOG(INFO) << "AsyncTaskCall stopStack : " << item;
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall stopStack : " << item;
     }
 
-    LOG(INFO) << "AsyncTaskCall epoll_manual : " << epoll_manual;
-    LOG(INFO) << "AsyncTaskCall epoll_special : " << epoll_special;
-    LOG(INFO) << "AsyncTaskCall epoll_error : " << epoll_error;
-    LOG(INFO) << "AsyncTaskCall urgency_stop : " << urgency_stop;
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall epoll_manual : " << epoll_manual;
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall epoll_special : " << epoll_special;
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall epoll_error : " << epoll_error;
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall urgency_stop : " << urgency_stop;
 
-    LOG(INFO) << "AsyncTaskCall event_flow: " << event_flow;
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall event_flow: " << currentFlow();
 
-    LOG(INFO) << "AsyncTaskCall plannerQueue: " << plannerQueue.size();
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall plannerQueue: " << plannerQueue.size();
 
-    LOG(INFO) << "AsyncTaskCall firstRetryCount: " << firstRetryCount
-              << " , backBaseRetryCount : " << backBaseRetryCount
-              << " , rechargeRetryCount : " << rechargeRetryCount;
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall firstRetryCount: " << firstRetryCount
+                             << " , backBaseRetryCount : " << backBaseRetryCount
+                             << " , rechargeRetryCount : " << rechargeRetryCount;
 
-    LOG(INFO) << "AsyncTaskCall OpenMechanism: " << flowOpenMechanismPoint.arrive
-              << " , CloseMechanism : " << flowCloseMechanismPoint.arrive
-              << " , OutStation : " << flowOutStationPoint.arrive
-              << " , EndSleep : " << flowEndSleepPoint.arrive
-              << " , InBase : " << flowInBasePoint.arrive
-              << " , InStation : " << flowInStationPoint.arrive;
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall OpenMechanism: " << flowOpenMechanismPoint.arrive
+                             << " , CloseMechanism : " << flowCloseMechanismPoint.arrive
+                             << " , OutStation : " << flowOutStationPoint.arrive
+                             << " , EndSleep : " << flowEndSleepPoint.arrive
+                             << " , InBase : " << flowInBasePoint.arrive
+                             << " , InStation : " << flowInStationPoint.arrive;
 
     MechanismManager::instance().resetWorkStatus();
 
@@ -362,7 +433,7 @@ void AsyncTaskCall::garbage(event::SB sb) {
         setEpollError(loop::error_epoll::error_unrecoverable);
     }
 
-    LOG(INFO) << " end ————————————————————————————————————————————————————";
+    LOG_IF(INFO, DEBUG_TASK) << " end ————————————————————————————————————————————————————";
 }
 
 void AsyncTaskCall::reset() {
@@ -384,36 +455,82 @@ void AsyncTaskCall::reset() {
     flowInStationPoint.arrive = false;
 
     isCarpetAndPack = false;
+
+    cancelTaskUpdateMap = false;
+
+    finishedPoints.clear();
 }
 
-void AsyncTaskCall::handlePlannerPoint(const RealPoint &point) {
-    LOG(INFO) << "AsyncTaskCall : handlePlannerPoint "
-              << " taskId: " << point.taskId << " Id: " << point.id
-              << " arrive : " << point.arrive << " "
-              << point.realProgress;
+void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
+//    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : handlePlannerPoint "
+//              << " taskId: " << block.taskId << " Id: " << block.id
+//              << " arrive : " << block.arrive << " "
+//              << " currentFrequency : " << block.currentFrequency << " "
+//              << " inClean : " << block.inClean << " ";
+
+    if (block.id < 0) {
+        return;
+    }
+    if (block.taskId.empty()) {
+        return;
+    }
+    auto plannerPoints = block.plannerPoints;
+    if (plannerPoints.empty()) {
+        return;
+    }
+    int current_step = block.already_step + block.timely_step;
+    if (current_step > plannerPoints.size()) {
+        return;
+    }
+    auto point = plannerPoints[current_step];
 
     PointProgressVo pointProgressVo(
             point.realPosition.x, point.realPosition.y,
-            point.realProgress.currentStep, point.realProgress.totalStep,
-            point.realProgress.currentFrequency, point.realProgress.totalFrequency,
-            point.work_status, point.mode, point.inClean,
-            point.taskId, point.renew, point.oldTaskId, point.newTaskId);
+            point.currentStep, block.totalStep,
+            block.currentFrequency, block.totalFrequency,
+            block.work_status, block.mode, block.inClean,
+            runTaskId(), block.newTaskId,
+            (double((double) point.id / block.totalStep))
+    );
+
+    LOG_IF(INFO, DEBUG_TASK)
+                    << "blockId : " << block.id << " , " << pointProgressVo << " " << finishedPoints.size() << " "
+                    << point.timeout;
+    finishedPoints.push_back(pointProgressVo);
+
+//    std::vector<geometry_msgs::Pose2D> exploration_path;
+//    for (const auto &item: finishedPoints) {
+//        geometry_msgs::Pose2D pose;
+//        pose.x = item.getY();
+//        pose.y = item.getX();
+//        exploration_path.push_back(pose);
+//    }
+//    ExplorationCenter::instance().pathPublish(exploration_path);
+
     PointProgressPublish::instance().publishProgressPoint(pointProgressVo);
 
-    runTask.changeArrivalStatus(point);
+    runTask.changeArrivalStatus(block);
 }
 
-RealPoint AsyncTaskCall::findFrontPoint() {
+RealBlock AsyncTaskCall::findFrontBlock() {
     return plannerQueue.front();
 }
 
-RealPoint AsyncTaskCall::findFrontNextPoint() {
+std::pair<bool, RealBlock> AsyncTaskCall::findFrontNextBlock() {
+    if (plannerQueue.empty()) {
+        LOG_IF(INFO, DEBUG_TASK) << "findFrontNextBlock : empty ...";
+        return std::make_pair(false, RealBlock());
+    }
+    if (plannerQueue.size() == 1) {
+        LOG_IF(INFO, DEBUG_TASK) << "findFrontNextBlock : size == 1 ...";
+        return std::make_pair(false, RealBlock());
+    }
     plannerQueue.pop_front();
-    return plannerQueue.front();
+    return std::make_pair(true, plannerQueue.front());
 }
 
 bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
-    geometry_msgs::Pose2D current_point = MapAttribute::instance().getRobotPositionPose();
+    geometry_msgs::Pose2D current_point = MapAttributeSingleton::instance().getRobotPositionPose();
     float robot_yaw = current_point.theta;
     float robot_x = current_point.x;
     float robot_y = current_point.y;
@@ -422,65 +539,151 @@ bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
     return (abs(dist_error) < disAccuracy) && (abs(angle_error) < angleAccuracy);
 }
 
+void AsyncTaskCall::callBackBasePoint() {
 
-void AsyncTaskCall::callGoNextPoint(const RealPoint &nextPoint) {
-    PointPlanner::instance().gotoPlannerPoint(nextPoint);
-    int id = nextPoint.id;
-    int timeout = nextPoint.timeout;
-    if (timeout > 0) {
-        async::TimerCall::instance().baseLoop()
-                ->scheduleLater(std::chrono::seconds(timeout), [this, &id]() {
-                    auto currentPoint = findFrontPoint();
-                    if (currentPoint.id == id) {
-                        executeOnNext(event::error::TIMEOUT);
-                    }
-                });
+    auto backBasePoint = PointPlanner::createBackBasePoint();
+
+    bool use_re_plan = true;
+    std::vector<RealPoint> points;
+
+    std::vector<int> stacks;
+    mGateComprehensive->AStarPlannerPoint(backBasePoint, stacks);
+
+    if (!stacks.empty()) {
+        if (stacks.size() > 1) {
+
+            mGateComprehensive->generateGatePointList(stacks, backBasePoint, points);
+            if (!points.empty()) {
+                use_re_plan = false;
+            }
+        }
+    }
+    if (use_re_plan) {
+        AsyncTaskFramework::callBackBasePoint();
+    } else {
+        mGateDistribution->onDistributionStart(points);
     }
 }
 
-void AsyncTaskCall::callPointComplete(const std::function<void()> &f) {
+void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock, bool first) {
+    if (first) PointPlanner::instance().setPathFirst();
+
+    bool use_re_plan = true;
+    std::vector<RealPoint> points;
+    if (nextBlock.plannerPoints.size() == 1 && mGateComprehensive->isHasGate()) {
+
+        RealPoint realPoint = nextBlock.plannerPoints[0];
+        std::vector<int> stacks;
+        try {
+            mGateComprehensive->AStarPlannerPoint(realPoint, stacks);
+        } catch (...) {
+            LOG_IF(INFO, DEBUG_GATE)
+                            << "AsyncGateImplement  AStarPlannerPoint catch " << "... ";
+        }
+
+        if (!stacks.empty()) {
+            if (stacks.size() > 1) {
+
+                mGateComprehensive->generateGatePointList(stacks, realPoint, points);
+                if (points.size() > 0) {
+                    use_re_plan = false;
+                }
+            }
+        }
+    }
+    if (use_re_plan) {
+        auto plannerPoints = nextBlock.plannerPoints;
+        if (!plannerPoints.empty()) {
+            auto cmcMode = plannerPoints[0].cmcMode;
+            LOG_IF(INFO, DEBUG_CLEAN_MECHANISM)
+                            << "DEBUG_CLEAN_MECHANISM 取未执行的点列队首，清洁机构操控 mode 为 "
+                            << static_cast<int>(cmcMode) << " ... ";
+            if (cmcMode == CmcMode::Open) {
+                MechanismManager::instance().controlWorkStatus(nextBlock.work_status, nextBlock.knife);
+            } else if (cmcMode == CmcMode::Close) {
+                //
+            }
+        }
+
+        PointPlanner::instance().goToPath(nextBlock);
+        int id = nextBlock.id;
+        int timeout = nextBlock.timeout;
+        if (timeout > 0) {
+            async::TimerCall::instance().baseLoop()
+                    ->scheduleLater(std::chrono::seconds(timeout), [this, id]() {
+                        auto currentPoint = findFrontBlock();
+                        if (currentPoint.id == id) {
+                            executeOnPathDone(id, event::error::TIMEOUT, "timeout");
+                        }
+                    });
+        }
+    } else {
+        mGateDistribution->onDistributionStart(points);
+    }
+}
+
+void AsyncTaskCall::callBlockComplete(const std::function<void()> &f) {
     plannerQueue.pop_front();
     f();
 }
 
-
 void AsyncTaskCall::callManualCleanStart() {
     HotWindNoteSingleton::instance().closeHotWind();
-    if (!isWaitTask(currentFlow())) {
-        cancelTask();
-        goodGame(event::GG::gg_manual_mode);
-    }
+    if (!isWaitTask(currentFlow()))
+        callManualPause();
     //电机失能
     MechanismManager::instance().enterManualControl();
+    cancelTaskUpdateMap = true;
 }
 
 void AsyncTaskCall::callManualCleanEnd() {//退出手动模式
     setEpollError(loop::error_epoll::error_normal);
     //电机使能
     MechanismManager::instance().quitManualControl();
-    //睡眠模式标志设置
-    callNeedPublishSleep();
+
+    if (isCharging()) {
+        if (!isWaitTask(currentFlow())) {
+            cancelTask();
+            goodGame(event::GG::gg_manual_mode);
+        } else {
+            callNeedPublishSleep();
+        }
+    } else {
+        if (isContinueWork(currentFlow(), true, true)) {
+            LOG(INFO) << "CAN CONTINUE WORKING ... ";
+        } else {
+            //睡眠模式标志设置
+            callNeedPublishSleep();
+        }
+    }
 }
 
 void AsyncTaskCall::callSubsequentSelfClean(const WorkStatus &status) {
-    LOG(INFO) << "AsyncTaskCall : 处理 WorkStatus " << status << " ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 处理 WorkStatus " << status << " ...";
     if (!isCharging()) {
         return;
     }
     if (status.getMopStatus() > 0) {
+        LOG_IF(INFO, DEBUG_TASK) << "Dry: " << ParamManager::instance().getDry();
         if (ParamManager::instance().getDry() == -1) {
             return;
         }
-        time_t now = time(0);
+        time_t now = std::time(0);
         tm *ltm = localtime(&now);
-        std::cout << "年: " << 1900 + ltm->tm_year << std::endl;
-        std::cout << "月: " << 1 + ltm->tm_mon << std::endl;
-        std::cout << "日: " << ltm->tm_mday << std::endl;
-        std::cout << "时间: " << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << endl;
-        if (ParamManager::instance().getDry() == 0 && ltm->tm_hour >= 7) {
-            return;
+        LOG_IF(INFO, DEBUG_TASK) << "年: " << 1900 + ltm->tm_year;
+        LOG_IF(INFO, DEBUG_TASK) << "月: " << 1 + ltm->tm_mon;
+        LOG_IF(INFO, DEBUG_TASK) << "日: " << ltm->tm_mday;
+        LOG_IF(INFO, DEBUG_TASK) << "时间: " << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec;
+        LOG_IF(INFO, DEBUG_TASK) << "dry_accumulation: " << Environment::instance().dry_accumulation;
+        if (ParamManager::instance().getDry() == 0) {
+            // 0-7 点执行
+            if (ltm->tm_hour >= 0 + Environment::instance().dry_accumulation
+                && ltm->tm_hour < 7 + Environment::instance().dry_accumulation) {
+                HotWindNoteSingleton::instance().openHotWind();
+            }
+        } else if (ParamManager::instance().getDry() == 1) {
+            HotWindNoteSingleton::instance().openHotWind();
         }
-        HotWindNoteSingleton::instance().openHotWind();
     }
 }
 
@@ -488,12 +691,12 @@ void AsyncTaskCall::callSelfCleanClose() {
 
 }
 
-void AsyncTaskCall::callSubsequentMode(int mode) {
-    LOG(INFO) << "AsyncTaskCall : 处理 mode " << mode << " ...";
+void AsyncTaskCall::callSubsequentMode(int mode, double cleanedRatio) {
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 处理 mode " << mode << " ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 处理 cleanedRatio " << cleanedRatio << " ...";
 
-    if (mode == 6 && realPoints().size() == planPoints().size() &&
-        Environment::instance().update_map) {
-        LOG(INFO) << "AsyncTaskCall : 全覆盖清洁后需要更新地图信息 ...";
+    if (mode == static_cast<int>(TaskMode::Cover) && cleanedRatio > 0.8 && Environment::instance().update_map) {
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 全覆盖清洁后需要更新地图信息 ...";
         CartographerPublisher::instance().publishUpdateMap();
     } else {
         callNeedPublishSleep();
@@ -503,17 +706,55 @@ void AsyncTaskCall::callSubsequentMode(int mode) {
 
 void AsyncTaskCall::callUrgencyStop() {
     if (!isPause()) {
-        if (isContinueWork(event_flow, true)) {
-            LOG(INFO) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
-            LOG(INFO) << "AsyncTaskCall : event_flow : " << event_flow << "   " << recoverableEmergencyStop();
+        if (isPreCompleted(currentFlow())) {
+            LOG_IF(INFO, DEBUG_TASK)
+                            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
+            setFlow(event::flow::cleaning_mechanism_ready);
+        }
+        if (isContinueWork(currentFlow(), true)) {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
+            LOG_IF(INFO, DEBUG_TASK)
+                            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
             setEpollManual(loop::manual_epoll::manual_pause);
-            if (isRechargeFLow(event_flow)) {
-                LOG(INFO) << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
+            if (isRechargeFLow(currentFlow())) {
+                LOG_IF(INFO, DEBUG_TASK)
+                                << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
                 callCancelBackStation();
                 rechargeRetryCount = 0;
                 recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
             }
-            callPause();
+            if (isMechanismReady(currentFlow())) {
+                recordEmergencyStop(event::flow::cleaning_mechanism_ready, flowOpenMechanismPoint);
+            }
+            callPause(false);
+        }
+    }
+    cancelTaskUpdateMap = true;
+}
+
+void AsyncTaskCall::callManualPause() {
+    if (!isPause()) {
+        if (isPreCompleted(currentFlow())) {
+            LOG_IF(INFO, DEBUG_TASK)
+                            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
+            setFlow(event::flow::cleaning_mechanism_ready);
+        }
+        if (isContinueWork(currentFlow(), true, true)) {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
+            LOG_IF(INFO, DEBUG_TASK)
+                            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
+            setEpollManual(loop::manual_epoll::manual_pause);
+            if (isRechargeFLow(currentFlow())) {
+                LOG_IF(INFO, DEBUG_TASK)
+                                << "AsyncTaskCall : 回充中触发手动模式为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
+                callCancelBackStation();
+                rechargeRetryCount = 0;
+                recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
+            }
+            if (isMechanismReady(currentFlow())) {
+                recordEmergencyStop(event::flow::cleaning_mechanism_ready, flowOpenMechanismPoint);
+            }
+            callPause(true);
         }
     }
 }
@@ -522,10 +763,8 @@ void AsyncTaskCall::callReleaseStop() {
     if (recoverableEmergencyStop()) {
         if (isPause()) {
             if (recoverableSuspend()) {
-                LOG(INFO) << "AsyncTaskCall : 急停可恢复暂停状态 ... ";
-//                if (!isReturningBase(event_flow)) {
+                LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 急停可恢复暂停状态 ... ";
                 MechanismManager::instance().forceControlWorkStatus(baseWorkStatus(), isKnife());
-//                }
             }
         }
     }
@@ -541,68 +780,87 @@ void AsyncTaskCall::callRecoveryStop() {
 void AsyncTaskCall::callResume() {
     setEpollManual(loop::manual_epoll::manual_normal);
     if (recoverableSuspend()) {
-        LOG(INFO) << "AsyncTaskCall : 可继续执行任务 ...";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 可继续执行任务 ...";
         MechanismManager::instance().forceControlWorkStatus(baseWorkStatus(), isKnife());
         auto lastStack = lastEmergencyStop();
-        LOG(INFO) << "AsyncTaskCall : 继续 lastStack : " << lastStack << " ...";
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 继续 lastStack : " << lastStack << " ...";
 
         if (isPlannerEmpty(lastStack.flow)) {
-            LOG(INFO) << "AsyncTaskCall : 流水点的最后，点位规划队列为空，需要直接返回基站 ...";
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 流水点的最后，点位规划队列为空，需要直接返回基站 ...";
             callBackBasePoint();
         } else {
             notify_one([this, &lastStack]() {
                 setFlow(lastStack.flow);
-                pushPoint(lastStack.suspendPoint);
+                pushBlock(lastStack.suspendBlock);
             });
         }
     }
 }
 
-void AsyncTaskCall::callPause() {
+void AsyncTaskCall::callPause(bool skipManual) {
     MechanismManager::instance().resetWorkStatus();
-    if (isContinueWork(event_flow, true)) {
-        makeSurePause(event_flow);
-        PointPlanner::instance().cancelGoal();
-        async::TimerCall::instance().baseLoop()->cancelAny();
+    if (isContinueWork(currentFlow(), true, skipManual)) {
+        makeSurePause(currentFlow());
+        cancelAny();
         if (!plannerQueue.empty()) {
-            auto currentPoint = findFrontPoint();
-            plannerQueue.push_front(currentPoint);
+            auto currentPoint = findFrontBlock();
+            if (currentPoint.goal_step == INT_MAX) {
+                auto nextPointPair = findFrontNextBlock();
+                if (nextPointPair.first) {
+                    plannerQueue.push_front(nextPointPair.second);
+                }
+            } else {
+                plannerQueue.push_front(currentPoint);
+            }
         }
     }
 }
 
-void AsyncTaskCall::cancelTaskAndBack() {
-    if (!isReturningBase(event_flow)) {
-        if (isRegularTask(event_flow)) {
-            PointPlanner::instance().cancelGoal();
-            async::TimerCall::instance().baseLoop()->cancelAny();
+void AsyncTaskCall::cancelTaskAndBack(bool force) {
+    if (!isReturningBase(currentFlow())) {
+        if (isRegularTask(currentFlow())) {
+            cancelAny();
+            setEpollManual(loop::manual_epoll::manual_normal);
             waitTaskQueue.clear();
-
             plannerQueue.clear();
             setFlow(event::flow::flowing_water_production);
             recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
         }
         callBackBasePoint();
     } else {
-        LOG(INFO) << "AsyncTaskCall : 已经触发返回基站的动作了 ...";
+        if (force) {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 强制返回 force ...";
+            cancelAny();
+            setEpollManual(loop::manual_epoll::manual_normal);
+            waitTaskQueue.clear();
+            plannerQueue.clear();
+            setFlow(event::flow::flowing_water_production);
+            recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
+            callBackBasePoint();
+        } else
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 已经触发返回基站的动作了 ...";
     }
 }
 
 void AsyncTaskCall::cancelTask() {
-    if (isRegularTask(event_flow)) {
-        PointPlanner::instance().cancelGoal();
-        async::TimerCall::instance().baseLoop()->cancelAny();
+    if (isRegularTask(currentFlow())) {
+        cancelAny();
         waitTaskQueue.clear();
     }
 }
 
+void AsyncTaskCall::cancelAny() {
+    PointPlanner::instance().cancelPath();
+    async::TimerCall::instance().baseLoop()->cancelAny();
+    mGateDistribution->cancelDistribution();
+}
+
 void AsyncTaskCall::forceInterruptTask(event::SB sb) {
-    if (event_flow != event::flow::waiting_for_task &&
-        event_flow != event::flow::hardware_interrupt_task &&
-        event_flow != event::flow::software_interrupt_task) {
-        LOG(INFO) << "AsyncTaskCall : 当前有任务取消任务 ... ";
-        PointPlanner::instance().cancelGoal();
-        async::TimerCall::instance().baseLoop()->cancelAny();
+    if (currentFlow() != event::flow::waiting_for_task &&
+        currentFlow() != event::flow::hardware_interrupt_task &&
+        currentFlow() != event::flow::software_interrupt_task) {
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 当前有任务取消任务 ... ";
+        cancelAny();
         waitTaskQueue.clear();
     }
 }
@@ -627,70 +885,138 @@ void AsyncTaskCall::executeOneTask(const RealTask &task) {
     if (isUrgencyStop()) {
         throw app::exception(make_error_code(error::machine_is_in_emergency_stop_command_not_supported));
     }
+    if (task.isVerifyMode()) {
+        return;
+    }
     notify_one([this, &task]() {
         pushTask(task);
     });
 }
 
-void AsyncTaskCall::executeOnNext(event::error error) {
-    if (isCharging()) {
+void AsyncTaskCall::executeOnPointDone(event::error error) {
+    if (isCharging())
         return;
-    }
-    if (isWaitTask(event_flow)) {
+    if (isWaitTask(currentFlow()))
         return;
-    }
-    if (isPreparation(event_flow)) {
+    if (isPreparation(currentFlow()))
         return;
-    }
-    if (isUnrecoverableError()) {
+    if (isUnrecoverableError())
         return;
-    }
-    if (isUrgencyStop()) {
+    if (isUrgencyStop())
         return;
-    }
-    if (isManualMode()) {
+    if (isManualMode())
         return;
+
+    if (error != event::error::TIMEOUT) {
+        async::TimerCall::instance().baseLoop()->cancelAny();
     }
+    if (mGateDistribution->isImplement()) {
+        mGateDistribution->executeOnPointDone(error);
+    } else
+        notify_one([this, &error]() {
+            if (!plannerQueue.empty()) {
+                if (error == event::error::LOST) {
+                    auto currentPoint = findFrontBlock();
+                    currentPoint.arrive = error == event::error::SUCCEEDED;
+                    currentPoint.retry = true;
+                    pushBlock(currentPoint);
+                } else {
+                    auto currentPoint = findFrontBlock();
+                    currentPoint.arrive = error == event::error::SUCCEEDED;
+                    pushBlock(currentPoint);
+                }
+            } else {
+                flowInBasePoint.arrive = error == event::error::SUCCEEDED;
+                pushBlock(flowInBasePoint);
+            }
+
+        });
+}
+
+void AsyncTaskCall::executeOnPathDone(int blockId, event::error error, const std::string &message) {
+    if (isCharging())
+        return;
+    if (isWaitTask(currentFlow()))
+        return;
+    if (isPreparation(currentFlow()))
+        return;
+    if (isUnrecoverableError())
+        return;
+    if (isUrgencyStop())
+        return;
+    if (isManualMode())
+        return;
 
     if (error != event::error::TIMEOUT) {
         async::TimerCall::instance().baseLoop()->cancelAny();
     }
 
-    if (!plannerQueue.empty()) {
-        notify_one([this, &error]() {
-            auto currentPoint = findFrontPoint();
-            currentPoint.arrive = error == event::error::SUCCEEDED;
-            pushPoint(currentPoint);
+    if (mGateDistribution->isImplement()) {
+        LOG(WARNING) << "PointPlanner moveBase  blockId : " << blockId << " , result : " << message;
+        mGateDistribution->executeOnPathDone(error);
+    } else
+        notify_one([this, &blockId, &error, &message]() {
+            LOG(WARNING) << "PointPlanner moveBase  blockId : " << blockId << " , result : " << message;
+            if (!plannerQueue.empty()) {
+                if (error == event::error::LOST) {
+                    auto currentPoint = findFrontBlock();
+                    currentPoint.arrive = error == event::error::SUCCEEDED;
+                    currentPoint.retry = true;
+                    pushBlock(currentPoint);
+                } else {
+                    auto currentPoint = findFrontBlock();
+                    currentPoint.arrive = error == event::error::SUCCEEDED;
+                    pushBlock(currentPoint);
+                }
+            } else {
+                flowInBasePoint.arrive = error == event::error::SUCCEEDED;
+                pushBlock(flowInBasePoint);
+            }
         });
-    } else {
-        notify_one([this, &error]() {
-            flowInBasePoint.arrive = error == event::error::SUCCEEDED;
-            pushPoint(flowInBasePoint);
-        });
-    }
-
 }
 
-void AsyncTaskCall::executePointFeedback(geometry_msgs::Pose2D pose) {
-    fbPtr->triggerFeedback(pose);
+void AsyncTaskCall::executeOnPathFeedBack(int blockId, int current_step, int goal_step, int current_goal,
+                                          const geometry_msgs::Pose &pose) {
+    lock([this, &blockId, &current_step, &goal_step, &current_goal]() {
+        if (!plannerQueue.empty()) {
+            RealBlock &block = plannerQueue.front();
+            if (block.id == blockId) {
+                if (current_step > block.timely_step) {
+//                    LOG(ERROR) << "AsyncTaskCall : executeOnPathFeedBack : "
+//                               << "  blockId " << blockId
+//                               << "  plannerQueue.size " << plannerQueue.size()
+//                               << "  point.id " << block.id
+//                               << "  point.timely_step " << block.timely_step
+//                               << "  point.already_step " << block.already_step
+//                               << "  block.plannerPoints.size " << block.plannerPoints.size();
+                    handlePlannerBlock(block);
+                }
+                block.timely_step = current_step;
+                block.current_step = current_step;
+                block.goal_step = goal_step;
+                block.current_goal = current_goal;
+            }
+        }
+    });
+    feedBackPose(pose);
 }
 
 void AsyncTaskCall::executeOutStation(bool result) {
     notify_one([this, &result]() {
         flowOutStationPoint.arrive = result;
-        pushPoint(flowOutStationPoint);
+        pushBlock(flowOutStationPoint);
     });
 }
 
 void AsyncTaskCall::executeInStation(bool result) {
     notify_one([this, &result]() {
         flowInStationPoint.arrive = result;
-        pushPoint(flowInStationPoint);
+        pushBlock(flowInStationPoint);
     });
 }
 
 void AsyncTaskCall::executeCover() {
-    LOG(INFO) << "AsyncTaskCall : 地图信息已更新完成，准备发布睡眠模式 ...";
+    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 地图信息已更新完成，准备发布睡眠模式 ...";
     callNeedPublishSleep();
     LOG(ERROR) << "AsyncTaskCall : gg";
 }
@@ -712,38 +1038,20 @@ void AsyncTaskCall::manualBackToBase(bool force) {
     if (isManualMode()) {
         throw app::exception(make_error_code(error::machine_is_in_manual_mode_command_not_supported));
     }
-    if (isPreparation(event_flow)) {
+    if (isPreparation(currentFlow())) {
         throw app::exception(make_error_code(error::operation_not_allowed_in_outbound));
     }
-    if (isPause()) {
-        if (isReturningBase(event_flow)) {
-            notify_one([this]() {
-                pushManual(loop::manual_epoll::manual_resume);
-            });
-        } else {
-            notify_one([this]() {
-                pushManual(loop::manual_epoll::manual_force_back);
-            });
-        }
+//    if (isReturningBase(currentFlow())) {
+//        throw app::exception(make_error_code(error::already_returning_to_the_base_station));
+//    }
+    if (force) {
+        notify_one([this]() {
+            pushManual(loop::manual_epoll::manual_force_back);
+        });
     } else {
-        if (isReturningBase(event_flow)) {
-            throw app::exception(make_error_code(error::already_returning_to_the_base_station));
-        }
-        if (force) {
-            notify_one([this]() {
-                pushManual(loop::manual_epoll::manual_force_back);
-            });
-        } else {
-            if (isRegularTask(event_flow)) {
-                notify_one([this]() {
-                    pushManual(loop::manual_epoll::manual_back);
-                });
-            } else {
-                notify_one([this]() {
-                    pushManual(loop::manual_epoll::manual_force_back);
-                });
-            }
-        }
+        notify_one([this]() {
+            pushManual(loop::manual_epoll::manual_back);
+        });
     }
 
 }
@@ -761,6 +1069,9 @@ void AsyncTaskCall::manualResume() {
     }
     if (!isPause()) {
         throw app::exception(make_error_code(error::not_paused_status));
+    }
+    if (mGateDistribution->isImplement()) {
+        throw app::exception(make_error_code(error::passing_through_the_gate_manual_control_is_not_supported));
     }
     notify_one([this]() {
         pushManual(loop::manual_epoll::manual_resume);
@@ -781,8 +1092,11 @@ void AsyncTaskCall::manualPause() {
     if (isPause()) {
         throw app::exception(make_error_code(error::it_is_currently_suspended));
     }
-    if (!isContinueWork(event_flow, true)) {
+    if (!isContinueWork(currentFlow(), true)) {
         throw app::exception(make_error_code(error::pause_is_not_supported));
+    }
+    if (mGateDistribution->isImplement()) {
+        throw app::exception(make_error_code(error::passing_through_the_gate_manual_control_is_not_supported));
     }
     notify_one([this]() {
         pushManual(loop::manual_epoll::manual_pause);
@@ -802,30 +1116,110 @@ void AsyncTaskCall::enterManual() {//进入手动模式接口
     if (isManualMode()) {//已经在手动模式下
         throw app::exception(make_error_code(error::already_in_manual_clean_mode));
     }
+    if (mGateDistribution->isImplement()) {
+        throw app::exception(make_error_code(error::passing_through_the_gate_manual_control_is_not_supported));
+    }
+
+    if (isWaitTask(currentFlow()))
+        if (!NodeWorkModeManager::instance().enterWorkMode(2))
+            throw app::exception(make_error_code(error::mode_switching_is_not_supported));
+
     notify_one([this]() {
         pushError(loop::error_epoll::error_manual_clean_start);
     });
 }
 
-void AsyncTaskCall::quitManual() {//退出手动模式接口
+ManualModel AsyncTaskCall::quitManual() {//退出手动模式接口
+    ManualModel manualModel;
+
+    manualModel.setIsUnrecoverableError(isUnrecoverableError());
     if (isUnrecoverableError()) {
-        throw app::exception(make_error_code(error::the_current_state_is_uncontrollable));
+        manualModel.setUnrecoverableError(epoll_error);
+        LOG(INFO) << "ManualModel 程序异常，不能处理退出手动模式的命令 ";
+        return manualModel;
     }
-    if (isUrgencyStop()) {
-        throw app::exception(make_error_code(error::machine_is_in_emergency_stop_command_not_supported));
-    }
-    if (isSpecialDevice()) {
-        throw app::exception(make_error_code(error::the_current_state_is_uncontrollable));
-    }
+
+    manualModel.setIsManualMode(isManualMode());
     if (!isManualMode()) {//不在手动模式下
-        throw app::exception(make_error_code(error::not_in_manual_clean_mode));
+        LOG(INFO) << "ManualModel 不在手动模式下，不支持退出手动模式 ";
+        return manualModel;
     }
-    if (!isCharging()) {
-        throw app::exception(make_error_code(error::manual_in_the_base_station));
+
+    manualModel.setIsUrgencyStop(isUrgencyStop());
+    if (isUrgencyStop()) {
+        LOG(INFO) << "ManualModel 机器处于急停状态中，不支持退出手动模式 ";
+        return manualModel;
     }
-    notify_one([this]() {
-        pushError(loop::error_epoll::error_manual_clean_end);
-    });
+
+    manualModel.setIsCharging(isCharging());
+    manualModel.setIsWaitTask(isWaitTask(currentFlow()));
+    if (isCharging()) {
+        notify_one([this]() {
+            pushError(loop::error_epoll::error_manual_clean_end);
+        });
+
+        LOG(INFO) << "ManualModel 充电中，触发退出手动模式指令 ";
+        return manualModel;
+    } else {
+        manualModel.setIsContinueWork(isContinueWork(currentFlow(), true, true));
+
+        bool isWorkMode = false;
+        int work_mode = 0;
+        ros::param::get(NODE_CONTROLLER_WORK_MODE, work_mode);
+        int carto_mode = 0;
+        ros::param::get(CARTOGRAPHER_WORK_MODE, carto_mode);
+        if (work_mode != 2) {
+            LOG_IF(INFO, DEBUG_RESTORE) << "ManualModel " << "/node_controller/work_mode 检测为非工作模式，无法确认定位，不能退出手动模式指令 "
+                                        << work_mode;
+            manualModel.setIsWorkMode(isWorkMode);
+            return manualModel;
+        }
+        if (carto_mode != 0) {
+            LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "/cartographer_work_mode 检测为非定位模式，无法确认定位，不能退出手动模式指令 "
+                                        << carto_mode;
+            manualModel.setIsWorkMode(isWorkMode);
+            return manualModel;
+        }
+        isWorkMode = true;
+        manualModel.setIsWorkMode(isWorkMode);
+
+        bool isOffMap = false;
+        bool isRestrictedZone = false;
+        bool isMaxPassable = false;
+        bool isPlanPath = false;
+        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+        SegmentationCenter::instance()
+                .isRestrictedZone(map, isOffMap, isRestrictedZone, isMaxPassable, isPlanPath, false);
+        manualModel.setIsOffMap(isOffMap);
+        manualModel.setIsRestrictedZone(isRestrictedZone);
+        manualModel.setIsMaxPassable(isMaxPassable);
+        manualModel.setIsPlanPath(isPlanPath);
+
+        if (isOffMap) {
+            LOG(INFO) << "ManualModel 机器不在地图内 ";
+            return manualModel;
+        }
+        if (isRestrictedZone) {
+            LOG(INFO) << "ManualModel 机器在禁区内 ";
+            return manualModel;
+        }
+        if (!isMaxPassable) {
+            LOG(INFO) << "ManualModel 机器不在最大的可通行区域内 ";
+            return manualModel;
+        }
+        if (!isPlanPath) {
+            LOG(INFO) << "ManualModel 机器位置与基站无法规划出有效路径 ";
+            return manualModel;
+        }
+
+        notify_one([this]() {
+            pushError(loop::error_epoll::error_manual_clean_end);
+        });
+
+        LOG(INFO) << "ManualModel 初步确定定位未丢，触发退出手动模式指令 ";
+        return manualModel;
+    }
+
 }
 
 void AsyncTaskCall::executeUrgencyStop(bool isUrgencyStop) {
@@ -874,14 +1268,12 @@ void AsyncTaskCall::forceBackToBase(loop::special_epoll operation) {
     if (isUnrecoverableError()) {
         return;
     }
-    if (isPlannerEmpty(event_flow)) {
+    if (isPreparation(currentFlow())) {
         return;
     }
-    if (isFlowingWater(event_flow)) {
-        notify_one([this, &operation]() {
-            pushSpecial(operation);
-        });
-    }
+    notify_one([this, &operation]() {
+        pushSpecial(operation);
+    });
 }
 
 void AsyncTaskCall::executeCarpet(bool carpet) {
@@ -894,10 +1286,10 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
     if (isUnrecoverableError()) {
         return;
     }
-    if (isPlannerEmpty(event_flow)) {
+    if (isManualMode()) {
         return;
     }
-    if (isFlowingWater(event_flow)) {
+    if (isFlowingWater(currentFlow())) {
 //        "1.仅在尘推和湿拖模式下识别到地毯后抬起清洁机构；
 //        2.识别到地毯后不关闭香氛或消杀。"
         if (baseWorkStatus().getPushStatus() > 0 || baseWorkStatus().getMopStatus() > 0) {
@@ -905,9 +1297,9 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
                 if (!isCarpetAndPack) {
                     isCarpetAndPack = true;
                     MechanismManager::instance().resetBelowWorkStatus();
-                    LOG(INFO) << "NativeSystemManager : executeCarpet "
-                              << "  检测到地毯并且已经收起清洁机构"
-                              << " ...";
+                    LOG_IF(INFO, DEBUG_TASK) << "NativeSystemManager : executeCarpet "
+                                             << "  检测到地毯并且已经收起清洁机构"
+                                             << " ...";
                     for (int i = 0; i < 15; i++) {
                         carpetStop();
                         ros::Duration(0.3).sleep();
@@ -916,9 +1308,9 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
             } else {
                 if (isCarpetAndPack) {
                     isCarpetAndPack = false;
-                    LOG(INFO) << "NativeSystemManager : executeCarpet "
-                              << "  离开地毯，且机构已收起，执行再次放下清洁机构"
-                              << " ...";
+                    LOG_IF(INFO, DEBUG_TASK) << "NativeSystemManager : executeCarpet "
+                                             << "  离开地毯，且机构已收起，执行再次放下清洁机构"
+                                             << " ...";
                     MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus(), runTask.isKnife());
                 }
             }
@@ -947,13 +1339,16 @@ void AsyncTaskCall::executeLift(bool lift) {
     if (isUnrecoverableError()) {
         return;
     }
-    if (isPreparation(event_flow)) {
+    if (isManualMode()) {
         return;
     }
-    if (isReturningBase(event_flow)) {
+    if (isPreparation(currentFlow())) {
         return;
     }
-    if (!isRegularTask(event_flow)) {
+//    if (isReturningBase(currentFlow())) {
+//        return;
+//    }
+    if (!isRegularTask(currentFlow())) {
         return;
     }
     if (lift) {
@@ -963,6 +1358,23 @@ void AsyncTaskCall::executeLift(bool lift) {
     }
 }
 
+void AsyncTaskCall::executeElectricMove() {
+    if (isCharging()) {
+        return;
+    }
+    if (isUrgencyStop()) {
+        return;
+    }
+    if (isUnrecoverableError()) {
+        return;
+    }
+    if (isManualMode()) {
+        return;
+    }
+    notify_one([this]() {
+        pushError(loop::error_epoll::error_electric_move);
+    });
+}
 
 RealTask AsyncTaskCall::runningTask() const {
     return runTask;
@@ -970,18 +1382,88 @@ RealTask AsyncTaskCall::runningTask() const {
 
 std::vector<RealTask> AsyncTaskCall::runTaskList() {
     std::vector<RealTask> result;
-    if (isFlowingWater(event_flow)) {
+    if (isFlowingWater(currentFlow())) {
         result.push_back(runTask);
     }
     return result;
 }
 
-std::vector<RealPoint> AsyncTaskCall::runTaskPoint() {
-    std::vector<RealPoint> result;
-    if (isFlowingWater(event_flow)) {
-        for (const auto &item: realPoints()) {
+std::vector<PointProgressVo> AsyncTaskCall::runTaskPointList() {
+    std::vector<PointProgressVo> result;
+    if (isFlowingWater(currentFlow())) {
+        for (const auto &item: finishedPoints) {
             result.push_back(item);
         }
     }
     return result;
+}
+
+void AsyncTaskCall::restore() {
+    if (!Environment::instance().rec_app_node_crash) {
+        return;
+    }
+    LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "检测到崩溃后的重启了 ";
+    const EnterStatus &enterStatus = AsyncMachine::instance().getEnterStatus();
+    event::flow restore_flow = enterStatus.task_flow;
+    loop::manual_epoll restore_manual = enterStatus.epoll_manual;
+    loop::special_epoll restore_special = enterStatus.epoll_special;
+    loop::error_epoll restore_error = enterStatus.epoll_error;
+    loop::urgency_stop restore_urgency_stop = enterStatus.urgency_stop;
+    LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "enterStatus " << enterStatus;
+    if (enterStatus.node_mode != 2) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "/node_controller/work_mode 检测为非工作模式，无法确认定位，不能处理返回基站 "
+                                    << enterStatus.node_mode;
+        return;
+    }
+    if (enterStatus.carto_mode != 0) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "/cartographer_work_mode 检测为非定位模式，无法确认定位，不能处理返回基站 "
+                                    << enterStatus.carto_mode;
+        return;
+    }
+    if (isWaitTask(restore_flow)) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "不是任务中的崩溃，无法确认定位，不能处理返回基站";
+        return;
+    }
+    if (isCharging()) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "已经在充电，无需返回基站";
+        return;
+    }
+    if (restore_error == loop::error_epoll::error_unrecoverable ||
+        restore_error == loop::error_epoll::error_lift ||
+        restore_error == loop::error_epoll::error_electric_move ||
+        restore_manual == loop::manual_epoll::manual_unknown ||
+        restore_special == loop::special_epoll::special_unknown ||
+        restore_error == loop::error_epoll::error_unknown) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "原因多数未知，无法处理返回基站 ";
+        return;
+    }
+    if (restore_urgency_stop == loop::urgency_stop::trigger_urgency_stop ||
+        restore_urgency_stop == loop::urgency_stop::recovery_urgency_stop) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "急停，无法处理返回基站";
+        return;
+    }
+    if (restore_error == loop::error_epoll::error_manual_clean_start ||
+        restore_error == loop::error_epoll::error_manual_clean_end) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "手动模式触发，无法处理返回基站";
+        return;
+    }
+    if (isPreparation(restore_flow)) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "任务的前期准备工作，如工作模式切换、出站等，无法处理返回基站";
+        return;
+    }
+    if (!Environment::instance().direct_start_move_base) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "direct_start_move_base 为 false, move_base 暂不支持";
+    }
+    bool baseAvailable = ModeValidate::validateMoveBaseAvailable();
+    if (!baseAvailable) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "move_base 服务不可可用, 无法处理返回基站";
+    }
+    bool coreMoveAvailable = ModeValidate::validateCoreMoveAvailable();
+    if (!coreMoveAvailable) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "core_move 服务不可可用, 无法处理返回基站";
+    }
+    notify_one([this]() {
+        setFlow(event::flow::ensure_move_to_start_point);
+        pushManual(loop::manual_epoll::manual_force_back);
+    });
 }

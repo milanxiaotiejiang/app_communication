@@ -4,7 +4,7 @@
 
 #include "exploration/A_star_pathplanner.h"
 #include "exploration/cv_extend.h"
-
+#include "simulation.h"
 
 const int dir = 8;
 
@@ -70,7 +70,7 @@ void AStarPlanner::downsampleMap(const cv::Mat &map, cv::Mat &downsampled_map, c
     cv::Mat eroded_map;
     int number_of_erosions = (robot_radius / map_resolution);
 //    cv::erode(map, eroded_map, cv::Mat(), cv::Point(-1, -1), number_of_erosions);
-    explorationErode(map, eroded_map, number_of_erosions);
+    explorationErode(map, eroded_map, cv::MORPH_CROSS, number_of_erosions);
     if (downsampling_factor != 1.)
         cv::resize(eroded_map, downsampled_map, cv::Size(0, 0),
                    downsampling_factor, downsampling_factor, cv::INTER_NEAREST);//_LINEAR);
@@ -90,8 +90,8 @@ std::string AStarPlanner::pathFind(const int &xStart, const int &yStart, const i
 
     cv::Mat map_to_calculate_path(cv::Size(m, n), CV_32S);
 
-    for (int y = 0; y < map.rows; y++) {
-        for (int x = 0; x < map.cols; x++) {
+    for (y = 0; y < map.rows; y++) {
+        for (x = 0; x < map.cols; x++) {
             if (map.at<unsigned char>(y, x) == 255) {
                 map_to_calculate_path.at<int>(x, y) = 0;
             } else {
@@ -217,26 +217,26 @@ double AStarPlanner::planPath(const cv::Mat &map, const cv::Point &start_point, 
     n = downsampled_map.cols;
 
     route_ = pathFind(start_x, start_y, end_x, end_y, downsampled_map);
-    if (route_ == "") {
+    if (route_.empty()) {
         if (end_point_valid_neighborhood_radius > 0) {
             for (int r = 1; r <= end_point_valid_neighborhood_radius; ++r) {
-                for (int dy = -r; dy <= r; ++dy) {
-                    for (int dx = -r; dx <= r; ++dx) {
-                        if ((abs(dy) != r && abs(dx) != r) || end_x + dx < 0 || end_x + dx >= n || end_y + dy < 0 ||
-                            end_y + dy >= m)
+                for (int rdy = -r; rdy <= r; ++rdy) {
+                    for (int rdx = -r; rdx <= r; ++rdx) {
+                        if ((abs(rdy) != r && abs(rdx) != r) || end_x + rdx < 0 || end_x + rdx >= n || end_y + rdy < 0 ||
+                            end_y + rdy >= m)
                             continue;
-                        route_ = pathFind(start_x, start_y, end_x + dx, end_y + dy, downsampled_map);
-                        if (route_ != "")
+                        route_ = pathFind(start_x, start_y, end_x + rdx, end_y + rdy, downsampled_map);
+                        if (!route_.empty())
                             break;
                     }
-                    if (route_ != "")
+                    if (!route_.empty())
                         break;
                 }
-                if (route_ != "")
+                if (!route_.empty())
                     break;
             }
         }
-        if (route_ == "") {
+        if (route_.empty()) {
             return 1e100;
         }
     }
@@ -285,10 +285,10 @@ double AStarPlanner::planPath(const cv::Mat &map, const cv::Mat &downsampled_map
         step_length = 1.;
     }
     if (pathlength > 1e90)
-        std::cout << "######################### No path found on the originally sized map #######################"
-                  << std::endl;
+        LOG_IF(INFO, DEBUG_EXPLORATION)
+        << "######################### No path found on the originally sized map #######################";
     else {
-        if (draw_path_map != NULL) {
+        if (draw_path_map != nullptr) {
             drawRoute(*draw_path_map, start_point, route_, step_length);
         }
     }

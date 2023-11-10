@@ -88,9 +88,9 @@ max_area_for_merging: 12.5              #应与其周围房间合并的房间的
 
  /**
      const double robot_radius_ = 0.30;
-    const int map_correction_closing_neighborhood_size_ = 1;
+    const int map_correction_closing_neighborhood_size_ = 2;
     const double grid_obstacle_offset_ = 0.2;
-    const double path_eps_ = 1.0;
+    const double path_eps_ = 4.0;
     const double min_cell_area_ = 100.0;
     const int max_deviation_from_track_ = -1;
     const int range_near_base_station_ = 5;
@@ -102,12 +102,15 @@ max_area_for_merging: 12.5              #应与其周围房间合并的房间的
     const double min_critical_point_distance_factor_ = 0.5;
     const double max_area_for_merging_ = 12.5;
 
-    const int distance_from_obstacles_ = 2;
+    const int distance_from_obstacles_ = 5;
     const int number_extension_ = 1;
     const int multiple_contour_spacing_ = 0;
     const int random_number_generation_ratio_ = 100;
     const int boundary_min_area_ = 1;
  */
+
+const int CURRENT_PLAN_VERSION = 7;
+
 class PlanPo {
 public:
     std::string map_id;
@@ -142,6 +145,56 @@ public:
            int neighborhoodIndex, int maxIterations, double minCriticalPointDistanceFactor, double maxAreaForMerging,
            int distanceFromObstacles, int numberExtension, int multipleContourSpacing, int randomNumberGenerationRatio,
            int boundaryMinArea, int version);
+};
+
+const int CURRENT_GATE_VERSION = 2;
+
+class Gate {
+public:
+    long id{};
+    std::string o_map_id;
+    double start_x{};
+    double start_y{};
+    double end_x{};
+    double end_y{};
+
+    double left_position_x{};
+    double left_position_y{};
+    double left_position_z{};
+    double left_orientation_x{};
+    double left_orientation_y{};
+    double left_orientation_z{};
+    double left_orientation_w{};
+
+    double right_position_x{};
+    double right_position_y{};
+    double right_position_z{};
+    double right_orientation_x{};
+    double right_orientation_y{};
+    double right_orientation_z{};
+    double right_orientation_w{};
+
+    std::string left_gate_ID{};
+    std::string right_gate_ID{};
+
+    int version{CURRENT_GATE_VERSION};
+
+    std::string factory_ID;
+
+    Gate();
+
+    Gate(long id, const std::string &oMapId, double startX, double startY, double endX, double endY,
+         double leftPositionX, double leftPositionY, double leftPositionZ, double leftOrientationX,
+         double leftOrientationY, double leftOrientationZ, double leftOrientationW, double rightPositionX,
+         double rightPositionY, double rightPositionZ, double rightOrientationX, double rightOrientationY,
+         double rightOrientationZ, double rightOrientationW, const std::string &leftGateId,
+         const std::string &rightGateId, const std::string &factoryID, int version);
+
+    Gate(const std::string &oMapId, double startX, double startY, double endX, double endY, double leftPositionX,
+         double leftPositionY, double leftPositionZ, double leftOrientationX, double leftOrientationY,
+         double leftOrientationZ, double leftOrientationW, double rightPositionX, double rightPositionY,
+         double rightPositionZ, double rightOrientationX, double rightOrientationY, double rightOrientationZ,
+         double rightOrientationW);
 };
 
 

@@ -23,7 +23,6 @@
 
 
 using json = nlohmann::json;
-using namespace std;
 using namespace clean_msgs;
 
 class JsonSubscribeCloud {

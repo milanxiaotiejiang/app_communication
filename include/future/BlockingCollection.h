@@ -1137,7 +1137,7 @@ namespace code_machina {
                                                    std::chrono::milliseconds(-1));
                 }
 
-                return !(status_ != BlockingCollectionStatus::Ok);
+                return status_ == BlockingCollectionStatus::Ok;
             }
 
             Iterator &operator++() {

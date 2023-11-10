@@ -7,6 +7,7 @@
 #include "sub/MapInnerSubscribe.h"
 #include "manager/PublishOutManager.h"
 #include <ros/time.h>
+#include "simulation.h"
 
 MapInnerSubscribe::MapInnerSubscribe(ros::NodeHandle handle) : handle(handle) {
     sub_map_inner_ = handle.subscribe("/map", 10, &MapInnerSubscribe::subscribeCallback, this);

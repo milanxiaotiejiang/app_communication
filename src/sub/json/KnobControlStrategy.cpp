@@ -4,14 +4,14 @@
 
 #include "sub/json/KnobControlStrategy.h"
 
-string KnobControlStrategy::handler(bool method) {
+std::string KnobControlStrategy::handler(bool method) {
     std_msgs::Bool aBool;
     aBool.data = method;
     PublishInnerManager::instance().publishKnobAvailable(aBool);
     return "";
 }
 
-string CollectDustStrategy::handler(string method) {
+std::string CollectDustStrategy::handler(std::string method) {
     PublishInnerManager::instance().publishCollectDust();
     return "";
 }

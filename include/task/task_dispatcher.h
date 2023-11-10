@@ -10,30 +10,32 @@
 #include "BaseThrowable.h"
 #include "task/async_task_call.h"
 #include "db/SqliteDataBase.h"
+#include "future/BlockingCollection.h"
 
 /**
  * 任务分发
  */
 class TaskDispatcher {
 private:
-    AsyncTaskCall *asyncTaskCall;
+    TaskDispatcher();
+
+    TaskDispatcher(TaskDispatcher &) = delete;
+
+    TaskDispatcher &operator=(const TaskDispatcher &) = delete;
+
+public:
+    ~TaskDispatcher() = default;
+
+private:
+    std::shared_ptr<AsyncTaskCall> asyncTaskCall;
+    std::thread plan_transfer_thread;
+    code_machina::BlockingCollection<RealTask> transferCollection;
 
     static std::shared_ptr<PointGenerator> pointGeneratorFactory(const RealTask &realTask) {
-        if (realTask.isRenew()) {
-            return std::make_shared<ExplorationGenerator>(ExplorationGenerator());
-        } else {
-            if (realTask.getMode() == 10) {
-                return std::make_shared<CoveragePointGenerator>(CoveragePointGenerator());
-            } else if (realTask.getMode() == 2) {
-                return std::make_shared<RectanglePointGenerator>(RectanglePointGenerator());
-            } else if (realTask.getMode() == 7) {
-                return std::make_shared<CombinationPointGenerator>(CombinationPointGenerator());
-            } else if (realTask.getMode() == 6) {
-                return std::make_shared<FullPointGenerator>(FullPointGenerator());
-            }
-        }
-        throw app::exception(make_error_code(error::task_mode_no_find));
+        return std::make_shared<ExplorationGenerator>(ExplorationGenerator());
     }
+
+    void plan_transfer_thread_func();
 
 public:
     static auto &instance() {
@@ -41,8 +43,9 @@ public:
         return obj;
     }
 
-    void setAsyncTaskCall(AsyncTaskCall *asyncTaskCall) {
-        TaskDispatcher::asyncTaskCall = asyncTaskCall;
+    void setAsyncTaskCall(std::shared_ptr<AsyncTaskCall> asyncTaskCallPtr) {
+        TaskDispatcher::asyncTaskCall = asyncTaskCallPtr;
+        plan_transfer_thread.detach();
     }
 
     void dispatcherTask(RealTask &realTask);

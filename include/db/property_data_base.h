@@ -9,6 +9,16 @@
 
 class PropertyDataBase {
 private:
+    PropertyDataBase() = default;
+
+    PropertyDataBase(PropertyDataBase &) = delete;
+
+    PropertyDataBase &operator=(const PropertyDataBase &) = delete;
+
+public:
+    ~PropertyDataBase() = default;
+
+private:
     PropertyStorage propertyStorage = SqliteDataBase::initPropertyStorage();
 
     long consumableId;

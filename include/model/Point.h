@@ -11,6 +11,8 @@
 
 using json = nlohmann::json;
 
+class Line;
+
 class Point {
 private:
     float x;
@@ -48,6 +50,8 @@ public:
     void show_point();
 
     float calculateDistance(Point &another_point);
+
+    Line operator-(Point &another_point);
 };
 
 class Line {
@@ -73,6 +77,10 @@ public:
     void setXandY(float x, float y);
 
     Line operator+(const Line &p) const;
+
+    Line operator*(const float &p) const;
+
+    Line operator/(const float &p) const;
 
     float cross(float x1, float y1, float x2, float y2);
 

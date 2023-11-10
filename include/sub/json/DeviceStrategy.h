@@ -12,39 +12,36 @@
 #include "model/DeviceStatus.h"
 #include "model/DeviceStatusV2.h"
 #include "model/MapInfo.h"
-#include <model/Task.h>
 #include <model/WorkStatus.h>
-#include "model/Location.h"
 
 
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
-using namespace std;
 
-class GetDeviceStatusStrategy : public MessageStrategy<string, DeviceStatus> {
+class GetDeviceStatusStrategy : public MessageStrategy<std::string, DeviceStatus> {
 public:
-    DeviceStatus handler(string method) override;
+    DeviceStatus handler(std::string method) override;
 };
 
-class GetDeviceStatusStrategyV2 : public MessageStrategy<string, DeviceStatusV2> {
+class GetDeviceStatusStrategyV2 : public MessageStrategy<std::string, DeviceStatusV2> {
 public:
-    DeviceStatusV2 handler(string params) override;
+    DeviceStatusV2 handler(std::string params) override;
 };
 
-class ChangeWorkModeStrategy : public MessageStrategy<WorkStatus, string> {
+class ChangeWorkModeStrategy : public MessageStrategy<WorkStatus, std::string> {
 public:
-    string handler(WorkStatus params) override;
+    std::string handler(WorkStatus params) override;
 };
 
-class ChangeAromStatusStrategy : public MessageStrategy<bool, string> {
+class ChangeAromStatusStrategy : public MessageStrategy<bool, std::string> {
 public:
-    string handler(bool params) override;
+    std::string handler(bool params) override;
 };
 
-class GetHotWindModeStrategy : public MessageStrategy<string, int> {
+class GetHotWindModeStrategy : public MessageStrategy<std::string, int> {
 public:
-    int handler(string params) override;
+    int handler(std::string params) override;
 };
 
 class SetHotWindModeStrategy : public MessageStrategy<int, int> {
@@ -57,14 +54,54 @@ public:
     void handler() override;
 };
 
-class SetBaseStationStrategy : public MessageStrategy<bool, string> {
+class SetBaseStationStrategy : public MessageStrategy<bool, std::string> {
 public:
-    string handler(bool params) override;
+    std::string handler(bool params) override;
 };
 
-class GetBaseStationStrategy : public MessageStrategy<string, bool> {
+class GetBaseStationStrategy : public MessageStrategy<std::string, bool> {
 public:
-    bool handler(string params) override;
+    bool handler(std::string params) override;
+};
+
+class SetRainSnowStrategy : public MessageStrategy<bool, std::string> {
+public:
+    std::string handler(bool params) override;
+};
+
+class GetRainSnowStrategy : public MessageStrategy<std::string, bool> {
+public:
+    bool handler(std::string params) override;
+};
+
+class SetCollectDustStrategy : public MessageStrategy<bool, std::string> {
+public:
+    std::string handler(bool params) override;
+};
+
+class GetCollectDustStrategy : public MessageStrategy<std::string, bool> {
+public:
+    bool handler(std::string params) override;
+};
+
+class SetAutoOilStrategy : public MessageStrategy<bool, std::string> {
+public:
+    std::string handler(bool params) override;
+};
+
+class GetAutoOilStrategy : public MessageStrategy<std::string, bool> {
+public:
+    bool handler(std::string params) override;
+};
+
+class SetMaintenanceStartTimeStrategy : public MessageStrategy<long, std::string> {
+public:
+    std::string handler(long params) override;
+};
+
+class GetMaintenanceStartTimeStrategy : public MessageStrategy<std::string, long> {
+public:
+    long handler(std::string params) override;
 };
 
 #endif//APP_COMMUNICATION_DEVICESTRATEGY_H

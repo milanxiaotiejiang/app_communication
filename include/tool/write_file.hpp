@@ -10,7 +10,7 @@
 
 #include <sys/stat.h>
 
-#include "glog/logging.h"
+#include "simulation.h"
 
 namespace sh {
     enum class FileMode {
@@ -104,13 +104,9 @@ namespace sh {
         bool create(const std::string &fileName) {
             std::ofstream outfile(fileName);
             if (outfile.is_open()) {
-                //std::cout << fileName << " file created " << std::endl;
-                LOG(INFO) << "file create succed ... ";
                 outfile.close();
                 return true;
             }
-            //std::cout << fileName << " file create fail " << std::endl;
-            LOG(ERROR) << "file create fail ... ";
             return false;
         }
 

@@ -4,9 +4,9 @@
 
 #include "task/model/TaskStack.h"
 
-TaskStack::TaskStack(event::flow flow, const RealPoint &suspendPoint) : flow(flow), suspendPoint(suspendPoint) {}
+TaskStack::TaskStack(event::flow flow, const RealBlock &suspendBlock) : flow(flow), suspendBlock(suspendBlock) {}
 
 std::ostream &operator<<(std::ostream &os, const TaskStack &stack) {
-    os << "flow: " << stack.flow << " suspendPoint: " << stack.suspendPoint;
+    os << "flow: " << stack.flow << " suspendBlock: " << stack.suspendBlock;
     return os;
 }

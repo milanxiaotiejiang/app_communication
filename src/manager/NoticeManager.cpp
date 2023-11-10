@@ -6,8 +6,8 @@
 #include "manager/NoticeManager.h"
 #include "manager/PublishOutManager.h"
 
-void NoticeManager::sendNotice(int noticeCode, long noticeTime, const string &noticeTitle,
-                               const string &noticeMessage, const string &solution) {
+void NoticeManager::sendNotice(int noticeCode, long noticeTime, const std::string &noticeTitle,
+                               const std::string &noticeMessage, const std::string &solution) {
     auto notice = Notice(noticeCode, noticeTime, noticeTitle, noticeMessage, solution);
     PublishOutManager::instance().publishNotice(notice);
 }

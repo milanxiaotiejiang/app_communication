@@ -49,38 +49,36 @@ TaskVo::TaskVo() {}
 
 TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode, bool principal,
                bool partition, bool knife, const std::string &source, const std::string &launchPeople, long launchTime,
-               long updateTime, long createTime) : id(id), o_map_id(oMapId), name(name), rate(rate), mode(mode),
-                                                   principal(principal), partition(partition), knife(knife),
-                                                   source(source), launch_people(launchPeople), launch_time(launchTime),
-                                                   update_time(updateTime), create_time(createTime) {}
+               long updateTime, long createTime, bool rain_snow) : id(id), o_map_id(oMapId), name(name), rate(rate),
+                                                                   mode(mode),
+                                                                   principal(principal), partition(partition),
+                                                                   knife(knife),
+                                                                   source(source), launch_people(launchPeople),
+                                                                   launch_time(launchTime),
+                                                                   update_time(updateTime), create_time(createTime),
+                                                                   rain_snow(rain_snow) {}
 
 TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode,
                const WorkStatus &workStatus, bool principal, const std::vector<ZoneVo> &zones,
                bool partition, const std::vector<SubregionVo> &subregions, bool knife, const std::string &source,
-               const std::string &launchPeople, long launchTime, long updateTime, long createTime) : id(id),
-                                                                                                     o_map_id(oMapId),
-                                                                                                     name(name),
-                                                                                                     rate(rate),
-                                                                                                     mode(mode),
-                                                                                                     workStatus(
-                                                                                                             workStatus),
-                                                                                                     principal(
-                                                                                                             principal),
-                                                                                                     zones(zones),
-                                                                                                     partition(
-                                                                                                             partition),
-                                                                                                     subregions(
-                                                                                                             subregions),
-                                                                                                     knife(knife),
-                                                                                                     source(source),
-                                                                                                     launch_people(
-                                                                                                             launchPeople),
-                                                                                                     launch_time(
-                                                                                                             launchTime),
-                                                                                                     update_time(
-                                                                                                             updateTime),
-                                                                                                     create_time(
-                                                                                                             createTime) {}
+               const std::string &launchPeople, long launchTime, long updateTime, long createTime, bool rain_snow)
+        : id(id),
+          o_map_id(oMapId),
+          name(name),
+          rate(rate),
+          mode(mode),
+          workStatus(workStatus),
+          principal(principal),
+          zones(zones),
+          partition(partition),
+          subregions(subregions),
+          knife(knife),
+          source(source),
+          launch_people(launchPeople),
+          launch_time(launchTime),
+          update_time(updateTime),
+          create_time(createTime),
+          rain_snow(rain_snow) {}
 
 void TaskVo::setId(long id) {
     TaskVo::id = id;
@@ -164,6 +162,14 @@ long TaskVo::getUpdateTime() const {
 
 long TaskVo::getCreateTime() const {
     return create_time;
+}
+
+bool TaskVo::isRainSnow() const {
+    return rain_snow;
+}
+
+void TaskVo::setRainSnow(bool rainSnow) {
+    rain_snow = rainSnow;
 }
 
 std::ostream &operator<<(std::ostream &os, const TaskVo &vo) {

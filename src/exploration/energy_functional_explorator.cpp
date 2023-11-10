@@ -4,11 +4,13 @@
 
 #include "exploration/energy_functional_explorator.h"
 #include "exploration/room_rotator.h"
-#include "glog/logging.h"
 #include "exploration/grid.h"
 #include "exploration/cv_extend.h"
+#include "simulation.h"
 
 static bool DISPLAY_TRAJECTORY = false;
+
+#define APPROX_EPSILON_ENERGY_FUNCTIONAL 1
 
 EnergyFunctionalExplorator::EnergyFunctionalExplorator() {
 
@@ -48,12 +50,53 @@ double EnergyFunctionalExplorator::E(const EnergyExploratorNode &location,
     return energy_functional;
 }
 
+std::vector<cv::Point>
+EnergyFunctionalExplorator::splitPoints(const cv::Point &p1, const cv::Point &p2, double distance) {
+    std::vector<cv::Point> split;
+
+    double dx = p2.x - p1.x;
+    double dy = p2.y - p1.y;
+    double dist = std::sqrt(dx * dx + dy * dy);
+    int numPoints = std::ceil(dist / distance);
+
+    for (int i = 0; i <= numPoints; ++i) {
+        double t = static_cast<double>(i) / numPoints;
+        double x = p1.x + t * dx;
+        double y = p1.y + t * dy;
+        split.emplace_back(x, y);
+    }
+
+    return split;
+}
+
+void EnergyFunctionalExplorator::splitPointsIfNeeded(const std::vector<cv::Point> &ins, std::vector<cv::Point> &outs,
+                                                     double distance) {
+    for (size_t i = 0; i < ins.size() - 1; ++i) {
+        const cv::Point &currentPoint = ins[i];
+        const cv::Point &nextPoint = ins[i + 1];
+
+        double dx = nextPoint.x - currentPoint.x;
+        double dy = nextPoint.y - currentPoint.y;
+        double dist = std::sqrt(dx * dx + dy * dy);
+
+        if (dist > distance) {
+            std::vector<cv::Point> interpolatedPoints = splitPoints(currentPoint, nextPoint, distance);
+            outs.insert(outs.end(), interpolatedPoints.begin(), interpolatedPoints.end());
+        } else {
+            outs.push_back(currentPoint);
+        }
+    }
+    outs.push_back(ins.back());
+}
+
 void
 EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vector<geometry_msgs::Pose2D> &pose_path,
-                                               const float map_resolution, const cv::Point starting_position,
-                                               const cv::Point2d map_origin, const double grid_spacing_in_pixel) {
+                                               std::vector<std::vector<geometry_msgs::Pose2D>> &complex_pose_path,
+                                               const float map_resolution, const cv::Point &starting_position,
+                                               const cv::Point2d &map_origin, const double grid_spacing_in_pixel,
+                                               const double path_eps, bool interpolation_operation) {
 
-    LOG(INFO) << "Planning the boustrophedon path trough the room.";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "Planning the boustrophedon path trough the room.";
 
     const int grid_spacing_as_int = (int) std::floor(grid_spacing_in_pixel);
     const int half_grid_spacing_as_int = (int) std::floor(0.5 * grid_spacing_in_pixel);
@@ -83,7 +126,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
     }
 
     cv::Mat inflated_rotated_room_map;
-    explorationErode(rotated_room_map, inflated_rotated_room_map, half_grid_spacing_as_int);
+    explorationErode(rotated_room_map, inflated_rotated_room_map, cv::MORPH_CROSS, half_grid_spacing_as_int);
     if (DISPLAY_TRAJECTORY) {
         cv::imshow("inflated_rotated_room_map", inflated_rotated_room_map);
         cv::waitKey();
@@ -113,7 +156,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
 
         nodes.push_back(current_row);
     }
-    LOG(INFO) << "found " << number_of_nodes << " nodes";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "found " << number_of_nodes << " nodes";
 
 
     EnergyExploratorNode *first_accessible_node = 0;
@@ -144,7 +187,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
         }
     }
 
-    LOG(INFO) << "found neighbors, corners: " << corner_nodes.size();
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "found neighbors, corners: " << corner_nodes.size();
     if (first_accessible_node == 0) {
         LOG(ERROR) << "Warning: there are no accessible points in this room.";
         return;
@@ -188,7 +231,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
             min_distance = current_distance;
         }
     }
-    LOG(INFO) << "start node: " << start_node->center_;
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "start node: " << start_node->center_;
 
     std::vector<cv::Point2f> fov_coverage_path;
     fov_coverage_path.push_back(cv::Point2f(start_node->center_.x, start_node->center_.y));
@@ -218,7 +261,6 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
         }
     }
 
-    int count = 0;
     do {
         std::vector<EnergyExploratorNode *> not_visited_neighbors;
         for (std::vector<EnergyExploratorNode *>::iterator neighbor = last_node->neighbors_.begin();
@@ -260,21 +302,31 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
         next_node->visited_ = true;
 
         last_node = next_node;
-        if (count % 200 == 0) {
-            sleep(1);
-        }
-        count++;
     } while (true);
 
-    std::vector<geometry_msgs::Pose2D> fov_poses;
+    std::vector<cv::Point> approx_list;
+    cv::approxPolyDP(fov_coverage_path, approx_list, APPROX_EPSILON_ENERGY_FUNCTIONAL, false);
 
-    room_rotation.transformPathBackToOriginalRotation(fov_coverage_path, fov_poses, R);
+    std::vector<cv::Point> split_list;
+    if (interpolation_operation) {
+        splitPointsIfNeeded(approx_list, split_list, static_cast<int>(std::floor(path_eps)));
+    } else {
+        split_list.insert(split_list.end(), approx_list.begin(), approx_list.end());
+    }
+
+    std::vector<cv::Point2f> fov_middlepoint_path_part;
+    for (std::vector<cv::Point>::iterator point = split_list.begin(); point != split_list.end(); ++point)
+        fov_middlepoint_path_part.push_back(cv::Point2f(point->x, point->y));
+
+    std::vector<geometry_msgs::Pose2D> fov_poses;
+    room_rotation.transformPathBackToOriginalRotation(fov_middlepoint_path_part, fov_poses, R);
 
     for (std::vector<geometry_msgs::Pose2D>::iterator pose = fov_poses.begin(); pose != fov_poses.end(); ++pose) {
         geometry_msgs::Pose2D current_pose;
-        current_pose.x = (((room_map.cols - pose->x) * map_resolution) + map_origin.x);
-        current_pose.y = (((room_map.rows - pose->y) * map_resolution) + map_origin.y);
+        current_pose.x = (((room_map.cols - pose->x - 0.5) * map_resolution) + map_origin.x);
+        current_pose.y = (((room_map.rows - pose->y - 0.5) * map_resolution) + map_origin.y);
         current_pose.theta = pose->theta;
         pose_path.push_back(current_pose);
     }
+    complex_pose_path.push_back(pose_path);
 }

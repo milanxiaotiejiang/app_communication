@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 
-#include "glog/logging.h"
+#include "simulation.h"
 
 #include "net/MessageBus.h"
 

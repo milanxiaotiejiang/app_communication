@@ -11,6 +11,10 @@
 #include "back_charge_msgs/ready_check.h"
 #include "back_charge_msgs/start_localization.h"
 #include "back_charge_msgs/stop_localization.h"
+#include "db/segmentation_data_base.h"
+#include "segmentation/SegmentationCenter.h"
+#include "leave/map_control.h"
+#include "exploration/handle_exploration_display.h"
 
 void CartographerPublisher::initialize(ros::NodeHandle handle) {
     save_map = handle.advertise<std_msgs::Int32>("/save_map", 1);
@@ -26,12 +30,15 @@ void CartographerPublisher::initialize(ros::NodeHandle handle) {
 }
 
 void CartographerPublisher::publishSaveMap() const {
+    LOG(INFO) << "rec to carto save map";
     std_msgs::Int32 message;
     message.data = 1;
     save_map.publish(message);
 }
 
 void CartographerPublisher::publishUpdateMap() const {
+    save_dynamic_map("dynamic_before");
+
     std_msgs::Int32 message;
     message.data = 1;
     update_map.publish(message);
@@ -98,14 +105,73 @@ void CartographerSubscribe::initialize(ros::NodeHandle handle) {
 
 void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_result) {
     if (carto_result.data == 1) {
-        ExplorationCenter::instance().repaintCoveragePath(true);
+
+        MapAttribute currentAttr = MapAttributeSingleton::instance().getCurrentMapAttribute();
+        LOG_IF(INFO, DEBUG_NODE) << "currentAttr  " << currentAttr;
+
+        MapAttribute changeAttr(path::map_yaml_path());
+        MapAttributeSingleton::instance().readAnyMapInfo(changeAttr);
+        LOG_IF(INFO, DEBUG_NODE) << "changeAttr  " << changeAttr;
+
+        const cv::Point2d diffPoint = changeAttr.originPoint - currentAttr.originPoint;
+        LOG_IF(INFO, DEBUG_NODE) << "diffPoint  " << diffPoint;
+
+        MapPo map = SegmentationDataBase::instance().getDbMap();
+        const std::vector<TaskVo> &tasks = TaskDataBase::instance().loadTaskFoMap(map.id);
+
+        for (auto task: tasks) {
+            TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
+            if (mode == TaskMode::Zoned) {
+
+                std::vector<ZoneVo> replaceZones;
+                std::vector<ZoneVo> zones = task.getZones();
+
+                for (const auto &zone: zones) {
+
+                    std::vector<PointVo> replacePoints;
+                    for (const auto &point: zone.getPoints()) {
+                        cv::Point2d cvPoint(point.getX(), point.getY());
+                        auto changePoint = cvPoint + diffPoint;
+
+                        replacePoints.emplace_back(changePoint.x, changePoint.y);
+                    }
+                    ZoneVo replaceZone(zone.getZoneId(), replacePoints);
+
+                    replaceZones.push_back(replaceZone);
+                }
+
+                task.setZones(replaceZones);
+                TaskDataBase::instance().modifyTask(task);
+            }
+        }
+
+        auto gateList = SegmentationDataBase::instance().loadGate(map.id);
+        for (const auto &gate: gateList) {
+            // 直线是否穿越区域， 直线点位个数：240 , 相交后点位个数：126 ???
+            cv::Point2d startPoint(gate.start_x, gate.start_y);
+            auto changeStartPoint = startPoint + diffPoint;
+            cv::Point2d endPoint(gate.end_x, gate.end_y);
+            auto changeEndPoint = endPoint + diffPoint;
+            SegmentationDataBase::instance().modifyGateLine(gate.id,
+                                                            changeStartPoint.x, changeStartPoint.y,
+                                                            changeEndPoint.x, changeEndPoint.y);
+        }
+
+        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+
+        MapAttributeSingleton::instance().loadStation();
+        SegmentationCenter::instance().resetSegmentation();
+        ExplorationCenter::instance().repaintCoveragePath();
         CartographerSubscribe::instance().coverResult();
+
+        save_dynamic_map("dynamic_after");
     }
 }
 
 void CartographerSubscribe::buildMapFinishCallback(const std_msgs::Int32 &carto_result) {
+    LOG(INFO) << "carto to rec finish map " << carto_result.data;
     if (carto_result.data == 1) {
-        MapAttribute::instance().notifySaveMap();
+        MapAttributeSingleton::instance().notifySaveMap();
     }
 }
 
@@ -144,10 +210,14 @@ bool CartographerServiceClient::callSensorStatus() {
         bool imuStatus = srv.response.imu_status;//imu
         bool laserStatus = srv.response.laser_status;//激光雷达
         bool localizationStatus = srv.response.localization_status;//定位
-        LOG(INFO) << "callSensorStatus  hlsStatus : " << hlsStatus
-                  << " , imuStatus : " << imuStatus
-                  << " , laserStatus : " << laserStatus
-                  << " , localizationStatus : " << localizationStatus;
+        bool camera1Status = srv.response.camera1_status;
+        bool camera2Status = srv.response.camera2_status;
+        LOG_IF(INFO, DEBUG_NODE) << "callSensorStatus  hlsStatus : " << hlsStatus
+                                 << " , imuStatus : " << imuStatus
+                                 << " , laserStatus : " << laserStatus
+                                 << " , localizationStatus : " << localizationStatus
+                                 << " , camera1Status : " << camera1Status
+                                 << " , camera2Status : " << camera2Status;
     } else {
         LOG(ERROR) << "Failed to call service sensor_status ...";
     }
@@ -165,11 +235,15 @@ bool CartographerServiceClient::callReadyCheck() {
         bool imuStatus = srv.response.imu_status;//imu
         bool laserStatus = srv.response.laser_status;//激光雷达
         bool bumpTriggeredStatus = srv.response.bump_triggered;//后碰撞
-        LOG(INFO) << "callReadyCheck  hlsStatus : " << hlsStatus
-                  << " , imuStatus : " << imuStatus
-                  << " , laserStatus : " << laserStatus
-                  << " , bumpTriggeredStatus : " << bumpTriggeredStatus;
-        return hlsStatus && imuStatus && laserStatus && !bumpTriggeredStatus;
+        bool camera1Status = srv.response.camera1_status;
+        bool camera2Status = srv.response.camera2_status;
+        LOG_IF(INFO, DEBUG_NODE) << "callReadyCheck  hlsStatus : " << hlsStatus
+                                 << " , imuStatus : " << imuStatus
+                                 << " , laserStatus : " << laserStatus
+                                 << " , bumpTriggeredStatus : " << bumpTriggeredStatus
+                                 << " , camera1Status : " << camera1Status
+                                 << " , camera2Status : " << camera2Status;
+        return hlsStatus && imuStatus && laserStatus && !bumpTriggeredStatus && camera1Status && camera2Status;
     } else {
         LOG(ERROR) << "Failed to call service ready_check ...";
         return result;
@@ -180,11 +254,14 @@ bool CartographerServiceClient::callStartLocalization() {
     if (!Environment::instance().isRealEnvironment) {
         return true;
     }
+
+    LOG_IF(INFO, DEBUG_NODE) << "callStartLocalization  ready call ... ";
+
     back_charge_msgs::start_localization srv;
     bool result = start_localization.call(srv);
     if (result) {
         bool tfValid = srv.response.tf_valid;
-        LOG(INFO) << "callStartLocalization  tfValid : " << tfValid;
+        LOG_IF(INFO, DEBUG_NODE) << "callStartLocalization  tfValid : " << tfValid;
         return tfValid;
     } else {
         LOG(ERROR) << "Failed to call service start_localization ...";
@@ -200,7 +277,7 @@ bool CartographerServiceClient::callStopLocalization() {
     bool result = stop_localization.call(srv);
     if (result) {
         bool tfValid = srv.response.tf_valid;
-        LOG(INFO) << "callStopLocalization  tfValid : " << tfValid;
+        LOG_IF(INFO, DEBUG_NODE) << "callStopLocalization  tfValid : " << tfValid;
         return !tfValid;
     } else {
         LOG(ERROR) << "Failed to call service stop_localization ...";

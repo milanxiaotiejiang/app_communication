@@ -7,34 +7,23 @@
 
 #include "MessageStrategy.h"
 #include "net/base/BaseResult.h"
-#include "model/Project.h"
 
 #include "tool/write_file.hpp"
 #include "model/ParamVo.h"
 
-class ProjectStrategy : public MessageStrategy<Project, string> {
+class PadVersionStrategy : public MessageStrategy<std::string, std::string> {
 public:
-    string handler(Project params) override;
+    std::string handler(std::string params) override;
 };
 
-class getProjectStrategy : public MessageStrategy<string, string> {
+class MachineModelStrategy : public MessageStrategy<std::string, int> {
 public:
-    string handler(string params) override;
+    int handler(std::string params) override;
 };
 
-class PadVersionStrategy : public MessageStrategy<string, string> {
+class GetRobotParamsStrategy : public MessageStrategy<std::string, ParamVo> {
 public:
-    string handler(string params) override;
-};
-
-class MachineModelStrategy : public MessageStrategy<string, int> {
-public:
-    int handler(string params) override;
-};
-
-class GetRobotParamsStrategy : public MessageStrategy<string, ParamVo> {
-public:
-    ParamVo handler(string params) override;
+    ParamVo handler(std::string params) override;
 };
 
 class SetRobotParamsStrategy : public MessageStrategy<ParamVo, ParamVo> {

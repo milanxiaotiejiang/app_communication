@@ -29,7 +29,7 @@ void testErode() {
     cv::waitKey();
 
     auto map3 = SegmentationCenter::instance().generateMat();
-    explorationErode(map3, map3, grid_spacing_in_pixel);
+    explorationErode(map3, map3, cv::MORPH_CROSS, grid_spacing_in_pixel);
     cv::imshow("m3 ", map3);
     cv::waitKey();
 
@@ -39,11 +39,11 @@ void testErode() {
     cv::waitKey();
 }
 
-void explorationErode(const cv::Mat &src, cv::Mat &dst, int pixel) {
+void explorationErode(const cv::Mat &src, cv::Mat &dst, int shape, int pixel) {
     if (pixel <= 0) {
         cv::erode(src, dst, cv::Mat(), cv::Point(-1, -1), pixel);
     } else {
-        auto kernel = cv::getStructuringElement(cv::MORPH_CROSS,
+        auto kernel = cv::getStructuringElement(shape,
                                                 cv::Size(pixel, pixel),
                                                 cv::Point(-1, -1));
         cv::erode(src, dst, kernel, cv::Point(-1, -1), 1);

@@ -18,6 +18,7 @@ const int FLOW_IN_STATION = -16;
 
 const int FLOW_ERROR_UNRECOVERABLE = -20;
 const int FLOW_ERROR_LIFT = -21;
+const int FLOW_ELECTRIC_MOVE = -22;
 
 const int MAX_RECORD_TASK_STACK_SIZE = 3;
 
@@ -27,18 +28,18 @@ protected:
     std::deque<TaskStack> stopStack;
 
     std::deque<RealTask> waitTaskQueue;
-    std::deque<RealPoint> plannerQueue;
+    std::deque<RealBlock> plannerQueue;
 
     RealTask runTask;
 
-    RealPoint flowSeizeSeatPoint;
-    RealPoint flowOpenMechanismPoint;
-    RealPoint flowCloseMechanismPoint;
-    RealPoint flowOutStationPoint;
+    RealBlock flowSeizeSeatPoint;
+    RealBlock flowOpenMechanismPoint;
+    RealBlock flowCloseMechanismPoint;
+    RealBlock flowOutStationPoint;
 
-    RealPoint flowEndSleepPoint;
-    RealPoint flowInBasePoint;
-    RealPoint flowInStationPoint;
+    RealBlock flowEndSleepPoint;
+    RealBlock flowInBasePoint;
+    RealBlock flowInStationPoint;
 
     std::string runTaskId() const {
         return runTask.getId();
@@ -56,12 +57,12 @@ protected:
         return runTask.getMode();
     }
 
-    std::vector<RealPoint> realPoints() const {
-        return runTask.getRealPoints();
+    std::vector<RealBlock> realPoints() const {
+        return runTask.getRealBlocks();
     }
 
-    std::vector<RealPoint> planPoints() const {
-        return runTask.getPlanPoints();
+    std::vector<RealBlock> planBlocks() const {
+        return runTask.getPlanBlocks();
     }
 
     bool isWaitTask(event::flow flow);
@@ -70,11 +71,15 @@ protected:
 
     bool isPreparation(event::flow flow);
 
+    bool isPreCompleted(event::flow flow);
+
+    bool isMechanismReady(event::flow flow);
+
     bool isFlowingWater(event::flow flow);
 
     bool isReturningBase(event::flow flow);
 
-    bool isContinueWork(event::flow flow, bool suspend);
+    bool isContinueWork(event::flow flow, bool suspend, bool skipManual = false);
 
     bool isRegularTask(event::flow flow);
 
@@ -84,7 +89,7 @@ protected:
 
     bool isPlannerEmpty(event::flow flow);
 
-    void recordEmergencyStop(event::flow event_flow, const RealPoint &realPoint);
+    void recordEmergencyStop(event::flow event_flow, const RealBlock &realBlock);
 
     bool recoverableEmergencyStop();
 
@@ -96,7 +101,7 @@ protected:
 
     void release() override;
 
-    static std::string output_interpolation_point(int id) {
+    static std::string output_interpolation_block(int id) {
         switch (id) {
             case FLOW_SEIZE_SEAT:
                 return "启动节点";
@@ -113,7 +118,7 @@ protected:
             case FLOW_IN_STATION:
                 return "进站节点";
             default:
-                return "流程点 " + to_string(id) + " ";
+                return "流程点 " + std::to_string(id) + " ";
         }
     }
 
