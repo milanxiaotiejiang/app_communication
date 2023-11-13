@@ -195,6 +195,8 @@ public:
          double leftOrientationZ, double leftOrientationW, double rightPositionX, double rightPositionY,
          double rightPositionZ, double rightOrientationX, double rightOrientationY, double rightOrientationZ,
          double rightOrientationW);
+
+    friend std::ostream &operator<<(std::ostream &os, const Gate &gate);
 };
 
 

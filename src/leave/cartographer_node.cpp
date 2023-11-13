@@ -116,8 +116,8 @@ void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_re
         const cv::Point2d diffPoint = changeAttr.originPoint - currentAttr.originPoint;
         LOG_IF(INFO, DEBUG_NODE) << "diffPoint  " << diffPoint;
 
-        MapPo map = SegmentationDataBase::instance().getDbMap();
-        const std::vector<TaskVo> &tasks = TaskDataBase::instance().loadTaskFoMap(map.id);
+        MapPo mapPo = SegmentationDataBase::instance().getDbMap();
+        const std::vector<TaskVo> &tasks = TaskDataBase::instance().loadTaskFoMap(mapPo.id);
 
         for (auto task: tasks) {
             TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
@@ -145,16 +145,114 @@ void CartographerSubscribe::updateFinishCallback(const std_msgs::Int32 &carto_re
             }
         }
 
-        auto gateList = SegmentationDataBase::instance().loadGate(map.id);
+        const auto &generateMat = SegmentationCenter::instance().generateMat();
+        auto gateList = SegmentationDataBase::instance().loadGate(mapPo.id);
         for (const auto &gate: gateList) {
-            // 直线是否穿越区域， 直线点位个数：240 , 相交后点位个数：126 ???
-            cv::Point2d startPoint(gate.start_x, gate.start_y);
-            auto changeStartPoint = startPoint + diffPoint;
-            cv::Point2d endPoint(gate.end_x, gate.end_y);
-            auto changeEndPoint = endPoint + diffPoint;
-            SegmentationDataBase::instance().modifyGateLine(gate.id,
-                                                            changeStartPoint.x, changeStartPoint.y,
-                                                            changeEndPoint.x, changeEndPoint.y);
+
+            LOG_IF(INFO, DEBUG_NODE) << "gate  " << gate;
+
+            cv::Point2d ps;
+            cv::Point2d pe;
+
+            // 预埋点
+            std::vector<cv::Point> intersectionPoints;
+            cv::Point2d originalStartPoint(gate.start_x, gate.start_y);
+            auto changeStartPoint = originalStartPoint + diffPoint;
+            cv::Point2d originalEndPoint(gate.end_x, gate.end_y);
+            auto changeEndPoint = originalEndPoint + diffPoint;
+
+            intersectionPoints.push_back(changeStartPoint);
+            intersectionPoints.push_back(changeEndPoint);
+
+            // 求直线
+            double m = (changeEndPoint.x - changeStartPoint.x) != 0.0 ?
+                       (changeEndPoint.y - changeStartPoint.y) / (changeEndPoint.x - changeStartPoint.x)
+                                                                      : std::numeric_limits<double>::infinity();
+            double b = changeStartPoint.y - m * changeStartPoint.x;
+
+            cv::Point startPoint, endPoint;
+
+            if (m != 0.0) {
+                // 如果斜率不是零，计算与左边界的交点
+                startPoint.x = 0;
+                startPoint.y = static_cast<int>(b);
+
+                // 计算与右边界的交点
+                endPoint.x = changeAttr.mapCols - 1;
+                endPoint.y = static_cast<int>(m * endPoint.x + b);
+            } else {
+                // 如果斜率为零，直线与上边界平行，交点在y轴上
+                startPoint.x = static_cast<int>(changeStartPoint.x);
+                startPoint.y = 0;
+
+                endPoint.x = static_cast<int>(changeStartPoint.x);
+                endPoint.y = changeAttr.mapRows - 1;
+            }
+
+            LOG_IF(INFO, DEBUG_NODE) << "startPoint  " << startPoint << " , endPoint  " << endPoint;
+
+            cv::LineIterator lineIterator(generateMat, startPoint, endPoint);
+
+            // 求轮廓
+            std::vector<std::vector<cv::Point>> contours;
+            cv::findContours(generateMat, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+
+            size_t largestContourIndex = 0;
+            double largestContourArea = 0.0;
+
+            for (size_t i = 0; i < contours.size(); i++) {
+                double area = cv::contourArea(contours[i]);
+                if (area > largestContourArea) {
+                    largestContourArea = area;
+                    largestContourIndex = i;
+                }
+            }
+
+            auto maxContour = contours[largestContourIndex];
+
+            for (int i = 0; i < lineIterator.count; i++, ++lineIterator) {
+                cv::Point linePoint = lineIterator.pos();
+                bool isIntersection = cv::pointPolygonTest(maxContour, linePoint, false) == 0;
+                if (isIntersection)
+                    intersectionPoints.push_back(linePoint);
+            }
+
+            LOG_IF(INFO, DEBUG_NODE) << "intersectionPoints.size  " << intersectionPoints.size();
+
+            // 求最佳
+            size_t minStartIndex = 0;
+            double minStartDistance = INT_MAX;
+            for (size_t i = 0; i < intersectionPoints.size(); i++) {
+                double distance = cv::norm(startPoint - intersectionPoints[i]);
+                if (distance < minStartDistance) {
+                    minStartDistance = distance;
+                    minStartIndex = i;
+                }
+            }
+            auto closestStartPoint = intersectionPoints[minStartIndex];
+            auto neutralStartPoint = cv::Point((startPoint.x + closestStartPoint.x) / 2,
+                                               (startPoint.y + closestStartPoint.y) / 2);
+            ps = generateMat.at<unsigned char>(neutralStartPoint) == 255 ? startPoint : neutralStartPoint;
+
+            size_t minEndIndex = 0;
+            double minEndDistance = INT_MAX;
+            for (size_t i = 0; i < intersectionPoints.size(); i++) {
+                double distance = cv::norm(endPoint - intersectionPoints[i]);
+                if (distance < minEndDistance) {
+                    minEndDistance = distance;
+                    minEndIndex = i;
+                }
+            }
+            auto closestEndPoint = intersectionPoints[minEndIndex];
+            auto neutralEndPoint = cv::Point((endPoint.x + closestEndPoint.x) / 2,
+                                             (endPoint.y + closestEndPoint.y) / 2);
+            pe = generateMat.at<unsigned char>(neutralEndPoint) == 255 ? endPoint : neutralEndPoint;
+
+            LOG_IF(INFO, DEBUG_NODE)
+                            << "closestStartPoint  " << closestStartPoint << " , closestEndPoint  " << closestEndPoint;
+            LOG_IF(INFO, DEBUG_NODE) << "ps  " << ps << " , pe  " << pe;
+
+            SegmentationDataBase::instance().modifyGateLine(gate.id, ps.x, ps.y, pe.x, pe.y);
         }
 
         MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);

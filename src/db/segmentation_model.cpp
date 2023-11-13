@@ -112,3 +112,9 @@ Gate::Gate(const std::string &oMapId, double startX, double startY, double endX,
                                        right_orientation_x(rightOrientationX), right_orientation_y(rightOrientationY),
                                        right_orientation_z(rightOrientationZ), right_orientation_w(rightOrientationW) {}
 
+std::ostream &operator<<(std::ostream &os, const Gate &gate) {
+    os << "id: " << gate.id << " o_map_id: " << gate.o_map_id << " start_x: " << gate.start_x << " start_y: "
+       << gate.start_y << " end_x: " << gate.end_x << " end_y: " << gate.end_y;
+    return os;
+}
+
