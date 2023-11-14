@@ -36,6 +36,24 @@ std::string FactoryResetStrategy::handler(std::string params) {
     TaskDataBase::instance().deleteOwnTask();
     // 在此地图下，重置禁行区域，并备份
     MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false, true);
+    // 删除其他地图
+    const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
+    for (const auto &map: allMap) {
+        if (!map.main) {
+            // plan_param
+            SegmentationDataBase::instance().removePlanParam(map.id);
+            // segmentation
+            SegmentationDataBase::instance().removeAllRoom(map.id);
+            // gate
+            SegmentationDataBase::instance().purgeGate(map.id);
+            // 地图id
+            SegmentationDataBase::instance().removeMap(map.id);
+            // task
+            TaskDataBase::instance().deleteTaskFoMap(map.id);
+
+            MapControl::instance().removeInformation(map.id);
+        }
+    }
     return "";
 }
 
@@ -109,6 +127,10 @@ MapScore EndMapStrategy::handler(BuildMapParam params) {
             // 插入新地图信息
             SegmentationDataBase::instance().installMap(params.getMapName());
             SegmentationDataBase::instance().loadMainMap();
+        } else {
+            // 只修改地图名称
+            MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
+            SegmentationDataBase::instance().updateMapName(mapPo.id, params.getMapName());
         }
 
 //        // 更新本地内存中数据，单地图其实没必要更新
@@ -126,8 +148,13 @@ MapScore EndMapStrategy::handler(BuildMapParam params) {
             // 删除闸机相关信息
             SegmentationCenter::instance().resetGateSegmentation();
         }
-        // 备份地图相关文件，不删除
-        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+        if (params.isNewMap()) {
+            // 重置禁行区域，并备份给自己一份
+            MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false, true);
+        } else {
+            // 备份地图相关文件，不处理其中内容
+            MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+        }
         // 重新加载基站信息
         MapAttributeSingleton::instance().loadStation();
         // 使用全覆盖算法快速验证地图质量
