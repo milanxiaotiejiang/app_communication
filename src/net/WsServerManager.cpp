@@ -133,7 +133,7 @@ void on_http(server *s, websocketpp::connection_hdl hdl) {
     std::string version = request.get_version();
     auto headers = request.get_headers();
 
-    if (WsServerManager::startsWith(uri, "/map_image")) {
+    if (WsServerManager::startsWith(uri, "/v1/map_image")) {
         json jDecode = json::parse(body);
         auto entrance = jDecode.get<MapImageRequest>();
         auto result = HttpHandler::imageProgressing(entrance.map_id);
