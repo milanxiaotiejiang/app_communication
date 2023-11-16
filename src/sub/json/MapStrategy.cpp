@@ -157,6 +157,10 @@ MapScore EndMapStrategy::handler(BuildMapParam params) {
         }
         // 重新加载基站信息
         MapAttributeSingleton::instance().loadStation();
+        // 更新内存中禁区
+        MapAttributeSingleton::instance().resetProhibition();
+        MapAttributeSingleton::instance().loadVirtualWall();
+        MapAttributeSingleton::instance().loadPenaltyZone();
         // 使用全覆盖算法快速验证地图质量
         double proportion = tcr::coverageProportion();
         // 设置返回的结果
@@ -231,6 +235,10 @@ std::string ChangeMapStrategy::handler(std::string params) {
     MapControl::instance().loadInformation(params);
     // 重新加载基站信息
     MapAttributeSingleton::instance().loadStation();
+    // 更新内存中禁区
+    MapAttributeSingleton::instance().resetProhibition();
+    MapAttributeSingleton::instance().loadVirtualWall();
+    MapAttributeSingleton::instance().loadPenaltyZone();
     // 更新内存中定时任务
     ScheduleManagerSingleton::instance().trigger_task_update();
     // 发布给 move_base 最新的禁行区域
