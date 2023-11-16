@@ -149,12 +149,11 @@ MapScore EndMapStrategy::handler(BuildMapParam params) {
             SegmentationCenter::instance().resetGateSegmentation();
         }
         if (params.isNewMap()) {
-            // 重置禁行区域，并备份给自己一份
+            // 新创建地图需要重置禁行区域
             MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, false, true);
-        } else {
-            // 备份地图相关文件，不处理其中内容
-            MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
         }
+        // 备份地图相关文件
+        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
         // 重新加载基站信息
         MapAttributeSingleton::instance().loadStation();
         // 更新内存中禁区
