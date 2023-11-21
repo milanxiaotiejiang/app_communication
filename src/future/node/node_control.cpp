@@ -91,7 +91,7 @@ void NodeControl::onWork() {
 //        delete pFilterManager;
 //    });
     asyncOn([this]() {
-        bool motorServer = ModeValidate::validateMotorServer();
+        bool motorServer = ModeValidate::validateHardwareServer();
         if (motorServer) {
 
 //            CartographerPublisher::instance().publishStartCartoLocalization();
@@ -176,7 +176,7 @@ void NodeControl::onMap() {
 //    });
     asyncOn([this]() {
 
-        bool motorServer = ModeValidate::validateMotorServer();
+        bool motorServer = ModeValidate::validateHardwareServer();
         if (motorServer) {
             CartographerPublisher::instance().publishStartCartoMapping();
             bool validateCartographer = ModeValidate::validateCartographer(node::State::map);
