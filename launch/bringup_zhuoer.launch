@@ -45,9 +45,6 @@
     <!--启动pad通讯节点-->
     <include file="$(find app_communication)/launch/app_communication.launch"/>
 
-    <!--启动相机-->
-    <!-- <include file="$(find usb_cam)/launch/usb_cam-test.launch"/> -->
-
     <!--启动 apriltag_ros-->
     <include file="$(find app_communication)/launch/bringup_apriltag_zhuoer.launch"/>
 

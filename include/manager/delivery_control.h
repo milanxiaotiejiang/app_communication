@@ -15,6 +15,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <nav_msgs/Odometry.h>
+#include <std_msgs/Int32.h>
 #include "future/thread_pool.h"
 
 class DeliveryControlManager {
@@ -71,12 +72,14 @@ private:
     };
 
 
+    ros::Subscriber tag_test_sub_;
     ros::Subscriber tag_sub_;
     ros::Subscriber odom_sub_;
 
     ros::Publisher cmd_vel_pub_;
 
-    ros::Publisher pose_pub_;
+    ros::Publisher pose_tag_pub_;
+    ros::Publisher pose_final_pub_;
 
     RealBlock realBlock;
     std::deque<RealPoint> plannerQueue;
@@ -119,13 +122,21 @@ private:
 
     DeliveryFailCallback mDeliveryFailCallback;
 
+    bool transformPose(const geometry_msgs::PoseStamped &input_pose, geometry_msgs::PoseStamped &output_pose);
+
     tf::Transform calculateTransform(const tf::Vector3 &avg_position, const tf::Quaternion &avg_orientation);
 
     tf::Transform calculateTagToOdomTransform(const tf::Transform &tag_to_base);
 
+    tf::Transform calculatePositionForwardFromTag(const tf::Transform &tag_to_odom, double forward_distance);
+
     void publishTagPosition(const tf::Transform &tag_to_odom);
 
+    void publishFinalPosition(const tf::Transform &final_to_odom);
+
     void moveToTag(const tf::Transform &tag_to_odom);
+
+    void tagTestCallback(const std_msgs::Int32 &flag);
 
     void tagDetectionsCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr &msg);
 
