@@ -44,7 +44,7 @@ public:
     void initialize(const ros::NodeHandle &handle) {
         mHandle = handle;
 
-        int node_work_mode = 0;
+        int node_work_mode = 1;
         mHandle.getParam(NODE_CONTROLLER_WORK_MODE, node_work_mode);
         int carto_mode = 0;
         mHandle.getParam(CARTOGRAPHER_WORK_MODE, carto_mode);

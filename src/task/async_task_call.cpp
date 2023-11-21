@@ -1164,7 +1164,7 @@ ManualModel AsyncTaskCall::quitManual() {//退出手动模式接口
         manualModel.setIsContinueWork(isContinueWork(currentFlow(), true, true));
 
         bool isWorkMode = false;
-        int work_mode = 0;
+        int work_mode = 1;
         ros::param::get(NODE_CONTROLLER_WORK_MODE, work_mode);
         int carto_mode = 0;
         ros::param::get(CARTOGRAPHER_WORK_MODE, carto_mode);
@@ -1462,6 +1462,8 @@ void AsyncTaskCall::restore() {
     if (!coreMoveAvailable) {
         LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "core_move 服务不可可用, 无法处理返回基站";
     }
+    auto gateList = SegmentationDataBase::instance().loadGate(SegmentationDataBase::instance().getDbMap().id);
+    mGateComprehensive = std::make_shared<GateComprehensive>(gateList);
     notify_one([this]() {
         setFlow(event::flow::ensure_move_to_start_point);
         pushManual(loop::manual_epoll::manual_force_back);

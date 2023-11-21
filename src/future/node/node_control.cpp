@@ -10,11 +10,13 @@
 #include "future/node/mode_validate.h"
 #include "leave/cartographer_node.h"
 #include "future/node/motor_server.h"
+#include "future/node/hardware_subscriber.h"
 
 void NodeControl::initialize(ros::NodeHandle handle) {
     nodeHandle = handle;
 
     MotorServerSingleton::instance().init(handle);
+    InuSubscriberSingleton::instance().init(handle);
 
     pool_.setNumOfThreads(THREAD_POOL_MAX_NUM);
 
@@ -51,7 +53,11 @@ void NodeControl::initialize(ros::NodeHandle handle) {
         OR_percent_2.i(p_OR_percent_2);
     });
 
-    setWorkMode(node::State::sleep);
+    int work_mode = -1;
+    ros::param::get(NODE_CONTROLLER_WORK_MODE, work_mode);
+    if (work_mode == 1) {
+        setWorkMode(node::State::sleep);
+    }
 }
 
 void NodeControl::release() {

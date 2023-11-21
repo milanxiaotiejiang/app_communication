@@ -8,6 +8,7 @@
 #include <ros/ros.h>
 #include "machine.h"
 #include "future/thread_pool.h"
+#include "future"
 
 class ModeValidate {
 private:

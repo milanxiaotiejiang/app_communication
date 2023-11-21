@@ -85,7 +85,7 @@ bool ModeValidate::validateMoveBase(int open) {
 
             int moveBaseMode = getMoveBaseMode();
             LOG_IF(INFO, DEBUG_NODE)
-                            << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
+            << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
             if (open == moveBaseMode) {
                 wait_cv.notify_one();
                 end_loop = true;
@@ -147,6 +147,9 @@ bool ModeValidate::validateCoreMoveAvailable() {
 const int numberOfTasks = 3;
 
 bool ModeValidate::validateHardwareServer() {
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
+    }
 
     auto recordStart = std::chrono::steady_clock::now();
 
@@ -158,7 +161,7 @@ bool ModeValidate::validateHardwareServer() {
         return false;
     }
 
-    std::vector<std::thread> threads;
+//    std::vector<std::thread> threads;
     std::vector<std::promise<bool>> promises(numberOfTasks);
     std::vector<std::future<bool>> futures;
     std::vector<std::atomic<bool>> stopFlags(numberOfTasks);
@@ -168,13 +171,13 @@ bool ModeValidate::validateHardwareServer() {
 
         switch (i) {
             case 0:
-                threads.emplace_back(validateMotorServer, i, std::ref(stopFlags[i]), std::ref(promises[i]));
+                NodeControl::instance().asyncOn(validateMotorServer, i, std::ref(stopFlags[i]), std::ref(promises[i]));
                 break;
             case 1:
-                threads.emplace_back(validateInuServer1, i, std::ref(stopFlags[i]), std::ref(promises[i]));
+                NodeControl::instance().asyncOn(validateInuServer1, i, std::ref(stopFlags[i]), std::ref(promises[i]));
                 break;
             case 2:
-                threads.emplace_back(validateInuServer2, i, std::ref(stopFlags[i]), std::ref(promises[i]));
+                NodeControl::instance().asyncOn(validateInuServer2, i, std::ref(stopFlags[i]), std::ref(promises[i]));
                 break;
         }
 
@@ -200,7 +203,7 @@ bool ModeValidate::validateHardwareServer() {
         LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateHardwareServer 所有步骤已完成，主线程继续执行！";
     } else {
         LOG_IF(INFO, DEBUG_NODE)
-                        << "ModeValidate  validateHardwareServer 超时！未能完成所有步骤，后续继续再次确认(原确认逻辑)";
+        << "ModeValidate  validateHardwareServer 超时！未能完成所有步骤，后续继续再次确认(原确认逻辑)";
     }
 
     LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateHardwareServer elapsed : " << elapsed.count();
@@ -214,8 +217,8 @@ bool ModeValidate::validateHardwareServer() {
     bool callReadyCheckFirst = CartographerServiceClient::instance().callReadyCheck();
 
     LOG_IF(INFO, DEBUG_NODE)
-                    << "ModeValidate  validateHardwareServer 首次校验结果 " << callReadyCheckFirst
-                    << " ------------------------------ ";
+    << "ModeValidate  validateHardwareServer 首次校验结果 " << callReadyCheckFirst
+    << " ------------------------------ ";
 
     if (callReadyCheckFirst) {
         return true;
@@ -226,8 +229,8 @@ bool ModeValidate::validateHardwareServer() {
     bool callReadyCheckAgain = CartographerServiceClient::instance().callReadyCheck();
 
     LOG_IF(INFO, DEBUG_NODE)
-                    << "ModeValidate  validateHardwareServer 再次校验结果 " << callReadyCheckAgain
-                    << " ------------------------------ ";
+    << "ModeValidate  validateHardwareServer 再次校验结果 " << callReadyCheckAgain
+    << " ------------------------------ ";
 
     if (callReadyCheckAgain) {
         return true;
@@ -245,15 +248,15 @@ void ModeValidate::validateMotorServer(int stepId, std::atomic<bool> &stopFlag, 
         return;
     }
 
-    std::this_thread::sleep_for(std::chrono::seconds(10));
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 
     while (!stopFlag) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         int beatScan = InuSubscriberSingleton::instance().heartBeatScan();
-        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer count : " << beatScan;
+        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateMotorServer count : " << beatScan;
 
-        if (beatScan > 10) {
+        if (beatScan > 50) {
             promise.set_value(true);
             stopFlag = true;
         }
@@ -263,7 +266,7 @@ void ModeValidate::validateMotorServer(int stepId, std::atomic<bool> &stopFlag, 
 }
 
 void ModeValidate::validateInuServer1(int stepId, std::atomic<bool> &stopFlag, std::promise<bool> &promise) {
-    std::this_thread::sleep_for(std::chrono::seconds(10));
+    std::this_thread::sleep_for(std::chrono::seconds(7));
 
     while (!stopFlag) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -271,7 +274,7 @@ void ModeValidate::validateInuServer1(int stepId, std::atomic<bool> &stopFlag, s
         int beatInu1 = InuSubscriberSingleton::instance().heartBeatInu1();
         LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateInuServer1 count : " << beatInu1;
 
-        if (beatInu1 > 10) {
+        if (beatInu1 > 50) {
             promise.set_value(true);
             stopFlag = true;
         }
@@ -281,7 +284,7 @@ void ModeValidate::validateInuServer1(int stepId, std::atomic<bool> &stopFlag, s
 }
 
 void ModeValidate::validateInuServer2(int stepId, std::atomic<bool> &stopFlag, std::promise<bool> &promise) {
-    std::this_thread::sleep_for(std::chrono::seconds(10));
+    std::this_thread::sleep_for(std::chrono::seconds(7));
 
     while (!stopFlag) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -289,7 +292,7 @@ void ModeValidate::validateInuServer2(int stepId, std::atomic<bool> &stopFlag, s
         int beatInu2 = InuSubscriberSingleton::instance().heartBeatInu2();
         LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateInuServer2 count : " << beatInu2;
 
-        if (beatInu2 > 10) {
+        if (beatInu2 > 50) {
             promise.set_value(true);
             stopFlag = true;
         }
