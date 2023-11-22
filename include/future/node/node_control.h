@@ -19,7 +19,15 @@
 #include "node_control_subscribe.h"
 #include "geometry_msgs/Pose.h"
 
-#define  THREAD_POOL_MAX_NUM 16
+#define THREAD_POOL_MAX_NUM 16
+#define SSDF 50
+
+enum INUFiringStatus {
+    UNKNOWN = 0,
+    LAUNCH,
+    FAIL,
+    SUCCESS
+};
 
 class NodeControl {
 private:
@@ -79,6 +87,13 @@ private:
 
 public:
     std::atomic<int> heart_beat;
+    /**
+     * 0 未知
+     * 1 启动中
+     * 2 失败
+     * 3 成功
+     */
+    std::atomic<int> cameraFiringAvailable{INUFiringStatus::UNKNOWN};
 
     static auto &instance() {
         static NodeControl obj;
@@ -106,6 +121,8 @@ public:
     }
 
     void initialize(ros::NodeHandle handle);
+
+    void setCameraFiringAvailable(INUFiringStatus status);
 
     void release();
 
@@ -138,6 +155,8 @@ public:
     void emulate();
 
     static void paramPose(const std::string &key, const geometry_msgs::Pose pose);
+
+    void finalConfirmation();
 };
 
 #endif //APP_COMMUNICATION_NODE_CONTROL_H

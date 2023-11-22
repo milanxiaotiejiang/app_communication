@@ -11,14 +11,23 @@ void InuSubscriberSingleton::init(ros::NodeHandle handle) {
 }
 
 void InuSubscriberSingleton::subscribeCallback1(const sensor_msgs::PointCloud2 &data) {
+    if (heart_beat_inu1 == INT_MAX - 1) {
+        heart_beat_inu1 = 0;
+    }
     heart_beat_inu1++;
 }
 
 void InuSubscriberSingleton::subscribeCallback2(const sensor_msgs::PointCloud2 &data) {
+    if (heart_beat_inu2 == INT_MAX - 1) {
+        heart_beat_inu2 = 0;
+    }
     heart_beat_inu2++;
 }
 
 void InuSubscriberSingleton::subscribeCallbackScan(const sensor_msgs::LaserScan &data) {
+    if (heart_beat_scan == INT_MAX - 1) {
+        heart_beat_scan = 0;
+    }
     heart_beat_scan++;
 }
 

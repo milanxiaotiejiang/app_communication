@@ -117,6 +117,10 @@ std::string TaskCenter::proTask(const RealTask &task) {
     //没有传感器数据的情况下，不能够分发任务
     //todo /imu /scan /odom without any data reject
     //todo /knob
+    if (NodeControl::instance().cameraFiringAvailable != 3) {
+        throw app::exception(
+                make_error_code(error::camera_starting_or_failed_to_start));
+    }
 
     if (!asyncTaskCall->canIssuedTask(task)) {
         throw app::exception(make_error_code(error::the_current_task_is_not_completed));

@@ -63,7 +63,7 @@ public:
     int dry_accumulation = 0;
     int complex_path_num_splits = 0;
     bool rectangular_ambulatory_plane = true;
-    bool gzip_map = false;
+    bool gzip_map = true;
 
     bool rec_app_node_crash = false;
 

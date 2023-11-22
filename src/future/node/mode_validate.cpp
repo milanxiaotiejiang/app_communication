@@ -85,7 +85,7 @@ bool ModeValidate::validateMoveBase(int open) {
 
             int moveBaseMode = getMoveBaseMode();
             LOG_IF(INFO, DEBUG_NODE)
-            << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
+                            << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
             if (open == moveBaseMode) {
                 wait_cv.notify_one();
                 end_loop = true;
@@ -203,7 +203,7 @@ bool ModeValidate::validateHardwareServer() {
         LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateHardwareServer 所有步骤已完成，主线程继续执行！";
     } else {
         LOG_IF(INFO, DEBUG_NODE)
-        << "ModeValidate  validateHardwareServer 超时！未能完成所有步骤，后续继续再次确认(原确认逻辑)";
+                        << "ModeValidate  validateHardwareServer 超时！未能完成所有步骤，后续继续再次确认(原确认逻辑)";
     }
 
     LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateHardwareServer elapsed : " << elapsed.count();
@@ -217,8 +217,8 @@ bool ModeValidate::validateHardwareServer() {
     bool callReadyCheckFirst = CartographerServiceClient::instance().callReadyCheck();
 
     LOG_IF(INFO, DEBUG_NODE)
-    << "ModeValidate  validateHardwareServer 首次校验结果 " << callReadyCheckFirst
-    << " ------------------------------ ";
+                    << "ModeValidate  validateHardwareServer 首次校验结果 " << callReadyCheckFirst
+                    << " ------------------------------ ";
 
     if (callReadyCheckFirst) {
         return true;
@@ -229,8 +229,8 @@ bool ModeValidate::validateHardwareServer() {
     bool callReadyCheckAgain = CartographerServiceClient::instance().callReadyCheck();
 
     LOG_IF(INFO, DEBUG_NODE)
-    << "ModeValidate  validateHardwareServer 再次校验结果 " << callReadyCheckAgain
-    << " ------------------------------ ";
+                    << "ModeValidate  validateHardwareServer 再次校验结果 " << callReadyCheckAgain
+                    << " ------------------------------ ";
 
     if (callReadyCheckAgain) {
         return true;
@@ -256,7 +256,7 @@ void ModeValidate::validateMotorServer(int stepId, std::atomic<bool> &stopFlag, 
         int beatScan = InuSubscriberSingleton::instance().heartBeatScan();
         LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateMotorServer count : " << beatScan;
 
-        if (beatScan > 50) {
+        if (beatScan > SSDF) {
             promise.set_value(true);
             stopFlag = true;
         }
@@ -274,7 +274,7 @@ void ModeValidate::validateInuServer1(int stepId, std::atomic<bool> &stopFlag, s
         int beatInu1 = InuSubscriberSingleton::instance().heartBeatInu1();
         LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateInuServer1 count : " << beatInu1;
 
-        if (beatInu1 > 50) {
+        if (beatInu1 > SSDF) {
             promise.set_value(true);
             stopFlag = true;
         }
@@ -292,7 +292,7 @@ void ModeValidate::validateInuServer2(int stepId, std::atomic<bool> &stopFlag, s
         int beatInu2 = InuSubscriberSingleton::instance().heartBeatInu2();
         LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateInuServer2 count : " << beatInu2;
 
-        if (beatInu2 > 50) {
+        if (beatInu2 > SSDF) {
             promise.set_value(true);
             stopFlag = true;
         }

@@ -342,7 +342,7 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<bool>("rectangular_ambulatory_plane", rectangular_ambulatory_plane, true);
     Environment::instance().rectangular_ambulatory_plane = rectangular_ambulatory_plane;
     bool gzip_map;
-    nh.param<bool>("gzip_map", gzip_map, false);
+    nh.param<bool>("gzip_map", gzip_map, true);
     Environment::instance().gzip_map = gzip_map;
 
     LOG(INFO) << "core version : " << ros_version;
