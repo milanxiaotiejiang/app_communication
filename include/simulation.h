@@ -9,7 +9,7 @@
 #include "string"
 
 #define DEBUG_REQUEST false
-#define DEBUG_FIRING false
+#define DEBUG_FIRING true
 #define DEBUG_EXPLORATION false
 #define DEBUG_EXPLORATION_CACHE false
 #define DEBUG_SEGMENTATION false

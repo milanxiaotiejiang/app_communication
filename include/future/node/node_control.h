@@ -21,13 +21,15 @@
 
 #define THREAD_POOL_MAX_NUM 16
 #define SSDF 50
+namespace Firing {
+    enum INUStatus {
+        UNKNOWN = 0,
+        LAUNCH,
+        FAIL,
+        SUCCESS
+    };
+}
 
-enum INUFiringStatus {
-    UNKNOWN = 0,
-    LAUNCH,
-    FAIL,
-    SUCCESS
-};
 
 class NodeControl {
 private:
@@ -93,7 +95,7 @@ public:
      * 2 失败
      * 3 成功
      */
-    std::atomic<int> cameraFiringAvailable{INUFiringStatus::UNKNOWN};
+    std::atomic<int> cameraFiringAvailable{Firing::INUStatus::UNKNOWN};
 
     static auto &instance() {
         static NodeControl obj;
@@ -122,7 +124,7 @@ public:
 
     void initialize(ros::NodeHandle handle);
 
-    void setCameraFiringAvailable(INUFiringStatus status);
+    void setCameraFiringAvailable(Firing::INUStatus status);
 
     void release();
 
