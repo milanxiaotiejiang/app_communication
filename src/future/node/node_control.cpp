@@ -80,20 +80,29 @@ void NodeControl::initialize(ros::NodeHandle handle) {
             std::this_thread::sleep_for(std::chrono::seconds(20));
 
             LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动开始 ... ";
-            int error = 0;
-            error = std::system("roslaunch launch_center inu_dev1.launch");
-            if (error != 0) {
-                LOG_IF(INFO, DEBUG_FIRING) << "roslaunch launch_center inu_dev1.launch fail " << error << " ... ";
-                setCameraFiringAvailable(Firing::INUStatus::FAIL);
-                return;
-            }
+            asyncOn([this] {
+                std::string inu1Log = Environment::instance().glog_info_time_pid + "_inu_dev1.log";
+                std::string systemStr = "roslaunch launch_center inu_dev1.launch > " + inu1Log + " 2>&1";
+                LOG_IF(INFO, DEBUG_FIRING) << systemStr;
+                int error = std::system(systemStr.data());
+                if (error != 0) {
+                    LOG_IF(INFO, DEBUG_FIRING) << "roslaunch launch_center inu_dev1.launch fail " << error << " ... ";
+                    setCameraFiringAvailable(Firing::INUStatus::FAIL);
+                }
+            });
+
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            error = std::system("roslaunch launch_center inu_dev2.launch");
-            if (error != 0) {
-                LOG_IF(INFO, DEBUG_FIRING) << "roslaunch launch_center inu_dev2.launch fail " << error << " ... ";
-                setCameraFiringAvailable(Firing::INUStatus::FAIL);
-                return;
-            }
+            asyncOn([this] {
+                std::string inu2Log = Environment::instance().glog_info_time_pid + "_inu_dev2.log";
+                std::string systemStr = "roslaunch launch_center inu_dev2.launch > " + inu2Log + " 2>&1";
+                LOG_IF(INFO, DEBUG_FIRING) << systemStr;
+                int error = std::system(systemStr.data());
+                if (error != 0) {
+                    LOG_IF(INFO, DEBUG_FIRING) << "roslaunch launch_center inu_dev2.launch fail " << error << " ... ";
+                    setCameraFiringAvailable(Firing::INUStatus::FAIL);
+                    return;
+                }
+            });
             setCameraFiringAvailable(Firing::INUStatus::LAUNCH);
 
             finalConfirmation();
@@ -125,7 +134,7 @@ void NodeControl::finalConfirmation() {
                                    << ", beatInu2 : " << beatInu2 << " ... ";
 
         if (beatInu1 > SSDF && beatInu2 > SSDF)
-            end_loop_count = 10;
+            end_loop_count = 20;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
         end_loop_count++;
@@ -137,6 +146,11 @@ void NodeControl::finalConfirmation() {
     if (beatInu1 > SSDF && beatInu2 > SSDF) {
         LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动成功 ... ";
         setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
+
+        int ret = std::system("echo '123456' | sudo -S systemctl stop inuservice.service");
+        if (ret != 0) {
+            LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl stop inuservice.service fail : " << ret;
+        }
     } else {
         LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动失败 ... ";
         setCameraFiringAvailable(Firing::INUStatus::FAIL);

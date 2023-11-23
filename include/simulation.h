@@ -71,6 +71,7 @@ public:
     std::string nebula_account;
     std::string nebula_secret;
     std::string device_name{"1"};
+    std::string glog_info_time_pid;
 
     static bool will() {
         return (rand() % 10) > 5;

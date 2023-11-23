@@ -174,6 +174,7 @@ void initLog(char *const *argv) {
     //    LOG(ERROR) << "This is my first glog ERROR 1";
 
     LOG_IF(INFO, DEBUG_FIRING) << "glog file is " << glog_info_time_pid_string;
+    Environment::instance().glog_info_time_pid = logDirStr + "/"/* + time_pid_string*/;
 }
 
 /**
