@@ -155,11 +155,8 @@ bool ModeValidate::validateHardwareServer() {
 
     InuSubscriberSingleton::instance().recount();
 
-    int ret = std::system("echo '123456' | sudo -S systemctl start inuservice.service");
-    if (ret != 0) {
-        LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl start inuservice.service fail : " << ret;
+    if (!MotorServerSingleton::instance().startInu())
         return false;
-    }
 
 //    std::vector<std::thread> threads;
     std::vector<std::promise<bool>> promises(numberOfTasks);

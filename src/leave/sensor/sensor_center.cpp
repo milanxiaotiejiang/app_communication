@@ -49,6 +49,7 @@ void SensorCenter::startInspect() {
     PublishInnerManager::instance().publishManualPush(map_start);
 
     MotorServerSingleton::instance().start();
+    MotorServerSingleton::instance().startInu();
 
     if (!sensorSelfMode) {
         sensorSelfMode = true;
@@ -68,6 +69,7 @@ void SensorCenter::stopInspect() {
     PublishInnerManager::instance().publishManualPush(map_start);
 
     MotorServerSingleton::instance().stop();
+    MotorServerSingleton::instance().stopInu();
 
 //    if (sensorSelfMode) {
     sensorSelfMode = false;

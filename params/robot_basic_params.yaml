@@ -14,6 +14,10 @@ dry_accumulation: 0
 complex_path_num_splits: 1000
 rectangular_ambulatory_plane: true
 gzip_map: true
+inu_firing_launch_interval: 20
+inu_launch_middle_interval: 2
+inu_final_confirmation_interval: 10
+inu_start_last_stop_server_interval: 10
 nebula_base_url: https://testapi.maxrockrobot.com/nebula
 nebula_account: robot
 nebula_secret: robot1@test

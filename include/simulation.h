@@ -73,6 +73,11 @@ public:
     std::string device_name{"1"};
     std::string glog_info_time_pid;
 
+    int inu_firing_launch_interval{20};
+    int inu_launch_middle_interval{2};
+    int inu_final_confirmation_interval{10};
+    int inu_start_last_stop_server_interval{10};
+
     static bool will() {
         return (rand() % 10) > 5;
     }

@@ -29,6 +29,10 @@ public:
 
     bool stop();
 
+    bool startInu();
+
+    bool stopInu();
+
     MotorServerSingleton(const MotorServerSingleton &) = delete;
 
     MotorServerSingleton &operator=(const MotorServerSingleton &) = delete;

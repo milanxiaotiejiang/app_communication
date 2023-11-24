@@ -376,6 +376,20 @@ void initNodeParams(const ros::NodeHandle &nh) {
             Environment::instance().device_name = deviceName;
         }
     }
+
+
+    int inu_firing_launch_interval;
+    nh.param<int>("inu_firing_launch_interval", inu_firing_launch_interval, 20);
+    Environment::instance().inu_firing_launch_interval = inu_firing_launch_interval;
+    int inu_launch_middle_interval;
+    nh.param<int>("inu_launch_middle_interval", inu_launch_middle_interval, 2);
+    Environment::instance().inu_launch_middle_interval = inu_launch_middle_interval;
+    int inu_final_confirmation_interval;
+    nh.param<int>("inu_final_confirmation_interval", inu_final_confirmation_interval, 10);
+    Environment::instance().inu_final_confirmation_interval = inu_final_confirmation_interval;
+    int inu_start_last_stop_server_interval;
+    nh.param<int>("inu_start_last_stop_server_interval", inu_start_last_stop_server_interval, 10);
+    Environment::instance().inu_start_last_stop_server_interval = inu_start_last_stop_server_interval;
 }
 
 void release() {
