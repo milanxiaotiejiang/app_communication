@@ -22,7 +22,7 @@ private:
 
     bool next{false};
 
-    std::atomic<bool> implementing;
+    std::atomic<bool> implementing{false};
 
     std::deque<RealPoint> pointEpollDeque;
 
