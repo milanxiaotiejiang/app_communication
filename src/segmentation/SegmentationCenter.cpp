@@ -516,6 +516,31 @@ cv::Mat SegmentationCenter::generateMat() {
     return map;
 }
 
+cv::Mat SegmentationCenter::generateMat(const std::string &mapId) {
+
+    auto mapPath = path::robot_slam_map_dir() + mapId + path::separator() + path::mymap_pgm;
+
+    cv::Mat map = cv::imread(mapPath.c_str(), cv::ImreadModes::IMREAD_GRAYSCALE);
+
+    cv::normalize(map, map, 0, 255, cv::NORM_MINMAX);
+//    map.convertTo(map, CV_8U);
+
+    cv::rotate(map, map, cv::RotateFlags::ROTATE_90_COUNTERCLOCKWISE);
+
+    //map中只包含 0 / 255
+    for (int y = 0; y < map.rows; y++) {
+        for (int x = 0; x < map.cols; x++) {
+            if (map.at<unsigned char>(y, x) < 254) {
+                map.at<unsigned char>(y, x) = 0;
+            } else {
+                map.at<unsigned char>(y, x) = 255;
+            }
+        }
+    }
+
+    return map;
+}
+
 bool SegmentationCenter::checkPartition() const {
     auto dbMap = SegmentationDataBase::instance().getDbMap();
     if (access(path::map_segmentation_path().c_str(), F_OK) == 0) {
@@ -743,7 +768,8 @@ Room SegmentationCenter::checkGateWire(cv::Mat &segmented_map, const Gate &gate)
     return base_room;
 }
 
-void SegmentationCenter::checkGatePoint(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate) {
+void SegmentationCenter::checkGatePoint(cv::Mat &segmented_map, const cv::Point2d &map_origin, std::vector<Room> &rooms,
+                                        const Gate &gate) {
 
     Point gateLeftPoint(gate.left_position_x, gate.left_position_y);
     Point gateRightPoint(gate.right_position_x, gate.right_position_y);
@@ -824,7 +850,9 @@ void SegmentationCenter::resetGateSegmentation() {
     SegmentationDataBase::instance().purgeGate(po.id);
 }
 
-void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate) {
+void
+SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, const cv::Point2d &map_origin, std::vector<Room> &rooms,
+                                     const Gate &gate) {
 
     cv::Point ps(gate.start_x, gate.start_y);
     cv::Point pe(gate.end_x, gate.end_y);
@@ -853,7 +881,7 @@ void SegmentationCenter::gateSegmentation(cv::Mat &segmented_map, std::vector<Ro
     rooms.push_back(roomStart);
     rooms.push_back(roomEnd);
 
-    checkGatePoint(segmented_map, rooms, gate);
+    checkGatePoint(segmented_map, map_origin, rooms, gate);
 }
 
 void SegmentationCenter::gateManySegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms,

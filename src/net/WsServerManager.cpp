@@ -48,6 +48,7 @@
 #include "net/base/BaseResult.h"
 #include "net/http_handler.h"
 #include "model/MapInfo.h"
+#include "BaseThrowable.h"
 
 //#include "tool/ZLibString.hpp"
 
@@ -133,18 +134,37 @@ void on_http(server *s, websocketpp::connection_hdl hdl) {
     std::string version = request.get_version();
     auto headers = request.get_headers();
 
-    if (WsServerManager::startsWith(uri, "/v1/map_image")) {
-        json jDecode = json::parse(body);
-        auto entrance = jDecode.get<MapImageRequest>();
-        auto result = HttpHandler::imageProgressing(entrance.map_id);
-        json jsonResult = result;
+    try {
+        if (WsServerManager::startsWith(uri, "/v1/map_image")) {
+            json jDecode = json::parse(body);
+            auto entrance = jDecode.get<MapImageRequest>();
+            auto result = HttpHandler::imageProgressing(entrance.map_id);
+            json jsonResult = result;
+            con->set_body(jsonResult.dump());
+        } else {
+            BaseResult<std::string> templateResult(0, "");
+            json jsonResult = templateResult;
+            con->set_body(jsonResult.dump());
+        }
+
+    } catch (app::exception const &e) {
+        BaseResult<std::string> templateResult(0, e.code().value(), e.what());
+        json jsonResult = templateResult;
         con->set_body(jsonResult.dump());
-    } else {
-        BaseResult<std::string> templateResult(0, "");
+    } catch (std::exception const &e) {
+        LOG(ERROR) << e.what();
+        BaseResult<std::string> templateResult(0, error::general, e.what());
+        json jsonResult = templateResult;
+        con->set_body(jsonResult.dump());
+    } catch (...) {
+        LOG(ERROR) << "MessageStrategy other start exception";
+        BaseResult<std::string> templateResult(0, -1, "未知");
         json jsonResult = templateResult;
         con->set_body(jsonResult.dump());
     }
+
     con->set_status(websocketpp::http::status_code::ok);
+
 }
 
 void on_fail(server *s, websocketpp::connection_hdl hdl) {

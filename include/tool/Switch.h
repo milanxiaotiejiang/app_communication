@@ -148,15 +148,20 @@ enum MESSAGE_ID {
 
     FACTORY_RESET,
 
-    ADD_GATE,
-    DELETE_GATE,
-    PURGE_GATE,
-    MODIFY_GATE,
-    LIST_GATE,
-    QUERY_ID_GATE,
+    ADD_GATE,                               //增加闸机（当前地图）
+    DELETE_GATE,                            //根据闸机ID删除此闸机
+    PURGE_GATE,                             //删除当前地图下方所有闸机
+    MODIFY_GATE,                            //修改闸机（全量替换）
+    LIST_GATE,                              //获取闸机列表（当前地图）
+    QUERY_ID_GATE,                          //根据闸机ID查询详细信息
+    MULTIPLE_MODIFY_GATE,                   //不切地图修改除点位外的其他信息
+    MULTIPLE_LIST_GATE,                     //根据地图ID获取闸机列表
+    MULTIPLE_PURGE_GATE,                    //根据地图ID删除下方所有闸机
 
-    OPEN_GATE_SETTING,
-    CLOSE_GATE_SETTING,
+    OPEN_GATE_SETTING,                      //启动闸机设置
+    CLOSE_GATE_SETTING,                     //关闭闸机设置
+
+
 
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };

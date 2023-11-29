@@ -386,6 +386,15 @@ int switch_ID(const std::string &str) {
     if (str == "query_id_gate") {
         return QUERY_ID_GATE;
     }
+    if (str == "multiple_modify_gate") {
+        return MULTIPLE_MODIFY_GATE;
+    }
+    if (str == "multiple_list_gate") {
+        return MULTIPLE_LIST_GATE;
+    }
+    if (str == "multiple_purge_gate") {
+        return MULTIPLE_PURGE_GATE;
+    }
 
     if (str == "open_gate_setting") {
         return OPEN_GATE_SETTING;
@@ -393,6 +402,7 @@ int switch_ID(const std::string &str) {
     if (str == "close_gate_setting") {
         return CLOSE_GATE_SETTING;
     }
+
 
     return -1;
 }

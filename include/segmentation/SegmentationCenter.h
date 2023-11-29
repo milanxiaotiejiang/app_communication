@@ -49,7 +49,8 @@ private:
     /**
      * 检查闸机摆渡点位
      */
-    void checkGatePoint(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate);
+    void
+    checkGatePoint(cv::Mat &segmented_map, const cv::Point2d &map_origin, std::vector<Room> &rooms, const Gate &gate);
 
 public:
     static auto &instance() {
@@ -111,6 +112,8 @@ public:
 
     cv::Mat generateMat();
 
+    cv::Mat generateMat(const std::string &mapId);
+
     bool checkPartition() const;
 
     MapRoomVo resultMapRoomVo() const;
@@ -126,7 +129,8 @@ public:
     /**
      * 将原始地图进行首次分割，用于验证
      */
-    void gateSegmentation(cv::Mat &segmented_map, std::vector<Room> &rooms, const Gate &gate);
+    void
+    gateSegmentation(cv::Mat &segmented_map, const cv::Point2d &map_origin, std::vector<Room> &rooms, const Gate &gate);
 
     /**
      * 闸机分割

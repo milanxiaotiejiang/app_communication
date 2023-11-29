@@ -330,6 +330,7 @@ void SegmentationDataBase::deleteGateForId(long id) {
 
 long SegmentationDataBase::modifyGateInfo(const GateInfo &gateInfo) {
     segmentationStorage.update(info2Gate(gateInfo));
+    return gateInfo.getId();
 }
 
 void SegmentationDataBase::modifyGateLine(long id, double start_x, double start_y, double end_x, double end_y) {

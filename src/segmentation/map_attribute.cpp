@@ -151,11 +151,28 @@ cv::Point MapAttributeSingleton::rosPoint2MapPoint(int rows, int cols, const Poi
     return position;
 }
 
+cv::Point
+MapAttributeSingleton::rosPoint2MapPoint(const cv::Point2d &map_origin, int rows, int cols, const Point &point) const {
+    double x = cols * map_resolution_from_subscription - (point.getY() - map_origin.x);
+    double y = rows * map_resolution_from_subscription - (point.getX() - map_origin.y);
+    cv::Point position;
+    position.x = x / map_resolution_from_subscription;
+    position.y = y / map_resolution_from_subscription;
+    return position;
+}
+
 Point MapAttributeSingleton::mapPoint2RosPoint(int rows, int cols, const cv::Point &point) const {
-    const cv::Point2d &origin = getMapOrigin();
     Point p;
     p.setX((rows - point.y) * map_resolution_from_subscription + getMapOrigin().y);
     p.setY((cols - point.x) * map_resolution_from_subscription + getMapOrigin().x);
+    return p;
+}
+
+Point MapAttributeSingleton::mapPoint2RosPoint(const cv::Point2d &map_origin, int rows, int cols,
+                                               const cv::Point &point) const {
+    Point p;
+    p.setX((rows - point.y) * map_resolution_from_subscription + map_origin.y);
+    p.setY((cols - point.x) * map_resolution_from_subscription + map_origin.x);
     return p;
 }
 

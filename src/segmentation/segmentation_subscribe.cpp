@@ -96,6 +96,7 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
 //        throw app::exception(make_error_code(error::the_current_state_is_uncontrollable));
 //    }
     const cv::Mat &map = SegmentationCenter::instance().generateMat();
+    auto map_origin = MapAttributeSingleton::instance().getMapOrigin();
 //    bool isOffMap = false;
 //    bool isRestrictedZone = false;
 //    bool isMaxPassable = false;
@@ -123,7 +124,7 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
         try {
             auto segmented_map = SegmentationCenter::instance().generateMat();
             std::vector<Room> rooms;
-            SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, gate);
+            SegmentationCenter::instance().gateSegmentation(segmented_map, map_origin, rooms, gate);
 
         } catch (app::exception const &e) {
             LOG(ERROR) << e.what();
@@ -146,7 +147,7 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
         try {
             auto segmented_map = SegmentationCenter::instance().generateMat();
             std::vector<Room> rooms;
-            SegmentationCenter::instance().gateSegmentation(segmented_map, rooms, gate);
+            SegmentationCenter::instance().gateSegmentation(segmented_map, map_origin, rooms, gate);
 
         } catch (app::exception const &e) {
             LOG(ERROR) << e.what();

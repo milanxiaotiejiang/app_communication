@@ -197,5 +197,88 @@ public:
     void setFactoryId(const std::string &factoryId);
 };
 
+class GateSimpleInfo {
+    long id{};
+    std::string o_map_id;
+    double start_x{};
+    double start_y{};
+    double end_x{};
+    double end_y{};
+
+    std::string left_gate_ID{};
+    std::string right_gate_ID{};
+
+    std::string factory_ID{};
+
+public:
+
+    GateSimpleInfo();
+
+    GateSimpleInfo(long id, const std::string &oMapId, double startX, double startY, double endX, double endY,
+                   const std::string &leftGateId, const std::string &rightGateId, const std::string &factoryId);
+
+    friend void to_json(json &j, const GateSimpleInfo &b) {
+        j = json{
+                {"id",            b.id},
+                {"o_map_id",      b.o_map_id},
+                {"start_x",       b.start_x},
+                {"start_y",       b.start_y},
+                {"end_x",         b.end_x},
+                {"end_y",         b.end_y},
+                {"left_gate_ID",  b.left_gate_ID},
+                {"right_gate_ID", b.right_gate_ID},
+                {"factory_ID",    b.factory_ID},
+        };
+    }
+
+    friend void from_json(const json &j, GateSimpleInfo &b) {
+        j.at("id").get_to(b.id);
+        j.at("o_map_id").get_to(b.o_map_id);
+        j.at("start_x").get_to(b.start_x);
+        j.at("start_y").get_to(b.start_y);
+        j.at("end_x").get_to(b.end_x);
+        j.at("end_y").get_to(b.end_y);
+        j.at("left_gate_ID").get_to(b.left_gate_ID);
+        j.at("right_gate_ID").get_to(b.right_gate_ID);
+        j.at("factory_ID").get_to(b.factory_ID);
+    }
+
+    long getId() const;
+
+    void setId(long id);
+
+    const std::string &getOMapId() const;
+
+    void setOMapId(const std::string &oMapId);
+
+    double getStartX() const;
+
+    void setStartX(double startX);
+
+    double getStartY() const;
+
+    void setStartY(double startY);
+
+    double getEndX() const;
+
+    void setEndX(double endX);
+
+    double getEndY() const;
+
+    void setEndY(double endY);
+
+    const std::string &getLeftGateId() const;
+
+    void setLeftGateId(const std::string &leftGateId);
+
+    const std::string &getRightGateId() const;
+
+    void setRightGateId(const std::string &rightGateId);
+
+    const std::string &getFactoryId() const;
+
+    void setFactoryId(const std::string &factoryId);
+
+};
 
 #endif //APP_COMMUNICATION_GATE_INFO_H

@@ -24,6 +24,7 @@
 #include "manager/cloud_robot_control.h"
 #include "sub/json/DBTaskStrategy.h"
 #include "exploration/ExplorationStrategy.h"
+#include "sub/json/GateStrategy.h"
 
 
 JsonSubscribeCloud::JsonSubscribeCloud(ros::NodeHandle handle) : handle(handle) {
@@ -223,6 +224,35 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             break;
         case WORK_TO_MAP_APP_:
             messageStrategy = new MapPreparetoWorkStrategy();
+            break;
+
+        case ADD_GATE:
+            messageStrategy = new AddGateStrategy();
+            break;
+        case DELETE_GATE:
+            messageStrategy = new DeleteGateStrategy();
+            break;
+        case PURGE_GATE:
+            messageStrategy = new PurgeGateStrategy();
+            break;
+        case MODIFY_GATE:
+            messageStrategy = new ModifyGateStrategy();
+            break;
+        case LIST_GATE:
+            messageStrategy = new ListGateStrategy();
+            break;
+        case QUERY_ID_GATE:
+            messageStrategy = new QueryIdGateStrategy();
+            break;
+
+        case MULTIPLE_MODIFY_GATE:
+            messageStrategy = new MultipleModifyGateStrategy();
+            break;
+        case MULTIPLE_LIST_GATE:
+            messageStrategy = new MultipleListGateStrategy();
+            break;
+        case MULTIPLE_PURGE_GATE:
+            messageStrategy = new MultiplePurgeGateStrategy();
             break;
     }
     if (messageStrategy != nullptr) {

@@ -49,4 +49,19 @@ public:
     std::string handler(std::string params) override;
 };
 
+class MultipleModifyGateStrategy: public MessageStrategy<GateSimpleInfo, long> {
+public:
+    long handler(GateSimpleInfo params) override;
+};
+
+class MultipleListGateStrategy: public MessageStrategy<std::string, std::vector<GateInfo>>{
+public:
+    std::vector<GateInfo> handler(std::string params) override;
+};
+
+class MultiplePurgeGateStrategy: public MessageStrategy<std::string, std::string>{
+public:
+    std::string handler(std::string params) override;
+};
+
 #endif //APP_COMMUNICATION_GATESTRATEGY_H

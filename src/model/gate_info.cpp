@@ -210,3 +210,84 @@ const std::string &GateInfo::getFactoryId() const {
 void GateInfo::setFactoryId(const std::string &factoryId) {
     factory_ID = factoryId;
 }
+
+GateSimpleInfo::GateSimpleInfo() {}
+
+GateSimpleInfo::GateSimpleInfo(long id, const std::string &oMapId, double startX, double startY, double endX,
+                               double endY, const std::string &leftGateId, const std::string &rightGateId,
+                               const std::string &factoryId) : id(id), o_map_id(oMapId), start_x(startX),
+                                                               start_y(startY), end_x(endX), end_y(endY),
+                                                               left_gate_ID(leftGateId), right_gate_ID(rightGateId),
+                                                               factory_ID(factoryId) {}
+
+long GateSimpleInfo::getId() const {
+    return id;
+}
+
+void GateSimpleInfo::setId(long id) {
+    GateSimpleInfo::id = id;
+}
+
+const std::string &GateSimpleInfo::getOMapId() const {
+    return o_map_id;
+}
+
+void GateSimpleInfo::setOMapId(const std::string &oMapId) {
+    o_map_id = oMapId;
+}
+
+double GateSimpleInfo::getStartX() const {
+    return start_x;
+}
+
+void GateSimpleInfo::setStartX(double startX) {
+    start_x = startX;
+}
+
+double GateSimpleInfo::getStartY() const {
+    return start_y;
+}
+
+void GateSimpleInfo::setStartY(double startY) {
+    start_y = startY;
+}
+
+double GateSimpleInfo::getEndX() const {
+    return end_x;
+}
+
+void GateSimpleInfo::setEndX(double endX) {
+    end_x = endX;
+}
+
+double GateSimpleInfo::getEndY() const {
+    return end_y;
+}
+
+void GateSimpleInfo::setEndY(double endY) {
+    end_y = endY;
+}
+
+const std::string &GateSimpleInfo::getLeftGateId() const {
+    return left_gate_ID;
+}
+
+void GateSimpleInfo::setLeftGateId(const std::string &leftGateId) {
+    left_gate_ID = leftGateId;
+}
+
+const std::string &GateSimpleInfo::getRightGateId() const {
+    return right_gate_ID;
+}
+
+void GateSimpleInfo::setRightGateId(const std::string &rightGateId) {
+    right_gate_ID = rightGateId;
+}
+
+const std::string &GateSimpleInfo::getFactoryId() const {
+    return factory_ID;
+}
+
+void GateSimpleInfo::setFactoryId(const std::string &factoryId) {
+    factory_ID = factoryId;
+}

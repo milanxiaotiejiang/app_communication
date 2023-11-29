@@ -122,11 +122,32 @@ public:
     void handleProhibition(std::vector<std::vector<Point>> &list,
                            const YAML::Node &node, int dusCount) const;
 
+    /**
+     * ros坐标转地图坐标
+     */
     cv::Point rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const;
 
+    /**
+     * ros坐标转地图坐标
+     */
     cv::Point rosPoint2MapPoint(int rows, int cols, const Point &point) const;
 
+    /**
+     * ros坐标转地图坐标
+     * 地图原点需要传入，可用于非当前地图
+     */
+    cv::Point rosPoint2MapPoint(const cv::Point2d &map_origin, int rows, int cols, const Point &point) const;
+
+    /**
+     * 地图坐标转ros坐标
+     */
     Point mapPoint2RosPoint(int rows, int cols, const cv::Point &point) const;
+
+    /**
+     * 地图坐标转ros坐标
+     * 地图原点需要传入，可用于非当前地图
+     */
+    Point mapPoint2RosPoint(const cv::Point2d &map_origin, int rows, int cols, const cv::Point &point) const;
 
     bool saveMap();
 
