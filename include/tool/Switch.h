@@ -7,32 +7,35 @@
 #include <unistd.h>
 
 enum MESSAGE_ID {
-    GET_DEVICE_STATUS_ = 0, //获取机器状态
-    START_MAP,              //保存地图
-    END_MAP,              //保存地图
-    GET_MULTI_MAPS_,        //获取地图列表
-    CHANGE_MAP_,            //切换地图
-    MODIFY_MAP_NAME,        //修改地图名称
-    DELETE_MAP,             //删除地图
-    EDIT_MAP_,              // 编辑地图禁行区
-    GET_EDIT_MAP_,          //获取地图禁行区
+    GET_DEVICE_STATUS_ = 0,                 //获取机器状态
+    START_MAP,                              //保存地图
+    END_MAP,                                //保存地图
+    GET_MULTI_MAPS_,                        //获取地图列表
+    CHANGE_MAP_,                            //切换地图
+    MODIFY_MAP_NAME,                        //修改地图名称
+    DELETE_MAP,                             //删除地图
+
+    EDIT_MAP_,                              //编辑地图禁行区（当前地图）
+    GET_EDIT_MAP_,                          //获取地图禁行区（当前地图）
+    MULTIPLE_EDIT_MAP,                      //编辑地图禁行区
+    MULTIPLE_GET_EDIT_MAP,                  //获取地图禁行区
 
     RUNNING_TASK,
 
-    APP_SPOT_,              //继续清扫（与暂停对应）
-    APP_PAUSE_,             //暂停清扫
-    APP_CHARGE_,            //返回基站
-    CHANGE_WORK_STATUS_,    //改变清扫模式
-    CHANGE_AROM_STATUS_,    //改变香薰机状态
+    APP_SPOT_,                              //继续清扫（与暂停对应）
+    APP_PAUSE_,                             //暂停清扫
+    APP_CHARGE_,                            //返回基站
+    CHANGE_WORK_STATUS_,                    //改变清扫模式
+    CHANGE_AROM_STATUS_,                    //改变香薰机状态
 
-    TRY_TO_ENTER_,          //尝试进入某种模式
-    FORCED_TO_ENTER_,       //强制进入某种模式
-    WORK_TO_ENTER_,         //打开规划器，进入工作模式
-    WORK_TO_MAP_APP_,       //工作模式请求地图
-    CLEAN_HISTORY_REQUEST_, //请求清扫历史纪录
+    TRY_TO_ENTER_,                          //尝试进入某种模式
+    FORCED_TO_ENTER_,                       //强制进入某种模式
+    WORK_TO_ENTER_,                         //打开规划器，进入工作模式
+    WORK_TO_MAP_APP_,                       //工作模式请求地图
+    CLEAN_HISTORY_REQUEST_,                 //请求清扫历史纪录
 
-    GET_FINISHED_POINT_,             //获取当前已经走过的点列
-    IS_IN_BASEMENT_,                 //是否在基站
+    GET_FINISHED_POINT_,                    //获取当前已经走过的点列
+    IS_IN_BASEMENT_,                        //是否在基站
 
     GET_ROS_VERSION_,
     PAD_VERSION_INTO,
@@ -60,7 +63,7 @@ enum MESSAGE_ID {
     MANUAL_PUSH_START,
     MANUAL_PUSH_RESET,
 
-    ENTER_MANUAL_MODE,//进入手动模式
+    ENTER_MANUAL_MODE,              //进入手动模式
     QUIT_MANUAL_MODE,//退出手动模式
 
     EMERGENCY_STOP,//急停
@@ -86,9 +89,12 @@ enum MESSAGE_ID {
     GET_MAINTENANCE_START_TIME,
     SET_MAINTENANCE_START_TIME,
 
-    MAP_OBSTACLES,
-    MAP_FEASIBLE_ZONE,
+    MAP_OBSTACLES,                          //添加障碍物（当前地图）
+    MAP_FEASIBLE_ZONE,                      //添加可行区（当前地图）
     MAP_APPLY_INCREASE_AREA,
+
+    MULTIPLE_MAP_OBSTACLES,                 //添加障碍物（所有地图）
+    MULTIPLE_MAP_FEASIBLE_ZONE,             //添加可行区（所有地图）
 
     SET_EXPLORER_ENERGY,
     GET_EXPLORER_ENERGY,

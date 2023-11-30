@@ -15,12 +15,13 @@
 
 #include "prohibition.h"
 #include "model/RoomVo.h"
+#include "net/base/CompositeList.h"
 
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
-class FactoryResetStrategy: public MessageStrategy<std::string, std::string> {
+class FactoryResetStrategy : public MessageStrategy<std::string, std::string> {
 public:
     std::string handler(std::string params) override;
 };
@@ -65,6 +66,16 @@ public:
     std::vector<std::vector<float>> handler(std::string params) override;
 };
 
+class MultipleEditMapStrategy : public MessageStrategy<CompositeFloatList, std::string> {
+public:
+    std::string handler(CompositeFloatList params) override;
+};
+
+class MultipleGetEditMapStrategy : public MessageStrategy<std::string, CompositeFloatList> {
+public:
+    CompositeFloatList handler(std::string params) override;
+};
+
 class ManualPushStartStrategy : public MessageStrategy<std::string, int> {
 public:
     int handler(std::string params) override;
@@ -88,6 +99,16 @@ public:
 class MapApplyIncreaseArea : public MessageStrategy<std::vector<int>, std::string> {
 public:
     std::string handler(std::vector<int> params) override;
+};
+
+class MultipleMapObstaclesStrategy : public MessageStrategy<CompositePointList, std::string> {
+public:
+    std::string handler(CompositePointList params) override;
+};
+
+class MultipleMapFeasibleZoneStrategy : public MessageStrategy<CompositePointList, std::string> {
+public:
+    std::string handler(CompositePointList params) override;
 };
 
 #endif //APP_COMMUNICATION_MAPSTRATEGY_H

@@ -288,11 +288,9 @@ std::string DeleteMapStrategy::handler(std::string params) {
 }
 
 std::string EditMapStrategy::handler(std::vector<std::vector<float>> params) {
-    //操作，将编辑信息写入当前地图对应的编辑文件内
-    int prohibition_num = params.size();
     reset_prohibition(path::prohibition_areas_path());
 
-    for (int i = 0; i < prohibition_num; i++) {
+    for (int i = 0; i < params.size(); i++) {
         int type = params[i][0];//是区域还是线
         int point_num = 0;
         if (type == 1) {
@@ -305,7 +303,7 @@ std::string EditMapStrategy::handler(std::vector<std::vector<float>> params) {
         for (int j = 1; j < point_num + 1; j++) {
             point[j - 1] = params[i][j];//点位信息
         }
-        if (set_prohibition(point, point_num)) {
+        if (set_prohibition(path::prohibition_areas_path(), point, point_num)) {
 //            ROS_INFO("set wall %d successfully", i);
         } else {
             ROS_ERROR("Failed to set wall!");
@@ -325,10 +323,85 @@ std::vector<std::vector<float>> GetEditMapStrategy::handler(std::string params) 
 
     //操作，打开当前地图对应的编辑文件，并读取编辑信息
     std::vector<std::vector<float>> result;
-    if (!get_prohibition(result)) {
+    if (!get_prohibition(path::prohibition_areas_path(), result)) {
         ROS_ERROR("Fail to open file");
     }
     return result;
+}
+
+std::string MultipleEditMapStrategy::handler(CompositeFloatList params) {
+    std::string mapId = params.getMapId();
+
+    auto prohibitionAreasPath = path::robot_slam_map_dir() + mapId + path::separator() + path::prohibition_areas_yaml;
+
+    std::vector<std::vector<float>> floats = params.getFloats();
+
+    if (mapId == SegmentationDataBase::instance().getDbMap().id) {
+        reset_prohibition(path::prohibition_areas_path());
+        for (int i = 0; i < floats.size(); i++) {
+            int type = floats[i][0];
+            int point_num = 0;
+            if (type == 1) point_num = 8;
+            if (type == 2) point_num = 4;
+            float *point = new float[point_num];
+            for (int j = 1; j < point_num + 1; j++) {
+                point[j - 1] = floats[i][j];
+            }
+            if (set_prohibition(path::prohibition_areas_path(), point, point_num)) {
+                ROS_INFO("set wall %d successfully", i);
+            } else {
+                ROS_ERROR("Failed to set wall!");
+            }
+        }
+        PublishInnerManager::instance().publishResetProhibition();
+
+        MapAttributeSingleton::instance().resetProhibition();
+        MapAttributeSingleton::instance().loadVirtualWall();
+        MapAttributeSingleton::instance().loadPenaltyZone();
+        MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true, false);
+        ExplorationCenter::instance().repaintCoveragePath();
+
+    } else {
+        reset_prohibition(prohibitionAreasPath);
+        for (int i = 0; i < floats.size(); i++) {
+            int type = floats[i][0];
+            int point_num = 0;
+            if (type == 1) point_num = 8;
+            if (type == 2) point_num = 4;
+            float *point = new float[point_num];
+            for (int j = 1; j < point_num + 1; j++) {
+                point[j - 1] = floats[i][j];
+            }
+            if (set_prohibition(prohibitionAreasPath, point, point_num)) {
+                ROS_INFO("set wall %d successfully", i);
+            } else {
+                ROS_ERROR("Failed to set wall!");
+            }
+        }
+    }
+
+    return "";
+}
+
+CompositeFloatList MultipleGetEditMapStrategy::handler(std::string params) {
+    std::string mapId = params;
+    auto prohibitionAreasPath = path::robot_slam_map_dir() + mapId + path::separator() + path::prohibition_areas_yaml;
+
+    CompositeFloatList compositeFloatList;
+    compositeFloatList.setMapId(mapId);
+    std::vector<std::vector<float>> result;
+    if (mapId == SegmentationDataBase::instance().getDbMap().id) {
+        if (!get_prohibition(path::prohibition_areas_path(), result)) {
+            ROS_ERROR("Fail to open file");
+        }
+    } else {
+
+        if (!get_prohibition(prohibitionAreasPath, result)) {
+            ROS_ERROR("Fail to open file");
+        }
+    }
+    compositeFloatList.setFloats(result);
+    return CompositeFloatList();
 }
 
 int ManualPushStartStrategy::handler(std::string params) {
@@ -401,5 +474,57 @@ std::string MapApplyIncreaseArea::handler(std::vector<int> params) {
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
     ExplorationCenter::instance().repaintCoveragePath();
+    return "";
+}
+
+std::string MultipleMapObstaclesStrategy::handler(CompositePointList params) {
+    std::string mapId = params.getMapId();
+
+    std::vector<std::vector<cv::Point>> points;
+    for (const auto &vector: params.getPoints()) {
+        std::vector<cv::Point> cvs;
+        for (const auto &pointVo: vector) {
+            cv::Point point(pointVo.getX(), pointVo.getY());
+            cvs.push_back(point);
+        }
+        points.push_back(cvs);
+    }
+
+    MapModification mapModification;
+
+    if (mapId == SegmentationDataBase::instance().getDbMap().id) {
+        mapModification.addObstacles(points);
+        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+        MapControl::instance().changeMapServer();
+        ExplorationCenter::instance().repaintCoveragePath();
+    } else {
+        mapModification.addObstacles(mapId, points);
+    }
+    return "";
+}
+
+std::string MultipleMapFeasibleZoneStrategy::handler(CompositePointList params) {
+    std::string mapId = params.getMapId();
+
+    std::vector<std::vector<cv::Point>> points;
+    for (const auto &vector: params.getPoints()) {
+        std::vector<cv::Point> cvs;
+        for (const auto &pointVo: vector) {
+            cv::Point point(pointVo.getX(), pointVo.getY());
+            cvs.push_back(point);
+        }
+        points.push_back(cvs);
+    }
+
+    MapModification mapModification;
+
+    if (mapId == SegmentationDataBase::instance().getDbMap().id) {
+        mapModification.addFeasibleZone(points);
+        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+        MapControl::instance().changeMapServer();
+        ExplorationCenter::instance().repaintCoveragePath();
+    } else {
+        mapModification.addFeasibleZone(mapId, points);
+    }
     return "";
 }

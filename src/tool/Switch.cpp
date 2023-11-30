@@ -48,12 +48,20 @@ int switch_ID(const std::string &str) {
     if (str == "delete_map") {
         return DELETE_MAP;
     }
+
     if (str == "edit_map") {
         return EDIT_MAP_;
     }
     if (str == "get_edit_map") {
         return GET_EDIT_MAP_;
     }
+    if (str == "multiple_edit_map") {
+        return MULTIPLE_EDIT_MAP;
+    }
+    if (str == "multiple_get_edit_map") {
+        return MULTIPLE_GET_EDIT_MAP;
+    }
+
     if (str == "running_task") {
         return RUNNING_TASK;
     }
@@ -217,6 +225,12 @@ int switch_ID(const std::string &str) {
     }
     if (str == "map_feasible_zone") {
         return MAP_FEASIBLE_ZONE;
+    }
+    if (str == "multiple_map_obstacles") {
+        return MULTIPLE_MAP_OBSTACLES;
+    }
+    if (str == "multiple_map_feasible_zone") {
+        return MULTIPLE_MAP_FEASIBLE_ZONE;
     }
     if (str == "map_apply_increase_area") {
         return MAP_APPLY_INCREASE_AREA;

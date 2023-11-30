@@ -64,6 +64,12 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case GET_EDIT_MAP_:
             messageStrategy = new GetEditMapStrategy();
             break;
+        case MULTIPLE_EDIT_MAP:
+            messageStrategy = new MultipleEditMapStrategy();
+            break;
+        case MULTIPLE_GET_EDIT_MAP:
+            messageStrategy = new MultipleGetEditMapStrategy();
+            break;
 
         case APP_SPOT_:
             messageStrategy = new StatusResumeStrategy();
@@ -204,9 +210,7 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case END_MAP:
             messageStrategy = new EndMapStrategy();
             break;
-        case MAP_FEASIBLE_ZONE:
-            messageStrategy = new MapFeasibleZoneStrategy();
-            break;
+
         case MANUAL_PUSH_START:
             messageStrategy = new ManualPushStartStrategy();
             break;
@@ -254,6 +258,20 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case MULTIPLE_PURGE_GATE:
             messageStrategy = new MultiplePurgeGateStrategy();
             break;
+
+        case MAP_OBSTACLES:
+            messageStrategy = new MapObstaclesStrategy();
+            break;
+        case MAP_FEASIBLE_ZONE:
+            messageStrategy = new MapFeasibleZoneStrategy();
+            break;
+        case MULTIPLE_MAP_OBSTACLES:
+            messageStrategy = new MultipleMapObstaclesStrategy();
+            break;
+        case MULTIPLE_MAP_FEASIBLE_ZONE:
+            messageStrategy = new MultipleMapFeasibleZoneStrategy();
+            break;
+
     }
     if (messageStrategy != nullptr) {
 

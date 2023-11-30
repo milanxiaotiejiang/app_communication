@@ -15,8 +15,8 @@
 #include<geometry_msgs/Pose.h>
 #include<std_msgs/String.h>
 
-int set_prohibition(float *, int);
+int set_prohibition(std::string, float *, int);
 
 int reset_prohibition(std::string prohibition_path);
 
-bool get_prohibition(std::vector<std::vector<float>> &prohibition_position);
+bool get_prohibition(std::string, std::vector<std::vector<float>> &prohibition_position);

@@ -230,6 +230,12 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case MAP_FEASIBLE_ZONE:
             messageStrategy = new MapFeasibleZoneStrategy();
             break;
+        case MULTIPLE_MAP_OBSTACLES:
+            messageStrategy = new MultipleMapObstaclesStrategy();
+            break;
+        case MULTIPLE_MAP_FEASIBLE_ZONE:
+            messageStrategy = new MultipleMapFeasibleZoneStrategy();
+            break;
         case MAP_APPLY_INCREASE_AREA:
             messageStrategy = new MapApplyIncreaseArea();
             break;

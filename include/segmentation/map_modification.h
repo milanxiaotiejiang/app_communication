@@ -11,11 +11,17 @@ class MapModification {
 private:
     void forceModifyMap(const std::vector<std::vector<cv::Point>> &points, int fill);
 
+    void forceModifyMap(const std::string &mapId, const std::vector<std::vector<cv::Point>> &points, int fill);
+
 public:
 
     void addObstacles(const std::vector<std::vector<cv::Point>> &points);
 
     void addFeasibleZone(const std::vector<std::vector<cv::Point>> &points);
+
+    void addObstacles(const std::string &mapId, const std::vector<std::vector<cv::Point>> &points);
+
+    void addFeasibleZone(const std::string &mapId, const std::vector<std::vector<cv::Point>> &points);
 
     void applyIncreaseArea(const std::vector<int> &daubs);
 
