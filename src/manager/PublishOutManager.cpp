@@ -20,6 +20,9 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
     acceptAppJsonV1 = handle.advertise<std_msgs::String>(APP_JSON, 1);
 
     acceptAppCommunication = handle.advertise<std_msgs::String>(APP_COMMUNICATION, 1);
+
+    pubPad = handle.advertise<std_msgs::Int32>(RESOURCES_UPDATE_FOR_PAD, 1);
+    pubCloud = handle.advertise<std_msgs::Int32>(RESOURCES_UPDATE_FOR_CLOUD, 1);
 }
 
 void PublishOutManager::publishJson(const std::string &message) const {
@@ -111,4 +114,12 @@ void PublishOutManager::publishAppCommunication(const std_msgs::String &message)
 
 void PublishOutManager::publishInternalEvent(const std_msgs::String &message) const {
     pub_internal_event_.publish(message);
+}
+
+void PublishOutManager::publishResourcesUpdateForPad(const std_msgs::Int32 &message) const {
+    pubPad.publish(message);
+}
+
+void PublishOutManager::publishResourcesUpdateForCloud(const std_msgs::Int32 &message) const {
+    pubCloud.publish(message);
 }

@@ -27,6 +27,7 @@
 #include "tool/write_file.hpp"
 #include "yaml-cpp/yaml.h"
 #include "manager/cloud_robot_control.h"
+#include "manager/NoticeManager.h"
 
 using json = nlohmann::json;
 
@@ -44,17 +45,19 @@ public:
     virtual ~MessageBaseStrategy() = default;
 
     virtual void dateProgressing(int source, json &jdecode) = 0;
-
 };
 
 template<class Model, class Result>
 class MessageStrategy : public MessageBaseStrategy {
+protected:
+    int source_ = -1;
 public:
     MessageStrategy<Model, Result>() = default;
 
     ~MessageStrategy<Model, Result>() override = default;
 
     void dateProgressing(int source, json &jdecode) override {
+        source_ = source;
         RequestModel<BaseMethod<Model>> requestModel = jdecode.get<RequestModel<BaseMethod<Model>>>();
         auto message = requestModel.getMsg();
         auto id = message.getId();

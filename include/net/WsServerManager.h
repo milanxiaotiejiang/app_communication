@@ -40,6 +40,8 @@ const std::string APP_HANDSFREE_IMU = "/app/handsfree/imu";
 const std::string APP_MRROBOT_BUMP_SENSOR = "/app/mrrobot/bump_sensor";
 const std::string APP_MRROBOT_CARPET_DETECT = "/app/mrrobot/carpet_detect";
 
+const std::string RESOURCES_UPDATE_FOR_PAD = "/resources_update_for_pad";
+const std::string RESOURCES_UPDATE_FOR_CLOUD = "/resources_update_for_cloud";
 
 const std::string MESSAGE_BUS_TOPIC = "message_bus_topic";
 

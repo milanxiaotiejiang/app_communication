@@ -7,6 +7,8 @@
 
 #include "string"
 #include "model/Notice.h"
+#include "alignment/rrmap2.h"
+#include "sub/json/MessageStrategy.h"
 
 class NoticeManager {
 private:
@@ -37,6 +39,7 @@ public:
     void sendNotice(int noticeCode, long noticeTime, const std::string &noticeTitle,
                     const std::string &noticeMessage, const std::string &solution);
 
+    void sendNotice(const int source, const MMapType mapType);
 };
 
 

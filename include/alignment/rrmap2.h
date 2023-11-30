@@ -30,13 +30,13 @@
 #define VALID_DEFAULT_LENGTH 20
 
 enum MMapType {
-    M_MAP_CHARGER = 1,
+    M_MAP_CHARGER = 1,//基站
     M_MAP_RESOURCE = 2,
     M_MAP_PATH = 3,
     M_MAP_TARGET = 7,
     M_MAP_ROBOT = 8,
-    M_MAP_PROHIBITION = 9,
-    M_MAP_VIRTUALLY = 10,
+    M_MAP_PROHIBITION = 9,//禁行区
+    M_MAP_VIRTUALLY = 10,//虚拟墙
     M_MAP_ZONE = 12,
     M_MAP_COVER = 14,
     M_MAP_VALID = 1024,

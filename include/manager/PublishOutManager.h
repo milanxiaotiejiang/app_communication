@@ -18,6 +18,7 @@
 #include "model/InternalEvent.h"
 #include "std_msgs/Int32.h"
 #include "net/ros/SensorSelfModel.h"
+#include "alignment/rrmap2.h"
 
 class PublishOutManager {
 private:
@@ -41,6 +42,8 @@ private:
     ros::Publisher acceptAppJsonV1;
     ros::Publisher acceptAppCommunication;
     ros::Publisher pubCarpet;
+    ros::Publisher pubPad;
+    ros::Publisher pubCloud;
 public:
     static auto &instance() {
         static PublishOutManager obj;
@@ -66,6 +69,10 @@ public:
     void publishAlarm(const internal_event::AlarmEvent &alarmEvent) const;
 
     void publishInternalEvent(const std_msgs::String &message) const;
+
+    void publishResourcesUpdateForPad(const std_msgs::Int32 &message) const;
+
+    void publishResourcesUpdateForCloud(const std_msgs::Int32 &message) const;
 
 };
 

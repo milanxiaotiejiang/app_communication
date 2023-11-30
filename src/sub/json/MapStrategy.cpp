@@ -316,6 +316,8 @@ std::string EditMapStrategy::handler(std::vector<std::vector<float>> params) {
     MapAttributeSingleton::instance().loadPenaltyZone();
     MapControl::instance().backupProhibition(SegmentationDataBase::instance().getDbMap().id, true, false);
     ExplorationCenter::instance().repaintCoveragePath();
+
+    NoticeManager::instance().sendNotice(source_, M_MAP_PROHIBITION);
     return "";
 }
 
@@ -380,6 +382,7 @@ std::string MultipleEditMapStrategy::handler(CompositeFloatList params) {
         }
     }
 
+    NoticeManager::instance().sendNotice(source_, M_MAP_PROHIBITION);
     return "";
 }
 
@@ -445,6 +448,7 @@ std::string MapObstaclesStrategy::handler(std::vector<std::vector<PointVo>> para
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
     ExplorationCenter::instance().repaintCoveragePath();
+    NoticeManager::instance().sendNotice(source_, M_MAP_RESOURCE);
     return "";
 }
 
@@ -465,6 +469,7 @@ std::string MapFeasibleZoneStrategy::handler(std::vector<std::vector<PointVo>> p
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
     ExplorationCenter::instance().repaintCoveragePath();
+    NoticeManager::instance().sendNotice(source_, M_MAP_RESOURCE);
     return "";
 }
 
@@ -474,6 +479,7 @@ std::string MapApplyIncreaseArea::handler(std::vector<int> params) {
     MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
     MapControl::instance().changeMapServer();
     ExplorationCenter::instance().repaintCoveragePath();
+    NoticeManager::instance().sendNotice(source_, M_MAP_RESOURCE);
     return "";
 }
 
@@ -500,6 +506,8 @@ std::string MultipleMapObstaclesStrategy::handler(CompositePointList params) {
     } else {
         mapModification.addObstacles(mapId, points);
     }
+
+    NoticeManager::instance().sendNotice(source_, M_MAP_RESOURCE);
     return "";
 }
 
@@ -526,5 +534,7 @@ std::string MultipleMapFeasibleZoneStrategy::handler(CompositePointList params) 
     } else {
         mapModification.addFeasibleZone(mapId, points);
     }
+
+    NoticeManager::instance().sendNotice(source_, M_MAP_RESOURCE);
     return "";
 }

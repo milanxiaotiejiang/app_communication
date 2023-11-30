@@ -19,3 +19,14 @@ int NoticeManager::getPlannerType() const {
 void NoticeManager::setPlannerType(int plannerType) {
     planner_type = plannerType;
 }
+
+void NoticeManager::sendNotice(const int source, const MMapType mapType) {
+    std_msgs::Int32 message;
+    message.data = mapType;
+    if (source == MessageSource::WebSocket) {
+        PublishOutManager::instance().publishResourcesUpdateForCloud(message);
+    } else if (source == MessageSource::Cloud) {
+        PublishOutManager::instance().publishResourcesUpdateForPad(message);
+    } else {
+    }
+}
