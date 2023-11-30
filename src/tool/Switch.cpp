@@ -219,6 +219,12 @@ int switch_ID(const std::string &str) {
     if (str == "set_maintenance_start_time") {
         return SET_MAINTENANCE_START_TIME;
     }
+    if (str == "get_test_cloud_interactive_environment") {
+        return GET_TEST_CLOUD_INTERACTIVE_ENVIRONMENT;
+    }
+    if (str == "set_test_cloud_interactive_environment") {
+        return SET_TEST_CLOUD_INTERACTIVE_ENVIRONMENT;
+    }
 
     if (str == "map_obstacles") {
         return MAP_OBSTACLES;

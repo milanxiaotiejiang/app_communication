@@ -189,3 +189,12 @@ std::string SetMaintenanceStartTimeStrategy::handler(long params) {
 long GetMaintenanceStartTimeStrategy::handler(std::string params) {
     return ParamManager::instance().getMaintenanceStartTime();
 }
+
+std::string SetTcienvStrategy::handler(bool params) {
+    ParamManager::instance().setCloudInteractiveEnvironment(params);
+    return "";
+}
+
+bool GetTcienvStrategy::handler(std::string params) {
+    return ParamManager::instance().getCloudInteractiveEnvironment();
+}

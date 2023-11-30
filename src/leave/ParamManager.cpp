@@ -59,6 +59,8 @@ void ParamManager::loadDefaultParam() {
         node["auto_oil"] = false;
         //维护时间
         node["maintenance_start_time"] = 0;
+        //云端运行环境
+        node["test_cloud_interactive_environment"] = false;
         std::ofstream ofstream(app_param_path);
         ofstream << node;
         ofstream.close();
@@ -75,6 +77,7 @@ void ParamManager::reset() {
     setCollectDust(false);
     setAutoOil(false);
     setMaintenanceStartTime(0);
+    setCloudInteractiveEnvironment(false);
 }
 
 int ParamManager::getTof() {
@@ -307,3 +310,28 @@ void ParamManager::setMaintenanceStartTime(long maintenance_start_time) {
     ofstream << node;
     ofstream.close();
 }
+
+bool ParamManager::getCloudInteractiveEnvironment() {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    auto childNode = node["test_cloud_interactive_environment"];
+    if (childNode.IsDefined() && childNode.IsScalar()) {
+        return childNode.as<bool>();
+    }
+    setCloudInteractiveEnvironment(false);
+    return getCloudInteractiveEnvironment();
+}
+
+void ParamManager::setCloudInteractiveEnvironment(bool cloud_interactive_environment) {
+    if (access(app_param_path.c_str(), F_OK) != 0) {
+        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+    }
+    YAML::Node node = YAML::LoadFile(app_param_path);
+    node["test_cloud_interactive_environment"] = cloud_interactive_environment;
+    std::ofstream ofstream(app_param_path);
+    ofstream << node;
+    ofstream.close();
+}
+

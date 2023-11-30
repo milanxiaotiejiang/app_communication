@@ -256,6 +256,8 @@ namespace clean_history_db {
                 return std::make_tuple(3183, "自动维护时段内，任务无法启动", "CCR_183");
             case error::during_self_check_the_task_cannot_be_started:
                 return std::make_tuple(3184, "自检中，任务无法启动", "CCR_184");
+            case error::camera_starting_or_failed_to_start:
+                return std::make_tuple(3185, "银牛启动中或启动失败，任务无法启动", "CCR_185");
             default:
                 std::string base_string = "CCR_";
                 std::string ex_string = std::to_string(100 + e.code().value());

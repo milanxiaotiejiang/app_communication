@@ -353,16 +353,16 @@ void initNodeParams(const ros::NodeHandle &nh) {
     Environment::instance().rec_app_node_crash = crash;
     nh.setParam("/rec_app_node_crash", false);
 
-    std::string nebula_base_url;
-    nh.param<std::string>("nebula_base_url", nebula_base_url, "http://192.168.2.53:8080/nebula");
+    std::string nebula_base_url = "https://api.maxrockrobot.com/nebula";
+    std::string nebula_account = "robot";
+    std::string nebula_secret = "robot1@nebula";
+    if (ParamManager::instance().getCloudInteractiveEnvironment()) {
+        nebula_base_url = "https://testapi.maxrockrobot.com/nebula";
+        nebula_account = "robot";
+        nebula_secret = "robot1@test";
+    }
     Environment::instance().nebula_base_url = nebula_base_url;
-
-    std::string nebula_account;
-    nh.param<std::string>("nebula_account", nebula_account, "robot");
     Environment::instance().nebula_account = nebula_account;
-
-    std::string nebula_secret;
-    nh.param<std::string>("nebula_secret", nebula_secret, "robot1");
     Environment::instance().nebula_secret = nebula_secret;
 
     std::string path;

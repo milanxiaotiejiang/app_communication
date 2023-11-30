@@ -223,6 +223,12 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case SET_MAINTENANCE_START_TIME:
             messageStrategy = new SetMaintenanceStartTimeStrategy();
             break;
+        case GET_TEST_CLOUD_INTERACTIVE_ENVIRONMENT:
+            messageStrategy = new GetTcienvStrategy();
+            break;
+        case SET_TEST_CLOUD_INTERACTIVE_ENVIRONMENT:
+            messageStrategy = new SetTcienvStrategy();
+            break;
 
         case MAP_OBSTACLES:
             messageStrategy = new MapObstaclesStrategy();
