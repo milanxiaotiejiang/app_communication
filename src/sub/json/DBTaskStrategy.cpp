@@ -28,6 +28,25 @@ long AddTaskStrategy::handler(TaskVo params) {
     return TaskDataBase::instance().addTask(map.id, params);
 }
 
+long MultipleAddTaskStrategy::handler(TaskVo params) {
+    checkWorkStatus(params.getWorkStatus());
+    checkName(params.getName());
+    checkRate(params.getRate());
+    checkMode(params.getMode());
+    checkSource(params.getSource());
+
+    checkMapId(SegmentationDataBase::instance().loadAllMap(), params.getOMapId());
+
+    if (params.getMode() == static_cast<int>(TaskMode::Zoned)) {
+        checkZoned(params.getZones());
+    } else if (params.getMode() == static_cast<int>(TaskMode::Subregion)) {
+        checkSubregion(params.getSubregions());
+    }
+
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    return TaskDataBase::instance().addTask(params.getOMapId(), params);
+}
+
 std::string DeleteTaskStrategy::handler(long params) {
     if (ParamManager::instance().getRainSnow()) {
         MapPo map = SegmentationDataBase::instance().getDbMap();
@@ -63,6 +82,16 @@ std::string DeleteMultipleTaskStrategy::handler(std::vector<long> params) {
 std::vector<TaskVo> ListTaskStrategy::handler(std::string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTaskFoMap(map.id);
+}
+
+std::vector<TaskVo> MultipleListTaskStrategy::handler(std::string params) {
+    checkMapId(SegmentationDataBase::instance().loadAllMap(), params);
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    return TaskDataBase::instance().loadTaskFoMap(params);
+}
+
+std::vector<TaskVo> MultipleWholeListTaskStrategy::handler(std::string params) {
+    return TaskDataBase::instance().loadTask();
 }
 
 TaskVo QueryIdTaskStrategy::handler(long params) {
@@ -121,13 +150,11 @@ std::string ModifyTimerTaskStrategy::handler(TimerVo params) {
 }
 
 TaskVo BuildPrincipalTaskStrategy::handler(long params) {
-    MapPo map = SegmentationDataBase::instance().getDbMap();
-    return TaskDataBase::instance().modifyPrincipalTask(map.id, params, true);
+    return TaskDataBase::instance().modifyPrincipalTask(params, true);
 }
 
 TaskVo CancelPrincipalTaskStrategy::handler(long params) {
-    MapPo map = SegmentationDataBase::instance().getDbMap();
-    return TaskDataBase::instance().modifyPrincipalTask(map.id, params, false);
+    return TaskDataBase::instance().modifyPrincipalTask(params, false);
 }
 
 TaskVo PrincipalTaskStrategy::handler(std::string params) {
@@ -139,17 +166,24 @@ TaskVo PrincipalTaskStrategy::handler(std::string params) {
     return vo;
 }
 
+TaskVo MultiplePrincipalTaskStrategy::handler(std::string params) {
+    checkMapId(SegmentationDataBase::instance().loadAllMap(), params);
+    const TaskVo &vo = TaskDataBase::instance().loadPrincipalTask(params);
+    if (vo.getId() == -1) {
+        throw app::exception(make_error_code(error::the_main_task_is_not_set));
+    }
+    return vo;
+}
+
 TaskVo BuildRainSnowTaskStrategy::handler(long params) {
-    MapPo map = SegmentationDataBase::instance().getDbMap();
     const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params);
     if (SqliteDataBase::TaskModeFromInt(taskVo.getMode()) != TaskMode::Zoned) {
         throw app::exception(make_error_code(error::non_zoning_tasks_cannot_be_set_as_rainy_and_snowy_tasks));
     }
-    return TaskDataBase::instance().modifyRainSnowTask(map.id, params, true);
+    return TaskDataBase::instance().modifyRainSnowTask(params, true);
 }
 
 TaskVo CancelRainSnowTaskStrategy::handler(long params) {
-    MapPo map = SegmentationDataBase::instance().getDbMap();
     const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params);
     if (ParamManager::instance().getRainSnow()) {
         //开启“雨雪天模式”后，已勾选的雨雪天任务不能取消勾选或删除任务。
@@ -161,12 +195,21 @@ TaskVo CancelRainSnowTaskStrategy::handler(long params) {
     if (SqliteDataBase::TaskModeFromInt(taskVo.getMode()) != TaskMode::Zoned) {
         throw app::exception(make_error_code(error::non_zoning_tasks_cannot_be_set_as_rainy_and_snowy_tasks));
     }
-    return TaskDataBase::instance().modifyRainSnowTask(map.id, params, false);
+    return TaskDataBase::instance().modifyRainSnowTask(params, false);
 }
 
 TaskVo RainSnowTaskStrategy::handler(std::string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     const TaskVo &vo = TaskDataBase::instance().loadRainSnowTask(map.id);
+    if (vo.getId() == -1) {
+        throw app::exception(make_error_code(error::the_rain_snow_task_is_not_set));
+    }
+    return vo;
+}
+
+TaskVo MultipleRainSnowTaskStrategy::handler(std::string params) {
+    checkMapId(SegmentationDataBase::instance().loadAllMap(), params);
+    const TaskVo &vo = TaskDataBase::instance().loadRainSnowTask(params);
     if (vo.getId() == -1) {
         throw app::exception(make_error_code(error::the_rain_snow_task_is_not_set));
     }

@@ -137,3 +137,18 @@ void checkSameTimer(const std::string &map_id, const std::string &timer_rule, in
         }
     }
 }
+
+void checkMapId(const std::vector<MapPo> &maps, const std::string &map_id) {
+    if (map_id.empty()) {
+        throw std::invalid_argument("mapId is not empty");
+    }
+    bool has = false;
+    for (const auto &item: maps) {
+        if (item.id == map_id) {
+            has = true;
+            break;
+        }
+    }
+    if (!has)
+        throw std::invalid_argument("mapId is not exist");
+}

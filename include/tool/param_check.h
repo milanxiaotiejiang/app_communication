@@ -8,6 +8,7 @@
 #include "model/WorkStatus.h"
 #include "model/RoomVo.h"
 #include "model/task.h"
+#include "db/segmentation_model.h"
 
 void checkWorkStatus(const WorkStatus &workStatus);
 
@@ -28,5 +29,7 @@ void checkSubregion(const SubregionVo &subregion);
 void checkSubregion(const std::vector<SubregionVo> &subregions);
 
 void checkSameTimer(const std::string &map_id, const std::string &timer_rule, int selfTimerId);
+
+void checkMapId(const std::vector<MapPo> &maps, const std::string &map_id);
 
 #endif //APP_COMMUNICATION_PARAM_CHECK_H

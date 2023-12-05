@@ -273,6 +273,84 @@ void MultipleMapSubscribe::gateManagerSubscribeCallback(const std_msgs::String &
             auto outStr = outJson.dump();
             std::cout << outStr << std::endl;
 
+        } else if (data == "multiple_get_edit_map") {
+            std::cout << "params : --------------" << std::endl;
+            json inJson = po.id;
+            auto inStr = inJson.dump();
+            std::cout << inStr << std::endl;
+
+            MultipleGetEditMapStrategy multipleGetEditMapStrategy;
+            auto handler = multipleGetEditMapStrategy.handler(po.id);
+
+            std::cout << "result : --------------" << std::endl;
+            json outJson = handler;
+            auto outStr = outJson.dump();
+            std::cout << outStr << std::endl;
+        } else if (data == "multiple_edit_map") {
+            std::string jj = "{\"floats\":[[1.0,3.9689719676971436,0.733920693397522,3.9689719676971436,-3.1384780406951904,2.6072490215301514,-3.1384780406951904,2.6072490215301514,0.733920693397522]],\"map_id\":\"default_map_uuid_0123456789\"}";
+            json j = json::parse(jj);
+
+            CompositeFloatList params = j;
+
+            std::cout << "params : --------------" << std::endl;
+            json inJson = params;
+            auto inStr = inJson.dump();
+            std::cout << inStr << std::endl;
+            MultipleEditMapStrategy multipleEditMapStrategy;
+            auto handler = multipleEditMapStrategy.handler(params);
+
+            std::cout << "result : --------------" << std::endl;
+            json outJson = handler;
+            auto outStr = outJson.dump();
+            std::cout << outStr << std::endl;
+        } else if (data == "multiple_map_feasible_zone") {
+            CompositePointList params;
+            params.setMapId(po.id);
+            std::vector<std::vector<PointVo>> points;
+            std::vector<PointVo> pointVos;
+            pointVos.push_back(PointVo(0, 0));
+            pointVos.push_back(PointVo(0, 20));
+            pointVos.push_back(PointVo(20, 20));
+            pointVos.push_back(PointVo(20, 0));
+            points.push_back(pointVos);
+            params.setPoints(points);
+
+            std::cout << "params : --------------" << std::endl;
+            json inJson = params;
+            auto inStr = inJson.dump();
+            std::cout << inStr << std::endl;
+
+            MultipleMapFeasibleZoneStrategy multipleMapFeasibleZoneStrategy;
+            auto handler = multipleMapFeasibleZoneStrategy.handler(params);
+
+            std::cout << "result : --------------" << std::endl;
+            json outJson = handler;
+            auto outStr = outJson.dump();
+            std::cout << outStr << std::endl;
+        } else if (data == "multiple_map_obstacles") {
+            CompositePointList params;
+            params.setMapId(po.id);
+            std::vector<std::vector<PointVo>> points;
+            std::vector<PointVo> pointVos;
+            pointVos.push_back(PointVo(0, 0));
+            pointVos.push_back(PointVo(0, 20));
+            pointVos.push_back(PointVo(20, 20));
+            pointVos.push_back(PointVo(20, 0));
+            points.push_back(pointVos);
+            params.setPoints(points);
+
+            std::cout << "params : --------------" << std::endl;
+            json inJson = params;
+            auto inStr = inJson.dump();
+            std::cout << inStr << std::endl;
+
+            MultipleMapObstaclesStrategy multipleMapObstaclesStrategy;
+            auto handler = multipleMapObstaclesStrategy.handler(params);
+
+            std::cout << "result : --------------" << std::endl;
+            json outJson = handler;
+            auto outStr = outJson.dump();
+            std::cout << outStr << std::endl;
         }
     } catch (app::exception const &e) {
         LOG(ERROR) << e.what();

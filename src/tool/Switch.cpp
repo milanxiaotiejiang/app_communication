@@ -255,6 +255,9 @@ int switch_ID(const std::string &str) {
     if (str == "add_task") {
         return ADD_TASK;
     }
+    if (str == "multiple_add_task") {
+        return MULTIPLE_ADD_TASK;
+    }
     if (str == "delete_task") {
         return DELETE_TASK;
     }
@@ -263,6 +266,12 @@ int switch_ID(const std::string &str) {
     }
     if (str == "list_task") {
         return LIST_TASK;
+    }
+    if (str == "multiple_list_task") {
+        return MULTIPLE_LIST_TASK;
+    }
+    if (str == "multiple_whole_list_task") {
+        return MULTIPLE_WHOLE_LIST_TASK;
     }
     if (str == "query_id_task") {
         return QUERY_ID_TASK;
@@ -276,6 +285,9 @@ int switch_ID(const std::string &str) {
     if (str == "principal_task") {
         return PRINCIPAL_TASK;
     }
+    if (str == "multiple_principal_task") {
+        return MULTIPLE_PRINCIPAL_TASK;
+    }
 
     if (str == "build_rain_snow_task") {
         return BUILD_RAIN_SNOW_TASK;
@@ -285,6 +297,9 @@ int switch_ID(const std::string &str) {
     }
     if (str == "rain_snow_task") {
         return RAIN_SNOW_TASK;
+    }
+    if (str == "multiple_rain_snow_task") {
+        return MULTIPLE_RAIN_SNOW_TASK;
     }
 
     if (str == "clear_current_list_task") {

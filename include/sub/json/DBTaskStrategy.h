@@ -13,6 +13,11 @@ public:
     long handler(TaskVo params) override;
 };
 
+class MultipleAddTaskStrategy : public MessageStrategy<TaskVo, long> {
+public:
+    long handler(TaskVo params) override;
+};
+
 class DeleteTaskStrategy : public MessageStrategy<long, std::string> {
 public:
     std::string handler(long params) override;
@@ -24,6 +29,16 @@ public:
 };
 
 class ListTaskStrategy : public MessageStrategy<std::string, std::vector<TaskVo>> {
+public:
+    std::vector<TaskVo> handler(std::string params) override;
+};
+
+class MultipleListTaskStrategy : public MessageStrategy<std::string, std::vector<TaskVo>> {
+public:
+    std::vector<TaskVo> handler(std::string params) override;
+};
+
+class MultipleWholeListTaskStrategy : public MessageStrategy<std::string, std::vector<TaskVo>> {
 public:
     std::vector<TaskVo> handler(std::string params) override;
 };
@@ -78,6 +93,11 @@ public:
     TaskVo handler(std::string params) override;
 };
 
+class MultiplePrincipalTaskStrategy : public MessageStrategy<std::string, TaskVo> {
+public:
+    TaskVo handler(std::string params) override;
+};
+
 class BuildRainSnowTaskStrategy : public MessageStrategy<long, TaskVo> {
 public:
     TaskVo handler(long params) override;
@@ -89,6 +109,11 @@ public:
 };
 
 class RainSnowTaskStrategy : public MessageStrategy<std::string, TaskVo> {
+public:
+    TaskVo handler(std::string params) override;
+};
+
+class MultipleRainSnowTaskStrategy : public MessageStrategy<std::string, TaskVo> {
 public:
     TaskVo handler(std::string params) override;
 };

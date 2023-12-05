@@ -224,25 +224,29 @@ void TaskDataBase::deleteTimerForMap(std::string mapId) {
     taskStorage.remove_all<TimerPo>(where(c(&TimerPo::o_map_id) == std::move(mapId)));
 }
 
-TaskVo TaskDataBase::modifyPrincipalTask(std::string mapId, long taskId, bool principal) {
+TaskVo TaskDataBase::modifyPrincipalTask(long taskId, bool principal) {
+    auto task = taskStorage.get<TaskPo>(taskId);
+
     if (principal) {
         taskStorage.update_all(sqlite_orm::set(c(&TaskPo::principal) = false),
-                               where(c(&TaskPo::o_map_id) == std::move(mapId))
+                               where(c(&TaskPo::o_map_id) == std::move(task.o_map_id))
         );
     }
-    auto task = taskStorage.get<TaskPo>(taskId);
+
     task.principal = principal;
     taskStorage.update(task);
     return taskPo2Vo(task);
 }
 
-TaskVo TaskDataBase::modifyRainSnowTask(std::string mapId, long taskId, bool rainSnow) {
+TaskVo TaskDataBase::modifyRainSnowTask(long taskId, bool rainSnow) {
+    auto task = taskStorage.get<TaskPo>(taskId);
+
     if (rainSnow) {
         taskStorage.update_all(sqlite_orm::set(c(&TaskPo::rain_snow) = false),
-                               where(c(&TaskPo::o_map_id) == std::move(mapId))
+                               where(c(&TaskPo::o_map_id) == std::move(task.o_map_id))
         );
     }
-    auto task = taskStorage.get<TaskPo>(taskId);
+
     task.rain_snow = rainSnow;
     taskStorage.update(task);
     return taskPo2Vo(task);
@@ -458,6 +462,31 @@ void TaskDataBase::modifyTimer(const std::string &mapId, const TimerVo &timer) {
     taskStorage.update(timerPo);
 }
 
+std::vector<TaskVo> TaskDataBase::loadTask() {
+    std::vector<TaskVo> tasks;
+
+    auto taskPos = taskStorage.get_all<TaskPo>();
+    if (taskPos.empty()) {
+        return tasks;
+    }
+
+    for (auto &t: taskPos) {
+        auto zs = taskStorage.get_all<ZonePo>(where(c(&ZonePo::o_task_id) == t.id));
+        for (const auto &z: zs) {
+            t.zones.push_back(z);
+        }
+        auto ss = taskStorage.get_all<SubregionPo>(where(c(&SubregionPo::o_task_id) == t.id));
+        for (const auto &s: ss) {
+            t.subregions.push_back(s);
+        }
+    }
+
+    for (auto &t: taskPos) {
+        tasks.push_back(taskPo2Vo(t));
+    }
+    return tasks;
+}
+
 std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
     std::vector<TaskVo> tasks;
 
@@ -480,6 +509,7 @@ std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
     for (auto &t: taskPos) {
         tasks.push_back(taskPo2Vo(t));
     }
+    return tasks;
 }
 
 TaskVo TaskDataBase::loadTaskFoId(long taskId) {

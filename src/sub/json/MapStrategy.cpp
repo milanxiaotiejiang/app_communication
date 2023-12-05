@@ -387,7 +387,7 @@ std::string MultipleEditMapStrategy::handler(CompositeFloatList params) {
 }
 
 CompositeFloatList MultipleGetEditMapStrategy::handler(std::string params) {
-    std::string mapId = params;
+    const std::string &mapId = params;
     auto prohibitionAreasPath = path::robot_slam_map_dir() + mapId + path::separator() + path::prohibition_areas_yaml;
 
     CompositeFloatList compositeFloatList;
@@ -404,7 +404,7 @@ CompositeFloatList MultipleGetEditMapStrategy::handler(std::string params) {
         }
     }
     compositeFloatList.setFloats(result);
-    return CompositeFloatList();
+    return compositeFloatList;
 }
 
 int ManualPushStartStrategy::handler(std::string params) {
@@ -512,7 +512,7 @@ std::string MultipleMapObstaclesStrategy::handler(CompositePointList params) {
 }
 
 std::string MultipleMapFeasibleZoneStrategy::handler(CompositePointList params) {
-    std::string mapId = params.getMapId();
+    const std::string &mapId = params.getMapId();
 
     std::vector<std::vector<cv::Point>> points;
     for (const auto &vector: params.getPoints()) {

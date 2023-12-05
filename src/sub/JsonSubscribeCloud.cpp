@@ -103,6 +103,9 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case ADD_TASK:
             messageStrategy = new AddTaskStrategy();
             break;
+        case MULTIPLE_ADD_TASK:
+            messageStrategy = new MultipleAddTaskStrategy();
+            break;
         case DELETE_TASK:
             messageStrategy = new DeleteTaskStrategy();
             break;
@@ -111,6 +114,12 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             break;
         case LIST_TASK:
             messageStrategy = new ListTaskStrategy();
+            break;
+        case MULTIPLE_LIST_TASK:
+            messageStrategy = new MultipleListTaskStrategy();
+            break;
+        case MULTIPLE_WHOLE_LIST_TASK:
+            messageStrategy = new MultipleWholeListTaskStrategy();
             break;
         case QUERY_ID_TASK:
             messageStrategy = new QueryIdTaskStrategy();
@@ -125,12 +134,21 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case PRINCIPAL_TASK:
             messageStrategy = new PrincipalTaskStrategy();
             break;
+        case MULTIPLE_PRINCIPAL_TASK:
+            messageStrategy = new MultiplePrincipalTaskStrategy();
+            break;
 
         case BUILD_RAIN_SNOW_TASK:
             messageStrategy = new BuildRainSnowTaskStrategy();
             break;
         case CANCEL_RAIN_SNOW_TASK:
             messageStrategy = new CancelRainSnowTaskStrategy();
+            break;
+        case RAIN_SNOW_TASK:
+            messageStrategy = new RainSnowTaskStrategy();
+            break;
+        case MULTIPLE_RAIN_SNOW_TASK:
+            messageStrategy = new MultipleRainSnowTaskStrategy();
             break;
 
         case CLEAR_CURRENT_LIST_TASK:

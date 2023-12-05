@@ -104,18 +104,23 @@ enum MESSAGE_ID {
     AUTOMATIC_OILING,
 
     ADD_TASK,
+    MULTIPLE_ADD_TASK,
     DELETE_TASK,
     DELETE_MULTIPLE_TASK,
-    LIST_TASK,
+    LIST_TASK,                              //获取任务列表（当前地图）
+    MULTIPLE_LIST_TASK,                     //获取任务列表（地图ID）
+    MULTIPLE_WHOLE_LIST_TASK,               //获取任务列表（所有地图）
     QUERY_ID_TASK,
 
-    BUILD_PRINCIPAL_TASK,
-    CANCEL_PRINCIPAL_TASK,
-    PRINCIPAL_TASK,
+    BUILD_PRINCIPAL_TASK,                   //设置默认任务
+    CANCEL_PRINCIPAL_TASK,                  //取消默认任务
+    PRINCIPAL_TASK,                         //获取默认任务（当前地图）
+    MULTIPLE_PRINCIPAL_TASK,                //获取默认任务（地图ID）
 
-    BUILD_RAIN_SNOW_TASK,
-    CANCEL_RAIN_SNOW_TASK,
-    RAIN_SNOW_TASK,
+    BUILD_RAIN_SNOW_TASK,                   //设置雨雪任务
+    CANCEL_RAIN_SNOW_TASK,                  //取消雨雪任务
+    RAIN_SNOW_TASK,                         //获取雨雪任务（当前地图）
+    MULTIPLE_RAIN_SNOW_TASK,                //获取雨雪任务（地图ID）
 
     CLEAR_CURRENT_LIST_TASK,
 
@@ -123,7 +128,7 @@ enum MESSAGE_ID {
     MODIFY_TASK_RATE,
     MODIFY_TASK_WORK_STATUS,
     MODIFY_TASK_KNIFE,
-    MODIFY_COMPLETE_TASK,
+    MODIFY_COMPLETE_TASK,                   //任务修改-单条全量数据
     OPERATE_ADD_ZONE,
     OPERATE_DELETE_ZONE,
     OPERATE_MODIFY_ZONE,
