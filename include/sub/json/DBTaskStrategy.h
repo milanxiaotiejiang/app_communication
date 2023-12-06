@@ -28,6 +28,11 @@ public:
     std::string handler(std::vector<long> params) override;
 };
 
+class MultipleDeleteTaskStrategy : public MessageStrategy<long, std::string> {
+public:
+    std::string handler(long params) override;
+};
+
 class ListTaskStrategy : public MessageStrategy<std::string, std::vector<TaskVo>> {
 public:
     std::vector<TaskVo> handler(std::string params) override;
@@ -58,6 +63,11 @@ public:
     long handler(TimerVo params) override;
 };
 
+class MultipleAddTimerTaskStrategy : public MessageStrategy<TimerVo, long> {
+public:
+    long handler(TimerVo params) override;
+};
+
 class DeleteTimerTaskStrategy : public MessageStrategy<long, std::string> {
 public:
     std::string handler(long params) override;
@@ -68,12 +78,22 @@ public:
     std::string handler(std::vector<long> params) override;
 };
 
+class MultipleDeleteTimerTaskStrategy : public MessageStrategy<long, std::string> {
+public:
+    std::string handler(long params) override;
+};
+
 class ListTimerTaskStrategy : public MessageStrategy<std::string, std::vector<TimerVo>> {
 public:
     std::vector<TimerVo> handler(std::string params) override;
 };
 
 class ModifyTimerTaskStrategy : public MessageStrategy<TimerVo, std::string> {
+public:
+    std::string handler(TimerVo params) override;
+};
+
+class MultipleModifyTimerTaskStrategy : public MessageStrategy<TimerVo, std::string> {
 public:
     std::string handler(TimerVo params) override;
 };

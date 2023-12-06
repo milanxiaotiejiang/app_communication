@@ -512,6 +512,15 @@ std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
     return tasks;
 }
 
+bool TaskDataBase::existTask(long taskId) {
+    try {
+        taskStorage.get<TaskPo>(taskId);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
 TaskVo TaskDataBase::loadTaskFoId(long taskId) {
     auto taskPo = taskStorage.get<TaskPo>(taskId);
     auto zs = taskStorage.get_all<ZonePo>(where(c(&ZonePo::o_task_id) == taskPo.id));

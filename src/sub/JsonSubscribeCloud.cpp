@@ -112,6 +112,9 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case DELETE_MULTIPLE_TASK:
             messageStrategy = new DeleteMultipleTaskStrategy();
             break;
+        case MULTIPLE_DELETE_TASK:
+            messageStrategy = new MultipleDeleteTaskStrategy();
+            break;
         case LIST_TASK:
             messageStrategy = new ListTaskStrategy();
             break;
@@ -198,11 +201,17 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case DELETE_MULTIPLE_TIMER_TASK:
             messageStrategy = new DeleteMultipleTimerTaskStrategy();
             break;
+        case MULTIPLE_DELETE_TIMER_TASK:
+            messageStrategy = new MultipleDeleteTimerTaskStrategy();
+            break;
         case LIST_TIMER_TASK:
             messageStrategy = new ListTimerTaskStrategy();
             break;
         case MODIFY_TIMER_TASK:
             messageStrategy = new ModifyTimerTaskStrategy();
+            break;
+        case MULTIPLE_MODIFY_TIMER_TASK:
+            messageStrategy = new MultipleModifyTimerTaskStrategy();
             break;
         case MODIFY_TIMER_NAME:
             messageStrategy = new ModifyTimerNameStrategy();

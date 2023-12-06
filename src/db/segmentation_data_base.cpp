@@ -68,6 +68,15 @@ bool SegmentationDataBase::loadMainMap() {
     }
 }
 
+bool SegmentationDataBase::existMap(const std::string &map_id) {
+    try {
+        segmentationStorage.get<MapPo>(map_id);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
 MapPo &SegmentationDataBase::getDbMap() {
     return mapPo;
 }

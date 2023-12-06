@@ -96,6 +96,8 @@ public:
 
     std::vector<TaskVo> loadTaskFoMap(std::string mapId);
 
+    bool existTask(long taskId);
+
     TaskVo loadTaskFoId(long taskId);
 
     TaskVo loadPrincipalTask(const std::string &mapId);
@@ -105,6 +107,8 @@ public:
     std::vector<TimerVo> loadTimerFoMap(const std::string &mapId);
 
     TimerVo loadTimerFoId(long timerId);
+
+    TimerPo loadTimerPoFoId(long timerId);
 
 };
 

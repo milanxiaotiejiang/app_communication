@@ -60,6 +60,8 @@ public:
 
     bool loadMainMap();
 
+    bool existMap(const std::string &map_id);
+
     MapPo &getDbMap();
 
     MapPo installMap(std::string name);

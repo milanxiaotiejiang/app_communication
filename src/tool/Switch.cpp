@@ -264,6 +264,9 @@ int switch_ID(const std::string &str) {
     if (str == "delete_multiple_task") {
         return DELETE_MULTIPLE_TASK;
     }
+    if (str == "multiple_delete_task") {
+        return MULTIPLE_DELETE_TASK;
+    }
     if (str == "list_task") {
         return LIST_TASK;
     }
@@ -343,17 +346,26 @@ int switch_ID(const std::string &str) {
     if (str == "add_timer_task") {
         return ADD_TIMER_TASK;
     }
+    if (str == "multiple_add_timer_task") {
+        return MULTIPLE_ADD_TIMER_TASK;
+    }
     if (str == "delete_timer_task") {
         return DELETE_TIMER_TASK;
     }
     if (str == "delete_multiple_timer_task") {
         return DELETE_MULTIPLE_TIMER_TASK;
     }
+    if (str == "multiple_delete_timer_task") {
+        return MULTIPLE_DELETE_TIMER_TASK;
+    }
     if (str == "list_timer_task") {
         return LIST_TIMER_TASK;
     }
     if (str == "modify_timer_task") {
         return MODIFY_TIMER_TASK;
+    }
+    if (str == "multiple_modify_timer_task") {
+        return MULTIPLE_MODIFY_TIMER_TASK;
     }
     if (str == "modify_timer_name") {
         return MODIFY_TIMER_NAME;

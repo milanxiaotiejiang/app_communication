@@ -63,16 +63,16 @@ enum MESSAGE_ID {
     MANUAL_PUSH_START,
     MANUAL_PUSH_RESET,
 
-    ENTER_MANUAL_MODE,              //进入手动模式
-    QUIT_MANUAL_MODE,//退出手动模式
+    ENTER_MANUAL_MODE,                      //进入手动模式
+    QUIT_MANUAL_MODE,                       //退出手动模式
 
-    EMERGENCY_STOP,//急停
-    RELEASE_EMERGENCY_STOP,//解急停
+    EMERGENCY_STOP,                         //急停
+    RELEASE_EMERGENCY_STOP,                 //解急停
 
     UNRECOVERABLE_ERROR,
 
-    SHUTDOWN,//关机
-    REBOOT,//重启
+    SHUTDOWN,                               //关机
+    REBOOT,                                 //重启
 
     GET_ROBOT_PARAMS,
     SET_ROBOT_PARAMS,
@@ -105,8 +105,9 @@ enum MESSAGE_ID {
 
     ADD_TASK,
     MULTIPLE_ADD_TASK,
-    DELETE_TASK,
-    DELETE_MULTIPLE_TASK,
+    DELETE_TASK,                            //删除任务（当前地图、单个任务）
+    DELETE_MULTIPLE_TASK,                   //删除多个任务（当前地图）
+    MULTIPLE_DELETE_TASK,                   //删除任务（多地图、单个任务）
     LIST_TASK,                              //获取任务列表（当前地图）
     MULTIPLE_LIST_TASK,                     //获取任务列表（地图ID）
     MULTIPLE_WHOLE_LIST_TASK,               //获取任务列表（所有地图）
@@ -136,11 +137,14 @@ enum MESSAGE_ID {
     OPERATE_ADD_SUBREGION,
     OPERATE_DELETE_SUBREGION,
 
-    ADD_TIMER_TASK,
-    DELETE_TIMER_TASK,
-    DELETE_MULTIPLE_TIMER_TASK,
+    ADD_TIMER_TASK,                         //添加定时任务（当前地图）
+    MULTIPLE_ADD_TIMER_TASK,                //添加定时任务（所有地图）
+    DELETE_TIMER_TASK,                      //删除定时任务（当前地图、单个任务）
+    DELETE_MULTIPLE_TIMER_TASK,             //删除多个定时任务（当前地图）
+    MULTIPLE_DELETE_TIMER_TASK,             //删除定时任务（多地图，单个定时任务）
     LIST_TIMER_TASK,
     MODIFY_TIMER_TASK,
+    MULTIPLE_MODIFY_TIMER_TASK,
     MODIFY_TIMER_NAME,
 
     EXPLORATION_TASK,

@@ -35,7 +35,9 @@ long MultipleAddTaskStrategy::handler(TaskVo params) {
     checkMode(params.getMode());
     checkSource(params.getSource());
 
-    checkMapId(SegmentationDataBase::instance().loadAllMap(), params.getOMapId());
+    if (!SegmentationDataBase::instance().existMap(params.getOMapId())) {
+        throw std::invalid_argument("mapId " + params.getOMapId() + " is not exist");
+    }
 
     if (params.getMode() == static_cast<int>(TaskMode::Zoned)) {
         checkZoned(params.getZones());
@@ -58,6 +60,7 @@ std::string DeleteTaskStrategy::handler(long params) {
         }
     }
     TaskDataBase::instance().deleteTaskFoId(params);
+    ScheduleManagerSingleton::instance().trigger_task_update();
     return "";
 }
 
@@ -79,13 +82,37 @@ std::string DeleteMultipleTaskStrategy::handler(std::vector<long> params) {
     return "";
 }
 
+std::string MultipleDeleteTaskStrategy::handler(long params) {
+    const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params);
+    std::string oMapId = taskVo.getOMapId();
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+
+    if (oMapId == map.id) {
+        if (ParamManager::instance().getRainSnow()) {
+            //开启“雨雪天模式”后，已勾选的雨雪天任务不能取消勾选或删除任务。
+            if (taskVo.isRainSnow()) {
+                throw app::exception(make_error_code(
+                        error::the_rain_snow_mode_has_been_activated_and_this_task_not_be_deleted_or_cancelled));
+            }
+        }
+        TaskDataBase::instance().deleteTaskFoId(params);
+        ScheduleManagerSingleton::instance().trigger_task_update();
+    } else {
+        TaskDataBase::instance().deleteTaskFoId(params);
+    }
+    return "";
+}
+
 std::vector<TaskVo> ListTaskStrategy::handler(std::string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTaskFoMap(map.id);
 }
 
 std::vector<TaskVo> MultipleListTaskStrategy::handler(std::string params) {
-    checkMapId(SegmentationDataBase::instance().loadAllMap(), params);
+    if (!SegmentationDataBase::instance().existMap(params)) {
+        throw std::invalid_argument("mapId " + params + " is not exist");
+    }
+
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTaskFoMap(params);
 }
@@ -100,13 +127,17 @@ TaskVo QueryIdTaskStrategy::handler(long params) {
 
 void ClearCurrentListTaskStrategy::handler() {
     TaskDataBase::instance().deleteTaskFoMap(SegmentationDataBase::instance().getDbMap().id);
+    ScheduleManagerSingleton::instance().trigger_task_update();
 }
 
 long AddTimerTaskStrategy::handler(TimerVo params) {
-    const TaskVo &taskVo = TaskDataBase::instance().loadTaskFoId(params.getTaskId());
     checkName(params.getTaskName());
     checkName(params.getTimerName());
     checkRate(params.getRate());
+
+    if (!TaskDataBase::instance().existTask(params.getTaskId())) {
+        throw std::invalid_argument("taskId " + std::to_string(params.getTaskId()) + " is not exist");
+    }
 
     MapPo map = SegmentationDataBase::instance().getDbMap();
 
@@ -115,6 +146,27 @@ long AddTimerTaskStrategy::handler(TimerVo params) {
     long timer = TaskDataBase::instance().addTimer(map.id, params);
 
     ScheduleManagerSingleton::instance().trigger_task_update();
+    return timer;
+}
+
+long MultipleAddTimerTaskStrategy::handler(TimerVo params) {
+    checkName(params.getTaskName());
+    checkName(params.getTimerName());
+    checkRate(params.getRate());
+
+    if (!TaskDataBase::instance().existTask(params.getTaskId())) {
+        throw std::invalid_argument("taskId " + std::to_string(params.getTaskId()) + " is not exist");
+    }
+
+    auto task = TaskDataBase::instance().loadTaskFoId(params.getTaskId());
+
+    checkSameTimer(task.getOMapId(), params.getTimerRule(), -1);
+
+    long timer = TaskDataBase::instance().addTimer(task.getOMapId(), params);
+
+    if (task.getOMapId() == SegmentationDataBase::instance().getDbMap().id) {
+        ScheduleManagerSingleton::instance().trigger_task_update();
+    }
     return timer;
 }
 
@@ -132,20 +184,55 @@ std::string DeleteMultipleTimerTaskStrategy::handler(std::vector<long> params) {
     return "";
 }
 
+std::string MultipleDeleteTimerTaskStrategy::handler(long params) {
+    auto timerPo = TaskDataBase::instance().loadTimerPoFoId(params);
+    std::string oMapId = timerPo.o_map_id;
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    TaskDataBase::instance().deleteTimerForId(params);
+    if (oMapId == map.id) {
+        ScheduleManagerSingleton::instance().trigger_task_update();
+    }
+    return "";
+}
+
 std::vector<TimerVo> ListTimerTaskStrategy::handler(std::string params) {
     MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTimerFoMap(map.id);
 }
 
 std::string ModifyTimerTaskStrategy::handler(TimerVo params) {
-    MapPo map = SegmentationDataBase::instance().getDbMap();
-
     checkName(params.getTimerName());
     checkRate(params.getRate());
+
+    if (!TaskDataBase::instance().existTask(params.getTaskId())) {
+        throw std::invalid_argument("taskId " + std::to_string(params.getTaskId()) + " is not exist");
+    }
+
+    MapPo map = SegmentationDataBase::instance().getDbMap();
     checkSameTimer(map.id, params.getTimerRule(), params.getTimerId());
 
     TaskDataBase::instance().modifyTimer(map.id, params);
     ScheduleManagerSingleton::instance().trigger_task_update();
+    return "";
+}
+
+std::string MultipleModifyTimerTaskStrategy::handler(TimerVo params) {
+    checkName(params.getTimerName());
+    checkRate(params.getRate());
+
+    if (!TaskDataBase::instance().existTask(params.getTaskId())) {
+        throw std::invalid_argument("taskId " + std::to_string(params.getTaskId()) + " is not exist");
+    }
+
+    auto task = TaskDataBase::instance().loadTaskFoId(params.getTaskId());
+
+    checkSameTimer(task.getOMapId(), params.getTimerRule(), params.getTimerId());
+
+    TaskDataBase::instance().modifyTimer(task.getOMapId(), params);
+
+    if (task.getOMapId() == SegmentationDataBase::instance().getDbMap().id) {
+        ScheduleManagerSingleton::instance().trigger_task_update();
+    }
     return "";
 }
 
@@ -167,7 +254,9 @@ TaskVo PrincipalTaskStrategy::handler(std::string params) {
 }
 
 TaskVo MultiplePrincipalTaskStrategy::handler(std::string params) {
-    checkMapId(SegmentationDataBase::instance().loadAllMap(), params);
+    if (!SegmentationDataBase::instance().existMap(params)) {
+        throw std::invalid_argument("mapId " + params + " is not exist");
+    }
     const TaskVo &vo = TaskDataBase::instance().loadPrincipalTask(params);
     if (vo.getId() == -1) {
         throw app::exception(make_error_code(error::the_main_task_is_not_set));
