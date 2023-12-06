@@ -361,6 +361,12 @@ int switch_ID(const std::string &str) {
     if (str == "list_timer_task") {
         return LIST_TIMER_TASK;
     }
+    if (str == "multiple_list_timer_task") {
+        return MULTIPLE_LIST_TIMER_TASK;
+    }
+    if (str == "multiple_whole_list_timer_task") {
+        return MULTIPLE_WHOLE_LIST_TIMER_TASK;
+    }
     if (str == "modify_timer_task") {
         return MODIFY_TIMER_TASK;
     }

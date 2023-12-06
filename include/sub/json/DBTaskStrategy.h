@@ -88,6 +88,16 @@ public:
     std::vector<TimerVo> handler(std::string params) override;
 };
 
+class MultipleListTimerTaskStrategy : public MessageStrategy<std::string, std::vector<TimerVo>> {
+public:
+    std::vector<TimerVo> handler(std::string params) override;
+};
+
+class MultipleWholeListTimerTaskStrategy : public MessageStrategy<std::string, std::vector<TimerVo>> {
+public:
+    std::vector<TimerVo> handler(std::string params) override;
+};
+
 class ModifyTimerTaskStrategy : public MessageStrategy<TimerVo, std::string> {
 public:
     std::string handler(TimerVo params) override;

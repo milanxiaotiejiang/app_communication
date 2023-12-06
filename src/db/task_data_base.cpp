@@ -623,7 +623,53 @@ std::vector<TimerVo> TaskDataBase::loadTimerFoMap(const std::string &mapId) {
     return vos;
 }
 
+std::vector<TimerVo> TaskDataBase::loadTimerList() {
+    auto results = taskStorage.select(
+            distinct(columns(&TimerPo::id,
+                             &TimerPo::o_map_id,
+                             &TimerPo::o_task_id,
+                             &TaskPo::name,
+                             &TimerPo::rule,
+                             &TimerPo::name,
+                             &TimerPo::is_execute,
+                             &TimerPo::rate,
+                             &TimerPo::is_never,
+                             &TimerPo::is_skip,
+                             &TimerPo::end_year,
+                             &TimerPo::end_month,
+                             &TimerPo::end_day
+            )),
+            inner_join<TaskPo>(on(c(&TaskPo::id) == &TimerPo::o_task_id))
+    );
+
+    std::vector<TimerVo> vos;
+    for (const auto &row: results) {
+        TimerPo timerPo(
+                std::get<0>(row),//long id
+                std::get<1>(row),//string &oMapId
+                std::get<2>(row),//long oTaskId
+                std::get<3>(row),//string &oTaskName
+                std::get<4>(row),//string &rule
+                std::get<5>(row),//string &name
+                std::get<6>(row),//bool isExecute
+                std::get<7>(row),//int rate
+                std::get<8>(row),//bool isNever
+                std::get<9>(row),//bool isSkip
+                std::get<10>(row),//int endYear
+                std::get<11>(row),//int endMonth
+                std::get<12>(row)//int endDay
+        );
+        const TimerVo &vo = timerPo2Vo(timerPo);
+        vos.push_back(vo);
+    }
+    return vos;
+}
+
 TimerVo TaskDataBase::loadTimerFoId(long timerId) {
     auto timerPo = taskStorage.get<TimerPo>(timerId);
     return timerPo2Vo(timerPo);
+}
+
+TimerPo TaskDataBase::loadTimerPoFoId(long timerId) {
+    return taskStorage.get<TimerPo>(timerId);
 }

@@ -106,6 +106,8 @@ public:
 
     std::vector<TimerVo> loadTimerFoMap(const std::string &mapId);
 
+    std::vector<TimerVo> loadTimerList();
+
     TimerVo loadTimerFoId(long timerId);
 
     TimerPo loadTimerPoFoId(long timerId);

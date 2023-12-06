@@ -143,6 +143,8 @@ enum MESSAGE_ID {
     DELETE_MULTIPLE_TIMER_TASK,             //删除多个定时任务（当前地图）
     MULTIPLE_DELETE_TIMER_TASK,             //删除定时任务（多地图，单个定时任务）
     LIST_TIMER_TASK,
+    MULTIPLE_LIST_TIMER_TASK,               //地图ID的定时任务列表
+    MULTIPLE_WHOLE_LIST_TIMER_TASK,         //设备的定时任务列表
     MODIFY_TIMER_TASK,
     MULTIPLE_MODIFY_TIMER_TASK,
     MODIFY_TIMER_NAME,

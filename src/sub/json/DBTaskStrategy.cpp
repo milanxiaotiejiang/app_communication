@@ -200,6 +200,19 @@ std::vector<TimerVo> ListTimerTaskStrategy::handler(std::string params) {
     return TaskDataBase::instance().loadTimerFoMap(map.id);
 }
 
+std::vector<TimerVo> MultipleListTimerTaskStrategy::handler(std::string params) {
+    if (!SegmentationDataBase::instance().existMap(params)) {
+        throw std::invalid_argument("mapId " + params + " is not exist");
+    }
+
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    return TaskDataBase::instance().loadTimerFoMap(params);
+}
+
+std::vector<TimerVo> MultipleWholeListTimerTaskStrategy::handler(std::string params) {
+    return TaskDataBase::instance().loadTimerList();
+}
+
 std::string ModifyTimerTaskStrategy::handler(TimerVo params) {
     checkName(params.getTimerName());
     checkRate(params.getRate());
