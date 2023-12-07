@@ -61,9 +61,12 @@ std::string StartMapStrategy::handler(std::string params) {
     if (ParamManager::instance().getRainSnow()) {
         throw app::exception(make_error_code(error::please_exit_the_rain_and_snow_mode_first));
     }
-    if (!ZooInnerStatus::instance().getIsCharging()) {
-        throw app::exception(make_error_code(error::please_ensure_to_start_end_the_mapping_at_the_base_station));
+    if (!Environment::instance().no_station_mapping_mode) {
+        if (!ZooInnerStatus::instance().getIsCharging()) {
+            throw app::exception(make_error_code(error::please_ensure_to_start_end_the_mapping_at_the_base_station));
+        }
     }
+
     if (ManualManager::instance().taskRunning()) {
         throw app::exception(make_error_code(error::current_in_task));
     }
@@ -90,12 +93,14 @@ MapScore EndMapStrategy::handler(BuildMapParam params) {
         params.setReset(false);
     }
 
-    // 根据电量判断是否在基站，不在基站不处理开始/结束建图
-    if (!ZooInnerStatus::instance().getIsCharging()) {
-        if (params.isSave()) {
-            throw app::exception(make_error_code(error::the_map_needs_to_be_saved_at_the_base_station_location));
-        } else {
-            throw app::exception(make_error_code(error::quit_map_needs_to_be_saved_at_the_base_station_location));
+    if (!Environment::instance().no_station_mapping_mode) {
+        // 根据电量判断是否在基站，不在基站不处理开始/结束建图
+        if (!ZooInnerStatus::instance().getIsCharging()) {
+            if (params.isSave()) {
+                throw app::exception(make_error_code(error::the_map_needs_to_be_saved_at_the_base_station_location));
+            } else {
+                throw app::exception(make_error_code(error::quit_map_needs_to_be_saved_at_the_base_station_location));
+            }
         }
     }
     // 最终结果，包含建图地图评分

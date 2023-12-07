@@ -101,7 +101,7 @@ void MultipleMapSubscribe::multipleMapSwitchSubscribeCallback(const std_msgs::St
 
 void MultipleMapSubscribe::buildManagerSubscribeCallback(const std_msgs::Int32 &flag) {
     try {
-        if (flag.data == 1) {
+        if (flag.data == 10) {
             SegmentationDataBase::instance().removeBuild();
             long buildId = SegmentationDataBase::instance().saveBuild("B6");
             const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
@@ -112,6 +112,12 @@ void MultipleMapSubscribe::buildManagerSubscribeCallback(const std_msgs::Int32 &
             for (const auto &item: vector) {
                 std::cout << "build : " << item.first << " , map : " << item.second << std::endl;
             }
+        } else if (flag.data == 0) {
+            Environment::instance().no_station_mapping_mode = false;
+            ros::param::set("/no_station_mapping_mode", false);
+        } else if (flag.data == 1) {
+            Environment::instance().no_station_mapping_mode = true;
+            ros::param::set("/no_station_mapping_mode", true);
         }
     } catch (app::exception const &e) {
         LOG(ERROR) << e.what();

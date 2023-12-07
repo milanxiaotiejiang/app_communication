@@ -78,6 +78,8 @@ public:
     int inu_final_confirmation_interval{10};
     int inu_start_last_stop_server_interval{10};
 
+    bool no_station_mapping_mode{false};
+
     static bool will() {
         return (rand() % 10) > 5;
     }

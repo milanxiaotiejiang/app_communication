@@ -390,6 +390,11 @@ void initNodeParams(const ros::NodeHandle &nh) {
     int inu_start_last_stop_server_interval;
     nh.param<int>("inu_start_last_stop_server_interval", inu_start_last_stop_server_interval, 10);
     Environment::instance().inu_start_last_stop_server_interval = inu_start_last_stop_server_interval;
+
+    bool no_station_mapping_mode;
+    nh.param<bool>("no_station_mapping_mode", no_station_mapping_mode, false);
+    if (no_station_mapping_mode)
+        Environment::instance().no_station_mapping_mode = no_station_mapping_mode;
 }
 
 void release() {
