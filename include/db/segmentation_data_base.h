@@ -135,6 +135,25 @@ public:
     std::vector<GateInfo> loadGateInfo(const std::string &mapId);
 
     GateInfo queryGateForId(long id);
+
+    long saveBuild(const std::string& name);
+
+    void removeBuild(long id);
+
+    void removeBuild();
+
+    std::vector<BuildPo> loadAllBuild();
+
+    BuildPo queryBuildForId(long id);
+
+    void modifyBuild(long id, const std::string& name);
+
+    void attachBuildMap(long buildId, const std::string& mapId);
+
+    void detachBuildMap(long buildId, const std::string& mapId);
+
+    std::vector<std::pair<BuildPo, MapPo>> findBuildMaps(long buildId);
+
 };
 
 

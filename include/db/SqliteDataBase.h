@@ -157,6 +157,14 @@ public:
                                        make_column("right_gate_ID", &Gate::right_gate_ID),
                                        make_column("factory_ID", &Gate::factory_ID),
                                        make_column("version", &Gate::version, default_value(CURRENT_GATE_VERSION))
+                            ),
+                            make_table("build",
+                                       make_column("id", &BuildPo::id, primary_key()),
+                                       make_column("name", &BuildPo::name, default_value(""))
+                            ),
+                            make_table("build_map_mapping",
+                                       make_column("o_build_id", &BuildMapMapping::o_build_id),
+                                       make_column("o_map_id", &BuildMapMapping::o_map_id)
                             )
         );
 

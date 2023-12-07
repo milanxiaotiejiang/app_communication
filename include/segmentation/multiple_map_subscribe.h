@@ -13,13 +13,13 @@ class MultipleMapSubscribe {
 private:
     ros::Subscriber sub_map_create_;
     ros::Subscriber sub_map_switch_;
-    ros::Subscriber gate_manager_;
+    ros::Subscriber build_manager_;
 
     void multipleMapCreateSubscribeCallback(const std_msgs::Int32 &flag);
 
     void multipleMapSwitchSubscribeCallback(const std_msgs::String &flag);
 
-    void gateManagerSubscribeCallback(const std_msgs::String &flag);
+    void buildManagerSubscribeCallback(const std_msgs::Int32 &flag);
 
 public:
     MultipleMapSubscribe(ros::NodeHandle handle);

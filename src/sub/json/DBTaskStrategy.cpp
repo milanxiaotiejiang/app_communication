@@ -205,7 +205,6 @@ std::vector<TimerVo> MultipleListTimerTaskStrategy::handler(std::string params) 
         throw std::invalid_argument("mapId " + params + " is not exist");
     }
 
-    MapPo map = SegmentationDataBase::instance().getDbMap();
     return TaskDataBase::instance().loadTimerFoMap(params);
 }
 
@@ -310,7 +309,9 @@ TaskVo RainSnowTaskStrategy::handler(std::string params) {
 }
 
 TaskVo MultipleRainSnowTaskStrategy::handler(std::string params) {
-    checkMapId(SegmentationDataBase::instance().loadAllMap(), params);
+    if (!SegmentationDataBase::instance().existMap(params)) {
+        throw std::invalid_argument("mapId " + params + " is not exist");
+    }
     const TaskVo &vo = TaskDataBase::instance().loadRainSnowTask(params);
     if (vo.getId() == -1) {
         throw app::exception(make_error_code(error::the_rain_snow_task_is_not_set));

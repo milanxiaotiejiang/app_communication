@@ -132,6 +132,9 @@ void SegmentationDataBase::updateMapName(const std::string &map_id, const std::s
 
 void SegmentationDataBase::removeMap(const std::string &map_id) {
     segmentationStorage.remove<MapPo>(map_id);
+    segmentationStorage.remove_all<BuildMapMapping>(
+            where(c(&BuildMapMapping::o_map_id) == map_id)
+    );
 }
 
 RoomPo SegmentationDataBase::selectRoomById(long roomId) {
@@ -365,3 +368,92 @@ GateInfo SegmentationDataBase::queryGateForId(long id) {
     return gate2Info(originalGate);
 }
 
+long SegmentationDataBase::saveBuild(const std::string &name) {
+    BuildPo buildPo;
+    buildPo.name = std::move(name);
+    return segmentationStorage.insert(buildPo);
+}
+
+void SegmentationDataBase::removeBuild(long id) {
+    segmentationStorage.remove<BuildPo>(id);
+    segmentationStorage.remove_all<BuildMapMapping>(
+            where(c(&BuildMapMapping::o_build_id) == id)
+    );
+}
+
+void SegmentationDataBase::removeBuild() {
+    segmentationStorage.remove_all<BuildPo>();
+    segmentationStorage.remove_all<BuildMapMapping>();
+}
+
+std::vector<BuildPo> SegmentationDataBase::loadAllBuild() {
+    return segmentationStorage.get_all<BuildPo>();
+}
+
+BuildPo SegmentationDataBase::queryBuildForId(long id) {
+    return segmentationStorage.get<BuildPo>(id);
+}
+
+void SegmentationDataBase::modifyBuild(long id, const std::string &name) {
+    auto buildPo = segmentationStorage.get<BuildPo>(id);
+    buildPo.name = name;
+    segmentationStorage.update(buildPo);
+}
+
+void SegmentationDataBase::attachBuildMap(long buildId, const std::string &mapId) {
+    auto list = segmentationStorage.get_all<BuildMapMapping>(
+            where(
+                    c(&BuildMapMapping::o_build_id) == buildId
+                    and
+                    c(&BuildMapMapping::o_map_id) == mapId
+            )
+    );
+    if (list.empty()) {
+        BuildMapMapping mapping(buildId, mapId);
+        segmentationStorage.insert(mapping);
+    }
+}
+
+void SegmentationDataBase::detachBuildMap(long buildId, const std::string &mapId) {
+    segmentationStorage.remove_all<BuildMapMapping>(
+            where(
+                    c(&BuildMapMapping::o_build_id) == buildId
+                    and
+                    c(&BuildMapMapping::o_map_id) == mapId
+            )
+    );
+}
+
+std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMaps(long buildId) {
+    auto results = segmentationStorage.select(
+            distinct(columns(
+                    &MapPo::id,
+                    &MapPo::name,
+                    &MapPo::path,
+                    &MapPo::main,
+                    &BuildPo::id,
+                    &BuildPo::name
+            )),
+            inner_join<MapPo>(on(c(&MapPo::id) == &BuildMapMapping::o_map_id)),
+            inner_join<BuildPo>(on(c(&BuildPo::id) == &BuildMapMapping::o_build_id)),
+            where(c(&BuildMapMapping::o_build_id) == buildId)
+    );
+
+    std::vector<std::pair<BuildPo, MapPo>> vos;
+    for (const auto &row: results) {
+        BuildPo b(
+                std::get<4>(row),//id
+                std::get<5>(row)//name
+        );
+        MapPo m(
+                std::get<0>(row),//id
+                std::get<1>(row),//name
+                std::get<2>(row),//path
+                std::get<3>(row)//main
+        );
+        auto pair = std::make_pair(b, m);
+        vos.push_back(pair);
+    }
+
+    return vos;
+}

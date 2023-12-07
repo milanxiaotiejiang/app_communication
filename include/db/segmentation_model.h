@@ -20,6 +20,8 @@ public:
     MapPo(std::string id, std::string name, std::string path);
 
     MapPo(const std::string &id, const std::string &name, const std::string &path, bool main);
+
+    friend std::ostream &operator<<(std::ostream &os, const MapPo &po);
 };
 
 class RoomPo {
@@ -197,6 +199,28 @@ public:
          double rightOrientationW);
 
     friend std::ostream &operator<<(std::ostream &os, const Gate &gate);
+};
+
+class BuildPo {
+public:
+    long id{};
+    std::string name;
+
+    BuildPo();
+
+    BuildPo(long id, const std::string &name);
+
+    friend std::ostream &operator<<(std::ostream &os, const BuildPo &build);
+};
+
+class BuildMapMapping {
+public:
+    long o_build_id{};
+    std::string o_map_id;
+
+    BuildMapMapping();
+
+    BuildMapMapping(long oBuildId, const std::string &oMapId);
 };
 
 

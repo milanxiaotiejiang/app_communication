@@ -29,6 +29,11 @@ MapPo::MapPo(const std::string &id, const std::string &name, const std::string &
                                                                                                    path(path),
                                                                                                    main(main) {}
 
+std::ostream &operator<<(std::ostream &os, const MapPo &po) {
+    os << "id: " << po.id << " name: " << po.name << " path: " << po.path << " main: " << po.main;
+    return os;
+}
+
 MapPo::MapPo() = default;
 
 PlanPo::PlanPo() = default;
@@ -118,3 +123,15 @@ std::ostream &operator<<(std::ostream &os, const Gate &gate) {
     return os;
 }
 
+BuildPo::BuildPo() {}
+
+BuildPo::BuildPo(long id, const std::string &name) : id(id), name(name) {}
+
+std::ostream &operator<<(std::ostream &os, const BuildPo &build) {
+    os << "id: " << build.id << " name: " << build.name;
+    return os;
+}
+
+BuildMapMapping::BuildMapMapping() {}
+
+BuildMapMapping::BuildMapMapping(long oBuildId, const std::string &oMapId) : o_build_id(oBuildId), o_map_id(oMapId) {}

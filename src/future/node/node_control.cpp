@@ -72,6 +72,7 @@ void NodeControl::initialize(ros::NodeHandle handle) {
                NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::FAIL) {
 
         if (!Environment::instance().isRealEnvironment) {
+            setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
             return;
         }
         if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::UNKNOWN)
