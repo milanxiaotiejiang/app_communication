@@ -345,12 +345,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case LIST_TIMER_TASK:
             messageStrategy = new ListTimerTaskStrategy();
             break;
-        case MULTIPLE_LIST_TIMER_TASK:
-            messageStrategy = new MultipleListTimerTaskStrategy();
-            break;
-        case MULTIPLE_WHOLE_LIST_TIMER_TASK:
-            messageStrategy = new MultipleWholeListTimerTaskStrategy();
-            break;
         case MODIFY_TIMER_TASK:
             messageStrategy = new ModifyTimerTaskStrategy();
             break;

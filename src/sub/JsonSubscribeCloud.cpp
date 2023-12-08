@@ -207,6 +207,12 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case LIST_TIMER_TASK:
             messageStrategy = new ListTimerTaskStrategy();
             break;
+        case MULTIPLE_LIST_TIMER_TASK:
+            messageStrategy = new MultipleListTimerTaskStrategy();
+            break;
+        case MULTIPLE_WHOLE_LIST_TIMER_TASK:
+            messageStrategy = new MultipleWholeListTimerTaskStrategy();
+            break;
         case MODIFY_TIMER_TASK:
             messageStrategy = new ModifyTimerTaskStrategy();
             break;
