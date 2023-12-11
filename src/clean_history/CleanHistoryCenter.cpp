@@ -64,7 +64,8 @@ namespace clean_history_db {
                                        task.getTimeMode(), launch_time,
                                        true,
                                        oldTaskId,
-                                       task.getTaskId());
+                                       task.getTaskId(),
+                                       task.getMapId());
         CleanHistoryDataBase::instance().addCleanHistory(new_clean_history);
 
         return true;

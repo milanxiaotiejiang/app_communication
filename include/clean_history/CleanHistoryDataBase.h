@@ -68,7 +68,8 @@ namespace clean_history_db {
                                            make_column("error_msg", &CleanHistory::error_msg_),
                                            make_column("renew", &CleanHistory::renew, default_value(true)),
                                            make_column("old_task_id", &CleanHistory::old_task_id, default_value("")),
-                                           make_column("new_task_id", &CleanHistory::new_task_id, default_value(0))
+                                           make_column("new_task_id", &CleanHistory::new_task_id, default_value(0)),
+                                           make_column("o_map_id", &CleanHistory::o_map_id, default_value(""))
                                 )
             );
         }
@@ -100,7 +101,7 @@ namespace clean_history_db {
             clean_history_storage_.sync_schema();
         }
 
-        void removeCleanHistory(){
+        void removeCleanHistory() {
             clean_history_storage_.remove_all<CleanHistory>();
         }
 
