@@ -64,6 +64,7 @@
 #include "task/TaskCenter.h"
 #include "future/timer_call.h"
 #include "task/manager/NodeWorkModeManager.h"
+#include "manager/elevator_control.h"
 #include "clean_history/CleanHistoryCenter.h"
 #include "sys/wait.h"
 #include "leave/map_control.h"

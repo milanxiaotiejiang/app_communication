@@ -24,6 +24,7 @@
 #define DEBUG_GATE true
 #define DEBUG_CLEAN_MECHANISM false
 #define DEBUG_MULTIPLE_MAP true
+#define DEBUG_ELEVATOR true
 
 
 #define NODE_CONTROLLER_WORK_MODE "/node_controller/work_mode"

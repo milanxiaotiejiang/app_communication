@@ -93,6 +93,8 @@ int main(int argc, char **argv) {
 
     ManualManager::instance().restore();
 
+    ElevatorControlManager::instance().initialize(handle);
+
     ros::MultiThreadedSpinner spinner;
     spinner.spin();
 
