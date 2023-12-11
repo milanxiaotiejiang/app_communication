@@ -424,7 +424,7 @@ void SegmentationDataBase::detachBuildMap(long buildId, const std::string &mapId
     );
 }
 
-std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMaps(long buildId) {
+std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForBuild(long buildId) {
     auto results = segmentationStorage.select(
             distinct(columns(
                     &MapPo::id,
@@ -437,6 +437,40 @@ std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMaps(long 
             inner_join<MapPo>(on(c(&MapPo::id) == &BuildMapMapping::o_map_id)),
             inner_join<BuildPo>(on(c(&BuildPo::id) == &BuildMapMapping::o_build_id)),
             where(c(&BuildMapMapping::o_build_id) == buildId)
+    );
+
+    std::vector<std::pair<BuildPo, MapPo>> vos;
+    for (const auto &row: results) {
+        BuildPo b(
+                std::get<4>(row),//id
+                std::get<5>(row)//name
+        );
+        MapPo m(
+                std::get<0>(row),//id
+                std::get<1>(row),//name
+                std::get<2>(row),//path
+                std::get<3>(row)//main
+        );
+        auto pair = std::make_pair(b, m);
+        vos.push_back(pair);
+    }
+
+    return vos;
+}
+
+std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForMap(const std::string &mapId) {
+    auto results = segmentationStorage.select(
+            distinct(columns(
+                    &MapPo::id,
+                    &MapPo::name,
+                    &MapPo::path,
+                    &MapPo::main,
+                    &BuildPo::id,
+                    &BuildPo::name
+            )),
+            inner_join<MapPo>(on(c(&MapPo::id) == &BuildMapMapping::o_map_id)),
+            inner_join<BuildPo>(on(c(&BuildPo::id) == &BuildMapMapping::o_build_id)),
+            where(c(&BuildMapMapping::o_map_id) == mapId)
     );
 
     std::vector<std::pair<BuildPo, MapPo>> vos;

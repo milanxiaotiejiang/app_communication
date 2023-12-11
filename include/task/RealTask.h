@@ -17,6 +17,8 @@ private:
     std::string id;
 
     std::string map_id;//当前任务所在的地图
+    long build_id;//当前任务所在的楼宇
+    bool async_map{false};//非当前地图
     long task_id;//关联的新任务id
     std::string name;//任务名称
     int rate;//任务次数
@@ -64,6 +66,22 @@ public:
 
     void setMapId(const std::string &mapId) {
         map_id = mapId;
+    }
+
+    long getBuildId() const {
+        return build_id;
+    }
+
+    void setBuildId(long buildId) {
+        build_id = buildId;
+    }
+
+    bool isAsyncMap() const {
+        return async_map;
+    }
+
+    void setAsyncMap(bool asyncMap) {
+        async_map = asyncMap;
     }
 
     long getTaskId() const {

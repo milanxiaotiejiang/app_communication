@@ -262,5 +262,33 @@ std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int
     realTask.setRate(task.getRate() * on_rate);
     realTask.setOnSource(SqliteDataBase::SourceToString(on_source));
     TaskExploration::task2RealTask(task, realTask);
+
+
+    const std::string &oMapId = task.getOMapId();
+    if (oMapId != SegmentationDataBase::instance().getDbMap().id) {
+        throw app::exception(make_error_code(error::cross_floor_tasks_are_currently_not_supported));
+
+//        //多地图任务，进行任务类型判断
+//        TaskMode mode = SqliteDataBase::TaskModeFromInt(realTask.getMode());
+//        if (mode != TaskMode::Cover) {
+//            throw app::exception(make_error_code(error::cross_floor_tasks_currently_only_support_full_coverage_tasks));
+//        }
+//
+//        //多地图任务，进行楼宇判断
+//        auto buildMaps = SegmentationDataBase::instance().findBuildMapsForMap(oMapId);
+//        if (buildMaps.empty()) {
+//            throw app::exception(make_error_code(error::no_multi_map_buildings_have_been_set_up));
+//        } else if (buildMaps.size() == 1) {
+//
+//            std::pair<BuildPo, MapPo> buildMap = buildMaps[0];
+//            BuildPo &buildPo = buildMap.first;
+//
+//            realTask.setAsyncMap(true);
+//            realTask.setBuildId(buildPo.id);
+//        } else {
+//            throw app::exception(make_error_code(error::multiple_map_building_data_error));
+//        }
+    }
+
     return preTask(realTask);
 }

@@ -108,7 +108,7 @@ void MultipleMapSubscribe::buildManagerSubscribeCallback(const std_msgs::Int32 &
             for (const auto &item: allMap) {
                 SegmentationDataBase::instance().attachBuildMap(buildId, item.id);
             }
-            auto vector = SegmentationDataBase::instance().findBuildMaps(buildId);
+            auto vector = SegmentationDataBase::instance().findBuildMapsForBuild(buildId);
             for (const auto &item: vector) {
                 std::cout << "build : " << item.first << " , map : " << item.second << std::endl;
             }

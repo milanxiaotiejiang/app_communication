@@ -157,7 +157,11 @@ namespace error {
         the_base_station_is_no_longer_able_to_switch_maps,
         cannot_switch_maps_in_non_sleep_mode,
         cannot_delete_to_the_current_map,
-        camera_starting_or_failed_to_start
+        camera_starting_or_failed_to_start,
+        multiple_map_building_data_error,
+        no_multi_map_buildings_have_been_set_up,
+        cross_floor_tasks_currently_only_support_full_coverage_tasks,
+        cross_floor_tasks_are_currently_not_supported
     };// enum value
 
     class category : public std::error_category {
@@ -452,6 +456,14 @@ namespace error {
                     return "不能删除当前地图";
                 case error::camera_starting_or_failed_to_start:
                     return "银牛相机正在启动或启动失败";
+                case error::multiple_map_building_data_error:
+                    return "多地图楼宇数据出错";
+                case error::no_multi_map_buildings_have_been_set_up:
+                    return "未设置多地图楼宇";
+                case error::cross_floor_tasks_currently_only_support_full_coverage_tasks:
+                    return "跨楼层任务目前只支持全覆盖任务";
+                case error::cross_floor_tasks_are_currently_not_supported:
+                    return "暂不支持跨楼层任务";
                 default:
                     return "Unknown";
             }

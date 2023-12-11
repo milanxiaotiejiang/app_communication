@@ -152,7 +152,9 @@ public:
 
     void detachBuildMap(long buildId, const std::string& mapId);
 
-    std::vector<std::pair<BuildPo, MapPo>> findBuildMaps(long buildId);
+    std::vector<std::pair<BuildPo, MapPo>> findBuildMapsForBuild(long buildId);
+
+    std::vector<std::pair<BuildPo, MapPo>> findBuildMapsForMap(const std::string& mapId);
 
 };
 
