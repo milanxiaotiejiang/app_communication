@@ -22,17 +22,26 @@ std::ostream &operator<<(std::ostream &os, const RoomPo &room) {
 
 RoomPo::RoomPo() = default;
 
-MapPo::MapPo(std::string id, std::string name, std::string path) : id(std::move(id)), name(std::move(name)),
-                                                                   path(std::move(path)) {}
-
-MapPo::MapPo(const std::string &id, const std::string &name, const std::string &path, bool main) : id(id), name(name),
-                                                                                                   path(path),
-                                                                                                   main(main) {}
-
 std::ostream &operator<<(std::ostream &os, const MapPo &po) {
     os << "id: " << po.id << " name: " << po.name << " path: " << po.path << " main: " << po.main;
     return os;
 }
+
+MapPo::MapPo(const std::string &id, const std::string &name, const std::string &path, bool main, bool elevator,
+             double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ, double elevatorOrientationX,
+             double elevatorOrientationY, double elevatorOrientationZ, double elevatorOrientationW)
+        : id(id),
+          name(name),
+          path(path),
+          main(main),
+          elevator(elevator),
+          elevator_position_x(elevatorPositionX),
+          elevator_position_y(elevatorPositionY),
+          elevator_position_z(elevatorPositionZ),
+          elevator_orientation_x(elevatorOrientationX),
+          elevator_orientation_y(elevatorOrientationY),
+          elevator_orientation_z(elevatorOrientationZ),
+          elevator_orientation_w(elevatorOrientationW) {}
 
 MapPo::MapPo() = default;
 
@@ -43,38 +52,27 @@ PlanPo::PlanPo(const std::string &mapId, double robotRadius, int mapCorrectionCl
                int rangeNearBaseStation, double roomAreaFactorLowerLimit, double roomAreaFactorUpperLimit,
                int neighborhoodIndex, int maxIterations, double minCriticalPointDistanceFactor,
                double maxAreaForMerging, int distanceFromObstacles, int numberExtension, int multipleContourSpacing,
-               int randomNumberGenerationRatio, int boundaryMinArea, int version) : map_id(mapId),
-                                                                                    robot_radius(robotRadius),
-                                                                                    map_correction_closing_neighborhood_size(
-                                                                                            mapCorrectionClosingNeighborhoodSize),
-                                                                                    grid_obstacle_offset(
-                                                                                            gridObstacleOffset),
-                                                                                    path_eps(pathEps),
-                                                                                    min_cell_area(minCellArea),
-                                                                                    max_deviation_from_track(
-                                                                                            maxDeviationFromTrack),
-                                                                                    range_near_base_station(
-                                                                                            rangeNearBaseStation),
-                                                                                    room_area_factor_lower_limit(
-                                                                                            roomAreaFactorLowerLimit),
-                                                                                    room_area_factor_upper_limit(
-                                                                                            roomAreaFactorUpperLimit),
-                                                                                    neighborhood_index(
-                                                                                            neighborhoodIndex),
-                                                                                    max_iterations(maxIterations),
-                                                                                    min_critical_point_distance_factor(
-                                                                                            minCriticalPointDistanceFactor),
-                                                                                    max_area_for_merging(
-                                                                                            maxAreaForMerging),
-                                                                                    distance_from_obstacles(
-                                                                                            distanceFromObstacles),
-                                                                                    number_extension(numberExtension),
-                                                                                    multiple_contour_spacing(
-                                                                                            multipleContourSpacing),
-                                                                                    random_number_generation_ratio(
-                                                                                            randomNumberGenerationRatio),
-                                                                                    boundary_min_area(boundaryMinArea),
-                                                                                    version(version) {}
+               int randomNumberGenerationRatio, int boundaryMinArea, int version)
+        : map_id(mapId),
+          robot_radius(robotRadius),
+          map_correction_closing_neighborhood_size(mapCorrectionClosingNeighborhoodSize),
+          grid_obstacle_offset(gridObstacleOffset),
+          path_eps(pathEps),
+          min_cell_area(minCellArea),
+          max_deviation_from_track(maxDeviationFromTrack),
+          range_near_base_station(rangeNearBaseStation),
+          room_area_factor_lower_limit(roomAreaFactorLowerLimit),
+          room_area_factor_upper_limit(roomAreaFactorUpperLimit),
+          neighborhood_index(neighborhoodIndex),
+          max_iterations(maxIterations),
+          min_critical_point_distance_factor(minCriticalPointDistanceFactor),
+          max_area_for_merging(maxAreaForMerging),
+          distance_from_obstacles(distanceFromObstacles),
+          number_extension(numberExtension),
+          multiple_contour_spacing(multipleContourSpacing),
+          random_number_generation_ratio(randomNumberGenerationRatio),
+          boundary_min_area(boundaryMinArea),
+          version(version) {}
 
 Gate::Gate() {}
 

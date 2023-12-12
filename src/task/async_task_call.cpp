@@ -207,6 +207,16 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
 
     SwitchModePublish::instance().cancel();
 
+    // todo 电梯控制
+    //  拆分task为当前地图的task和非当前地图的task
+    //    当前地图走到电梯点位，并记为结束
+    //    走提控逻辑（此处异步等待，且暂时拒绝所有数据）
+    //    执行下一个任务并完成
+    //    走提控逻辑（回到电梯点位）
+    //    返回基站
+    // todo 前置条件
+    //  仿真多地图、关联楼宇、电梯点位。
+
     if (isWaitTask(currentFlow())) {
 
         handleExecuteTask(realTask);

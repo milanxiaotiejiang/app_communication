@@ -74,6 +74,12 @@ public:
 
     void updateMapName(const std::string &map_id, const std::string &map_name);
 
+    MapPo updateMapElevator(const std::string &map_id);
+
+    MapPo removeMapElevator(const std::string &map_id);
+
+    MapPo selectMapById(const std::string &map_id);
+
     void removeMap(const std::string &map_id);
 
     RoomPo selectRoomById(long roomId);
@@ -136,7 +142,7 @@ public:
 
     GateInfo queryGateForId(long id);
 
-    long saveBuild(const std::string& name);
+    long saveBuild(const std::string &name);
 
     void removeBuild(long id);
 
@@ -146,15 +152,15 @@ public:
 
     BuildPo queryBuildForId(long id);
 
-    void modifyBuild(long id, const std::string& name);
+    void modifyBuild(long id, const std::string &name);
 
-    void attachBuildMap(long buildId, const std::string& mapId);
+    void attachBuildMap(long buildId, const std::string &mapId);
 
-    void detachBuildMap(long buildId, const std::string& mapId);
+    void detachBuildMap(long buildId, const std::string &mapId);
 
     std::vector<std::pair<BuildPo, MapPo>> findBuildMapsForBuild(long buildId);
 
-    std::vector<std::pair<BuildPo, MapPo>> findBuildMapsForMap(const std::string& mapId);
+    std::vector<std::pair<BuildPo, MapPo>> findBuildMapsForMap(const std::string &mapId);
 
 };
 

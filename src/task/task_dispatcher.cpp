@@ -17,6 +17,10 @@ void TaskDispatcher::dispatcherTask(RealTask &realTask) {
         realTask.setVerifyMode(true);
     }
 
+    if (realTask.isAsyncMap()) {
+        realTask.setVerifyMode(true);
+    }
+
     auto coverage = TaskExploration::explorationPlanningPath(realTask);
 
     if (coverage.getPoseList().empty()) {

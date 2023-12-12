@@ -20,6 +20,10 @@ void MapAttributeSingleton::setRobotPositionPose(geometry_msgs::Pose2D positionP
     this->starting_position_pose = positionPose;
 }
 
+void MapAttributeSingleton::setCurrentPoseStamped(const geometry_msgs::Pose &currentPose) {
+    current_pose = currentPose;
+}
+
 cv::Point MapAttributeSingleton::getRobotPositionPoint(const cv::Mat &room_map) const {
     auto cols = room_map.cols;//width
     auto rows = room_map.rows;//height

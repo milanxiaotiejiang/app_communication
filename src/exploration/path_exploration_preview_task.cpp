@@ -151,13 +151,22 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             coverage.setPointList(obtainSubregion.getPointList());
             coverage.setComplexList(obtainSubregion.getComplexList());
         } else {
-//            explorationCenter.generatePlanningPathFull(baseMap, BOUSTROPHEDON_EXPLORER_MODE,
-//                                                       exploration_path, point_path);
-            preLoaded = true;
-            auto obtainCoverage = explorationCenter.obtainCoveragePath();
-            coverage.setPoseList(obtainCoverage.getPoseList());
-            coverage.setPointList(obtainCoverage.getPointList());
-            coverage.setComplexList(obtainCoverage.getComplexList());
+            if (task.isAsyncMap()) {
+                preLoaded = true;
+                const cv::Mat &asyncMap = SegmentationCenter::instance().generateMat(task.getMapId());
+                explorationCenter.generatePlanningPathFull(asyncMap,
+                                                           task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
+                                                                               : Environment::instance().explorer_mode,
+                                                           true,
+                                                           exploration_path, point_path, complex_path);
+            } else {
+                preLoaded = true;
+                auto obtainCoverage = explorationCenter.obtainCoveragePath();
+                coverage.setPoseList(obtainCoverage.getPoseList());
+                coverage.setPointList(obtainCoverage.getPointList());
+                coverage.setComplexList(obtainCoverage.getComplexList());
+            }
+
         }
 
     } else if (mode == TaskMode::Subregion) {

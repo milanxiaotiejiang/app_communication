@@ -101,7 +101,24 @@ void MultipleMapSubscribe::multipleMapSwitchSubscribeCallback(const std_msgs::St
 
 void MultipleMapSubscribe::buildManagerSubscribeCallback(const std_msgs::Int32 &flag) {
     try {
-        if (flag.data == 10) {
+        if (flag.data == 0) {
+            LOG(ERROR) << "input data must > 0 "
+                          "\n 1 Original base station mapping."
+                          "\n 2 No base station mapping."
+                          "\n 10 Add elevator points to the current map."
+                          "\n 11 Remove elevator points to the current map."
+                          "\n 100 Build a building named B6 and associate it with all maps.";
+        } else if (flag.data == 1) {
+            Environment::instance().no_station_mapping_mode = false;
+            ros::param::set("/no_station_mapping_mode", false);
+        } else if (flag.data == 2) {
+            Environment::instance().no_station_mapping_mode = true;
+            ros::param::set("/no_station_mapping_mode", true);
+        } else if (flag.data == 10) {
+            SegmentationDataBase::instance().updateMapElevator(SegmentationDataBase::instance().getDbMap().id);
+        } else if (flag.data == 11) {
+            SegmentationDataBase::instance().removeMapElevator(SegmentationDataBase::instance().getDbMap().id);
+        } else if (flag.data == 100) {
             SegmentationDataBase::instance().removeBuild();
             long buildId = SegmentationDataBase::instance().saveBuild("B6");
             const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
@@ -112,12 +129,6 @@ void MultipleMapSubscribe::buildManagerSubscribeCallback(const std_msgs::Int32 &
             for (const auto &item: vector) {
                 std::cout << "build : " << item.first << " , map : " << item.second << std::endl;
             }
-        } else if (flag.data == 0) {
-            Environment::instance().no_station_mapping_mode = false;
-            ros::param::set("/no_station_mapping_mode", false);
-        } else if (flag.data == 1) {
-            Environment::instance().no_station_mapping_mode = true;
-            ros::param::set("/no_station_mapping_mode", true);
         }
     } catch (app::exception const &e) {
         LOG(ERROR) << e.what();

@@ -14,12 +14,20 @@ public:
     std::string name;
     std::string path;
     bool main;
+    bool elevator;
+    double elevator_position_x{};
+    double elevator_position_y{};
+    double elevator_position_z{};
+    double elevator_orientation_x{};
+    double elevator_orientation_y{};
+    double elevator_orientation_z{};
+    double elevator_orientation_w{};
 
     MapPo();
 
-    MapPo(std::string id, std::string name, std::string path);
-
-    MapPo(const std::string &id, const std::string &name, const std::string &path, bool main);
+    MapPo(const std::string &id, const std::string &name, const std::string &path, bool main, bool elevator,
+          double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ, double elevatorOrientationX,
+          double elevatorOrientationY, double elevatorOrientationZ, double elevatorOrientationW);
 
     friend std::ostream &operator<<(std::ostream &os, const MapPo &po);
 };

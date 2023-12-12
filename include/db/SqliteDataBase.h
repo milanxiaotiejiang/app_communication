@@ -97,7 +97,15 @@ public:
                                        make_column("id", &MapPo::id, primary_key()),
                                        make_column("name", &MapPo::name),
                                        make_column("path", &MapPo::path),
-                                       make_column("main", &MapPo::main, default_value(false))
+                                       make_column("main", &MapPo::main, default_value(false)),
+                                       make_column("elevator", &MapPo::elevator, default_value(false)),
+                                       make_column("elevator_position_x", &MapPo::elevator_position_x, default_value(0)),
+                                       make_column("elevator_position_y", &MapPo::elevator_position_y, default_value(0)),
+                                       make_column("elevator_position_z", &MapPo::elevator_position_z, default_value(0)),
+                                       make_column("elevator_orientation_x", &MapPo::elevator_orientation_x, default_value(0)),
+                                       make_column("elevator_orientation_y", &MapPo::elevator_orientation_y, default_value(0)),
+                                       make_column("elevator_orientation_z", &MapPo::elevator_orientation_z, default_value(0)),
+                                       make_column("elevator_orientation_w", &MapPo::elevator_orientation_w, default_value(0))
                             ),
                             make_table("segmentation",
                                        make_column("id", &RoomPo::id, autoincrement(), primary_key()),

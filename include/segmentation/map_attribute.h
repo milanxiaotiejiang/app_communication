@@ -65,6 +65,7 @@ private:
     MapAttribute currentMapAttribute;
 
     geometry_msgs::Pose2D starting_position_pose;
+    geometry_msgs::Pose current_pose;
 
     std::vector<std::vector<Point>> virtualWallList;
     std::vector<std::vector<Point>> penaltyZoneList;
@@ -101,7 +102,13 @@ public:
         return starting_position_pose;
     }
 
+    const geometry_msgs::Pose &getRobotCompletePosition() const {
+        return current_pose;
+    }
+
     void setRobotPositionPose(geometry_msgs::Pose2D positionPose);
+
+    void setCurrentPoseStamped(const geometry_msgs::Pose &currentPose);
 
     cv::Point getRobotPositionPoint(const cv::Mat &room_map) const;
 
