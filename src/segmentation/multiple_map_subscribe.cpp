@@ -26,7 +26,7 @@ MultipleMapSubscribe::MultipleMapSubscribe(ros::NodeHandle handle) {
 }
 
 void MultipleMapSubscribe::multipleMapCreateSubscribeCallback(const std_msgs::Int32 &flag) {
-    try {
+    try {//multiple_map_create
         int data = flag.data;
         MapScore mapScore;
         if (data == 0) {
@@ -77,7 +77,7 @@ void MultipleMapSubscribe::multipleMapCreateSubscribeCallback(const std_msgs::In
 }
 
 void MultipleMapSubscribe::multipleMapSwitchSubscribeCallback(const std_msgs::String &flag) {
-    try {
+    try {//multiple_map_switch
         std::string data = flag.data;
         if (data.empty()) {
             GetMultiMapsStrategy getMultiMapsStrategy;
@@ -100,25 +100,34 @@ void MultipleMapSubscribe::multipleMapSwitchSubscribeCallback(const std_msgs::St
 }
 
 void MultipleMapSubscribe::buildManagerSubscribeCallback(const std_msgs::Int32 &flag) {
-    try {
+    try {//build_manager
         if (flag.data == 0) {
-            LOG(ERROR) << "input data must > 0 "
-                          "\n 1 Original base station mapping."
-                          "\n 2 No base station mapping."
-                          "\n 10 Add elevator points to the current map."
-                          "\n 11 Remove elevator points to the current map."
-                          "\n 100 Build a building named B6 and associate it with all maps.";
-        } else if (flag.data == 1) {
+            LOG(ERROR) << "input data "
+                          "\n -2、 -1、【1、 18】 Set the floor to data for the current map"
+                          "\n 100 Original base station mapping."
+                          "\n 101 No base station mapping."
+                          "\n 10000 Add elevator points to the current map."
+                          "\n 10001 Remove elevator points to the current map."
+                          "\n 10010 Set the current map to have no base stations."
+                          "\n 10011 Set the current map to have base stations."
+                          "\n 100000 Build a building named B6 and associate it with all maps.";
+        } else if (flag.data == -2 || flag.data == -1 || flag.data >= 1 && flag.data <= 18) {
+            SegmentationDataBase::instance().updateFloor(SegmentationDataBase::instance().getDbMap().id, flag.data);
+        } else if (flag.data == 100) {
             Environment::instance().no_station_mapping_mode = false;
             ros::param::set("/no_station_mapping_mode", false);
-        } else if (flag.data == 2) {
+        } else if (flag.data == 101) {
             Environment::instance().no_station_mapping_mode = true;
             ros::param::set("/no_station_mapping_mode", true);
-        } else if (flag.data == 10) {
+        } else if (flag.data == 10000) {
             SegmentationDataBase::instance().updateMapElevator(SegmentationDataBase::instance().getDbMap().id);
-        } else if (flag.data == 11) {
+        } else if (flag.data == 10001) {
             SegmentationDataBase::instance().removeMapElevator(SegmentationDataBase::instance().getDbMap().id);
-        } else if (flag.data == 100) {
+        } else if (flag.data == 10010) {
+            SegmentationDataBase::instance().changeBaseStation(SegmentationDataBase::instance().getDbMap().id, false);
+        } else if (flag.data == 10011) {
+            SegmentationDataBase::instance().changeBaseStation(SegmentationDataBase::instance().getDbMap().id, true);
+        } else if (flag.data == 100000) {
             SegmentationDataBase::instance().removeBuild();
             long buildId = SegmentationDataBase::instance().saveBuild("B6");
             const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();

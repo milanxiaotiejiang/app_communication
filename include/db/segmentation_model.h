@@ -23,11 +23,15 @@ public:
     double elevator_orientation_z{};
     double elevator_orientation_w{};
 
+    int floor;
+    bool base_station;
+
     MapPo();
 
     MapPo(const std::string &id, const std::string &name, const std::string &path, bool main, bool elevator,
           double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ, double elevatorOrientationX,
-          double elevatorOrientationY, double elevatorOrientationZ, double elevatorOrientationW);
+          double elevatorOrientationY, double elevatorOrientationZ, double elevatorOrientationW, int floor,
+          bool baseStation);
 
     friend std::ostream &operator<<(std::ostream &os, const MapPo &po);
 };

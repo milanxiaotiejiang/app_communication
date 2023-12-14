@@ -46,6 +46,8 @@ private:
     const int random_number_generation_ratio_ = 100;
     const int boundary_min_area_ = 1;
 
+    void resetMap(const MapPo &map);
+
 public:
     static auto &instance() {
         static SegmentationDataBase obj;
@@ -77,6 +79,12 @@ public:
     MapPo updateMapElevator(const std::string &map_id);
 
     MapPo removeMapElevator(const std::string &map_id);
+
+    MapPo updateFloor(const std::string &map_id, int floor);
+
+    MapPo removeFloor(const std::string &map_id);
+
+    MapPo changeBaseStation(const std::string &map_id, bool hasBaseStation);
 
     MapPo selectMapById(const std::string &map_id);
 
@@ -161,7 +169,6 @@ public:
     std::vector<std::pair<BuildPo, MapPo>> findBuildMapsForBuild(long buildId);
 
     std::vector<std::pair<BuildPo, MapPo>> findBuildMapsForMap(const std::string &mapId);
-
 };
 
 

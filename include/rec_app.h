@@ -38,7 +38,6 @@
 #include <sub/JsonSubscribe.h>
 #include <sub/JsonSubscribeCloud.h>
 #include <sub/MapInnerSubscribe.h>
-#include <sub/MoveBaseRecoveryFailureSubscribe.h>
 #include <tool/Variable.h>
 
 #include "manager/InternalEventPubManager.h"

@@ -943,3 +943,100 @@ ExplorationGenerator::cleanMechanismControlMode(const ZoneVo &currentZone, const
     LOG(INFO) << "rect intersect count " << intersect << " ...";
     return intersect > 0;
 }
+
+void ExplorationGenerator::elevatorPointList(RealTask &task) {
+    /**
+        去电梯点位
+        梯控（进电梯、乘电梯、出电梯）
+        切换地图
+        执行任务
+        回电梯点位（考虑回基站）
+        梯控（进电梯、乘电梯、出电梯）
+        切换地图
+        返回基站
+     */
+
+    std::vector<RealBlock> proList;
+    const RealBlock &preCirculationBlock = createPreCirculationBlock(task);
+    const RealBlock &preElevatorBlock = createPreElevatorBlock(task);
+    const RealBlock &preSwitchMapBlock = createPreSwitchMapBlock(task);
+    proList.push_back(preCirculationBlock);
+    proList.push_back(preElevatorBlock);
+    proList.push_back(preSwitchMapBlock);
+    task.setProList(proList);
+
+    std::vector<RealBlock> postList;
+    if (task.getDoMapId() != task.getPostMapId()) {
+        const RealBlock &postCirculationBlock = createPostCirculationBlock(task);
+        const RealBlock &postElevatorBlock = createPostElevatorBlock(task);
+        const RealBlock &postSwitchMapBlock = createPostSwitchMapBlock(task);
+        postList.push_back(postCirculationBlock);
+        postList.push_back(postElevatorBlock);
+        postList.push_back(postSwitchMapBlock);
+    }
+    task.setPostList(postList);
+}
+
+RealBlock ExplorationGenerator::createPreCirculationBlock(RealTask &task) {
+    const RealPoint &point = task.getPrePoint();
+
+    RealPoint realPoint;
+    realPoint.realPosition = point.realPosition;
+    realPoint.realOrientation = point.realOrientation;
+    realPoint.cmcMode = CmcMode::Close;
+
+    auto realBlock = buildBlock(0, task);
+    realBlock.plannerPoints.push_back(realPoint);
+    return realBlock;
+}
+
+RealBlock ExplorationGenerator::createPreElevatorBlock(RealTask &task) {
+    RealPoint realPoint;
+    realPoint.targetFloorPair = std::make_pair(task.getPreFloor(), task.getDoFloor());
+
+    auto realBlock = buildBlock(0, task);
+    realBlock.plannerPoints.push_back(realPoint);
+    return realBlock;
+}
+
+RealBlock ExplorationGenerator::createPreSwitchMapBlock(RealTask &task) {
+    RealPoint realPoint;
+    realPoint.targetMapIdPair = std::make_pair(task.getPreMapId(), task.getDoMapId());
+
+    auto realBlock = buildBlock(0, task);
+    realBlock.plannerPoints.push_back(realPoint);
+    return realBlock;
+}
+
+RealBlock ExplorationGenerator::createPostCirculationBlock(RealTask &task) {
+    const RealPoint &point = task.getDoPoint();
+
+    RealPoint realPoint;
+    realPoint.realPosition = point.realPosition;
+    realPoint.realOrientation = point.realOrientation;
+    realPoint.cmcMode = CmcMode::Close;
+
+    auto realBlock = buildBlock(0, task);
+    realBlock.plannerPoints.push_back(realPoint);
+    return realBlock;
+}
+
+RealBlock ExplorationGenerator::createPostElevatorBlock(RealTask &task) {
+
+    RealPoint realPoint;
+    realPoint.targetMapIdPair = std::make_pair(task.getDoFloor(), task.getPostFloor());
+
+    auto realBlock = buildBlock(0, task);
+    realBlock.plannerPoints.push_back(realPoint);
+    return realBlock;
+}
+
+RealBlock ExplorationGenerator::createPostSwitchMapBlock(RealTask &task) {
+
+    RealPoint realPoint;
+    realPoint.targetMapIdPair = std::make_pair(task.getDoMapId(), task.getPostMapId());
+
+    auto realBlock = buildBlock(0, task);
+    realBlock.plannerPoints.push_back(realPoint);
+    return realBlock;
+}

@@ -40,6 +40,14 @@ void TaskExploration::task2RealTask(const TaskVo &task, RealTask &realTask) {
     realTask.setLaunchTime(std::time(nullptr));
 }
 
+void TaskExploration::mapElevator2RealPoint(const MapPo &map, RealPoint &realPoint) {
+    RealPosition realPosition(map.elevator_position_x, map.elevator_position_y, map.elevator_position_z);
+    RealOrientation realOrientation(map.elevator_orientation_x, map.elevator_orientation_y,
+                                    map.elevator_orientation_z, map.elevator_orientation_w);
+    realPoint.realPosition = std::move(realPosition);
+    realPoint.realOrientation = std::move(realOrientation);
+}
+
 RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
     TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
 
@@ -152,7 +160,6 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             coverage.setComplexList(obtainSubregion.getComplexList());
         } else {
             if (task.isAsyncMap()) {
-                preLoaded = true;
                 const cv::Mat &asyncMap = SegmentationCenter::instance().generateMat(task.getMapId());
                 explorationCenter.generatePlanningPathFull(asyncMap,
                                                            task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
@@ -216,8 +223,9 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
         TaskExploration::planningPath2RoomCoverage(coverage, exploration_path, point_path, complex_path);
     }
 
-    explorationCenter.cacheRoomCoverage(coverage);
-
+    if (!task.isAsyncMap()) {
+        explorationCenter.cacheRoomCoverage(coverage);
+    }
     return coverage;
 }
 

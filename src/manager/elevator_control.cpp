@@ -13,23 +13,25 @@
 
 #define SLEEP_TIME 10
 #define MOVING_DISTANCE 1.6
-#define INEXPLICABLE_MAGIC_NUMBER 0.00456789
+#define INEXPLICABLE_MAGIC_NUMBER 0.00556789
 
-void ElevatorControlManager::initialize(ros::NodeHandle handle) {
-    stop();
-    pool_.setNumOfThreads(2);
 
-    subscriberOdom = handle.subscribe("/odom", 10, &ElevatorControlManager::subscribeOdomCallback, this);
-    subscriberImu = handle.subscribe("/imu", 10, &ElevatorControlManager::subscribeImuCallback, this);
-    publisherCmdVel = handle.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+void ElevatorControlManager::publishCmd(double x, double z) const {
+    geometry_msgs::Twist move_cmd;
+    move_cmd.linear.x = x;
+    move_cmd.linear.y = 0.0;
+    move_cmd.angular.z = z;
+    publisherCmdVel.publish(move_cmd);
+}
 
-    elevator_control_planner_thread = std::thread(&ElevatorControlManager::elevator_control_planner_thread_func, this);
-    elevator_control_planner_thread.detach();
+void ElevatorControlManager::interruptAccessElevators() {
+    mainInterrupt = true;
+    controlCmd = ControlCmd::NONE;
+}
 
-    subscriberElevatorManager = handle.subscribe("/elevator_manager", 1,
-                                                 &ElevatorControlManager::elevatorManagerSubscribeCallback,
-                                                 this);
-
+void ElevatorControlManager::recordSensorData() {
+    old_x = odom_x;
+    old_yaw = imu_yaw;
 }
 
 void ElevatorControlManager::subscribeOdomCallback(const nav_msgs::Odometry &odometry) {
@@ -50,7 +52,7 @@ void ElevatorControlManager::subscribeImuCallback(const sensor_msgs::Imu &imu) {
 }
 
 void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::Int32 &flag) {
-    try {
+    try {//elevator_manager
         if (flag.data == 0) {
             exitElevator();
         } else if (flag.data == 1) {
@@ -67,10 +69,6 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
     } catch (...) {
         LOG(ERROR) << "MessageStrategy other start exception";
     }
-}
-
-void ElevatorControlManager::elevator_control_planner_thread_func() {
-
 }
 
 //void ElevatorControlManager::rotate180() {
@@ -91,14 +89,14 @@ void ElevatorControlManager::elevator_control_planner_thread_func() {
 //}
 
 void ElevatorControlManager::movement_controls_func(ControlCommand command) {
-    stop();
-    record();
+    interruptAccessElevators();
+    recordSensorData();
 
     while (mainInterrupt) {
 
         int append_sleep_time = 0;
 
-//        printElevator();
+        printElevator();
 
         switch (controlCmd) {
             case ControlCmd::NONE:
@@ -107,7 +105,7 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
                 break;
             case ControlCmd::MOVE: {
                 double distance_x = std::abs(odom_x - old_x);
-                if (distance_x < MOVING_DISTANCE - SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER) {// 0.0456789
+                if (distance_x < MOVING_DISTANCE - SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER) {// 0.00556789
                     publishCmd(0.2, 0);
                 } else {
                     controlCmd = ControlCmd::ROTATE;
@@ -126,12 +124,12 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
                 }
                 bool normal_rotate = true;
                 if (controlCmd == ControlCmd::ROTATE && angle_difference > 90) {
-                    normal_rotate = angle_difference - last_angle > 0;
+                    normal_rotate = angle_difference - last_angle > -(SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER);
                     if (!normal_rotate) {
-                        angle_difference = 180;
+                        angle_difference = 188;
                     }
                 }
-                if (angle_difference < 180 - SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER) {// 0.0456789
+                if (angle_difference < 180 - 100 * SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER) {// 0.00556789
                     publishCmd(0, 0.2);
                 } else {
                     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager normal_rotate ： " << normal_rotate;
@@ -171,6 +169,174 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
 
 }
 
+[[noreturn]] void ElevatorControlManager::elevator_pre_thread_func() {
+
+    while (true) {
+
+        std::unique_lock<std::mutex> lk(pre_mutex_);
+        pre_condition_variable_.wait(lk, [this] {
+            return preState != ElevatorPreState::PRE_NONE;
+        });
+        if (preState == ElevatorPreState::PRE_CIRCULATION) {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager PRE_CIRCULATION ... ";
+            doPreCirculation();
+        } else if (preState == ElevatorPreState::PRE_ELEVATOR) {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager PRE_ELEVATOR ... ";
+            doPreElevator();
+        } else if (preState == ElevatorPreState::PRE_SWITCH_MAP) {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager PRE_SWITCH_MAP ... ";
+            doPreSwitchMap();
+        } else if (preState == ElevatorPreState::PRE_OVER) {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager PRE_OVER ... ";
+            callbackElevatorPre(true);
+        }
+
+        preState = ElevatorPreState::PRE_NONE;
+    }
+
+}
+
+[[noreturn]] void ElevatorControlManager::elevator_post_thread_func() {
+
+    while (true) {
+
+        std::unique_lock<std::mutex> lk(post_mutex_);
+        post_condition_variable_.wait(lk, [this] {
+            return postState != ElevatorPostState::POST_NONE;
+        });
+        if (postState == ElevatorPostState::POST_CIRCULATION) {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager POST_CIRCULATION ... ";
+            doPostCirculation();
+        } else if (postState == ElevatorPostState::POST_ELEVATOR) {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager POST_ELEVATOR ... ";
+            doPostElevator();
+        } else if (postState == ElevatorPostState::POST_SWITCH_MAP) {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager POST_SWITCH_MAP ... ";
+            doPostSwitchMap();
+        } else if (postState == ElevatorPostState::POST_OVER) {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager POST_OVER ... ";
+            callbackElevatorPost(true);
+        }
+
+        postState = ElevatorPostState::POST_NONE;
+    }
+}
+
+void ElevatorControlManager::doPreCirculation() {
+    pool_.execute([this]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager doPreCirculation 模拟任务执行完成 ... ";
+
+        {
+            std::unique_lock<std::mutex> lk(pre_mutex_);
+            preState = ElevatorPreState::PRE_ELEVATOR;
+        }
+        pre_condition_variable_.notify_one();
+    });
+}
+
+void ElevatorControlManager::doPreElevator() {
+    pool_.execute([this]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager doPreElevator 模拟任务执行完成 ... ";
+
+        {
+            std::unique_lock<std::mutex> lk(pre_mutex_);
+            preState = ElevatorPreState::PRE_SWITCH_MAP;
+        }
+        pre_condition_variable_.notify_one();
+    });
+}
+
+void ElevatorControlManager::doPreSwitchMap() {
+    pool_.execute([this]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager doPreSwitchMap 模拟任务执行完成 ... ";
+
+        {
+            std::unique_lock<std::mutex> lk(pre_mutex_);
+            preState = ElevatorPreState::PRE_OVER;
+        }
+        pre_condition_variable_.notify_one();
+    });
+}
+
+void ElevatorControlManager::doPostCirculation() {
+    pool_.execute([this]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager doPostCirculation 模拟任务执行完成 ... ";
+
+        {
+            std::unique_lock<std::mutex> lk(post_mutex_);
+            postState = ElevatorPostState::POST_ELEVATOR;
+        }
+        post_condition_variable_.notify_one();
+    });
+}
+
+void ElevatorControlManager::doPostElevator() {
+    pool_.execute([this]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager doPostElevator 模拟任务执行完成 ... ";
+
+        {
+            std::unique_lock<std::mutex> lk(post_mutex_);
+            postState = ElevatorPostState::POST_SWITCH_MAP;
+        }
+        post_condition_variable_.notify_one();
+    });
+}
+
+void ElevatorControlManager::doPostSwitchMap() {
+    pool_.execute([this]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager doPostSwitchMap 模拟任务执行完成 ... ";
+
+        {
+            std::unique_lock<std::mutex> lk(post_mutex_);
+            postState = ElevatorPostState::POST_OVER;
+        }
+        post_condition_variable_.notify_one();
+    });
+}
+
+void ElevatorControlManager::initialize(ros::NodeHandle handle) {
+    interruptAccessElevators();
+    pool_.setNumOfThreads(4);
+
+    preState = ElevatorPreState::PRE_NONE;
+    postState = ElevatorPostState::POST_NONE;
+
+    subscriberOdom = handle.subscribe("/odom", 10, &ElevatorControlManager::subscribeOdomCallback, this);
+    subscriberImu = handle.subscribe(Environment::instance().isRealEnvironment ? "/imu/data" : "/imu",
+                                     10, &ElevatorControlManager::subscribeImuCallback, this);
+    publisherCmdVel = handle.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+
+    elevator_pre_thread = std::thread(&ElevatorControlManager::elevator_pre_thread_func, this);
+    elevator_pre_thread.detach();
+    elevator_post_thread = std::thread(&ElevatorControlManager::elevator_post_thread_func, this);
+    elevator_post_thread.detach();
+
+    subscriberElevatorManager = handle.subscribe("/elevator_manager", 1,
+                                                 &ElevatorControlManager::elevatorManagerSubscribeCallback,
+                                                 this);
+
+}
+
+void ElevatorControlManager::setCallbackElevatorPre(const std::function<void(bool)> &callbackElevatorPre) {
+    ElevatorControlManager::callbackElevatorPre = callbackElevatorPre;
+}
+
+void ElevatorControlManager::setCallbackElevatorPost(const std::function<void(bool)> &callbackElevatorPost) {
+    ElevatorControlManager::callbackElevatorPost = callbackElevatorPost;
+}
+
 void ElevatorControlManager::printElevator() {
     double distance_x = std::abs(odom_x - old_x);
     double difference_yaw = imu_yaw - old_yaw;
@@ -185,13 +351,6 @@ void ElevatorControlManager::printElevator() {
     if (angle_difference > 180) {
         angle_difference = 360 - angle_difference;
     }
-    bool normal_rotate = true;
-    if (controlCmd == ROTATE && angle_difference > 90) {
-        normal_rotate = angle_difference - last_angle > 0;
-        if (!normal_rotate) {
-            angle_difference = 180;
-        }
-    }
 
     LOG_IF(INFO, DEBUG_ELEVATOR) << "distance_x ： " << distance_x
                                  << "， old_yaw ： " << old_yaw
@@ -200,14 +359,6 @@ void ElevatorControlManager::printElevator() {
                                  << "， old_angle ： " << old_angle
                                  << "， curr_angle ： " << curr_angle
                                  << "， angle_difference ： " << angle_difference;
-}
-
-void ElevatorControlManager::publishCmd(double x, double z) const {
-    geometry_msgs::Twist move_cmd;
-    move_cmd.linear.x = x;
-    move_cmd.linear.y = 0.0;
-    move_cmd.angular.z = z;
-    publisherCmdVel.publish(move_cmd);
 }
 
 void ElevatorControlManager::enterElevator() {
@@ -224,12 +375,36 @@ void ElevatorControlManager::exitElevator() {
     });
 }
 
-void ElevatorControlManager::stop() {
-    mainInterrupt = true;
-    controlCmd = ControlCmd::NONE;
+
+void ElevatorControlManager::handlePreFlow(const std::vector<RealBlock> &preFlows) {
+    if (preFlows.size() != 3) {
+        throw app::exception(make_error_code(error::elevator_pre_flow_error));
+    }
+    preCirculationBlock = preFlows[0];
+    preElevatorBlock = preFlows[1];
+    preSwitchMapBlock = preFlows[2];
+
+    //todo 逻辑判断，看看执行哪个流程
+
+    {
+        std::unique_lock<std::mutex> lk(pre_mutex_);
+        preState = ElevatorPreState::PRE_CIRCULATION;
+    }
+    pre_condition_variable_.notify_one();
 }
 
-void ElevatorControlManager::record() {
-    old_x = odom_x;
-    old_yaw = imu_yaw;
+void ElevatorControlManager::handlePostFlow(const std::vector<RealBlock> &postFlows) {
+    if (postFlows.size() != 3) {
+        throw app::exception(make_error_code(error::elevator_post_flow_error));
+    }
+    postCirculationBlock = postFlows[0];
+    postElevatorBlock = postFlows[1];
+    postSwitchMapBlock = postFlows[2];
+
+    //todo 逻辑判断，看看执行哪个流程
+    {
+        std::unique_lock<std::mutex> lk(post_mutex_);
+        postState = ElevatorPostState::POST_CIRCULATION;
+    }
+    post_condition_variable_.notify_one();
 }

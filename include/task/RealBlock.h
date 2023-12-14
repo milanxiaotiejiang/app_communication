@@ -22,6 +22,23 @@ public:
     RealError(int errorCode, const std::string &errorMessage) : errorCode(errorCode), errorMessage(errorMessage) {}
 };
 
+const int FLOW_SEIZE_SEAT = -10;
+const int FLOW_OPEN_MECHANISM = -11;
+const int FLOW_CLOSE_MECHANISM = -12;
+const int FLOW_OUT_STATION = -13;
+const int FLOW_END_SLEEP = -14;
+const int FLOW_IN_BASE_POINT = -15;
+const int FLOW_IN_STATION = -16;
+
+const int FLOW_ELEVATOR_PRE = -17;
+const int FLOW_ELEVATOR_POST = -18;
+
+const int FLOW_READY_BACK = -19;
+
+const int FLOW_ERROR_UNRECOVERABLE = -20;
+const int FLOW_ERROR_LIFT = -21;
+const int FLOW_ELECTRIC_MOVE = -22;
+
 class RealBlock {
 public:
     int id{0};//序列点位ID，一般按排序顺序设置

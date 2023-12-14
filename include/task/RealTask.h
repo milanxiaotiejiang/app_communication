@@ -17,8 +17,6 @@ private:
     std::string id;
 
     std::string map_id;//当前任务所在的地图
-    long build_id;//当前任务所在的楼宇
-    bool async_map{false};//非当前地图
     long task_id;//关联的新任务id
     std::string name;//任务名称
     int rate;//任务次数
@@ -49,6 +47,31 @@ private:
 
     bool verify_mode = false;
 
+    /**
+     * 多地图逻辑
+     * do_ 表示执行任务需要的地图
+     * pre_ 表示切换前的地图，任务前的地图
+     * base_ 表示含基站的地图，任务完成后需要回基站
+     */
+    bool async_map{false};//非当前地图
+    long build_id;//当前任务所在的楼宇
+
+    // 当任务地图没有基站时，需要查找切换前的地图是否有基站，切换前地图没有基站时，需要查找当前楼宇是否有基站。
+    std::string do_map_id;
+    int do_floor;
+    RealPoint do_point;
+
+    std::string pre_map_id;
+    int pre_floor;
+    RealPoint pre_point;
+
+    std::string post_map_id;
+    int post_floor;
+    RealPoint post_point;
+
+    std::vector<RealBlock> proList;
+    std::vector<RealBlock> postList;
+
 public:
     RealTask() = default;
 
@@ -66,22 +89,6 @@ public:
 
     void setMapId(const std::string &mapId) {
         map_id = mapId;
-    }
-
-    long getBuildId() const {
-        return build_id;
-    }
-
-    void setBuildId(long buildId) {
-        build_id = buildId;
-    }
-
-    bool isAsyncMap() const {
-        return async_map;
-    }
-
-    void setAsyncMap(bool asyncMap) {
-        async_map = asyncMap;
     }
 
     long getTaskId() const {
@@ -242,6 +249,110 @@ public:
 
     void setVerifyMode(bool verifyMode) {
         verify_mode = verifyMode;
+    }
+
+    bool isAsyncMap() const {
+        return async_map;
+    }
+
+    void setAsyncMap(bool asyncMap) {
+        async_map = asyncMap;
+    }
+
+    long getBuildId() const {
+        return build_id;
+    }
+
+    void setBuildId(long buildId) {
+        build_id = buildId;
+    }
+
+    const std::string &getDoMapId() const {
+        return do_map_id;
+    }
+
+    void setDoMapId(const std::string &doMapId) {
+        do_map_id = doMapId;
+    }
+
+    int getDoFloor() const {
+        return do_floor;
+    }
+
+    void setDoFloor(int doFloor) {
+        do_floor = doFloor;
+    }
+
+    const RealPoint &getDoPoint() const {
+        return do_point;
+    }
+
+    void setDoPoint(const RealPoint &doPoint) {
+        do_point = doPoint;
+    }
+
+    const std::string &getPreMapId() const {
+        return pre_map_id;
+    }
+
+    void setPreMapId(const std::string &preMapId) {
+        pre_map_id = preMapId;
+    }
+
+    int getPreFloor() const {
+        return pre_floor;
+    }
+
+    void setPreFloor(int preFloor) {
+        pre_floor = preFloor;
+    }
+
+    const RealPoint &getPrePoint() const {
+        return pre_point;
+    }
+
+    void setPrePoint(const RealPoint &prePoint) {
+        pre_point = prePoint;
+    }
+
+    const std::string &getPostMapId() const {
+        return post_map_id;
+    }
+
+    void setPostMapId(const std::string &postMapId) {
+        post_map_id = postMapId;
+    }
+
+    int getPostFloor() const {
+        return post_floor;
+    }
+
+    void setPostFloor(int postFloor) {
+        post_floor = postFloor;
+    }
+
+    const RealPoint &getPostPoint() const {
+        return post_point;
+    }
+
+    void setPostPoint(const RealPoint &postPoint) {
+        post_point = postPoint;
+    }
+
+    const std::vector<RealBlock> &getProList() const {
+        return proList;
+    }
+
+    void setProList(const std::vector<RealBlock> &proList) {
+        RealTask::proList = proList;
+    }
+
+    const std::vector<RealBlock> &getPostList() const {
+        return postList;
+    }
+
+    void setPostList(const std::vector<RealBlock> &postList) {
+        RealTask::postList = postList;
     }
 
     void assignmentPoint(RealBlock &block, int blockId) const {

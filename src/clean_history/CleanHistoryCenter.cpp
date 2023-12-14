@@ -802,6 +802,10 @@ namespace clean_history_db {
                 return std::make_tuple(3330, "硬件出错后被关机", "CCR_330");
             case event::flow::software_interrupt_task:
                 return std::make_tuple(3331, "程序错误后被关机", "CCR_331");
+            case event::flow::trigger_special_pre_conditions:
+                return std::make_tuple(3341, "梯控前期逻辑被关机", "CCR_341");
+            case event::flow::trigger_special_post_conditions:
+                return std::make_tuple(3342, "梯控后续逻辑被关机", "CCR_342");
             default:
                 std::string base_string = "CCR_";
                 std::string flow_string = std::to_string(300 + flow);

@@ -187,6 +187,7 @@ public:
                 return 10001;
             case event::flow::flowing_water_execution_completed:
                 return 10014;
+            case event::flow::formally_return_to_the_base_station:
             case event::flow::arrive_base_point_success:
             case event::flow::try_recharging_again:
             case event::flow::try_move_base_point_again:
@@ -194,6 +195,10 @@ public:
             case event::flow::hardware_interrupt_task:
             case event::flow::software_interrupt_task:
                 return 10010;
+            case event::flow::trigger_special_pre_conditions:
+                return 10020;
+            case event::flow::trigger_special_post_conditions:
+                return 10021;
         }
     }
 

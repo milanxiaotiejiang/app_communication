@@ -16,10 +16,13 @@ namespace event {
         switch_node_work_mode,//切换工作模式
         preliminary_preparation_completed,//前期准备工作完成
         cleaning_mechanism_ready,//清洁机构已就绪
+        trigger_special_pre_conditions,//触发前置条件
         ensure_move_to_start_point,//保证移动到第一个点
         flowing_water_production,//流水作业（轮训点位）
+        formally_return_to_the_base_station,//准备返回基站
         arrive_base_point_success,//成功到达基站点位
         flowing_water_execution_completed,//流水作业已完成
+        trigger_special_post_conditions,//触发后置条件
         arrive_base_station_success,//成功回到基站，并且充电
         try_recharging_again,//回充失败时，再次尝试回充
         try_move_base_point_again,//返回基站点位失败后重试

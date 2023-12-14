@@ -85,7 +85,7 @@ bool ModeValidate::validateMoveBase(int open) {
 
             int moveBaseMode = getMoveBaseMode();
             LOG_IF(INFO, DEBUG_NODE)
-                            << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
+                    << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
             if (open == moveBaseMode) {
                 wait_cv.notify_one();
                 end_loop = true;
@@ -144,8 +144,6 @@ bool ModeValidate::validateCoreMoveAvailable() {
     return coreMoveServer;
 }
 
-const int numberOfTasks = 3;
-
 bool ModeValidate::validateHardwareServer() {
     if (!Environment::instance().isRealEnvironment) {
         return true;
@@ -154,10 +152,15 @@ bool ModeValidate::validateHardwareServer() {
     auto recordStart = std::chrono::steady_clock::now();
 
     InuSubscriberSingleton::instance().recount();
+    if (isJumpImu) {
+        if (!MotorServerSingleton::instance().startInu())
+            return false;
+    }
 
-    if (!MotorServerSingleton::instance().startInu())
-        return false;
-
+    int numberOfTasks = 3;
+    if (isJumpImu) {
+        numberOfTasks = 1;
+    }
 //    std::vector<std::thread> threads;
     std::vector<std::promise<bool>> promises(numberOfTasks);
     std::vector<std::future<bool>> futures;
@@ -200,7 +203,7 @@ bool ModeValidate::validateHardwareServer() {
         LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateHardwareServer 所有步骤已完成，主线程继续执行！";
     } else {
         LOG_IF(INFO, DEBUG_NODE)
-                        << "ModeValidate  validateHardwareServer 超时！未能完成所有步骤，后续继续再次确认(原确认逻辑)";
+                << "ModeValidate  validateHardwareServer 超时！未能完成所有步骤，后续继续再次确认(原确认逻辑)";
     }
 
     LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateHardwareServer elapsed : " << elapsed.count();
@@ -214,8 +217,8 @@ bool ModeValidate::validateHardwareServer() {
     bool callReadyCheckFirst = CartographerServiceClient::instance().callReadyCheck();
 
     LOG_IF(INFO, DEBUG_NODE)
-                    << "ModeValidate  validateHardwareServer 首次校验结果 " << callReadyCheckFirst
-                    << " ------------------------------ ";
+            << "ModeValidate  validateHardwareServer 首次校验结果 " << callReadyCheckFirst
+            << " ------------------------------ ";
 
     if (callReadyCheckFirst) {
         return true;
@@ -226,8 +229,8 @@ bool ModeValidate::validateHardwareServer() {
     bool callReadyCheckAgain = CartographerServiceClient::instance().callReadyCheck();
 
     LOG_IF(INFO, DEBUG_NODE)
-                    << "ModeValidate  validateHardwareServer 再次校验结果 " << callReadyCheckAgain
-                    << " ------------------------------ ";
+            << "ModeValidate  validateHardwareServer 再次校验结果 " << callReadyCheckAgain
+            << " ------------------------------ ";
 
     if (callReadyCheckAgain) {
         return true;

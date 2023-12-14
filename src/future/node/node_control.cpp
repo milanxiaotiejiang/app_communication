@@ -473,6 +473,7 @@ void NodeControl::defeatModeStart(node::State state) {
     trySleep();
 }
 
+
 void NodeControl::update() {
     if (isSleep()) {
         LOG_IF(INFO, DEBUG_NODE) << "当前为睡眠模式，应该是主动切换到睡眠模式的，暂时不需要处理（也可能需要处理）";
@@ -544,4 +545,36 @@ void NodeControl::paramPose(const std::string &key, const geometry_msgs::Pose po
     pose_dict["orientation"]["w"] = pose.orientation.w;
     // 将字典存储为 ROS 参数
     ros::param::set(key, pose_dict);
+}
+
+int NodeControl::restoreWork() {
+
+    int step = 0;
+    if (Environment::instance().direct_start_move_base) {
+        if (CartographerServiceClient::instance().callStopLocalization())
+            step++;
+    } else {
+        CartographerPublisher::instance().publishControlMoveBase(false);
+        bool validateMoveBase = ModeValidate::validateMoveBase(0);
+        if (validateMoveBase)
+            if (CartographerServiceClient::instance().callStopLocalization())
+                step++;
+    }
+
+    if (step == 1) {
+        if (CartographerServiceClient::instance().callStartLocalization())
+            if (Environment::instance().direct_start_move_base) {
+                if (ModeValidate::validateMoveBaseAvailable())
+                    if (ModeValidate::validateCoreMoveAvailable())
+                        step++;
+            } else {
+                CartographerPublisher::instance().publishControlMoveBase(true);
+                if (ModeValidate::validateMoveBase(1))
+                    if (ModeValidate::validateMoveBaseAvailable())
+                        if (ModeValidate::validateCoreMoveAvailable())
+                            step++;
+            }
+    }
+
+    return step;
 }

@@ -69,6 +69,10 @@ const int GATE_DEFAULT = 0;
 const int GATE_OPEN = 1;
 const int GATE_CLOSE = 2;
 
+const int ELEVATOR_DEFAULT = 1;
+const int ELEVATOR_REACH = 1;
+const int ELEVATOR_TAKE = 2;
+
 class RealPoint {
 public:
     int id{0};//序列点位ID，一般按排序顺序设置
@@ -90,6 +94,10 @@ public:
     int gateControl{GATE_DEFAULT};
     std::string gate_uuid{};
     std::string gate_factory_id{};
+
+    int elevatorControl{ELEVATOR_DEFAULT};
+    std::pair<int, int> targetFloorPair;
+    std::pair<std::string, std::string> targetMapIdPair;
 
 //    friend std::ostream &operator<<(std::ostream &os, const RealPoint &point) {
 //        os << "id: " << point.id << " blockId: " << point.blockId << " realProgress: " << point.realProgress;

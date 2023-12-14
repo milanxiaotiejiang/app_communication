@@ -43,7 +43,7 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
 //    MapPo map = SegmentationDataBase::instance().getDbMap();
 //    auto generateMat = SegmentationCenter::instance().generateMat();
 
-    try {
+    try {//segmentation_task
         TaskCenter::instance().performTask(flag, TaskSource::Cloud, 1);
 
     } catch (app::exception const &e) {
@@ -58,7 +58,7 @@ void SegmentationSubscribe::segmentationSubscribeCallback(const std_msgs::Int32 
 
 void SegmentationSubscribe::segmentationOrderSubscribeCallback(const std_msgs::Int32 &flag_result) {
     auto flag = flag_result.data;
-    try {
+    try {//segmentation_order
         if (flag == 0) {
             ManualManager::instance().pause();
         } else if (flag == 1) {
@@ -107,6 +107,8 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
 //              << "  isRestrictedZone : " << isRestrictedZone
 //              << "  isMaxPassable : " << isMaxPassable
 //              << "  isPlanPath : " << isPlanPath;
+
+    //segmentation_test
     if (flag_result.data == 0) {
         MapPo &po = SegmentationDataBase::instance().getDbMap();
         SegmentationDataBase::instance().purgeGate(po.id);
@@ -161,11 +163,13 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
 }
 
 void SegmentationSubscribe::gateOpenSubscribeCallback(const std_msgs::String &flag) {
+    //tt_open_gate
     auto data = flag.data;
     AsyncGateImplement::openGate("01A", data);
 }
 
 void SegmentationSubscribe::gateCloseSubscribeCallback(const std_msgs::String &flag) {
+    //tt_close_gate
     auto data = flag.data;
     AsyncGateImplement::closeGate("01A", data);
 }

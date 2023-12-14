@@ -29,19 +29,22 @@ std::ostream &operator<<(std::ostream &os, const MapPo &po) {
 
 MapPo::MapPo(const std::string &id, const std::string &name, const std::string &path, bool main, bool elevator,
              double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ, double elevatorOrientationX,
-             double elevatorOrientationY, double elevatorOrientationZ, double elevatorOrientationW)
-        : id(id),
-          name(name),
-          path(path),
-          main(main),
-          elevator(elevator),
-          elevator_position_x(elevatorPositionX),
-          elevator_position_y(elevatorPositionY),
-          elevator_position_z(elevatorPositionZ),
-          elevator_orientation_x(elevatorOrientationX),
-          elevator_orientation_y(elevatorOrientationY),
-          elevator_orientation_z(elevatorOrientationZ),
-          elevator_orientation_w(elevatorOrientationW) {}
+             double elevatorOrientationY, double elevatorOrientationZ, double elevatorOrientationW, int floor,
+             bool baseStation) : id(id),
+                                 name(name),
+                                 path(path),
+                                 main(main),
+                                 elevator(elevator),
+                                 elevator_position_x(elevatorPositionX),
+                                 elevator_position_y(elevatorPositionY),
+                                 elevator_position_z(elevatorPositionZ),
+                                 elevator_orientation_x(elevatorOrientationX),
+                                 elevator_orientation_y(elevatorOrientationY),
+                                 elevator_orientation_z(elevatorOrientationZ),
+                                 elevator_orientation_w(elevatorOrientationW),
+                                 floor(floor),
+                                 base_station(baseStation) {}
+
 
 MapPo::MapPo() = default;
 

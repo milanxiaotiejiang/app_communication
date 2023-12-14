@@ -84,7 +84,6 @@ int main(int argc, char **argv) {
     DSVersionSubscribe dsVersionSubscribe(handle);
 
     SelfCheckSubscribe selfCheckSubscribe(handle);
-    MoveBaseRecoveryFailureSubscribe moveBaseRecoveryFailureSubscribe(handle);
 
     WsServerManager::instance().startWebSocket();
     AiServerManager::instance().startWebSocket();

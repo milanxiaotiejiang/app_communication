@@ -202,14 +202,19 @@ std::vector<MultiMapInfo> GetMultiMapsStrategy::handler(std::string params) {
 }
 
 std::string ChangeMapStrategy::handler(std::string params) {
-    if (!ZooInnerStatus::instance().getIsCharging()) {
-        throw app::exception(make_error_code(error::the_base_station_is_no_longer_able_to_switch_maps));
+    if (!Environment::instance().no_station_mapping_mode) {
+        if (!ZooInnerStatus::instance().getIsCharging()) {
+            throw app::exception(make_error_code(error::the_base_station_is_no_longer_able_to_switch_maps));
+        }
     }
-    if (!NodeControl::instance().isSleep()) {
+    if (!Environment::instance().no_station_mapping_mode) {
+        if (!NodeControl::instance().isSleep()) {
 //        CartographerPublisher::instance().publishStartCartoLocalization();
 //        CartographerServiceClient::instance().callStartLocalization();
-        throw app::exception(make_error_code(error::cannot_switch_maps_in_non_sleep_mode));
+            throw app::exception(make_error_code(error::cannot_switch_maps_in_non_sleep_mode));
+        }
     }
+
     MapPo oldMap = SegmentationDataBase::instance().getDbMap();
     if (oldMap.id == params) {
         throw app::exception(make_error_code(error::cannot_switch_to_the_current_map));
@@ -251,6 +256,12 @@ std::string ChangeMapStrategy::handler(std::string params) {
     ExplorationCenter::instance().repaintCoveragePath();
 
     MapControl::instance().changeMapServer();
+
+    if (Environment::instance().no_station_mapping_mode) {
+        int step = NodeControl::instance().restoreWork();
+        if (step != 2)
+            throw app::exception(make_error_code(error::map_switching_failed));
+    }
 
     return "";
 }

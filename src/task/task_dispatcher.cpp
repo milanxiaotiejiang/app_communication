@@ -44,13 +44,16 @@ void TaskDispatcher::plan_transfer_thread_func() {
             try {
                 //生成对应该任务的点列
                 const auto pointGeneratorPtr = pointGeneratorFactory(realTask);
-                const auto pointList = pointGeneratorPtr->taskGeneratePointList(realTask);
-                if (pointList.empty()) {
+                auto blockList = pointGeneratorPtr->taskGeneratePointList(realTask);
+                if (blockList.empty()) {
                     LOG(ERROR) << " 牛耕田法规划的点位个数为空 ... ";
                     return;
                 }
+                if (realTask.isAsyncMap()) {
+                    pointGeneratorPtr->elevatorPointList(realTask);
+                }
                 //点列赋值给realTask
-                realTask.setPlanPoints(pointList);
+                realTask.setPlanPoints(blockList);
                 //清洁记录更新
                 clean_history_db::CleanHistoryCenter::instance().upDateByRealTask(realTask);
                 //开始执行realTask

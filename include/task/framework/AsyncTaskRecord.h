@@ -8,18 +8,6 @@
 #include "AsyncTaskFramework.h"
 #include "task/model/TaskStack.h"
 
-const int FLOW_SEIZE_SEAT = -10;
-const int FLOW_OPEN_MECHANISM = -11;
-const int FLOW_CLOSE_MECHANISM = -12;
-const int FLOW_OUT_STATION = -13;
-const int FLOW_END_SLEEP = -14;
-const int FLOW_IN_BASE_POINT = -15;
-const int FLOW_IN_STATION = -16;
-
-const int FLOW_ERROR_UNRECOVERABLE = -20;
-const int FLOW_ERROR_LIFT = -21;
-const int FLOW_ELECTRIC_MOVE = -22;
-
 const int MAX_RECORD_TASK_STACK_SIZE = 3;
 
 class AsyncTaskRecord : public AsyncTaskFramework {
@@ -28,7 +16,9 @@ protected:
     std::deque<TaskStack> stopStack;
 
     std::deque<RealTask> waitTaskQueue;
+    std::vector<RealBlock> preConditions;
     std::deque<RealBlock> plannerQueue;
+    std::vector<RealBlock> postConditions;
 
     RealTask runTask;
 
@@ -40,6 +30,11 @@ protected:
     RealBlock flowEndSleepPoint;
     RealBlock flowInBasePoint;
     RealBlock flowInStationPoint;
+
+    RealBlock flowElevatorPrePoint;
+    RealBlock flowElevatorPostPoint;
+
+    RealBlock flowReadyBackPoint;
 
     std::string runTaskId() const {
         return runTask.getId();
@@ -65,6 +60,18 @@ protected:
         return runTask.getPlanBlocks();
     }
 
+    std::vector<RealBlock> preBlocks() const {
+        return runTask.getProList();
+    }
+
+    bool asyncMap() const {
+        return runTask.isAsyncMap();
+    }
+
+    std::vector<RealBlock> postBlocks() const {
+        return runTask.getPostList();
+    }
+
     bool isWaitTask(event::flow flow);
 
     bool isPause();
@@ -88,6 +95,10 @@ protected:
     bool isRechargeFLow(event::flow flow);
 
     bool isPlannerEmpty(event::flow flow);
+
+    bool isPreConditions(event::flow flow);
+
+    bool isPostConditions(event::flow flow);
 
     void recordEmergencyStop(event::flow event_flow, const RealBlock &realBlock);
 
@@ -117,6 +128,10 @@ protected:
                 return "摆渡点节点";
             case FLOW_IN_STATION:
                 return "进站节点";
+            case FLOW_ELEVATOR_PRE:
+                return "梯控前期节点";
+            case FLOW_ELEVATOR_POST:
+                return "梯控后期节点";
             default:
                 return "流程点 " + std::to_string(id) + " ";
         }

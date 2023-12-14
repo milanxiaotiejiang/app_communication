@@ -7,6 +7,7 @@
 #include "simulation.h"
 #include "future/timer_call.h"
 #include "task/manager/MechanismManager.h"
+#include "manager/elevator_control.h"
 
 void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
     if (block.id == FLOW_SEIZE_SEAT) {
@@ -69,6 +70,22 @@ void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
         } else {
             setFlow(event::flow::hardware_interrupt_task);
         }
+    } else if (block.id == FLOW_ELEVATOR_PRE) {
+        if (block.arrive) {
+            setFlow(event::flow::cleaning_mechanism_ready);
+        } else {
+            setFlow(event::flow::software_interrupt_task);
+        }
+    } else if (block.id == FLOW_ELEVATOR_POST) {
+        if (block.arrive) {
+            setFlow(event::flow::formally_return_to_the_base_station);
+        } else {
+            setFlow(event::flow::software_interrupt_task);
+        }
+    } else if (block.id == FLOW_READY_BACK) {
+        setFlow(event::flow::formally_return_to_the_base_station);
+    } else {
+        LOG(ERROR) << "HeadTailPointCall : 未知的流程点位 " << output_interpolation_block(block.id);
     }
 }
 
@@ -97,16 +114,29 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
                 notify_one([this]() {
                     pushBlock(flowOpenMechanismPoint);
                 });
+            } else if (asyncMap()) {
+                LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 多地图任务无需打开清洁机构 ...";
+                flowOpenMechanismPoint.arrive = true;
+                notify_one([this]() {
+                    pushBlock(flowOpenMechanismPoint);
+                });
             } else
                 callOpenMechanism(baseWorkStatus(), isKnife(), []() {});
             break;
         }
         case event::flow::cleaning_mechanism_ready: {
-            LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 清洁机构准备完成，准备执行规划点位任务，当前去第一个点 ...";
-            recordEmergencyStop(event::flow::ensure_move_to_start_point, block);
-            setFlow(event::flow::ensure_move_to_start_point);
-            RealBlock front = plannerQueue.front();
-            callGoFirstPoint(front);
+            if (preConditions.empty()) {
+                LOG_IF(INFO, DEBUG_TASK)
+                                << "HeadTailPointCall : 清洁机构准备完成，准备执行规划点位任务，当前去第一个点 ...";
+                recordEmergencyStop(event::flow::ensure_move_to_start_point, block);
+                setFlow(event::flow::ensure_move_to_start_point);
+                RealBlock front = plannerQueue.front();
+                callGoFirstPoint(front);
+            } else {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "HeadTailPointCall : 梯控前期逻辑开始 ...";
+                setFlow(event::flow::trigger_special_pre_conditions);
+                ElevatorControlManager::instance().handlePreFlow(preBlocks());
+            }
             break;
         }
         case event::flow::ensure_move_to_start_point: {
@@ -147,9 +177,13 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
                     if (baseTaskMode() == static_cast<int>(TaskMode::Zoned)) {
                         LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 矩形任务及时收起清洁机构 ...";
                         MechanismManager::instance().resetWorkStatus();
+                    } else if (asyncMap()) {
+                        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 多地图任务及时收起清洁机构 ...";
+                        MechanismManager::instance().resetWorkStatus();
                     }
+
                     callBlockComplete([this]() {
-                        callBackBasePoint();
+                        pushBlock(flowReadyBackPoint);
                     });
                 } else {
                     auto currentBlock = findFrontBlock();
@@ -183,9 +217,21 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             }
             break;
         }
+        case event::flow::formally_return_to_the_base_station: {
+            waitTaskQueue.clear();
+            plannerQueue.clear();
+            callBackBasePoint();
+            break;
+        }
         case event::flow::arrive_base_point_success: {
             if (baseTaskMode() == static_cast<int>(TaskMode::Zoned) && !MechanismManager::instance().isOpening()) {
                 LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 矩形任务 并且 已经收起 无需再次收起清洁机构 ...";
+                flowCloseMechanismPoint.arrive = true;
+                notify_one([this]() {
+                    pushBlock(flowCloseMechanismPoint);
+                });
+            } else if (asyncMap()) {
+                LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 多地图 并且 已经收起 无需再次收起清洁机构 ...";
                 flowCloseMechanismPoint.arrive = true;
                 notify_one([this]() {
                     pushBlock(flowCloseMechanismPoint);
@@ -215,21 +261,21 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
                             << "HeadTailPointCall : 回充失败 rechargeRetryCount : " << rechargeRetryCount
                             << " , 再次返回基站点位置 ...";
             backBaseRetryCount = 0;
-            callBackBasePoint();
+            pushBlock(flowReadyBackPoint);
             break;
         }
         case event::flow::try_move_base_point_again: {
             LOG_IF(INFO, DEBUG_TASK)
                             << "HeadTailPointCall : 返回基站点位失败 backBaseRetryCount : " << backBaseRetryCount
                             << " , 重试中 ...";
-            callBackBasePoint();
+            pushBlock(flowReadyBackPoint);
             break;
         }
         case event::flow::hardware_interrupt_task: {
             LOG_IF(INFO, DEBUG_TASK)
                             << "HeadTailPointCall : 清洁机构出错，执行返回基站命令 错误 ： "
                             << output_interpolation_block(block.id);
-            callBackBasePoint();
+            pushBlock(flowReadyBackPoint);
             break;
         }
         case event::flow::software_interrupt_task: {
@@ -239,6 +285,9 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             break;
         }
         case event::waiting_for_task:
+            break;
+        default:
+            LOG(ERROR) << "HeadTailPointCall : 未知的流程 " << static_cast<int>(currentFlow());
             break;
     }
 }

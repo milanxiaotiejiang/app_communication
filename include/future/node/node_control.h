@@ -159,6 +159,8 @@ public:
     static void paramPose(const std::string &key, const geometry_msgs::Pose pose);
 
     void finalConfirmation();
+
+    int restoreWork();
 };
 
 #endif //APP_COMMUNICATION_NODE_CONTROL_H
