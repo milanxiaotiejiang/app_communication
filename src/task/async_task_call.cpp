@@ -63,20 +63,20 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
         }
     });
 
-    ElevatorControlManager::instance().setCallbackElevatorPre([this](bool) {
-        notify_one([this]() {
+    ElevatorControlManager::instance().setCallbackElevatorPre([this](bool result) {
+        notify_one([this, &result]() {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : notify pre elevator finish ...";
             preConditions.clear();
-            flowElevatorPrePoint.arrive = true;
+            flowElevatorPrePoint.arrive = result;
             pushBlock(flowElevatorPrePoint);
         });
     });
 
-    ElevatorControlManager::instance().setCallbackElevatorPost([this](bool) {
-        notify_one([this]() {
+    ElevatorControlManager::instance().setCallbackElevatorPost([this](bool result) {
+        notify_one([this, &result]() {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : notify post elevator finish ...";
             postConditions.clear();
-            flowElevatorPostPoint.arrive = true;
+            flowElevatorPostPoint.arrive = result;
             pushBlock(flowElevatorPostPoint);
         });
     });
@@ -237,8 +237,8 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
             });
         } else {
             LOG_IF(INFO, DEBUG_TASK)
-                    << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : "
-                    << currentFlow();
+                            << "AsyncTaskCall : 不支持前期出站阶段及后期回充阶段添加任务 event_flow : "
+                            << currentFlow();
         }
     }
 }
@@ -246,7 +246,7 @@ void AsyncTaskCall::handleTask(const RealTask &realTask) {
 void AsyncTaskCall::handleBlock(const RealBlock &block) {
     if (isUnrecoverableError()) {
         LOG_IF(INFO, DEBUG_TASK)
-                << "AsyncTaskCall : 程序运行异常，抛弃 " << output_interpolation_block(block.id) << " ...";
+                        << "AsyncTaskCall : 程序运行异常，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     if (isUrgencyStop()) {
@@ -263,7 +263,7 @@ void AsyncTaskCall::handleBlock(const RealBlock &block) {
     }
     if (isExchangeTask()) {
         LOG_IF(INFO, DEBUG_TASK)
-                << "AsyncTaskCall : 切换新的任务中，抛弃 " << output_interpolation_block(block.id) << " ...";
+                        << "AsyncTaskCall : 切换新的任务中，抛弃 " << output_interpolation_block(block.id) << " ...";
         return;
     }
     recordEmergencyStop(currentFlow(), block);
@@ -541,8 +541,8 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
     );
 
     LOG_IF(INFO, DEBUG_TASK)
-            << "blockId : " << block.id << " , " << pointProgressVo << " " << finishedPoints.size() << " "
-            << point.timeout;
+                    << "blockId : " << block.id << " , " << pointProgressVo << " " << finishedPoints.size() << " "
+                    << point.timeout;
     finishedPoints.push_back(pointProgressVo);
 
 //    std::vector<geometry_msgs::Pose2D> exploration_path;
@@ -632,7 +632,7 @@ void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock, bool first) {
             mGateComprehensive->AStarPlannerPoint(realPoint, stacks);
         } catch (...) {
             LOG_IF(INFO, DEBUG_GATE)
-                    << "AsyncGateImplement  AStarPlannerPoint catch " << "... ";
+                            << "AsyncGateImplement  AStarPlannerPoint catch " << "... ";
         }
 
         if (!stacks.empty()) {
@@ -650,8 +650,8 @@ void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock, bool first) {
         if (!plannerPoints.empty()) {
             auto cmcMode = plannerPoints[0].cmcMode;
             LOG_IF(INFO, DEBUG_CLEAN_MECHANISM)
-                    << "DEBUG_CLEAN_MECHANISM 取未执行的点列队首，清洁机构操控 mode 为 "
-                    << static_cast<int>(cmcMode) << " ... ";
+                            << "DEBUG_CLEAN_MECHANISM 取未执行的点列队首，清洁机构操控 mode 为 "
+                            << static_cast<int>(cmcMode) << " ... ";
             if (cmcMode == CmcMode::Open) {
                 MechanismManager::instance().controlWorkStatus(nextBlock.work_status, nextBlock.knife);
             } else if (cmcMode == CmcMode::Close) {
@@ -762,17 +762,17 @@ void AsyncTaskCall::callUrgencyStop() {
     if (!isPause()) {
         if (isPreCompleted(currentFlow())) {
             LOG_IF(INFO, DEBUG_TASK)
-                    << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
+                            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
             setFlow(event::flow::cleaning_mechanism_ready);
         }
         if (isContinueWork(currentFlow(), true)) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
             LOG_IF(INFO, DEBUG_TASK)
-                    << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
+                            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
             setEpollManual(loop::manual_epoll::manual_pause);
             if (isRechargeFLow(currentFlow())) {
                 LOG_IF(INFO, DEBUG_TASK)
-                        << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
+                                << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
                 callCancelBackStation();
                 rechargeRetryCount = 0;
                 recordEmergencyStop(event::flow::formally_return_to_the_base_station, flowReadyBackPoint);
@@ -790,17 +790,17 @@ void AsyncTaskCall::callManualPause() {
     if (!isPause()) {
         if (isPreCompleted(currentFlow())) {
             LOG_IF(INFO, DEBUG_TASK)
-                    << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
+                            << "AsyncTaskCall : 前期准备工作完成，此处改变 event_flow 状态，变更为下一个步骤 ...";
             setFlow(event::flow::cleaning_mechanism_ready);
         }
         if (isContinueWork(currentFlow(), true, true)) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动暂停任务，增加暂停拦截 ...";
             LOG_IF(INFO, DEBUG_TASK)
-                    << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
+                            << "AsyncTaskCall : event_flow : " << currentFlow() << "   " << recoverableEmergencyStop();
             setEpollManual(loop::manual_epoll::manual_pause);
             if (isRechargeFLow(currentFlow())) {
                 LOG_IF(INFO, DEBUG_TASK)
-                        << "AsyncTaskCall : 回充中触发手动模式为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
+                                << "AsyncTaskCall : 回充中触发手动模式为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
                 callCancelBackStation();
                 rechargeRetryCount = 0;
                 recordEmergencyStop(event::flow::formally_return_to_the_base_station, flowReadyBackPoint);
@@ -1003,7 +1003,7 @@ void AsyncTaskCall::executeOnPathDone(int blockId, event::error error, const std
         mGateDistribution->executeOnPathDone(error);
     } else
         notify_one([this, &blockId, &error, &message]() {
-            LOG(WARNING) << "PointPlanner moveBase  blockId : " << blockId << " , result : " << message;
+//            LOG(WARNING) << "PointPlanner moveBase  blockId : " << blockId << " , result : " << message;
             if (!plannerQueue.empty()) {
                 if (error == event::error::LOST) {
                     auto currentPoint = findFrontBlock();

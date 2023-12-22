@@ -28,23 +28,28 @@ void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
             setFlow(event::flow::software_interrupt_task);
         }
     } else if (block.id == FLOW_IN_BASE_POINT) {
-        if (block.arrive) {
-            if (rechargeRetryCount == 0) {
-                setFlow(event::flow::arrive_base_point_success);
-            } else {
-                setFlow(event::flow::flowing_water_execution_completed);
-            }
+        if (isPostConditions(currentFlow())) {
+
         } else {
-            if (backBaseRetryCount < MAX_BASE_POINT_RETRY_COUNT) {
-                backBaseRetryCount++;
-                setFlow(event::flow::try_move_base_point_again);
+            if (block.arrive) {
+                if (rechargeRetryCount == 0) {
+                    setFlow(event::flow::arrive_base_point_success);
+                } else {
+                    setFlow(event::flow::flowing_water_execution_completed);
+                }
             } else {
+                if (backBaseRetryCount < MAX_BASE_POINT_RETRY_COUNT) {
+                    backBaseRetryCount++;
+                    setFlow(event::flow::try_move_base_point_again);
+                } else {
 //                setFlow(event::flow::software_interrupt_task);
-                LOG_IF(INFO, DEBUG_TASK)
-                                << "HeadTailPointCall : 多次返回摆渡点失败， 直接记为“任务执行完成且返回了基站点”， " <<
-                                "  backBaseRetryCount : " << backBaseRetryCount <<
-                                "  rechargeRetryCount : " << rechargeRetryCount << " ...";
-                setFlow(event::flow::flowing_water_execution_completed);
+                    LOG_IF(INFO, DEBUG_TASK)
+                                    << "HeadTailPointCall : 多次返回摆渡点失败， 直接记为“任务执行完成且返回了基站点”， "
+                                    <<
+                                    "  backBaseRetryCount : " << backBaseRetryCount <<
+                                    "  rechargeRetryCount : " << rechargeRetryCount << " ...";
+                    setFlow(event::flow::flowing_water_execution_completed);
+                }
             }
         }
     } else if (block.id == FLOW_IN_STATION) {
@@ -285,6 +290,12 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             break;
         }
         case event::waiting_for_task:
+            break;
+        case event::trigger_special_pre_conditions:
+            ElevatorControlManager::instance().completePreCirculation(block.arrive);
+            break;
+        case event::trigger_special_post_conditions:
+            ElevatorControlManager::instance().completePostCirculation(block.arrive);
             break;
         default:
             LOG(ERROR) << "HeadTailPointCall : 未知的流程 " << static_cast<int>(currentFlow());

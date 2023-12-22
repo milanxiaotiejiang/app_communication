@@ -12,9 +12,9 @@
 
 void PointPlanner::cpToPath(const std::vector<RealPoint> &points, replan_msgs::ReplanGoal &goal_path,
                             int mode, bool border_track) {
-    LOG(WARNING) << "PointPlanner send to replan path size : " << points.size()
-                 << "  , mode : " << mode
-                 << "  , border_track : " << border_track;
+//    LOG(WARNING) << "PointPlanner send to replan path size : " << points.size()
+//                 << "  , mode : " << mode
+//                 << "  , border_track : " << border_track;
     nav_msgs::Path path;
     path.header.frame_id = "map";
     path.header.stamp = ros::Time::now();
@@ -59,7 +59,7 @@ void PointPlanner::coreMoveFeedBackCB(const back_charge_msgs::CoreMoveFeedbackCo
 
 void PointPlanner::coreMoveDoneCB(const actionlib::SimpleClientGoalState &state,
                                   const back_charge_msgs::CoreMoveResultConstPtr &result) {
-    LOG(WARNING) << "PointPlanner coreMove result : " << state.getText();
+//    LOG(WARNING) << "PointPlanner coreMove result : " << state.getText();
     PointRoutine::instance().pointDone(state);
 }
 
@@ -118,10 +118,10 @@ void PointPlanner::goToPath(const RealBlock &block) {
         localInflationRadius.d(default_inflation_radius);
     }
 
-    LOG(WARNING) << "PointPlanner block step --  current_step : " << block.current_step
-                 << "  , goal_step : " << block.goal_step
-                 << "  , current_goal : " << block.current_goal
-                 << "  , plannerPoints.size : " << block.plannerPoints.size();
+//    LOG(WARNING) << "PointPlanner block step --  current_step : " << block.current_step
+//                 << "  , goal_step : " << block.goal_step
+//                 << "  , current_goal : " << block.current_goal
+//                 << "  , plannerPoints.size : " << block.plannerPoints.size();
     replan_msgs::ReplanGoal path;
     if (block.goal_step >= block.plannerPoints.size()) {
         cpToPath(std::vector<RealPoint>{block.plannerPoints[block.plannerPoints.size() - 1]},
