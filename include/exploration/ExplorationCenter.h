@@ -49,9 +49,9 @@ private:
 
     cache::lru_cache<std::string, RoomCoverage> coverageCache = cache::lru_cache<std::string, RoomCoverage>(3);
 
-    void generatePlanningPath(const cv::Mat &room_map, ExplorationModel model, int explorer_mode,
-                              bool ordain_start, const cv::Point &start_position, bool addProhibition,
-                              std::vector<geometry_msgs::Pose2D> &exploration_path,
+    void generatePlanningPath(const cv::Mat &room_map, cv::Point2d map_origin, ExplorationModel model,
+                              int explorer_mode, bool ordain_start, const cv::Point &start_position,
+                              bool addProhibition, std::vector<geometry_msgs::Pose2D> &exploration_path,
                               std::vector<cv::Point> &point_path,
                               std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
@@ -108,6 +108,7 @@ public:
     RoomCoverage obtainSubregionPath();
 
     void infinitelyNearBoundary(const cv::Mat &room_map,
+                                const cv::Point2d& map_origin,
                                 bool addProhibition,
                                 std::vector<geometry_msgs::Pose2D> &pose_path,
                                 std::vector<cv::Point> &point_path,
@@ -115,6 +116,7 @@ public:
 
     void
     generatePlanningPathRect(const cv::Mat &room_map,
+                             const cv::Point2d& map_origin,
                              int explorer_mode,
                              bool addProhibition,
                              std::vector<geometry_msgs::Pose2D> &exploration_path,
@@ -123,6 +125,7 @@ public:
 
     void
     generatePlanningPathSub(const cv::Mat &room_map,
+                            const cv::Point2d& map_origin,
                             int explorer_mode,
                             bool addProhibition,
                             std::vector<geometry_msgs::Pose2D> &exploration_path,
@@ -131,6 +134,7 @@ public:
 
     void
     generatePlanningPathFull(const cv::Mat &room_map,
+                             const cv::Point2d& map_origin,
                              int explorer_mode,
                              bool addProhibition,
                              std::vector<geometry_msgs::Pose2D> &exploration_path,
@@ -138,6 +142,7 @@ public:
                              std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
 
     void generatePlanningSegmentationPath(const cv::Mat &room_map,
+                                          const cv::Point2d& map_origin,
                                           cv::Mat segmented_map, std::vector<Room> rooms,
                                           int explorer_mode,
                                           bool addProhibition,

@@ -55,6 +55,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
     SegmentationCenter &segmentationCenter = SegmentationCenter::instance();
 
     const cv::Mat &baseMap = segmentationCenter.generateMat();
+    const cv::Point2d &mapOrigin = MapAttributeSingleton::instance().getMapOrigin();
 
     std::vector<geometry_msgs::Pose2D> exploration_path;
     std::vector<cv::Point> point_path;
@@ -82,7 +83,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             std::vector<cv::Point> sub_point_path;
             std::vector<std::vector<geometry_msgs::Pose2D>> sub_complex_path;
             try {
-                explorationCenter.generatePlanningPathRect(zoned_image,
+                explorationCenter.generatePlanningPathRect(zoned_image, mapOrigin,
                                                            task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
                                                                                : Environment::instance().explorer_mode,
                                                            !task.isVerifyMode(),
@@ -161,7 +162,13 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
         } else {
             if (task.isAsyncMap()) {
                 const cv::Mat &asyncMap = SegmentationCenter::instance().generateMat(task.getMapId());
-                explorationCenter.generatePlanningPathFull(asyncMap,
+                MapAttribute mapAttribute;
+                mapAttribute.attrPath =
+                        path::robot_slam_map_dir() + task.getMapId() + path::separator() + path::mymap_yaml;
+                if (!MapAttributeSingleton::readAnyMapInfo(mapAttribute))
+                    throw app::exception(make_error_code(error::map_id_does_not_exist));
+
+                explorationCenter.generatePlanningPathFull(asyncMap, mapAttribute.originPoint,
                                                            task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
                                                                                : Environment::instance().explorer_mode,
                                                            true,
@@ -189,7 +196,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
 
             const cv::Mat &oneMap = segmentationCenter.choiceOneRoom(segmented_map, rooms,
                                                                      subregion.getSubregionValue());
-            explorationCenter.generatePlanningPathSub(oneMap,
+            explorationCenter.generatePlanningPathSub(oneMap, mapOrigin,
                                                       task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
                                                                           : Environment::instance().explorer_mode,
                                                       !task.isVerifyMode(),
@@ -207,7 +214,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
         }
 
     } else if (mode == TaskMode::Line) {
-        explorationCenter.infinitelyNearBoundary(baseMap, true, exploration_path, point_path, complex_path);
+        explorationCenter.infinitelyNearBoundary(baseMap, mapOrigin, true, exploration_path, point_path, complex_path);
     }
 
     boost::uuids::uuid uuid = boost::uuids::random_generator()();

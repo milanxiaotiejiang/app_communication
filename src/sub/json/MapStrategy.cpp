@@ -257,12 +257,6 @@ std::string ChangeMapStrategy::handler(std::string params) {
 
     MapControl::instance().changeMapServer();
 
-    if (Environment::instance().no_station_mapping_mode) {
-        int step = NodeControl::instance().restoreWork();
-        if (step != 2)
-            throw app::exception(make_error_code(error::map_switching_failed));
-    }
-
     return "";
 }
 

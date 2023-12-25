@@ -31,29 +31,25 @@ void MultipleMapSubscribe::multipleMapCreateSubscribeCallback(const std_msgs::In
         MapScore mapScore;
         if (data == 0) {
             LOG(ERROR) << "input data must > 0 "
-                          "\n 1 try_to_enter."
-                          "\n 2 Start drawing map."
-                          "\n 3 The map needs to be rebuilt and the construction is over."
-                          "\n 4 End mapping and replace existing map."
-                          "\n 5 End mapping, replace existing maps, and delete relevant resources from existing maps."
-                          "\n >5 Create maps separately as name_map_0'data'.";
+                          "\n 1 Start drawing map."
+                          "\n 2 The map needs to be rebuilt and the construction is over."
+                          "\n 3 End mapping and replace existing map."
+                          "\n 4 End mapping, replace existing maps, and delete relevant resources from existing maps."
+                          "\n >4 Create maps separately as name_map_0'data'.";
         } else if (data == 1) {
-            RobotTryEnterModeStrategy robotTryEnterModeStrategy;
-            robotTryEnterModeStrategy.handler(0);
-        } else if (data == 2) {
             StartMapStrategy startMapStrategy;
             startMapStrategy.handler("");
-        } else if (data == 3) {
+        } else if (data == 2) {
             // 地图创建失败，需要重新创建
             BuildMapParam mapParam(false, false, false, "");
             EndMapStrategy endMapStrategy;
             mapScore = endMapStrategy.handler(mapParam);
-        } else if (data == 4) {
+        } else if (data == 3) {
             // 需要重新绘制当前地图，并且不删除相关资源
             BuildMapParam mapParam(true, false, false, "");
             EndMapStrategy endMapStrategy;
             mapScore = endMapStrategy.handler(mapParam);
-        } else if (data == 5) {
+        } else if (data == 4) {
             // 需要重新绘制当前地图，并且删除相关资源
             BuildMapParam mapParam(true, true, false, "");
             EndMapStrategy endMapStrategy;
@@ -124,9 +120,11 @@ void MultipleMapSubscribe::buildManagerSubscribeCallback(const std_msgs::Int32 &
         } else if (flag.data == 10001) {
             SegmentationDataBase::instance().removeMapElevator(SegmentationDataBase::instance().getDbMap().id);
         } else if (flag.data == 10010) {
-            SegmentationDataBase::instance().changeBaseStation(SegmentationDataBase::instance().getDbMap().id, false);
+            SegmentationDataBase::instance().changeBaseStation(SegmentationDataBase::instance().getDbMap().id,
+                                                               false);
         } else if (flag.data == 10011) {
-            SegmentationDataBase::instance().changeBaseStation(SegmentationDataBase::instance().getDbMap().id, true);
+            SegmentationDataBase::instance().changeBaseStation(SegmentationDataBase::instance().getDbMap().id,
+                                                               true);
         } else if (flag.data == 100000) {
             SegmentationDataBase::instance().removeBuild();
             long buildId = SegmentationDataBase::instance().saveBuild("B6");

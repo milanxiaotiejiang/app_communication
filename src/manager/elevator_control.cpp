@@ -1018,7 +1018,7 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     elevator_post_thread = std::thread(&ElevatorControlManager::elevator_post_thread_func, this);
     elevator_post_thread.detach();
 
-    std::string portName = "/dev/ttyUSB1";  // 替换为您的串口设备名称
+    std::string portName = "/dev/ttyUSB10";  // 替换为您的串口设备名称
 
     try {
 

@@ -65,6 +65,11 @@ void NodeControl::initialize(ros::NodeHandle handle) {
     handle.param<int>("/node_controller/available/inu", availableInu, 0);
     NodeControl::instance().cameraFiringAvailable = availableInu;
 
+    if (isJumpImu) {
+        setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
+        return;
+    }
+
     if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::SUCCESS) {
         LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 已经启动,无需再次启动 ... ";
         setCameraFiringAvailable(Firing::INUStatus::SUCCESS);

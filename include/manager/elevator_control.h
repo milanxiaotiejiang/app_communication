@@ -321,8 +321,6 @@ private:
 
     void takeElevator(int fromFloor, int toFloor);
 
-    static void switchMapsInWorkMode(const std::string &fromMapId, const std::string &toMapId);
-
     void sendLightUpTargetFloor(int floor, const MessageSuccessCallback &successCallback);
 
     void sendDelayedDoorClosing();
@@ -361,6 +359,8 @@ public:
     void completePreCirculation(bool arrive);
 
     void completePostCirculation(bool arrive);
+
+    static void switchMapsInWorkMode(const std::string &fromMapId, const std::string &toMapId);
 };
 
 
