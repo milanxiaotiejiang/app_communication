@@ -86,12 +86,12 @@ public:
         return {currentMapAttribute.originPose.position.x, currentMapAttribute.originPose.position.y};
     }
 
-    const std::vector<std::vector<Point>> &getVirtualWallList() const {
-        return virtualWallList;
-    }
-
     const MapAttribute &getCurrentMapAttribute() const {
         return currentMapAttribute;
+    }
+
+    const std::vector<std::vector<Point>> &getVirtualWallList() const {
+        return virtualWallList;
     }
 
     const std::vector<std::vector<Point>> &getPenaltyZoneList() const {
@@ -128,6 +128,11 @@ public:
 
     void handleProhibition(std::vector<std::vector<Point>> &list,
                            const YAML::Node &node, int dusCount) const;
+
+    /**
+     * ros坐标转地图坐标
+     */
+    cv::Point rosPoint2MapPointAny(const cv::Mat &room_map, const cv::Point2d &map_origin, const Point &point) const;
 
     /**
      * ros坐标转地图坐标

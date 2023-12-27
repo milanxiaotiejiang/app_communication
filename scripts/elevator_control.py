@@ -3,6 +3,8 @@ import threading
 import serial
 import time
 import json
+
+
 class ElevatorController:
     def __init__(self, port, baudrate=115200, protocol_mac=None):
         self.serial_port = serial.Serial(port, baudrate, timeout=0.5)
@@ -45,9 +47,6 @@ class ElevatorController:
         """
         return self.elevator_protocol.decoder(resp)
 
-
-
-
     def create_and_send_command(self, addr, cmd_resp, user_data=bytearray()):
         """
         Constructs a command message and sends it.
@@ -65,10 +64,11 @@ class ElevatorController:
         command = self.elevator_protocol.construct_message(address=addr, cmd=cmd_resp, data=user_data)
         return self.send_command(command)
 
+
 if __name__ == "__main__":
-    
+
     # Create an instance of ElevatorController
-    ele_controller = ElevatorController("/dev/ttyUSB1")
+    ele_controller = ElevatorController("/dev/elevator")
 
     # Infinite loop to continuously accept user commands
     while True:
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
         # Accept user input
         user_input = input("请输入指令: ")
-        if not user_input or  int(user_input) not in [0,1,2,3,4,5,6]:
+        if not user_input or int(user_input) not in [0, 1, 2, 3, 4, 5, 6]:
             print("输入错误，请重新输入")
             continue
         # Process user input
@@ -96,7 +96,7 @@ if __name__ == "__main__":
                 print("输入错误，请重新输入")
                 continue
             response = ele_controller.create_and_send_command(bytearray([0x16, 0x27]), 0x60, bytearray([user_input]))
-        elif user_input ==2:
+        elif user_input == 2:
             # Command to query current floor
             response = ele_controller.create_and_send_command(bytearray([0x10, 0x27]), 0x61)
         elif user_input == 3:
@@ -111,10 +111,12 @@ if __name__ == "__main__":
             response = ele_controller.create_and_send_command(bytearray([0x00, 0x00]), 0x65)
         elif user_input == 5:
             # Command to automatically open the door
-            response = ele_controller.create_and_send_command(bytearray([0x2B, 0x00]), 0x66, bytearray([0x05, 0xe8, 0x03,0xe8, 0x03 ]))
+            response = ele_controller.create_and_send_command(bytearray([0x2B, 0x00]), 0x66,
+                                                              bytearray([0x05, 0xe8, 0x03, 0xe8, 0x03]))
         elif user_input == 6:
             # Command to unlock before opening the door
-            response = ele_controller.create_and_send_command(bytearray([0x2B, 0x00]), 0x67, bytearray([0xe8, 0x03,0xe8, 0x03 ]))
+            response = ele_controller.create_and_send_command(bytearray([0x2B, 0x00]), 0x67,
+                                                              bytearray([0xe8, 0x03, 0xe8, 0x03]))
         elif user_input == 0:
             # Exit the program
             exit(0)

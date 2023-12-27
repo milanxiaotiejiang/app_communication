@@ -27,8 +27,7 @@ double tcr::coverageProportion() {
 
 
         auto planMat = baseMap.clone();
-        auto mapOrigin = MapAttributeSingleton::instance().getMapOrigin();
-        ExplorationCenter::instance().generatePlanningPathFull(planMat, mapOrigin,
+        ExplorationCenter::instance().generatePlanningPathFull(SegmentationDataBase::instance().getDbMap().id,
                                                                ENERGY_FUNCTIONAL_EXPLORER_MODE, false,
                                                                exploration_path, point_path, complex_path);
 

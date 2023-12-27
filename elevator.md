@@ -1,49 +1,63 @@
-/home/admin1/Downloads/CLion-2021.3.4/clion-2021.3.4/bin/cmake/linux/bin/cmake --build /home/admin1/app_ws/src/build/app_communication --target rec_app_node
+#### build
 
-node_control
-0	
-1	SLEEPING
-2	WORKING
-3	MAPPING
+/home/admin1/cc/CLion-2023.2/clion-2023.2/bin/cmake/linux/x64/bin/cmake --build
+/home/admin1/app_ws/build/app_communication --target rec_app_node -j 6
 
-segmentation_order
-0	pause
-1	resume
-2	UrgencyStop true
-3	UrgencyStop false
-100	backToBase
-10010	IsCharging true
-10011	IsCharging false
-10000	quit_manual_mode
-10001	enter_manual_mode
+#### node_control
 
-segmentation_task
-x	task_id
+0
+1 SLEEPING
+2 WORKING
+3 MAPPING
 
-multiple_map_create
-1	Start drawing map.
-2	The map needs to be rebuilt and the construction is over.
-3	End mapping and replace existing map.
-4	End mapping, replace existing maps, and delete relevant resources from existing maps.
->4	Create maps separately as name_map_0'data'.
+#### segmentation_order
 
-multiple_map_switch *
-x	map_id
+0 pause
+1 resume
+2 UrgencyStop true
+3 UrgencyStop false
+100 backToBase
+10010 IsCharging true
+10011 IsCharging false
+10000 quit_manual_mode
+10001 enter_manual_mode
 
-build_manager
+#### segmentation_task
+
+x task_id
+
+#### multiple_map_create
+
+1 Start drawing map.
+2 The map needs to be rebuilt and the construction is over.
+3 End mapping and replace existing map.
+4 End mapping, replace existing maps, and delete relevant resources from existing maps.
+> 4 Create maps separately as name_map_0'data'.
+
+#### multiple_map_switch *
+
+x map_id
+
+#### build_manager
+
 -2、 -1、【1、 18】 Set the floor to data for the current map
-100	Original base station mapping.
-101	No base station mapping.
-10000	Add elevator points to the current map.
-10001	Remove elevator points to the current map.
-10010	Set the current map to have no base stations.
-10011	Set the current map to have base stations.
-100000	Build a building named B6 and associate it with all maps.
+100 Original base station mapping.
+101 No base station mapping.
+10000 Add elevator points to the current map.
+10001 Remove elevator points to the current map.
+10010 Set the current map to have no base stations.
+10011 Set the current map to have base stations.
+100000 Build a building named B6 and associate it with all maps.
 
-1
+#### flow
+
+1.
+
 roslaunch robot_slam view_nav.launch
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 101"
-2
+
+2.
+
 rostopic pub -1 /multiple_map_create std_msgs/Int32 "data: 1"
 rostopic pub -1 /multiple_map_create std_msgs/Int32 "data: 10"(6df28edc-1df4-4505-a148-f0302ec3c139)
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 100000"
@@ -53,7 +67,9 @@ rostopic pub -1 /node_control std_msgs/Int32 "data: 2"
 rostopic pub -1 /manual_push std_msgs/Int32 "data: 2"
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 10000"
 rostopic pub -1 /node_control std_msgs/Int32 "data: 1"
-3
+
+3.
+
 rostopic pub -1 /multiple_map_create std_msgs/Int32 "data: 1"
 rostopic pub -1 /multiple_map_create std_msgs/Int32 "data: 40"(54aad944-80e5-4ba5-bd46-a8256a601333)
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 100000"
@@ -61,13 +77,17 @@ rostopic pub -1 /build_manager std_msgs/Int32 "data: 4"
 rostopic pub -1 /node_control std_msgs/Int32 "data: 2"
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 10000"
 rostopic pub -1 /node_control std_msgs/Int32 "data: 1"
-4
+
+4.
+
 add prohibition
 add task (28)
 rostopic pub -1 /manual_push std_msgs/Int32 "data: 2"
 rostopic pub -1 /manual_push std_msgs/Int32 "data: 0"
 rostopic pub -1 /multiple_map_switch std_msgs/String "data: '6df28edc-1df4-4505-a148-f0302ec3c139'"
-5
+
+5.
+
 rostopic pub -1 /segmentation_task std_msgs/Int32 "data: 28"
 
 

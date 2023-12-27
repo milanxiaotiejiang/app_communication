@@ -11,12 +11,12 @@ class ElevatorProtocol:
         else:
             self.addr = address
 
-        if not mac: 
+        if not mac:
             self.mac = bytearray([0x11, 0x22, 0x33, 0x44, 0x55, 0x66])
         else:
             self.mac = mac
-            
-        self.data_fixed = bytearray([0x01, 0x02, 0x03, 0x04,0x05, 0x06, 0x07, 0x08, 0x9, 0x10, 0x11, 0x12])
+
+        self.data_fixed = bytearray([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x9, 0x10, 0x11, 0x12])
 
     def construct_payload(self, address=None, cmd=None, data=None):
         """
@@ -30,22 +30,21 @@ class ElevatorProtocol:
         if address is not None:
             self.addr = address
 
-
         # Construct the payload
         payload = bytearray()
         payload.append(self.flag)
         payload += self.addr
-        payload+=self.mac
+        payload += self.mac
 
         payload_data = bytearray()
-        payload_data+=data
-        payload_data+=self.data_fixed
+        payload_data += data
+        payload_data += self.data_fixed
 
         payload_data_length = len(payload_data)
 
         payload.append(payload_data_length)
         payload.append(cmd)
-        payload+=payload_data
+        payload += payload_data
 
         return payload
 
@@ -64,7 +63,7 @@ class ElevatorProtocol:
         return checksum
 
     def construct_message(self, address=None, cmd="", data=""):
-        
+
         """
         Constructs the complete message with checksum.
 
@@ -75,18 +74,16 @@ class ElevatorProtocol:
         :return: Complete message as bytes
         """
         payload = self.construct_payload(address, cmd=cmd, data=data)
-        
-        length = len(payload) # Length includes the checksum byte
-        checksum = self.calculate_checksum(length, payload)
 
+        length = len(payload)  # Length includes the checksum byte
+        checksum = self.calculate_checksum(length, payload)
 
         res = bytearray()
         res += self.HEADER
         res += bytearray([length])
-        res += payload 
+        res += payload
         res += bytearray([checksum])
         return res
-
 
     def decoder(self, response):
         # If response is empty, return None
@@ -99,49 +96,49 @@ class ElevatorProtocol:
 
         # If the length of the response doesn't match the expected length, print an error message and return an empty dictionary
         if not data_len + 11 + 4 == len(response):
-            print(f"Response length is not correct: {data_len} + 11  + 4  is qual to {len(response)} ? {data_len + 11 + 4 == len(response)}  ")
+            print(
+                f"Response length is not correct: {data_len} + 11  + 4  is qual to {len(response)} ? {data_len + 11 + 4 == len(response)}  ")
             return {}
 
         # Calculate checksum using the calculate_checksum function
         checksum = self.calculate_checksum(response[2], response[3:-1])
-        
+
         # If calculated checksum doesn't match the one in the response, print an error message and return an empty dictionary
         if checksum != response[-1]:
             print(f"Checksum is not correct: {checksum} != {response[-1]}")
             return {}
 
-
         # Define a dictionary of lambda functions to decode the response based on data length
         decode_funcs = {
             0x00: lambda: {
-                "resp": resp, 
-                "addr": [hex(b) for b in response[4:6]], 
+                "resp": resp,
+                "addr": [hex(b) for b in response[4:6]],
                 "data_len": data_len,
                 "data": {}},
             0x05: lambda: {
-                "resp": resp, 
-                "addr": [hex(b) for b in response[4:6]], 
+                "resp": resp,
+                "addr": [hex(b) for b in response[4:6]],
                 "data_len": data_len,
                 "data": {"status": response[13] & 0b11}},
             0x04: lambda: {
-                "resp": resp, 
-                "addr": [hex(b) for b in response[4:6]], 
+                "resp": resp,
+                "addr": [hex(b) for b in response[4:6]],
                 "data_len": data_len,
                 "data": {
-                    "floor": response[14] if response[14] <= 200 else -(response[14] % 200), 
-                    "gate_status": (response[15] >> 6) & 0b11, 
-                    "last_direction": (response[15] >> 4) & 0b11, 
-                    "enabled": (response[15] >> 2) & 0b11, 
+                    "floor": response[14] if response[14] <= 200 else -(response[14] % 200),
+                    "gate_status": (response[15] >> 6) & 0b11,
+                    "last_direction": (response[15] >> 4) & 0b11,
+                    "enabled": (response[15] >> 2) & 0b11,
                     "next_direction": (response[15] >> 0) & 0b11}},
             0x10: lambda: {
                 "resp": resp,
                 "addr": [hex(b) for b in response[4:6]],
                 "data_len": data_len,
                 "data": {
-                    "floor": response[14] if response[14] <= 200 else -(response[14] % 200), 
-                    "gate_status": (response[15] >> 6) & 0b11, 
-                    "last_direction": (response[15] >> 4) & 0b11, 
-                    "enabled": (response[15] >> 2) & 0b11, 
+                    "floor": response[14] if response[14] <= 200 else -(response[14] % 200),
+                    "gate_status": (response[15] >> 6) & 0b11,
+                    "last_direction": (response[15] >> 4) & 0b11,
+                    "enabled": (response[15] >> 2) & 0b11,
                     "next_direction": (response[15] >> 0) & 0b11,
                     "stop_time": response[19] << 8 + response[18],
                     "door_open_time": int(response[20] * 0.1),
@@ -151,9 +148,11 @@ class ElevatorProtocol:
         # Return the decoded response by calling the appropriate lambda function based on data length
         # If data length is not in the dictionary, return None
         return decode_funcs.get(data_len, lambda: None)()
+
+
 # Example usage
 if __name__ == "__main__":
-    protocol = ElevatorProtocol() # Variable length data
+    protocol = ElevatorProtocol()  # Variable length data
 
     addr = bytearray([0x16, 0x27])
     cmd_resp = 0x60

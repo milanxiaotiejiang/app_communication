@@ -80,11 +80,16 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
             exitElevator();
         } else if (flag.data == 1) {
             enterElevator();
+        } else if (flag.data == 2) {
+            ttSendLightUpTargetFloor();
         } else if (flag.data == 100) {
             if (!NodeWorkModeManager::instance().enterWorkMode(2)) {
                 throw app::exception(make_error_code(error::mode_switching_is_not_supported));
             }
         }
+
+        //['0x7f 0xf7 0x18 0x29 0x16 0x27 0x11 0x22 0x33 0x44 0x55 0x66 0xd 0x60 0x1 0x1 0x2 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0x10 0x11 0x12 0x9']
+        //  0x7f 0xf7 0x18 0x29 0x16 0x27 0x11 0x22 0x33 0x44 0x55 0x66 0xd 0x60 0x1 0x1 0x2 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0x10 0x11 0x12 0x9
     } catch (app::exception const &e) {
         LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
     } catch (const std::exception &e) {
@@ -323,8 +328,17 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
 //        }
 //        size_t len = boost::asio::read(serial, boost::asio::buffer(buf), my_completion_condition, ec);
 
+//        if (ec) {
+//            LOG_IF(ERROR, DEBUG_ELEVATOR) << "Read error: " << ec.message();
+//            break;
+//        }
+//
+//        for (auto byte: buf) {
+//            std::cout << "0x" << std::hex << static_cast<int>(byte) << " ";
+//        }
+//        std::cout << std::endl;
 
-        std::vector<unsigned char> temp_buf(16);
+        std::vector<unsigned char> temp_buf(128);
         size_t len = serial.read_some(boost::asio::buffer(temp_buf), ec);
         if (ec) {
             buffer.clear();
@@ -442,15 +456,6 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
 
         }
 
-
-        //write
-        //['0x7f'0xf7'0x17'0x29'0x10'0x27'0x11'0x22'0x33'0x44'0x55'0x66'0xc'0x61'0x1'0x2'0x3'0x4'0x5'0x6'0x7'0x8'0x9'0x10'0x11'0x12'0x1']
-        //  0x7f 0xf7 0x17 0x29 0x10 0x27 0x11 0x22 0x33 0x44 0x55 0x66 0xc 0x61 0x1 0x2 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0x10 0x11 0x12 0x1
-        //read
-        //['0x7f'0xf7'0xf'0x29'0x10'0x27'0x11'0x22'0x33'0x44'0x55'0x66'0x4'0x61'0x3'0x7'0xb8'0xb'0xb4']
-        //  0x7f 0xf7 0xf 0x29 0x10 0x27 0x11 0x22 0x33 0x44 0x55 0x66 0x4 0x61 0x7 0x7 0x58 0x1b 0x40
-
-
         // 清除处理过的消息
         buffer.erase(buffer.begin(), buffer.begin() + length + 4);
     }
@@ -488,9 +493,9 @@ void ElevatorControlManager::arrive_floor_thread_func() {
                 wait_to_cv.notify_one();
             }
         }
-        if (!Environment::instance().isRealEnvironment) {
+        if (TT_IMITATE_ARRIVED) {
             imitateArrivedCount++;
-            if (imitateArrivedCount > 5) {
+            if (imitateArrivedCount > 10) {
                 LOG_IF(INFO, DEBUG_ELEVATOR)
                                 << "ElevatorControlManager pre 模拟已经到达 " << mTargetFloor << " 层 ... ";
                 unseal = false;
@@ -897,6 +902,8 @@ void ElevatorControlManager::sendLightUpTargetFloor(int floor, const MessageSucc
     std::vector<uint8_t> data;
     data.push_back(EleStatus::reverseFloorRule(floor));
     eleProtocol.setData(data);
+    //todo
+    eleProtocol.setAddress({0x16, 0x27});
     sendSyncMessage(MessageFactory::charToMessageId(CMD_LIGHT_UP_TARGET_FLOOR), eleProtocol.getProtocol(),
                     successCallback,
                     [this](LadderControlError) {
@@ -1018,7 +1025,7 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     elevator_post_thread = std::thread(&ElevatorControlManager::elevator_post_thread_func, this);
     elevator_post_thread.detach();
 
-    std::string portName = "/dev/ttyUSB10";  // 替换为您的串口设备名称
+    std::string portName = "/dev/elevator";  // 替换为您的串口设备名称
 
     try {
 
@@ -1053,6 +1060,7 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
         serial_sender_thread.detach();
         serial_receiver_thread.detach();
         query_floor_thread.detach();
+        arrive_floor_thread.detach();
     } catch (const std::exception &e) {
         LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
     } catch (...) {
@@ -1193,4 +1201,10 @@ void ElevatorControlManager::completePostCirculation(const bool arrive) {
     } else {
         goPostError();
     }
+}
+
+void ElevatorControlManager::ttSendLightUpTargetFloor() {
+    sendLightUpTargetFloor(1, [this](const EleProtocol &response) {
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << 1 << " ... ";
+    });
 }

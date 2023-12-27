@@ -13,6 +13,7 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "simulation.h"
+#include "db/segmentation_data_base.h"
 
 CoveragePathGenerator::CoveragePathGenerator() {
     CoveragePathGenerator::make_thread(run, this);
@@ -24,9 +25,7 @@ CoveragePathGenerator::CoveragePathGenerator() {
 void CoveragePathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &exploration_path,
                                           std::vector<cv::Point> &point_path,
                                           std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
-    const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
-    const cv::Point2d &mapOrigin = MapAttributeSingleton::instance().getMapOrigin();
-    ExplorationCenter::instance().generatePlanningPathFull(baseMap, mapOrigin,
+    ExplorationCenter::instance().generatePlanningPathFull(SegmentationDataBase::instance().getDbMap().id,
                                                            Environment::instance().explorer_mode, true,
                                                            exploration_path, point_path, complex_path);
 }
@@ -178,12 +177,11 @@ SubregionPathGenerator::SubregionPathGenerator() {
 void SubregionPathGenerator::realGenerator(std::vector<geometry_msgs::Pose2D> &exploration_path,
                                            std::vector<cv::Point> &point_path,
                                            std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
-    const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
-    const cv::Point2d &mapOrigin = MapAttributeSingleton::instance().getMapOrigin();
     cv::Mat segmented_map;
     std::vector<Room> rooms;
     SegmentationCenter::instance().storage2Memory(segmented_map, rooms);
-    ExplorationCenter::instance().generatePlanningSegmentationPath(baseMap, mapOrigin, segmented_map, rooms,
+    ExplorationCenter::instance().generatePlanningSegmentationPath(SegmentationDataBase::instance().getDbMap().id,
+                                                                   segmented_map, rooms,
                                                                    Environment::instance().explorer_mode, true,
                                                                    exploration_path, point_path, complex_path);
 }

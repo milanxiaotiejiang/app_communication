@@ -32,6 +32,7 @@ const unsigned char CMD_DELAYED_DOOR_CLOSING = 0x62;//MessageIdEnum::DELAYED_DOO
 const unsigned char CMD_AUTOMATIC_DOOR_OPENING = 0x66;//MessageIdEnum::AUTOMATIC_DOOR_OPENING
 
 #define SERIAL_PORT_PRINT false
+#define TT_IMITATE_ARRIVED true
 
 #define MAXIMUM_DELAY_TIME 9
 
@@ -361,6 +362,8 @@ public:
     void completePostCirculation(bool arrive);
 
     static void switchMapsInWorkMode(const std::string &fromMapId, const std::string &toMapId);
+
+    void ttSendLightUpTargetFloor();
 };
 
 

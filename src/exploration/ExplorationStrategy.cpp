@@ -45,20 +45,24 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
 
         if (targetId == -1) {
             if (rooms.empty()) {
-                explorationCenter.generatePlanningPathFull(baseMap, mapOrigin, explorerMode, true,
+                explorationCenter.generatePlanningPathFull(SegmentationDataBase::instance().getDbMap().id,
+                                                           explorerMode, true,
                                                            exploration_path, point_path, complex_path);
             } else {
-                explorationCenter.generatePlanningSegmentationPath(baseMap, mapOrigin, segmented_map, rooms,
+                explorationCenter.generatePlanningSegmentationPath(SegmentationDataBase::instance().getDbMap().id,
+                                                                   segmented_map, rooms,
                                                                    explorerMode, true,
                                                                    exploration_path, point_path, complex_path);
             }
         } else {
             const cv::Mat &oneMap = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, targetId);
-            explorationCenter.generatePlanningPathSub(oneMap, mapOrigin, explorerMode, true,
+            explorationCenter.generatePlanningPathSub(SegmentationDataBase::instance().getDbMap().id, oneMap,
+                                                      explorerMode, true,
                                                       exploration_path, point_path, complex_path);
         }
     } else {
-        explorationCenter.generatePlanningPathFull(baseMap, mapOrigin, explorerMode, true,
+        explorationCenter.generatePlanningPathFull(SegmentationDataBase::instance().getDbMap().id,
+                                                   explorerMode, true,
                                                    exploration_path, point_path, complex_path);
     }
 

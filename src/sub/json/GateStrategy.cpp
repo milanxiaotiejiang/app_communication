@@ -76,8 +76,12 @@ long MultipleModifyGateStrategy::handler(GateSimpleInfo params) {
     originalGate.setFactoryId(params.getFactoryId());
 
     std::vector<Room> rooms;
-    SegmentationCenter::instance().gateSegmentation(segmented_map, mapAttribute.originPoint, rooms,
-                                                    SegmentationDataBase::info2Gate(originalGate));
+    SegmentationCenter::instance()
+            .gateSegmentation(segmented_map,
+                              {mapAttribute.originPose.position.x, mapAttribute.originPose.position.y},
+                              rooms,
+                              SegmentationDataBase::info2Gate(originalGate)
+            );
 
     params.setOMapId(mapId);
     return SegmentationDataBase::instance().modifyGateInfo(originalGate);

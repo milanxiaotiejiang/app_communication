@@ -135,6 +135,18 @@ MapAttributeSingleton::handleProhibition(std::vector<std::vector<Point>> &list, 
     }
 }
 
+cv::Point MapAttributeSingleton::rosPoint2MapPointAny(const cv::Mat &room_map, const cv::Point2d &map_origin,
+                                                      const Point &point) const {
+    double rows = room_map.rows * map_resolution_from_subscription;
+    double cols = room_map.cols * map_resolution_from_subscription;
+    double x = cols - (point.getY() - map_origin.x);
+    double y = rows - (point.getX() - map_origin.y);
+    cv::Point position;
+    position.x = x / map_resolution_from_subscription;
+    position.y = y / map_resolution_from_subscription;
+    return position;
+}
+
 cv::Point MapAttributeSingleton::rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const {
     double rows = room_map.rows * map_resolution_from_subscription;
     double cols = room_map.cols * map_resolution_from_subscription;

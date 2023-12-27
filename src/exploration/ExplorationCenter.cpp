@@ -74,10 +74,10 @@ void ExplorationCenter::initialize(ros::NodeHandle handle) {
 
     //3
     if (DISPLAY_TRAJECTORY_EFFECT) {
-        const cv::Mat &map = SegmentationCenter::instance().generateMat();
-        const cv::Point2d &mapOrigin = MapAttributeSingleton::instance().getMapOrigin();
-        generatePlanningPathFull(map, mapOrigin, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
-                                 exploration_path, point_path, complex_path);
+//        const cv::Mat &map = SegmentationCenter::instance().generateMat();
+//        const cv::Point2d &mapOrigin = MapAttributeSingleton::instance().getMapOrigin();
+//        generatePlanningPathFull(map, mapOrigin, BOUSTROPHEDON_BOW_SHAPED_EXPLORER_MODE, true,
+//                                 exploration_path, point_path, complex_path);
     }
 
     //4
@@ -129,26 +129,55 @@ RoomCoverage ExplorationCenter::obtainSubregionPath() {
     return subregionPathGenerator.obtainCoveragePath(overtime);
 }
 
-void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, cv::Point2d map_origin, ExplorationModel model,
-                                             int explorer_mode, bool ordain_start, const cv::Point &start_position,
-                                             bool addProhibition, std::vector<geometry_msgs::Pose2D> &exploration_path,
-                                             std::vector<cv::Point> &point_path,
-                                             std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
-    cv::Mat map = room_map.clone();
+void ExplorationCenter::buildBasicElementsTakeEntireMap(
+        const std::string &mapId, bool add_prohibition,
+        bool ordain_start, const cv::Point &start_position,
+        cv::Mat &build_map, cv::Point2d &build_origin,
+        cv::Point &build_station_point, cv::Point &build_robot_position,
+        std::vector<std::vector<Point>> &virtual_wall_list,
+        std::vector<std::vector<Point>> &penalty_zone_list) {
 
-    const cv::Point &stationPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(map, Point(0, 0));
+    cv::Mat basic_map;
 
-    cv::Point robotPosition = MapAttributeSingleton::instance().getRobotPositionPoint(room_map);
-    if (!DISPLAY_TRAJECTORY_EFFECT) {
-        if (ordain_start) {
-            robotPosition.x = start_position.x;
-            robotPosition.y = start_position.y;
+    if (SegmentationDataBase::instance().getDbMap().id == mapId) {
+        basic_map = SegmentationCenter::instance().generateMat();
+        build_origin = MapAttributeSingleton::instance().getMapOrigin();
+        if (add_prohibition) {
+            virtual_wall_list = MapAttributeSingleton::instance().getVirtualWallList();
+            penalty_zone_list = MapAttributeSingleton::instance().getPenaltyZoneList();
         }
+    } else {
+        basic_map = SegmentationCenter::instance().generateMat(mapId);
+        MapAttribute mapAttribute;
+        mapAttribute.attrPath =
+                path::robot_slam_map_dir() + mapId + path::separator() + path::mymap_yaml;
+        if (!MapAttributeSingleton::readAnyMapInfo(mapAttribute))
+            throw app::exception(make_error_code(error::map_id_does_not_exist));
+        build_origin = {mapAttribute.originPose.position.x, mapAttribute.originPose.position.y};
+        if (add_prohibition)
+            loadMultipleProhibition(mapId, virtual_wall_list, penalty_zone_list);
     }
 
-    if (addProhibition) {
+    build_station_point = MapAttributeSingleton::instance()
+            .rosPoint2MapPointAny(basic_map, build_origin, Point(0, 0));
+
+    if (SegmentationDataBase::instance().getDbMap().id == mapId) {
+        build_robot_position = MapAttributeSingleton::instance().getRobotPositionPoint(basic_map);
+        if (!DISPLAY_TRAJECTORY_EFFECT) {
+            if (ordain_start) {
+                build_robot_position.x = start_position.x;
+                build_robot_position.y = start_position.y;
+            }
+        }
+    } else {
+        build_robot_position.x = build_station_point.x;
+        build_robot_position.y = build_station_point.y;
+    }
+
+    cv::Mat map = basic_map.clone();
+    if (add_prohibition) {
         //禁区虚拟墙
-        cv::Mat prohibition_image = prohibitionMat(map);
+        cv::Mat prohibition_image = prohibitionMat(map, build_origin, virtual_wall_list, penalty_zone_list);
 //        if (DISPLAY_TRAJECTORY_EFFECT) {
 //            cv::imshow("prohibition_image", prohibition_image);
 //            cv::waitKey();
@@ -158,12 +187,82 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, cv::Point2
         cv::bitwise_xor(map, andMat, map);
     }
 
+    build_map = map.clone();
+}
 
-    LOG_IF(INFO, DEBUG_EXPLORATION) << "generatePlanningPath function explorer_mode : " << explorer_mode
-                                    << ", addProhibition : " << addProhibition;
+void ExplorationCenter::buildBasicElementsTakeAfferentMap(
+        const std::string &mapId, cv::Mat &room_map, bool add_prohibition,
+        bool ordain_start, const cv::Point &start_position,
+        cv::Mat &build_map, cv::Point2d &build_origin,
+        cv::Point &build_station_point, cv::Point &build_robot_position,
+        std::vector<std::vector<Point>> &virtual_wall_list,
+        std::vector<std::vector<Point>> &penalty_zone_list) {
+
+    if (SegmentationDataBase::instance().getDbMap().id == mapId) {
+        build_origin = MapAttributeSingleton::instance().getMapOrigin();
+        if (add_prohibition) {
+            virtual_wall_list = MapAttributeSingleton::instance().getVirtualWallList();
+            penalty_zone_list = MapAttributeSingleton::instance().getPenaltyZoneList();
+        }
+    } else {
+        MapAttribute mapAttribute;
+        mapAttribute.attrPath =
+                path::robot_slam_map_dir() + mapId + path::separator() + path::mymap_yaml;
+        if (!MapAttributeSingleton::readAnyMapInfo(mapAttribute))
+            throw app::exception(make_error_code(error::map_id_does_not_exist));
+        build_origin = {mapAttribute.originPose.position.x, mapAttribute.originPose.position.y};
+        if (add_prohibition)
+            loadMultipleProhibition(mapId, virtual_wall_list, penalty_zone_list);
+    }
+
+    build_station_point = MapAttributeSingleton::instance()
+            .rosPoint2MapPointAny(room_map, build_origin, Point(0, 0));
+
+    if (SegmentationDataBase::instance().getDbMap().id == mapId) {
+        build_robot_position = MapAttributeSingleton::instance().getRobotPositionPoint(room_map);
+        if (!DISPLAY_TRAJECTORY_EFFECT) {
+            if (ordain_start) {
+                build_robot_position.x = start_position.x;
+                build_robot_position.y = start_position.y;
+            }
+        }
+    } else {
+        build_robot_position.x = build_station_point.x;
+        build_robot_position.y = build_station_point.y;
+    }
+
+    cv::Mat map = room_map.clone();
+    if (add_prohibition) {
+        //禁区虚拟墙
+        cv::Mat prohibition_image = prohibitionMat(map, build_origin, virtual_wall_list, penalty_zone_list);
+//        if (DISPLAY_TRAJECTORY_EFFECT) {
+//            cv::imshow("prohibition_image", prohibition_image);
+//            cv::waitKey();
+//        }
+        cv::Mat andMat;
+        cv::bitwise_and(map, prohibition_image, andMat);
+        cv::bitwise_xor(map, andMat, map);
+    }
+
+    build_map = map.clone();
+}
+
+void
+ExplorationCenter::generatePlanningPath(const std::string &mapId, const cv::Mat &roomMap, cv::Point2d &mapOrigin,
+                                        cv::Point &stationPoint, cv::Point &robotPosition,
+                                        ExplorationModel model, int explorer_mode,
+                                        std::vector<std::vector<Point>> &virtual_wall_list,
+                                        std::vector<std::vector<Point>> &penalty_zone_list,
+                                        std::vector<geometry_msgs::Pose2D> &exploration_path,
+                                        std::vector<cv::Point> &point_path,
+                                        std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
+    auto map = roomMap.clone();
+
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "map-id : " << mapId;
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "generatePlanningPath function explorer_mode : " << explorer_mode;
     LOG_IF(INFO, DEBUG_EXPLORATION) << "map-size: " << map.rows << "x" << map.cols;
     LOG_IF(INFO, DEBUG_EXPLORATION) << "map-resolution: " << map_resolution_from_subscription << " m/cell";
-    LOG_IF(INFO, DEBUG_EXPLORATION) << "map-origin: " << map_origin << " m";
+    LOG_IF(INFO, DEBUG_EXPLORATION) << "map-origin: " << mapOrigin << " m";
     LOG_IF(INFO, DEBUG_EXPLORATION) << "starting-point: (" << robotPosition << " px";
 
 
@@ -211,14 +310,16 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, cv::Point2
         cv::erode(map, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size * 2 - 1);
         explorationErode(map, map, cv::MORPH_CROSS, map_prohibition_expand_size_);
     } else if (model == ExplorationModel::SUB) {
-        cv::Mat generate_map = loadGenerateMap(map_prohibition_expand_size_,
+        cv::Mat generate_map = loadGenerateMap(mapId, mapOrigin, virtual_wall_list, penalty_zone_list,
+                                               map_prohibition_expand_size_,
                                                plan.map_correction_closing_neighborhood_size * 2 - 1);
         cv::Mat temp;
         cv::bitwise_xor(map, generate_map, temp);
         cv::bitwise_and(map, temp, temp);
         cv::bitwise_xor(map, temp, map);
     } else if (model == ExplorationModel::RECT) {
-        cv::Mat generate_map = loadGenerateMap(map_prohibition_expand_size_,
+        cv::Mat generate_map = loadGenerateMap(mapId, mapOrigin, virtual_wall_list, penalty_zone_list,
+                                               map_prohibition_expand_size_,
                                                plan.map_correction_closing_neighborhood_size * 2 - 1);
 
         min_cell_area_ = 0;
@@ -262,7 +363,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, cv::Point2
         explorer_mode == BOUSTROPHEDON_RETROFLEX_EXPLORER_MODE) {
         BoustrophedonExplorer boustrophedon_explorer;
         boustrophedon_explorer.getExplorationPath(latelyMap, exploration_path, complex_path,
-                                                  map_resolution_from_subscription, robotPosition, map_origin,
+                                                  map_resolution_from_subscription, robotPosition, mapOrigin,
                                                   grid_spacing_in_pixel, grid_obstacle_offset_,
                                                   path_eps_, min_cell_area_, max_deviation_from_track_,
                                                   TSP_NEAREST_NEIGHBOR, explorer_mode, INTERPOLATION_OPERATION);
@@ -270,7 +371,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, cv::Point2
         EnergyFunctionalExplorator energy_functional_explorer;
         energy_functional_explorer.getExplorationPath(latelyMap, exploration_path, complex_path,
                                                       map_resolution_from_subscription,
-                                                      robotPosition, map_origin, grid_spacing_in_pixel,
+                                                      robotPosition, mapOrigin, grid_spacing_in_pixel,
                                                       path_eps_, INTERPOLATION_OPERATION);
     }
 
@@ -280,7 +381,7 @@ void ExplorationCenter::generatePlanningPath(const cv::Mat &room_map, cv::Point2
         std::cout << "cost getExplorationPath : " << (end_time - start_time) << " s " << std::endl;
 }
 
-void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
+void ExplorationCenter::optimizePlanningPath(const std::string &mapId, cv::Mat &room_map, cv::Point2d &map_origin,
                                              std::vector<geometry_msgs::Pose2D> &exploration_path,
                                              std::vector<cv::Point> &point_path,
                                              std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path,
@@ -288,8 +389,6 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
     if (exploration_path.empty()) {
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
-
-    cv::Point2d map_origin = MapAttributeSingleton::instance().getMapOrigin();
 
     LOG_IF(INFO, DEBUG_EXPLORATION) << "exploration_path front point size : " << exploration_path.size();
     if (exploration_path.size() < 3) {
@@ -389,8 +488,7 @@ void ExplorationCenter::optimizePlanningPath(const cv::Mat &room_map,
 
 }
 
-void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, const cv::Point2d &map_origin,
-                                               bool addProhibition,
+void ExplorationCenter::infinitelyNearBoundary(const std::string &mapId,
                                                std::vector<geometry_msgs::Pose2D> &pose_path,
                                                std::vector<cv::Point> &point_path,
                                                std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
@@ -403,17 +501,17 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, const cv
 
     std::unique_lock<std::recursive_mutex> lock(cv_mut);
 
-    cv::Mat map = room_map.clone();
+    cv::Mat build_map;
+    cv::Point2d build_origin;
+    cv::Point build_station_point;
+    cv::Point build_robot_position;
+    std::vector<std::vector<Point>> virtual_wall_list;
+    std::vector<std::vector<Point>> penalty_zone_list;
+    buildBasicElementsTakeEntireMap(mapId, true, false, cv::Point(0, 0),
+                                    build_map, build_origin, build_station_point, build_robot_position,
+                                    virtual_wall_list, penalty_zone_list);
 
-    const cv::Point &stationPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(map, Point(0, 0));
-
-    if (addProhibition) {
-        //禁区虚拟墙
-        cv::Mat prohibition_image = prohibitionMat(map);
-        cv::Mat andMat;
-        cv::bitwise_and(map, prohibition_image, andMat);
-        cv::bitwise_xor(map, andMat, map);
-    }
+    cv::Mat map = build_map.clone();
 
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
     double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
@@ -460,9 +558,9 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, const cv
 
     morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
 
-    drawBaseStation(map, stationPoint, grid_spacing_in_pixel + plan.range_near_base_station, cv::Scalar(0));
+    drawBaseStation(map, build_station_point, grid_spacing_in_pixel + plan.range_near_base_station, cv::Scalar(0));
 
-    cv::Mat latelyMap = findClosestPointRoom(map, stationPoint, min_cell_area_);
+    cv::Mat latelyMap = findClosestPointRoom(map, build_station_point, min_cell_area_);
 
     if (!removeUnconnectedRoomParts(latelyMap)) {
         LOG(ERROR)
@@ -477,10 +575,10 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, const cv
     int start_time = ros::Time::now().sec;
 
     InfinitelyNearBoundary infinitelyNearBoundary;
-    infinitelyNearBoundary.getExplorationPath(room_map.clone(), latelyMap,
+    infinitelyNearBoundary.getExplorationPath(build_map.clone(), latelyMap,
                                               pose_path, point_path, complex_path,
                                               map_resolution_from_subscription,
-                                              stationPoint, map_origin,
+                                              build_station_point, build_origin,
                                               plan.robot_radius,
                                               number_extension,
                                               distance_from_obstacles,
@@ -499,11 +597,12 @@ void ExplorationCenter::infinitelyNearBoundary(const cv::Mat &room_map, const cv
         throw app::exception(make_error_code(error::exploration_path_planning_failed));
     }
 
-    optimizePlanningPath(room_map, pose_path, point_path, complex_path, false);
+    optimizePlanningPath(mapId, build_map, build_origin,
+                         pose_path, point_path, complex_path, false);
 
 }
 
-void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, const cv::Point2d &map_origin,
+void ExplorationCenter::generatePlanningPathRect(const std::string &mapId, const cv::Mat &room_map,
                                                  int explorer_mode, bool addProhibition,
                                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
                                                  std::vector<cv::Point> &point_path,
@@ -520,25 +619,40 @@ void ExplorationCenter::generatePlanningPathRect(const cv::Mat &room_map, const 
         throw app::exception(make_error_code(error::in_creating_map));
     }
 
-    generatePlanningPath(room_map,
-                         map_origin,
+    auto base_map = room_map.clone();
+
+    cv::Mat build_map;
+    cv::Point2d build_origin;
+    cv::Point build_station_point;
+    cv::Point build_robot_position;
+    std::vector<std::vector<Point>> virtual_wall_list;
+    std::vector<std::vector<Point>> penalty_zone_list;
+    buildBasicElementsTakeAfferentMap(mapId, base_map, addProhibition, false, cv::Point(0, 0),
+                                      build_map, build_origin, build_station_point, build_robot_position,
+                                      virtual_wall_list, penalty_zone_list);
+
+    generatePlanningPath(mapId,
+                         build_map,
+                         build_origin,
+                         build_station_point,
+                         build_robot_position,
                          ExplorationModel::RECT,
                          explorer_mode,
-                         false,
-                         cv::Point(0, 0),
-                         addProhibition,
+                         virtual_wall_list,
+                         penalty_zone_list,
                          exploration_path,
                          point_path,
                          complex_path
     );
 
-    optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
+    optimizePlanningPath(mapId, build_map, build_origin,
+                         exploration_path, point_path, complex_path);
 
     LOG_IF(INFO, DEBUG_EXPLORATION)
                     << "------------------------- end generatePlanningPathRect -------------------------";
 }
 
-void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, const cv::Point2d &map_origin,
+void ExplorationCenter::generatePlanningPathSub(const std::string &mapId, const cv::Mat &room_map,
                                                 int explorer_mode, bool addProhibition,
                                                 std::vector<geometry_msgs::Pose2D> &exploration_path,
                                                 std::vector<cv::Point> &point_path,
@@ -555,25 +669,40 @@ void ExplorationCenter::generatePlanningPathSub(const cv::Mat &room_map, const c
         throw app::exception(make_error_code(error::in_creating_map));
     }
 
-    generatePlanningPath(room_map,
-                         map_origin,
+    auto map = room_map.clone();
+
+    cv::Mat build_map;
+    cv::Point2d build_origin;
+    cv::Point build_station_point;
+    cv::Point build_robot_position;
+    std::vector<std::vector<Point>> virtual_wall_list;
+    std::vector<std::vector<Point>> penalty_zone_list;
+    buildBasicElementsTakeAfferentMap(mapId, map, addProhibition, false, cv::Point(0, 0),
+                                      build_map, build_origin, build_station_point, build_robot_position,
+                                      virtual_wall_list, penalty_zone_list);
+
+    generatePlanningPath(mapId,
+                         room_map,
+                         build_origin,
+                         build_station_point,
+                         build_robot_position,
                          ExplorationModel::SUB,
                          explorer_mode,
-                         false,
-                         cv::Point(0, 0),
-                         addProhibition,
+                         virtual_wall_list,
+                         penalty_zone_list,
                          exploration_path,
                          point_path,
                          complex_path
     );
 
-    optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
+    optimizePlanningPath(mapId, build_map, build_origin,
+                         exploration_path, point_path, complex_path);
 
     LOG_IF(INFO, DEBUG_EXPLORATION)
                     << "------------------------- end generatePlanningPathSub -------------------------";
 }
 
-void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, const cv::Point2d &map_origin,
+void ExplorationCenter::generatePlanningPathFull(const std::string &mapId,
                                                  int explorer_mode, bool addProhibition,
                                                  std::vector<geometry_msgs::Pose2D> &exploration_path,
                                                  std::vector<cv::Point> &point_path,
@@ -590,25 +719,38 @@ void ExplorationCenter::generatePlanningPathFull(const cv::Mat &room_map, const 
         throw app::exception(make_error_code(error::in_creating_map));
     }
 
-    generatePlanningPath(room_map,
-                         map_origin,
+    cv::Mat build_map;
+    cv::Point2d build_origin;
+    cv::Point build_station_point;
+    cv::Point build_robot_position;
+    std::vector<std::vector<Point>> virtual_wall_list;
+    std::vector<std::vector<Point>> penalty_zone_list;
+    buildBasicElementsTakeEntireMap(mapId, addProhibition, false, cv::Point(0, 0),
+                                    build_map, build_origin, build_station_point, build_robot_position,
+                                    virtual_wall_list, penalty_zone_list);
+
+    generatePlanningPath(mapId,
+                         build_map,
+                         build_origin,
+                         build_station_point,
+                         build_robot_position,
                          ExplorationModel::FULL,
                          explorer_mode,
-                         false,
-                         cv::Point(0, 0),
-                         addProhibition,
+                         virtual_wall_list,
+                         penalty_zone_list,
                          exploration_path,
                          point_path,
                          complex_path
     );
 
-    optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
+    optimizePlanningPath(mapId, build_map, build_origin,
+                         exploration_path, point_path, complex_path);
 
     LOG_IF(INFO, DEBUG_EXPLORATION)
                     << "------------------------- end generatePlanningPathFull -------------------------";
 }
 
-void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map, const cv::Point2d &map_origin,
+void ExplorationCenter::generatePlanningSegmentationPath(const std::string &mapId,
                                                          cv::Mat segmented_map, std::vector<Room> rooms,
                                                          int explorer_mode, bool addProhibition,
                                                          std::vector<geometry_msgs::Pose2D> &exploration_path,
@@ -626,8 +768,17 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
         throw app::exception(make_error_code(error::in_creating_map));
     }
 
-    cv::Mat map = SegmentationCenter::instance().generateMat();
-    auto robotPosition = MapAttributeSingleton::instance().getRobotPositionPoint(map);
+    cv::Mat build_map;
+    cv::Point2d build_origin;
+    cv::Point build_station_point;
+    cv::Point build_robot_position;
+    std::vector<std::vector<Point>> virtual_wall_list;
+    std::vector<std::vector<Point>> penalty_zone_list;
+    buildBasicElementsTakeEntireMap(mapId, addProhibition, false, cv::Point(0, 0),
+                                    build_map, build_origin, build_station_point, build_robot_position,
+                                    virtual_wall_list, penalty_zone_list);
+
+    cv::Mat room_map = build_map.clone();
 
     std::vector<cv::Point> polygon_centers;
     std::vector<GeneralizedPolygon> cell_polygons;
@@ -651,7 +802,7 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
 
     int start_cell_index = 0;
     for (std::vector<GeneralizedPolygon>::iterator cell = cell_polygons.begin(); cell != cell_polygons.end(); ++cell)
-        if (cv::pointPolygonTest(cell->getVertices(), robotPosition, false) >= 0)
+        if (cv::pointPolygonTest(cell->getVertices(), build_robot_position, false) >= 0)
             start_cell_index = cell - cell_polygons.begin();
 
     std::vector<int> optimal_order;
@@ -663,7 +814,6 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
     std::map<int, std::vector<geometry_msgs::Pose2D>> each_pose_map;
     std::map<int, std::vector<cv::Point>> each_point_map;
     std::map<int, std::vector<std::vector<cv::Point>>> each_contour_map;
-    cv::Point start_position;
     bool hasError = false;
     for (int i = 0; i < optimal_order.size(); ++i) {
         int pos = optimal_order[i];
@@ -678,23 +828,27 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
         std::vector<geometry_msgs::Pose2D> child_exploration_path;
         std::vector<cv::Point> child_point_path;
         try {
-            ExplorationCenter::instance().generatePlanningPath(one_map,
-                                                               map_origin,
+            ExplorationCenter::instance().generatePlanningPath(mapId,
+                                                               one_map,
+                                                               build_origin,
+                                                               build_station_point,
+                                                               build_robot_position,
                                                                ExplorationModel::SUB,
                                                                explorer_mode,
-                                                               i != 0, start_position,
-                                                               addProhibition,
+                                                               virtual_wall_list,
+                                                               penalty_zone_list,
                                                                child_exploration_path,
                                                                child_point_path,
                                                                complex_path
             );
 
-            optimizePlanningPath(map, child_exploration_path, child_point_path, complex_path);
+            optimizePlanningPath(mapId, one_map, build_origin,
+                                 child_exploration_path, child_point_path, complex_path);
 
             each_pose_map.insert(std::make_pair(pos, child_exploration_path));
             each_point_map.insert(std::make_pair(pos, child_point_path));
 
-            start_position = child_point_path[child_point_path.size() - 1];
+            build_robot_position = child_point_path[child_point_path.size() - 1];
         } catch (app::exception const &e) {
             LOG(ERROR) << e.what();
             if (e.code().value() != error::exploration_room_is_too_small &&
@@ -710,7 +864,7 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
     }
 
     if (DISPLAY_TRAJECTORY)
-        planning_point_segmentation_path_display(map, optimal_order, polygon_centers,
+        planning_point_segmentation_path_display(room_map, optimal_order, polygon_centers,
                                                  each_point_map, each_contour_map, 3, "segmentation_path");
 
 //    save_planning_point_segmentation_path(map, segmented_map, robotPosition, optimal_order, polygon_centers,
@@ -727,7 +881,8 @@ void ExplorationCenter::generatePlanningSegmentationPath(const cv::Mat &room_map
         }
     }
 
-    optimizePlanningPath(room_map, exploration_path, point_path, complex_path);
+    optimizePlanningPath(mapId, room_map, build_origin,
+                         exploration_path, point_path, complex_path);
 
     LOG_IF(INFO, DEBUG_EXPLORATION)
                     << "------------------------- end generatePlanningSegmentationPath -------------------------";
@@ -879,30 +1034,74 @@ bool ExplorationCenter::removeUnconnectedRoomParts(cv::Mat &room_map) {
     return true;
 }
 
-cv::Mat ExplorationCenter::prohibitionMat(const cv::Mat &room_map) const {
-    cv::Mat prohibition_image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
+void
+ExplorationCenter::loadMultipleProhibition(const std::string &mapId, std::vector<std::vector<Point>> &virtual_wall_list,
+                                           std::vector<std::vector<Point>> &penalty_zone_list) {
+    auto prohibitionPath = path::robot_slam_map_dir() + mapId + path::separator() + path::prohibition_areas_yaml;
+    if (access(prohibitionPath.c_str(), F_OK) != 0) {//存在
+        return;
+    }
 
-    auto penaltyZoneList = MapAttributeSingleton::instance().getPenaltyZoneList();
+    YAML::Node config = YAML::LoadFile(prohibitionPath);
+    const YAML::Node &prohibitionNode = config["prohibition_areas"];
+    if (!prohibitionNode.IsDefined()) {
+        return;
+    }
+    auto size = prohibitionNode.size();
+    for (int i = 0; i < size; i++) {
+        const YAML::Node &childNode = prohibitionNode[i];
+
+        if (childNode.size() == VIRTUAL_WALL_DUS_COUNT) {//虚拟墙
+            handleProhibition(virtual_wall_list, childNode, VIRTUAL_WALL_DUS_COUNT);
+        }
+        if (childNode.size() == PENALTY_ZONE_DUS_COUNT) {//禁区
+            handleProhibition(penalty_zone_list, childNode, PENALTY_ZONE_DUS_COUNT);
+        }
+    }
+}
+
+void ExplorationCenter::handleProhibition(std::vector<std::vector<Point>> &list, const YAML::Node &node,
+                                          int dusCount) const {
+    std::vector<Point> pointList;
+    for (int j = 0; j < node.size(); j++) {
+        const YAML::Node &childNode = node[j];
+        if (childNode.size() == 2) {
+            Point point(atof(childNode[0].as<std::string>().c_str()),
+                        atof(childNode[1].as<std::string>().c_str())
+            );
+            pointList.push_back(point);
+        }
+    }
+
+    if (pointList.size() == dusCount) {
+        list.push_back(pointList);
+    }
+}
+
+cv::Mat ExplorationCenter::prohibitionMat(const cv::Mat &room_map, const cv::Point2d &map_origin,
+                                          const std::vector<std::vector<Point>> &virtualWallList,
+                                          const std::vector<std::vector<Point>> &penaltyZoneList) const {
+    cv::Mat prohibition_image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
 
     for (int i = 0; i < penaltyZoneList.size(); ++i) {
         std::vector<std::vector<cv::Point>> polygon_array;
         std::vector<cv::Point> cvPoints;
         auto vector = penaltyZoneList[i];
         for (int j = 0; j < vector.size(); ++j) {
-            const cv::Point &point = MapAttributeSingleton::instance().rosPoint2MapPoint(prohibition_image, vector[j]);
+            const cv::Point &point = MapAttributeSingleton::instance()
+                    .rosPoint2MapPointAny(prohibition_image, map_origin, vector[j]);
             cvPoints.push_back(point);
         }
         polygon_array.push_back(cvPoints);
         cv::fillPoly(prohibition_image, polygon_array, cv::Scalar(255));
     }
 
-    auto virtualWallList = MapAttributeSingleton::instance().getVirtualWallList();
     for (const auto &vector: virtualWallList) {
         if (vector.size() == 2) {
-            const cv::Point &pointStart = MapAttributeSingleton::instance().rosPoint2MapPoint(prohibition_image,
-                                                                                              vector[0]);
-            const cv::Point &pointEnd = MapAttributeSingleton::instance().rosPoint2MapPoint(prohibition_image,
-                                                                                            vector[1]);
+            const cv::Point &pointStart = MapAttributeSingleton::instance()
+                    .rosPoint2MapPointAny(prohibition_image, map_origin, vector[0]);
+            const cv::Point &pointEnd = MapAttributeSingleton::instance()
+                    .rosPoint2MapPointAny(prohibition_image, map_origin, vector[1]);
             cv::line(prohibition_image, pointStart, pointEnd, cv::Scalar(255), 2);
         }
     }
@@ -968,9 +1167,12 @@ RoomCoverage ExplorationCenter::findRoomCoverage(const std::string &coverageId, 
     throw std::range_error("There is no find key : " + coverageId + " in coverageCache");
 }
 
-cv::Mat ExplorationCenter::loadGenerateMap(int grid_spacing_in_pixel, int expansive_layer_pixel) {
-    auto generate_map = SegmentationCenter::instance().generateMat();
-    cv::Mat prohibition_image = prohibitionMat(generate_map);
+cv::Mat ExplorationCenter::loadGenerateMap(const std::string &mapId, const cv::Point2d &map_origin,
+                                           std::vector<std::vector<Point>> &virtual_wall_list,
+                                           std::vector<std::vector<Point>> &penalty_zone_list,
+                                           int grid_spacing_in_pixel, int expansive_layer_pixel) {
+    auto generate_map = SegmentationCenter::instance().generateMat(mapId);
+    cv::Mat prohibition_image = prohibitionMat(generate_map, map_origin, virtual_wall_list, penalty_zone_list);
     cv::Mat andMat;
     cv::bitwise_and(generate_map, prohibition_image, andMat);
     cv::bitwise_xor(generate_map, andMat, generate_map);
