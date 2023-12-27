@@ -634,6 +634,7 @@ void ElevatorControlManager::doPreSwitchMap() {
                                          << "... ";
             if (fromMapId != toMapId) {
                 switchMapsInWorkMode(fromMapId, toMapId);
+                poseEstimate(mapPoint);
             }
 
             {
@@ -795,51 +796,56 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
     // 1
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 开启楼层查询功能 ... ";
     openQueryFloor();
-    // 2
-    sendLightUpTargetFloor(fromFloor, [this, &fromFloor](const EleProtocol &response) {
+
+    if (Environment::instance().isRealEnvironment) {
+        // 2
+        sendLightUpTargetFloor(fromFloor, [this, &fromFloor](const EleProtocol &response) {
+            // 3
+            LOG_IF(INFO, DEBUG_ELEVATOR)
+                            << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << fromFloor << " ... ";
+            openWaitingArrive(fromFloor);
+        });
+
         // 3
-        LOG_IF(INFO, DEBUG_ELEVATOR)
-                        << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << fromFloor << " ... ";
-        openWaitingArrive(fromFloor);
-    });
-    // 3
-    std::unique_lock<std::mutex> from_lock(wait_from_mutex);
-    if (!wait_from_cv.wait_for(from_lock, std::chrono::seconds(60), [this] { return mElevatorArrived; }))
-        throw std::runtime_error("takeElevator wait_from_mutex timeout ...");
-    closeWaitingArrive();
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << fromFloor << " 层 ... ";
+        std::unique_lock<std::mutex> from_lock(wait_from_mutex);
+        if (!wait_from_cv.wait_for(from_lock, std::chrono::seconds(60), [this] { return mElevatorArrived; }))
+            throw std::runtime_error("takeElevator wait_from_mutex timeout ...");
+        closeWaitingArrive();
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << fromFloor << " 层 ... ";
 
-    // 4
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行进入电梯逻辑 ... ";
-    isConfirmEntry = false;
-    enterElevator();
-    std::unique_lock<std::mutex> entry_lock(wait_entry_mutex);
-    if (!wait_entry_cv.wait_for(entry_lock, std::chrono::seconds(60), [this] { return isConfirmEntry; }))
-        throw std::runtime_error("takeElevator wait_entry_mutex timeout ...");
-    closeWaitingArrive();
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 已进入电梯 ... ";
+        // 4
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行进入电梯逻辑 ... ";
+        isConfirmEntry = false;
+        enterElevator();
+        std::unique_lock<std::mutex> entry_lock(wait_entry_mutex);
+        if (!wait_entry_cv.wait_for(entry_lock, std::chrono::seconds(60), [this] { return isConfirmEntry; }))
+            throw std::runtime_error("takeElevator wait_entry_mutex timeout ...");
+        closeWaitingArrive();
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 已进入电梯 ... ";
 
-    // 5
-    sendLightUpTargetFloor(toFloor, [this, &toFloor](const EleProtocol &response) {
+        // 5
+        sendLightUpTargetFloor(toFloor, [this, &toFloor](const EleProtocol &response) {
+            // 6
+            LOG_IF(INFO, DEBUG_ELEVATOR)
+                            << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << toFloor << " ... ";
+            openWaitingArrive(toFloor);
+        });
+
         // 6
-        LOG_IF(INFO, DEBUG_ELEVATOR)
-                        << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << toFloor << " ... ";
-        openWaitingArrive(toFloor);
-    });
-    // 6
-    std::unique_lock<std::mutex> to_lock(wait_to_mutex);
-    if (!wait_to_cv.wait_for(to_lock, std::chrono::seconds(60), [this] { return mElevatorArrived; }))
-        throw std::runtime_error("takeElevator wait_to_mutex timeout ...");
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
+        std::unique_lock<std::mutex> to_lock(wait_to_mutex);
+        if (!wait_to_cv.wait_for(to_lock, std::chrono::seconds(60), [this] { return mElevatorArrived; }))
+            throw std::runtime_error("takeElevator wait_to_mutex timeout ...");
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
 
-    // 7
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行离开电梯逻辑 ... ";
-    isConfirmExit = false;
-    exitElevator();
-    std::unique_lock<std::mutex> exit_lock(wait_exit_mutex);
-    if (!wait_exit_cv.wait_for(exit_lock, std::chrono::seconds(60), [this] { return isConfirmExit; }))
-        throw std::runtime_error("takeElevator wait_exit_mutex timeout ...");
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 已离开电梯 ... ";
+        // 7
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行离开电梯逻辑 ... ";
+        isConfirmExit = false;
+        exitElevator();
+        std::unique_lock<std::mutex> exit_lock(wait_exit_mutex);
+        if (!wait_exit_cv.wait_for(exit_lock, std::chrono::seconds(60), [this] { return isConfirmExit; }))
+            throw std::runtime_error("takeElevator wait_exit_mutex timeout ...");
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 已离开电梯 ... ";
+    }
 
     closeQueryFloor();
     closeWaitingArrive();
@@ -1008,6 +1014,21 @@ void ElevatorControlManager::closeWaitingArrive() {
     arrive_cond.notify_one();
 }
 
+void ElevatorControlManager::poseEstimate(const RealPoint &realPoint) {
+    geometry_msgs::PoseWithCovarianceStamped pose;
+    pose.header.frame_id = "map";
+    pose.header.stamp = ros::Time::now();
+    pose.pose.pose.position.x = realPoint.realPosition.x;
+    pose.pose.pose.position.y = realPoint.realPosition.y;
+    pose.pose.pose.position.z = realPoint.realPosition.z;
+    pose.pose.pose.orientation.x = realPoint.realOrientation.x;
+    pose.pose.pose.orientation.y = realPoint.realOrientation.y;
+    pose.pose.pose.orientation.z = realPoint.realOrientation.z;
+    pose.pose.pose.orientation.w = realPoint.realOrientation.w;
+
+    publisherPose.publish(pose);
+}
+
 void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     interruptAccessElevators();
     pool_.setNumOfThreads(4);
@@ -1019,6 +1040,7 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     subscriberImu = handle.subscribe(Environment::instance().isRealEnvironment ? "/imu/data" : "/imu",
                                      10, &ElevatorControlManager::subscribeImuCallback, this);
     publisherCmdVel = handle.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+    publisherPose = handle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 10);
 
     elevator_pre_thread = std::thread(&ElevatorControlManager::elevator_pre_thread_func, this);
     elevator_pre_thread.detach();

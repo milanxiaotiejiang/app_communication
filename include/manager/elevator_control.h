@@ -190,6 +190,7 @@ private:
     ros::Subscriber subscriberOdom;
     ros::Subscriber subscriberImu;
     ros::Publisher publisherCmdVel;
+    ros::Publisher publisherPose;
 
     ros::Subscriber subscriberElevatorManager;
 
@@ -339,6 +340,8 @@ private:
     void openWaitingArrive(int targetFloor);
 
     void closeWaitingArrive();
+
+    void poseEstimate(const RealPoint& realPoint);
 
 public:
     void initialize(ros::NodeHandle handle);

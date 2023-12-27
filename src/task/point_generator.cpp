@@ -1000,7 +1000,13 @@ RealBlock ExplorationGenerator::createPreElevatorBlock(RealTask &task) {
 }
 
 RealBlock ExplorationGenerator::createPreSwitchMapBlock(RealTask &task) {
+    const RealPoint &point = task.getDoPoint();
+
     RealPoint realPoint;
+    realPoint.realPosition = point.realPosition;
+    realPoint.realOrientation = point.realOrientation;
+    realPoint.cmcMode = CmcMode::Close;
+
     realPoint.targetMapIdPair = std::make_pair(task.getPreMapId(), task.getDoMapId());
 
     auto realBlock = buildBlock(0, task);
@@ -1032,8 +1038,13 @@ RealBlock ExplorationGenerator::createPostElevatorBlock(RealTask &task) {
 }
 
 RealBlock ExplorationGenerator::createPostSwitchMapBlock(RealTask &task) {
+    const RealPoint &point = task.getPostPoint();
 
     RealPoint realPoint;
+    realPoint.realPosition = point.realPosition;
+    realPoint.realOrientation = point.realOrientation;
+    realPoint.cmcMode = CmcMode::Close;
+
     realPoint.targetMapIdPair = std::make_pair(task.getDoMapId(), task.getPostMapId());
 
     auto realBlock = buildBlock(0, task);
