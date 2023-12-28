@@ -231,10 +231,12 @@ private:
     int imitateArrivedCount;
 
     double odom_x;
+    double odom_y;
 //    double odom_yaw;
     double imu_yaw;
 
     std::atomic<double> old_x;
+    std::atomic<double> old_y;
     std::atomic<double> old_yaw;
 
     double last_angle;

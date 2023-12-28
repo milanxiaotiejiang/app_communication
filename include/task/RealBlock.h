@@ -76,6 +76,8 @@ public:
 
     float totalDistance;
 
+    bool mustArrive{false};
+
     friend std::ostream &operator<<(std::ostream &os, const RealBlock &block) {
         os << "id: " << block.id;
         return os;

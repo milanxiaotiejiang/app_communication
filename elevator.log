@@ -53,48 +53,60 @@ x map_id
 
 1.
 
+//启动rviz
 roslaunch robot_slam view_nav.launch
+//设置无基站模式
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 101"
 
 2.
-
+//开始创建地图
 rostopic pub -1 /multiple_map_create std_msgs/Int32 "data: 1"
-rostopic pub -1 /multiple_map_create std_msgs/Int32 "data: 10"(6df28edc-1df4-4505-a148-f0302ec3c139)
+//创建地图结束，地图id为(6df28edc-1df4-4505-a148-f0302ec3c139)
+rostopic pub -1 /multiple_map_create std_msgs/Int32 "data: 10"
+//设置楼宇关联
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 100000"
+//设置楼层
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 1"
+//设置此地图有基站
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 10011"
+//启动工作模式
 rostopic pub -1 /node_control std_msgs/Int32 "data: 2"
+//电机失能
 rostopic pub -1 /manual_push std_msgs/Int32 "data: 2"
+//加入梯控点位
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 10000"
+//进入睡眠模式
 rostopic pub -1 /node_control std_msgs/Int32 "data: 1"
 
 3.
-
+//开启第二个地图
 rostopic pub -1 /multiple_map_create std_msgs/Int32 "data: 1"
-rostopic pub -1 /multiple_map_create std_msgs/Int32 "data: 40"(54aad944-80e5-4ba5-bd46-a8256a601333)
+//结束第二个地图的创建，地图id为(54aad944-80e5-4ba5-bd46-a8256a601333)
+rostopic pub -1 /multiple_map_create std_msgs/Int32 "data: 40"
+//设置楼宇关联
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 100000"
+//设置楼层
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 4"
+//启动工作模式
 rostopic pub -1 /node_control std_msgs/Int32 "data: 2"
+//电机失能
+rostopic pub -1 /manual_push std_msgs/Int32 "data: 2"
+//加入梯控点位
 rostopic pub -1 /build_manager std_msgs/Int32 "data: 10000"
+//进入睡眠模式
 rostopic pub -1 /node_control std_msgs/Int32 "data: 1"
 
 4.
-
+//第二张地图增加禁区
 add prohibition
-add task (28)
+//第二章地图增加任务，任务id为28
+add task
 rostopic pub -1 /manual_push std_msgs/Int32 "data: 2"
+//电机使能
 rostopic pub -1 /manual_push std_msgs/Int32 "data: 0"
+//切换为第一张地图
 rostopic pub -1 /multiple_map_switch std_msgs/String "data: '6df28edc-1df4-4505-a148-f0302ec3c139'"
 
 5.
-
+//启动任务
 rostopic pub -1 /segmentation_task std_msgs/Int32 "data: 28"
-
-
-
-
-
-
-
-
-

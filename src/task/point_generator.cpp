@@ -986,6 +986,7 @@ RealBlock ExplorationGenerator::createPreCirculationBlock(RealTask &task) {
     realPoint.cmcMode = CmcMode::Close;
 
     auto realBlock = buildBlock(0, task);
+    realBlock.mustArrive = true;
     realBlock.plannerPoints.push_back(realPoint);
     return realBlock;
 }
@@ -995,6 +996,7 @@ RealBlock ExplorationGenerator::createPreElevatorBlock(RealTask &task) {
     realPoint.targetFloorPair = std::make_pair(task.getPreFloor(), task.getDoFloor());
 
     auto realBlock = buildBlock(0, task);
+    realBlock.mustArrive = true;
     realBlock.plannerPoints.push_back(realPoint);
     return realBlock;
 }
@@ -1010,6 +1012,7 @@ RealBlock ExplorationGenerator::createPreSwitchMapBlock(RealTask &task) {
     realPoint.targetMapIdPair = std::make_pair(task.getPreMapId(), task.getDoMapId());
 
     auto realBlock = buildBlock(0, task);
+    realBlock.mustArrive = true;
     realBlock.plannerPoints.push_back(realPoint);
     return realBlock;
 }
@@ -1023,6 +1026,7 @@ RealBlock ExplorationGenerator::createPostCirculationBlock(RealTask &task) {
     realPoint.cmcMode = CmcMode::Close;
 
     auto realBlock = buildBlock(0, task);
+    realBlock.mustArrive = true;
     realBlock.plannerPoints.push_back(realPoint);
     return realBlock;
 }
@@ -1030,9 +1034,10 @@ RealBlock ExplorationGenerator::createPostCirculationBlock(RealTask &task) {
 RealBlock ExplorationGenerator::createPostElevatorBlock(RealTask &task) {
 
     RealPoint realPoint;
-    realPoint.targetMapIdPair = std::make_pair(task.getDoFloor(), task.getPostFloor());
+    realPoint.targetFloorPair = std::make_pair(task.getDoFloor(), task.getPostFloor());
 
     auto realBlock = buildBlock(0, task);
+    realBlock.mustArrive = true;
     realBlock.plannerPoints.push_back(realPoint);
     return realBlock;
 }
@@ -1048,6 +1053,7 @@ RealBlock ExplorationGenerator::createPostSwitchMapBlock(RealTask &task) {
     realPoint.targetMapIdPair = std::make_pair(task.getDoMapId(), task.getPostMapId());
 
     auto realBlock = buildBlock(0, task);
+    realBlock.mustArrive = true;
     realBlock.plannerPoints.push_back(realPoint);
     return realBlock;
 }

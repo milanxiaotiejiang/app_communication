@@ -54,11 +54,13 @@ void ElevatorControlManager::interruptAccessElevators() {
 
 void ElevatorControlManager::recordSensorData() {
     old_x = odom_x;
+    old_y = odom_y;
     old_yaw = imu_yaw;
 }
 
 void ElevatorControlManager::subscribeOdomCallback(const nav_msgs::Odometry &odometry) {
     odom_x = odometry.pose.pose.position.x;
+    odom_y = odometry.pose.pose.position.y;
 //    odom_yaw = tf::getYaw(odometry.pose.pose.orientation);
 }
 
@@ -144,7 +146,8 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre " << print_str << " 前进 ... ";
                 break;
             case ControlCmd::MOVE: {
-                double distance_x = std::abs(odom_x - old_x);
+                double distance_x = sqrt(pow(abs(odom_x - old_x), 2) + pow(abs(odom_y - old_y), 2));
+//                double distance_x = std::abs(odom_x - old_x);
                 if (distance_x < MOVING_DISTANCE - SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER) {// 0.00556789
                     publishCmd(0.2, 0);
                 } else {
@@ -186,7 +189,7 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
                 publishCmd(0, 0);
                 mainInterrupt = false;
 
-                double distance_x = std::abs(odom_x - old_x);
+                double distance_x = sqrt(pow(abs(odom_x - old_x), 2) + pow(abs(odom_y - old_y), 2));
                 auto old_angle = old_yaw * 180.0 / M_PI;
                 auto curr_angle = imu_yaw * 180.0 / M_PI;
                 auto angle_difference = curr_angle - old_angle;
@@ -497,7 +500,7 @@ void ElevatorControlManager::arrive_floor_thread_func() {
             imitateArrivedCount++;
             if (imitateArrivedCount > 10) {
                 LOG_IF(INFO, DEBUG_ELEVATOR)
-                                << "ElevatorControlManager pre 模拟已经到达 " << mTargetFloor << " 层 ... ";
+                << "ElevatorControlManager pre 模拟已经到达 " << mTargetFloor << " 层 ... ";
                 unseal = false;
                 mElevatorArrived = true;
                 wait_from_cv.notify_one();
@@ -564,10 +567,10 @@ void ElevatorControlManager::doPreCirculation() {
                 PointPlanner::instance().goToPath(preCirculationBlock);
             } else if (preAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
                 LOG_IF(INFO, DEBUG_ELEVATOR)
-                                << "ElevatorControlManager pre 开始调整电梯点位，"
-                                << "总次数为 " << (MAX_ADJUSTMENT_FREQUENCY - 1)
-                                << " ，当前次数为 " << preAdjustmentFrequency
-                                << " 次 ... ";
+                << "ElevatorControlManager pre 开始调整电梯点位，"
+                << "总次数为 " << (MAX_ADJUSTMENT_FREQUENCY - 1)
+                << " ，当前次数为 " << preAdjustmentFrequency
+                << " 次 ... ";
                 auto point = preCirculationBlock.plannerPoints[0];
                 point.core_move = true;
                 PointPlanner::instance().goToPoint(point);
@@ -677,10 +680,10 @@ void ElevatorControlManager::doPostCirculation() {
                 PointPlanner::instance().goToPath(postCirculationBlock);
             } else if (postAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
                 LOG_IF(INFO, DEBUG_ELEVATOR)
-                                << "ElevatorControlManager post 开始调整电梯点位，"
-                                << "总次数为 " << (MAX_ADJUSTMENT_FREQUENCY - 1)
-                                << " ，当前次数为 " << preAdjustmentFrequency
-                                << " 次 ... ";
+                << "ElevatorControlManager post 开始调整电梯点位，"
+                << "总次数为 " << (MAX_ADJUSTMENT_FREQUENCY - 1)
+                << " ，当前次数为 " << preAdjustmentFrequency
+                << " 次 ... ";
                 auto point = postCirculationBlock.plannerPoints[0];
                 point.core_move = true;
                 PointPlanner::instance().goToPoint(point);
@@ -746,6 +749,7 @@ void ElevatorControlManager::doPostSwitchMap() {
                                          << "... ";
             if (fromMapId != toMapId) {
                 switchMapsInWorkMode(fromMapId, toMapId);
+                poseEstimate(mapPoint);
             }
 
             {
@@ -802,7 +806,7 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
         sendLightUpTargetFloor(fromFloor, [this, &fromFloor](const EleProtocol &response) {
             // 3
             LOG_IF(INFO, DEBUG_ELEVATOR)
-                            << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << fromFloor << " ... ";
+            << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << fromFloor << " ... ";
             openWaitingArrive(fromFloor);
         });
 
@@ -827,7 +831,7 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
         sendLightUpTargetFloor(toFloor, [this, &toFloor](const EleProtocol &response) {
             // 6
             LOG_IF(INFO, DEBUG_ELEVATOR)
-                            << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << toFloor << " ... ";
+            << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << toFloor << " ... ";
             openWaitingArrive(toFloor);
         });
 
@@ -1015,6 +1019,7 @@ void ElevatorControlManager::closeWaitingArrive() {
 }
 
 void ElevatorControlManager::poseEstimate(const RealPoint &realPoint) {
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager poseEstimate 重新定位 " << "... ";
     geometry_msgs::PoseWithCovarianceStamped pose;
     pose.header.frame_id = "map";
     pose.header.stamp = ros::Time::now();
@@ -1055,7 +1060,7 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "Error: No access to " << portName;
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "Please check the permissions for the serial port.";
             LOG_IF(ERROR, DEBUG_ELEVATOR)
-                            << "You may need to run this program as root or add your user to the dialout group (on Linux).";
+            << "You may need to run this program as root or add your user to the dialout group (on Linux).";
             return;
         }
 
@@ -1104,7 +1109,7 @@ void ElevatorControlManager::setCallbackElevatorPost(const std::function<void(bo
 }
 
 void ElevatorControlManager::printElevator() {
-    double distance_x = std::abs(odom_x - old_x);
+    double distance_x = sqrt(pow(abs(odom_x - old_x), 2) + pow(abs(odom_y - old_y), 2));
     double difference_yaw = imu_yaw - old_yaw;
 
     auto old_angle = old_yaw * 180.0 / M_PI;
@@ -1181,7 +1186,7 @@ void ElevatorControlManager::handlePostFlow(const std::vector<RealBlock> &postFl
 
 void ElevatorControlManager::completePreCirculation(const bool arrive) {
     LOG_IF(INFO, DEBUG_ELEVATOR)
-                    << "ElevatorControlManager pre 移动或调整电梯点位结果 " << arrive << "... ";
+    << "ElevatorControlManager pre 移动或调整电梯点位结果 " << arrive << "... ";
     if (arrive) {
         if (preAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
             {
@@ -1205,7 +1210,7 @@ void ElevatorControlManager::completePreCirculation(const bool arrive) {
 
 void ElevatorControlManager::completePostCirculation(const bool arrive) {
     LOG_IF(INFO, DEBUG_ELEVATOR)
-                    << "ElevatorControlManager completePostCirculation 移动或调整电梯点位有完成 " << arrive << "... ";
+    << "ElevatorControlManager completePostCirculation 移动或调整电梯点位有完成 " << arrive << "... ";
     if (arrive) {
         if (postAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
             {

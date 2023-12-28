@@ -122,17 +122,17 @@ void PointPlanner::goToPath(const RealBlock &block) {
 //                 << "  , goal_step : " << block.goal_step
 //                 << "  , current_goal : " << block.current_goal
 //                 << "  , plannerPoints.size : " << block.plannerPoints.size();
+
+    int mode = block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE;
+    if (block.mustArrive)
+        mode = replan_msgs::ReplanGoal::POINT_MUST_ARRIVE;
     replan_msgs::ReplanGoal path;
     if (block.goal_step >= block.plannerPoints.size()) {
         cpToPath(std::vector<RealPoint>{block.plannerPoints[block.plannerPoints.size() - 1]},
-                 path,
-                 block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE,
-                 SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
+                 path, mode, SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
     } else {
         cpToPath(std::vector<RealPoint>{block.plannerPoints.begin() + block.goal_step, block.plannerPoints.end()},
-                 path,
-                 block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE,
-                 SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
+                 path, mode, SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
     }
     atomicBlockId.store(block.id);
     share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
