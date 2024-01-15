@@ -376,6 +376,9 @@ int switch_ID(const std::string &str) {
     if (str == "modify_timer_name") {
         return MODIFY_TIMER_NAME;
     }
+    if (str == "list_timer_task_build") {
+        return LIST_TIMER_TASK_BUILD;
+    }
 
     if (str == "exploration_task") {
         return EXPLORATION_TASK;
@@ -456,6 +459,36 @@ int switch_ID(const std::string &str) {
         return CLOSE_GATE_SETTING;
     }
 
+    if (str == "add_build") {
+        return ADD_BUILD;
+    }
+    if (str == "delete_build") {
+        return DELETE_BUILD;
+    }
+    if (str == "modify_build_name") {
+        return MODIFY_BUILD_NAME;
+    }
+    if (str == "list_build") {
+        return LIST_BUILD;
+    }
+
+    if (str == "modify_map_base_station") {
+        return MODIFY_MAP_BASE_STATION;
+    }
+    if (str == "modify_map_floor") {
+        return MODIFY_MAP_FLOOR;
+    }
+    if (str == "modify_map_elevator") {
+        return MODIFY_MAP_ELEVATOR;
+    }
+
+    if (str == "list_map_for_build") {
+        return LIST_MAP_FOR_BUILD;
+    }
+
+    if (str == "attach_build_map") {
+        return ATTACH_BUILD_MAP;
+    }
 
     return -1;
 }

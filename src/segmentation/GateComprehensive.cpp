@@ -19,13 +19,13 @@ bool GateSettingCenter::isGateSettingMode() {
 
 void GateSettingCenter::startInspect() {
     if (Environment::instance().isRealEnvironment) {
-        if (!ZooInnerStatus::instance().getIsCharging()) {
-            throw app::exception(make_error_code(error::please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station));
-        }
-
-        if (ZooInnerStatus::instance().getUrgencyStopStatus()) {
-            throw app::exception(make_error_code(error::please_ensure_to_start_end_the_self_non_emergency_stop_status));
-        }
+//        if (!ZooInnerStatus::instance().getIsCharging()) {
+//            throw app::exception(make_error_code(error::please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station));
+//        }
+//
+//        if (ZooInnerStatus::instance().getUrgencyStopStatus()) {
+//            throw app::exception(make_error_code(error::please_ensure_to_start_end_the_self_non_emergency_stop_status));
+//        }
 
         std_msgs::Int32 map_start;
         map_start.data = 2;
@@ -41,9 +41,9 @@ void GateSettingCenter::startInspect() {
 
 void GateSettingCenter::stopInspect() {
     if (Environment::instance().isRealEnvironment) {
-        if (!ZooInnerStatus::instance().getIsCharging()) {
-            throw app::exception(make_error_code(error::the_map_needs_to_be_saved_at_the_base_station_location));
-        }
+//        if (!ZooInnerStatus::instance().getIsCharging()) {
+//            throw app::exception(make_error_code(error::the_map_needs_to_be_saved_at_the_base_station_location));
+//        }
 
         std_msgs::Int32 map_start;
         map_start.data = 0;

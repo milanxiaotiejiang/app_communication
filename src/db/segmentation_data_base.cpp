@@ -95,7 +95,9 @@ MapPo &SegmentationDataBase::getDbMap() {
     return mapPo;
 }
 
-MapPo SegmentationDataBase::installMap(std::string name) {
+MapPo SegmentationDataBase::installMap(long buildId, std::string name, int floor, bool base_station) {
+    auto build = segmentationStorage.get<BuildPo>(buildId);
+
     segmentationStorage.update_all(sqlite_orm::set(c(&MapPo::main) = false));
 
     MapPo map;
@@ -104,9 +106,11 @@ MapPo SegmentationDataBase::installMap(std::string name) {
     map.path = "";
     map.main = true;
     map.elevator = false;
-    map.floor = 0;
-    map.base_station = false;
+    map.floor = floor;
+    map.base_station = base_station;
     segmentationStorage.replace(map);
+
+    attachBuildMap(buildId, map.id);
     return map;
 }
 

@@ -148,6 +148,7 @@ enum MESSAGE_ID {
     MODIFY_TIMER_TASK,
     MULTIPLE_MODIFY_TIMER_TASK,
     MODIFY_TIMER_NAME,
+    LIST_TIMER_TASK_BUILD,
 
     EXPLORATION_TASK,
     PERFORM_TASK,
@@ -176,11 +177,24 @@ enum MESSAGE_ID {
     MULTIPLE_MODIFY_GATE,                   //不切地图修改除点位外的其他信息
     MULTIPLE_LIST_GATE,                     //根据地图ID获取闸机列表
     MULTIPLE_PURGE_GATE,                    //根据地图ID删除下方所有闸机
+    ADD_GATE_V2,                            //增加闸机
+    MODIFY_GATE_V2,                         //修改闸机
 
     OPEN_GATE_SETTING,                      //启动闸机设置
     CLOSE_GATE_SETTING,                     //关闭闸机设置
 
+    ADD_BUILD,                              //添加楼宇
+    DELETE_BUILD,                           //根据id删除楼宇
+    MODIFY_BUILD_NAME,                      //根据id修改楼宇名称
+    LIST_BUILD,                             //查询所有楼宇
 
+    MODIFY_MAP_BASE_STATION,                //修改地图是否有基站
+    MODIFY_MAP_FLOOR,                       //修改地图楼层
+    MODIFY_MAP_ELEVATOR,                    //修改地图中梯控点位开关
+
+    LIST_MAP_FOR_BUILD,                     //根据楼宇id查询地图列表
+
+    ATTACH_BUILD_MAP,                       //强制关联楼宇和地图
 
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };

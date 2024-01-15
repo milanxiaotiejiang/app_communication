@@ -403,3 +403,18 @@ std::string ModifyTimerNameStrategy::handler(ModifyTimerName params) {
     TaskDataBase::instance().modifyTimerName(params.id, params.timer_name);
     return "";
 }
+
+std::vector<BuildTimer> ListTimerTaskBuildStrategy::handler(std::string params) {
+    std::vector<BuildTimer> results;
+    auto buildList = SegmentationDataBase::instance().loadAllBuild();
+    for (const auto &build: buildList) {
+        BuildTimer buildTimer;
+        buildTimer.setBuild(BuildVo(build.id, build.name));
+        auto mapList = SegmentationDataBase::instance().findBuildMapsForBuild(build.id);
+        for (const auto &buildMap: mapList) {
+            auto timerList = TaskDataBase::instance().loadTimerFoMap(buildMap.second.id);
+            buildTimer.setTimers(timerList);
+        }
+    }
+    return results;
+}

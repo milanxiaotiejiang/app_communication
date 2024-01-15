@@ -222,6 +222,9 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case MODIFY_TIMER_NAME:
             messageStrategy = new ModifyTimerNameStrategy();
             break;
+        case LIST_TIMER_TASK_BUILD:
+            messageStrategy = new ListTimerTaskBuildStrategy();
+            break;
 
         case EXPLORATION_TASK:
             messageStrategy = new ExplorationTaskStrategy();
@@ -277,6 +280,12 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
             break;
         case LIST_GATE:
             messageStrategy = new ListGateStrategy();
+            break;
+        case ADD_GATE_V2:
+            messageStrategy = new AddGateV2Strategy();
+            break;
+        case MODIFY_GATE_V2:
+            messageStrategy = new ModifyGateV2Strategy();
             break;
         case QUERY_ID_GATE:
             messageStrategy = new QueryIdGateStrategy();

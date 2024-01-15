@@ -66,7 +66,7 @@ public:
 
     MapPo &getDbMap();
 
-    MapPo installMap(std::string name);
+    MapPo installMap(long buildId, std::string name, int floor, bool base_station);
 
     void changeMap(const std::string &map_id);
 

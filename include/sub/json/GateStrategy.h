@@ -34,6 +34,16 @@ public:
     std::vector<GateInfo> handler(std::string params) override;
 };
 
+class AddGateV2Strategy : public MessageStrategy<GateInfo, int> {
+public:
+    int handler(GateInfo params) override;
+};
+
+class ModifyGateV2Strategy : public MessageStrategy<GateInfo, long> {
+public:
+    long handler(GateInfo params) override;
+};
+
 class QueryIdGateStrategy : public MessageStrategy<long, GateInfo> {
 public:
     GateInfo handler(long params) override;

@@ -7,6 +7,7 @@
 
 #include "sub/json/MessageStrategy.h"
 #include "model/task.h"
+#include "model/MapInfo.h"
 
 class AddTaskStrategy : public MessageStrategy<TaskVo, long> {
 public:
@@ -206,6 +207,11 @@ public:
 class ModifyTimerNameStrategy : public MessageStrategy<ModifyTimerName, std::string> {
 public:
     std::string handler(ModifyTimerName params) override;
+};
+
+class ListTimerTaskBuildStrategy : public MessageStrategy<std::string, std::vector<BuildTimer>> {
+public:
+    std::vector<BuildTimer> handler(std::string params) override;
 };
 
 #endif //APP_COMMUNICATION_DBTASKSTRATEGY_H

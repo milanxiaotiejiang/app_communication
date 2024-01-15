@@ -130,7 +130,8 @@ MapScore EndMapStrategy::handler(BuildMapParam params) {
 
         if (params.isNewMap()) {
             // 插入新地图信息
-            SegmentationDataBase::instance().installMap(params.getMapName());
+            SegmentationDataBase::instance().installMap(params.getBuildId(), params.getMapName(), params.getFloor(),
+                                                        params.isBaseStation());
             SegmentationDataBase::instance().loadMainMap();
         } else {
             // 只修改地图名称
@@ -546,5 +547,83 @@ std::string MultipleMapFeasibleZoneStrategy::handler(CompositePointList params) 
     }
 
     NoticeManager::instance().sendNotice(source_, M_MAP_RESOURCE);
+    return "";
+}
+
+long AddBuildStrategy::handler(BuildVo params) {
+    checkName(params.getName());
+    return SegmentationDataBase::instance().saveBuild(params.getName());
+}
+
+std::string DeleteBuildStrategy::handler(long params) {
+    SegmentationDataBase::instance().removeBuild(params);
+    return "";
+}
+
+std::string ModifyBuildNameStrategy::handler(BuildVo params) {
+    checkName(params.getName());
+    SegmentationDataBase::instance().modifyBuild(params.getId(), params.getName());
+    return "";
+}
+
+std::vector<BuildVo> ListBuildStrategy::handler(std::string params) {
+    std::vector<BuildVo> buildResults;
+    auto buildList = SegmentationDataBase::instance().loadAllBuild();
+    for (const auto &item: buildList) {
+        buildList.emplace_back(item.id, item.name);
+    }
+    return buildResults;
+}
+
+std::string ModifyMapBaseStationStrategy::handler(MapBaseStation params) {
+    SegmentationDataBase::instance().changeBaseStation(params.map_id, params.base_station);
+    return "";
+}
+
+std::string ModifyMapFloorStrategy::handler(MapFloor params) {
+    if (params.floor == 0)
+        SegmentationDataBase::instance().removeFloor(params.map_id);
+    else
+        SegmentationDataBase::instance().updateFloor(params.map_id, params.floor);
+    return "";
+}
+
+std::string ModifyMapElevatorStrategy::handler(MapElevator params) {
+    if (params.elevator)
+        SegmentationDataBase::instance().updateMapElevator(params.map_id);
+    else
+        SegmentationDataBase::instance().removeMapElevator(params.map_id);
+    return "";
+}
+
+std::vector<MultiMapInfo> ListMapForBuildStrategy::handler(long params) {
+    std::vector<MultiMapInfo> mapResults;
+    auto floorBuildMaps = SegmentationDataBase::instance().findBuildMapsForBuild(params);
+    for (const auto &buildMap: floorBuildMaps) {
+        auto build = buildMap.first;
+        auto map = buildMap.second;
+        mapResults.emplace_back(map.id, map.name, map.main, map.path, map.elevator, map.elevator_position_x,
+                                map.elevator_position_y, map.elevator_position_z, map.elevator_orientation_x,
+                                map.elevator_orientation_y, map.elevator_orientation_z, map.elevator_orientation_w,
+                                map.floor, map.base_station, build.id, build.name);
+    }
+    return mapResults;
+}
+
+std::string AttachBuildMapStrategy::handler(AttachBuildMap params) {
+    auto buildMaps = SegmentationDataBase::instance().findBuildMapsForMap(params.mapId);
+    if (buildMaps.empty()) {
+    } else if (buildMaps.size() == 1) {
+        std::pair<BuildPo, MapPo> buildMap = buildMaps[0];
+        BuildPo &buildPo = buildMap.first;
+        if (buildPo.id != params.buildId) {
+            SegmentationDataBase::instance().detachBuildMap(buildPo.id, params.mapId);
+
+            SegmentationDataBase::instance().attachBuildMap(params.buildId, params.mapId);
+        }
+
+    } else {
+        throw app::exception(make_error_code(error::multiple_map_building_data_error));
+    }
     return "";
 }

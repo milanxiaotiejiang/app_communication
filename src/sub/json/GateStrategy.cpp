@@ -43,6 +43,29 @@ std::vector<GateInfo> ListGateStrategy::handler(std::string params) {
     return SegmentationDataBase::instance().loadGateInfo(SegmentationDataBase::instance().getDbMap().id);
 }
 
+int AddGateV2Strategy::handler(GateInfo params) {
+    auto segmented_map = SegmentationCenter::instance().generateMat();
+    auto map_origin = MapAttributeSingleton::instance().getMapOrigin();
+    std::vector<Room> rooms;
+    SegmentationCenter::instance().gateSegmentation(segmented_map, map_origin, rooms,
+                                                    SegmentationDataBase::info2Gate(params));
+
+    params.setId(-1);
+    params.setOMapId(params.getOMapId()/*SegmentationDataBase::instance().getDbMap().id*/);
+    return SegmentationDataBase::instance().addGateInfo(params);
+}
+
+long ModifyGateV2Strategy::handler(GateInfo params) {
+    auto segmented_map = SegmentationCenter::instance().generateMat();
+    auto map_origin = MapAttributeSingleton::instance().getMapOrigin();
+    std::vector<Room> rooms;
+    SegmentationCenter::instance().gateSegmentation(segmented_map, map_origin, rooms,
+                                                    SegmentationDataBase::info2Gate(params));
+
+    params.setOMapId(params.getOMapId()/*SegmentationDataBase::instance().getDbMap().id*/);
+    return SegmentationDataBase::instance().modifyGateInfo(params);
+}
+
 GateInfo QueryIdGateStrategy::handler(long params) {
     return SegmentationDataBase::instance().queryGateForId(params);
 }

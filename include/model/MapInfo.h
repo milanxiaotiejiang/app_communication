@@ -9,8 +9,40 @@
 #include <ostream>
 
 #include "nlohmann/json.hpp"
+#include "task.h"
 
 using json = nlohmann::json;
+
+class BuildVo {
+private:
+    long id{};
+    std::string name;
+public:
+    BuildVo();
+
+    BuildVo(long id, const std::string &name);
+
+    long getId() const;
+
+    void setId(long id);
+
+    const std::string &getName() const;
+
+    void setName(const std::string &name);
+
+    friend void to_json(json &j, const BuildVo &b) {
+        j = json{
+                {"id",   b.id},
+                {"name", b.name},
+        };
+    }
+
+    friend void from_json(const json &j, BuildVo &b) {
+        j.at("id").get_to(b.id);
+        j.at("name").get_to(b.name);
+    }
+};
+
 
 class BuildMapParam {
 private:
@@ -18,6 +50,10 @@ private:
     bool reset{false};
     bool new_map{false};
     std::string map_name{""};
+
+    long buildId{0};
+    int floor{1};
+    bool base_station;
 public:
     BuildMapParam();
 
@@ -28,6 +64,12 @@ public:
     bool isNewMap() const;
 
     const std::string &getMapName() const;
+
+    long getBuildId() const;
+
+    int getFloor() const;
+
+    bool isBaseStation() const;
 
     BuildMapParam(bool save, bool reset, bool newMap, const std::string &mapName);
 
@@ -154,10 +196,30 @@ private:
     std::string name;
     bool main;
     std::string path;
+
+    bool elevator;
+    double elevator_position_x{};
+    double elevator_position_y{};
+    double elevator_position_z{};
+    double elevator_orientation_x{};
+    double elevator_orientation_y{};
+    double elevator_orientation_z{};
+    double elevator_orientation_w{};
+
+    int floor;
+    bool base_station;
+
+    long buildId{};
+    std::string buildName;
 public:
     MultiMapInfo();
 
     MultiMapInfo(const std::string &id, const std::string &name, bool main, const std::string &path);
+
+    MultiMapInfo(const std::string &id, const std::string &name, bool main, const std::string &path, bool elevator,
+                 double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ,
+                 double elevatorOrientationX, double elevatorOrientationY, double elevatorOrientationZ,
+                 double elevatorOrientationW, int floor, bool baseStation, long buildId, const std::string &buildName);
 
     const std::string &getId() const;
 
@@ -175,12 +237,72 @@ public:
 
     void setPath(const std::string &path);
 
+    bool isElevator() const;
+
+    void setElevator(bool elevator);
+
+    double getElevatorPositionX() const;
+
+    void setElevatorPositionX(double elevatorPositionX);
+
+    double getElevatorPositionY() const;
+
+    void setElevatorPositionY(double elevatorPositionY);
+
+    double getElevatorPositionZ() const;
+
+    void setElevatorPositionZ(double elevatorPositionZ);
+
+    double getElevatorOrientationX() const;
+
+    void setElevatorOrientationX(double elevatorOrientationX);
+
+    double getElevatorOrientationY() const;
+
+    void setElevatorOrientationY(double elevatorOrientationY);
+
+    double getElevatorOrientationZ() const;
+
+    void setElevatorOrientationZ(double elevatorOrientationZ);
+
+    double getElevatorOrientationW() const;
+
+    void setElevatorOrientationW(double elevatorOrientationW);
+
+    int getFloor() const;
+
+    void setFloor(int floor);
+
+    bool isBaseStation() const;
+
+    void setBaseStation(bool baseStation);
+
+    long getBuildId() const;
+
+    void setBuildId(long buildId);
+
+    const std::string &getBuildName() const;
+
+    void setBuildName(const std::string &buildName);
+
     friend void to_json(json &j, const MultiMapInfo &b) {
         j = json{
-                {"id",   b.id},
-                {"name", b.name},
-                {"main", b.main},
-                {"path", b.path},
+                {"id",                     b.id},
+                {"name",                   b.name},
+                {"main",                   b.main},
+                {"path",                   b.path},
+                {"elevator",               b.elevator},
+                {"elevator_position_x",    b.elevator_position_x},
+                {"elevator_position_y",    b.elevator_position_y},
+                {"elevator_position_z",    b.elevator_position_z},
+                {"elevator_orientation_x", b.elevator_orientation_x},
+                {"elevator_orientation_y", b.elevator_orientation_y},
+                {"elevator_orientation_z", b.elevator_orientation_z},
+                {"elevator_orientation_w", b.elevator_orientation_w},
+                {"floor",                  b.floor},
+                {"base_station",           b.base_station},
+                {"build_id",               b.buildId},
+                {"build_name",             b.buildName},
         };
     }
 
@@ -189,6 +311,18 @@ public:
         j.at("name").get_to(b.name);
         j.at("main").get_to(b.main);
         j.at("path").get_to(b.path);
+        j.at("elevator").get_to(b.elevator);
+        j.at("elevator_position_x").get_to(b.elevator_position_x);
+        j.at("elevator_position_y").get_to(b.elevator_position_y);
+        j.at("elevator_position_z").get_to(b.elevator_position_z);
+        j.at("elevator_orientation_x").get_to(b.elevator_orientation_x);
+        j.at("elevator_orientation_y").get_to(b.elevator_orientation_y);
+        j.at("elevator_orientation_z").get_to(b.elevator_orientation_z);
+        j.at("elevator_orientation_w").get_to(b.elevator_orientation_w);
+        j.at("floor").get_to(b.floor);
+        j.at("base_station").get_to(b.base_station);
+        j.at("build_id").get_to(b.buildId);
+        j.at("build_name").get_to(b.buildName);
     }
 
     friend std::ostream &operator<<(std::ostream &os, const MultiMapInfo &info);
@@ -269,5 +403,103 @@ struct MapImageResponse {
         j.at("height").get_to(mapImage.height);
     }
 };
+
+struct MapBaseStation {
+    std::string map_id;
+    bool base_station;
+
+    friend void to_json(json &j, const MapBaseStation &bean) {
+        j = json{
+                {"map_id",       bean.map_id},
+                {"base_station", bean.base_station},
+        };
+    }
+
+    friend void from_json(const json &j, MapBaseStation &bean) {
+        j.at("map_id").get_to(bean.map_id);
+        j.at("base_station").get_to(bean.base_station);
+    }
+};
+
+struct MapFloor {
+    std::string map_id;
+    int floor;
+
+    friend void to_json(json &j, const MapFloor &bean) {
+        j = json{
+                {"map_id", bean.map_id},
+                {"floor",  bean.floor},
+        };
+    }
+
+    friend void from_json(const json &j, MapFloor &bean) {
+        j.at("map_id").get_to(bean.map_id);
+        j.at("floor").get_to(bean.floor);
+    }
+};
+
+struct MapElevator {
+    std::string map_id;
+    bool elevator;
+
+    friend void to_json(json &j, const MapElevator &bean) {
+        j = json{
+                {"map_id",   bean.map_id},
+                {"elevator", bean.elevator},
+        };
+    }
+
+    friend void from_json(const json &j, MapElevator &bean) {
+        j.at("map_id").get_to(bean.map_id);
+        j.at("elevator").get_to(bean.elevator);
+    }
+};
+
+struct AttachBuildMap {
+    long buildId;
+    std::string mapId;
+
+    friend void to_json(json &j, const AttachBuildMap &bean) {
+        j = json{
+                {"build_id", bean.buildId},
+                {"map_id",   bean.mapId},
+        };
+    }
+
+    friend void from_json(const json &j, AttachBuildMap &bean) {
+        j.at("build_id").get_to(bean.buildId);
+        j.at("map_id").get_to(bean.mapId);
+    }
+
+};
+
+class BuildTimer {
+private:
+    BuildVo build;
+    std::vector<TimerVo> timers;
+public:
+    BuildTimer();
+
+    const BuildVo &getBuild() const;
+
+    void setBuild(const BuildVo &build);
+
+    const std::vector<TimerVo> &getTimers() const;
+
+    void setTimers(const std::vector<TimerVo> &timers);
+
+    friend void to_json(json &j, const BuildTimer &bean) {
+        j = json{
+                {"build",  bean.build},
+                {"timers", bean.timers},
+        };
+    }
+
+    friend void from_json(const json &j, BuildTimer &bean) {
+        j.at("build").get_to(bean.build);
+        j.at("timers").get_to(bean.timers);
+    }
+};
+
 
 #endif //APP_COMMUNICATION_MAPINFO_H
