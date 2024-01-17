@@ -567,12 +567,26 @@ std::string ModifyBuildNameStrategy::handler(BuildVo params) {
 }
 
 std::vector<BuildVo> ListBuildStrategy::handler(std::string params) {
-    std::vector<BuildVo> buildResults;
-    auto buildList = SegmentationDataBase::instance().loadAllBuild();
-    for (const auto &item: buildList) {
-        buildList.emplace_back(item.id, item.name);
+
+    auto buildMaps = SegmentationDataBase::instance().findBuildMapsForMap(
+            SegmentationDataBase::instance().getDbMap().id);
+    if (buildMaps.empty()) {
+        throw app::exception(make_error_code(error::no_multi_map_buildings_have_been_set_up));
+    } else if (buildMaps.size() == 1) {
+        auto buildMap = buildMaps[0];
+        auto currentBuild = buildMap.first;
+
+        std::vector<BuildVo> buildResults;
+        auto buildList = SegmentationDataBase::instance().loadAllBuild();
+        for (const auto &item: buildList) {
+            BuildVo build(item.id, item.name);
+            build.setMain(item.id == currentBuild.id);
+            buildResults.push_back(build);
+        }
+        return buildResults;
+    } else {
+        throw app::exception(make_error_code(error::multiple_map_building_data_error));
     }
-    return buildResults;
 }
 
 std::string ModifyMapBaseStationStrategy::handler(MapBaseStation params) {
@@ -602,10 +616,20 @@ std::vector<MultiMapInfo> ListMapForBuildStrategy::handler(long params) {
     for (const auto &buildMap: floorBuildMaps) {
         auto build = buildMap.first;
         auto map = buildMap.second;
+
+        MapAttribute mapAttribute;
+        mapAttribute.attrPath = path::robot_slam_map_dir() + map.id + path::separator() + path::mymap_yaml;
+        if (!MapAttributeSingleton::readAnyMapInfo(mapAttribute))
+            throw app::exception(make_error_code(error::map_id_does_not_exist));
+
         mapResults.emplace_back(map.id, map.name, map.main, map.path, map.elevator, map.elevator_position_x,
                                 map.elevator_position_y, map.elevator_position_z, map.elevator_orientation_x,
                                 map.elevator_orientation_y, map.elevator_orientation_z, map.elevator_orientation_w,
-                                map.floor, map.base_station, build.id, build.name);
+                                map.floor, map.base_station, mapAttribute.originPoint.x, mapAttribute.originPoint.y,
+                                mapAttribute.originPose.position.x, mapAttribute.originPose.position.y,
+                                mapAttribute.originPoint.y,
+                                mapAttribute.mapCols, mapAttribute.mapRows,
+                                build.id, build.name);
     }
     return mapResults;
 }

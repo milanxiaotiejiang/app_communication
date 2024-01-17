@@ -202,10 +202,68 @@ void MultiMapInfo::setBuildName(const std::string &buildName) {
     MultiMapInfo::buildName = buildName;
 }
 
+double MultiMapInfo::getBaseStationPointX() const {
+    return base_station_point_x;
+}
+
+void MultiMapInfo::setBaseStationPointX(double baseStationPointX) {
+    base_station_point_x = baseStationPointX;
+}
+
+double MultiMapInfo::getBaseStationPointY() const {
+    return base_station_point_y;
+}
+
+void MultiMapInfo::setBaseStationPointY(double baseStationPointY) {
+    base_station_point_y = baseStationPointY;
+}
+
+double MultiMapInfo::getBaseStationPoseX() const {
+    return base_station_pose_x;
+}
+
+void MultiMapInfo::setBaseStationPoseX(double baseStationPoseX) {
+    base_station_pose_x = baseStationPoseX;
+}
+
+double MultiMapInfo::getBaseStationPoseY() const {
+    return base_station_pose_y;
+}
+
+void MultiMapInfo::setBaseStationPoseY(double baseStationPoseY) {
+    base_station_pose_y = baseStationPoseY;
+}
+
+double MultiMapInfo::getBaseStationPoseZ() const {
+    return base_station_pose_z;
+}
+
+void MultiMapInfo::setBaseStationPoseZ(double baseStationPoseZ) {
+    base_station_pose_z = baseStationPoseZ;
+}
+
+int MultiMapInfo::getMapCols() const {
+    return map_cols;
+}
+
+void MultiMapInfo::setMapCols(int mapCols) {
+    map_cols = mapCols;
+}
+
+int MultiMapInfo::getMapRows() const {
+    return map_rows;
+}
+
+void MultiMapInfo::setMapRows(int mapRows) {
+    map_rows = mapRows;
+}
+
 MultiMapInfo::MultiMapInfo(const std::string &id, const std::string &name, bool main, const std::string &path,
                            bool elevator, double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ,
                            double elevatorOrientationX, double elevatorOrientationY, double elevatorOrientationZ,
-                           double elevatorOrientationW, int floor, bool baseStation, long buildId,
+                           double elevatorOrientationW, int floor, bool baseStation, double baseStationPointX,
+                           double baseStationPointY, double baseStationPoseX, double baseStationPoseY,
+                           double baseStationPoseZ, int mapCols, int mapRows, long buildId,
                            const std::string &buildName) : id(id), name(name), main(main), path(path),
                                                            elevator(elevator), elevator_position_x(elevatorPositionX),
                                                            elevator_position_y(elevatorPositionY),
@@ -214,8 +272,13 @@ MultiMapInfo::MultiMapInfo(const std::string &id, const std::string &name, bool 
                                                            elevator_orientation_y(elevatorOrientationY),
                                                            elevator_orientation_z(elevatorOrientationZ),
                                                            elevator_orientation_w(elevatorOrientationW), floor(floor),
-                                                           base_station(baseStation), buildId(buildId),
-                                                           buildName(buildName) {}
+                                                           base_station(baseStation),
+                                                           base_station_point_x(baseStationPointX),
+                                                           base_station_point_y(baseStationPointY),
+                                                           base_station_pose_x(baseStationPoseX),
+                                                           base_station_pose_y(baseStationPoseY),
+                                                           base_station_pose_z(baseStationPoseZ), map_cols(mapCols),
+                                                           map_rows(mapRows), buildId(buildId), buildName(buildName) {}
 
 BuildMapParam::BuildMapParam() {}
 
@@ -299,6 +362,14 @@ const std::string &BuildVo::getName() const {
 
 void BuildVo::setName(const std::string &name) {
     BuildVo::name = name;
+}
+
+bool BuildVo::isMain() const {
+    return main;
+}
+
+void BuildVo::setMain(bool main) {
+    BuildVo::main = main;
 }
 
 BuildTimer::BuildTimer() {}

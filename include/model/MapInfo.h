@@ -17,6 +17,7 @@ class BuildVo {
 private:
     long id{};
     std::string name;
+    bool main;
 public:
     BuildVo();
 
@@ -30,16 +31,22 @@ public:
 
     void setName(const std::string &name);
 
+    bool isMain() const;
+
+    void setMain(bool main);
+
     friend void to_json(json &j, const BuildVo &b) {
         j = json{
                 {"id",   b.id},
                 {"name", b.name},
+                {"main", b.main},
         };
     }
 
     friend void from_json(const json &j, BuildVo &b) {
         j.at("id").get_to(b.id);
         j.at("name").get_to(b.name);
+        j.at("main").get_to(b.main);
     }
 };
 
@@ -208,6 +215,13 @@ private:
 
     int floor;
     bool base_station;
+    double base_station_point_x;
+    double base_station_point_y;
+    double base_station_pose_x;
+    double base_station_pose_y;
+    double base_station_pose_z;
+    int map_cols;
+    int map_rows;
 
     long buildId{};
     std::string buildName;
@@ -219,7 +233,9 @@ public:
     MultiMapInfo(const std::string &id, const std::string &name, bool main, const std::string &path, bool elevator,
                  double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ,
                  double elevatorOrientationX, double elevatorOrientationY, double elevatorOrientationZ,
-                 double elevatorOrientationW, int floor, bool baseStation, long buildId, const std::string &buildName);
+                 double elevatorOrientationW, int floor, bool baseStation, double baseStationPointX,
+                 double baseStationPointY, double baseStationPoseX, double baseStationPoseY, double baseStationPoseZ,
+                 int mapCols, int mapRows, long buildId, const std::string &buildName);
 
     const std::string &getId() const;
 
@@ -285,6 +301,14 @@ public:
 
     void setBuildName(const std::string &buildName);
 
+    double getBaseStationPositionX() const;
+
+    void setBaseStationPositionX(double baseStationPositionX);
+
+    double getBaseStationPositionY() const;
+
+    void setBaseStationPositionY(double baseStationPositionY);
+
     friend void to_json(json &j, const MultiMapInfo &b) {
         j = json{
                 {"id",                     b.id},
@@ -301,6 +325,13 @@ public:
                 {"elevator_orientation_w", b.elevator_orientation_w},
                 {"floor",                  b.floor},
                 {"base_station",           b.base_station},
+                {"base_station_point_x",   b.base_station_point_x},
+                {"base_station_point_y",   b.base_station_point_y},
+                {"base_station_pose_x",    b.base_station_pose_x},
+                {"base_station_pose_y",    b.base_station_pose_y},
+                {"base_station_pose_z",    b.base_station_pose_z},
+                {"map_cols",               b.map_cols},
+                {"map_rows",               b.map_rows},
                 {"build_id",               b.buildId},
                 {"build_name",             b.buildName},
         };
@@ -321,11 +352,46 @@ public:
         j.at("elevator_orientation_w").get_to(b.elevator_orientation_w);
         j.at("floor").get_to(b.floor);
         j.at("base_station").get_to(b.base_station);
+        j.at("base_station_point_x").get_to(b.base_station_point_x);
+        j.at("base_station_point_y").get_to(b.base_station_point_y);
+        j.at("base_station_pose_x").get_to(b.base_station_pose_x);
+        j.at("base_station_pose_y").get_to(b.base_station_pose_y);
+        j.at("base_station_pose_z").get_to(b.base_station_pose_z);
+        j.at("map_cols").get_to(b.map_cols);
+        j.at("map_rows").get_to(b.map_rows);
         j.at("build_id").get_to(b.buildId);
         j.at("build_name").get_to(b.buildName);
     }
 
     friend std::ostream &operator<<(std::ostream &os, const MultiMapInfo &info);
+
+    double getBaseStationPointX() const;
+
+    void setBaseStationPointX(double baseStationPointX);
+
+    double getBaseStationPointY() const;
+
+    void setBaseStationPointY(double baseStationPointY);
+
+    double getBaseStationPoseX() const;
+
+    void setBaseStationPoseX(double baseStationPoseX);
+
+    double getBaseStationPoseY() const;
+
+    void setBaseStationPoseY(double baseStationPoseY);
+
+    double getBaseStationPoseZ() const;
+
+    void setBaseStationPoseZ(double baseStationPoseZ);
+
+    int getMapCols() const;
+
+    void setMapCols(int mapCols);
+
+    int getMapRows() const;
+
+    void setMapRows(int mapRows);
 };
 
 class ModifyMapName {

@@ -8,7 +8,7 @@
 #include "glog/logging.h"
 #include "string"
 
-#define DEBUG_REQUEST false
+#define DEBUG_REQUEST true
 #define DEBUG_FIRING true
 #define DEBUG_EXPLORATION false
 #define DEBUG_EXPLORATION_CACHE false
