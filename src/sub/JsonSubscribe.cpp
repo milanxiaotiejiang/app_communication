@@ -498,6 +498,10 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new AttachBuildMapStrategy();
             break;
 
+        case MAP_FOR_ID:
+            messageStrategy = new MapForIdStrategy();
+            break;
+
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);

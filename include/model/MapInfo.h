@@ -88,6 +88,9 @@ public:
                 {"reset",    b.reset},
                 {"new_map",  b.new_map},
                 {"map_name", b.map_name},
+                {"build_id", b.buildId},
+                {"floor", b.floor},
+                {"base_station", b.base_station},
         };
     }
 
@@ -96,6 +99,9 @@ public:
         j.at("reset").get_to(b.reset);
         j.at("new_map").get_to(b.new_map);
         j.at("map_name").get_to(b.map_name);
+        j.at("build_id").get_to(b.buildId);
+        j.at("floor").get_to(b.floor);
+        j.at("base_station").get_to(b.base_station);
     }
 };
 

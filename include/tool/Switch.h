@@ -196,6 +196,8 @@ enum MESSAGE_ID {
 
     ATTACH_BUILD_MAP,                       //强制关联楼宇和地图
 
+    MAP_FOR_ID,
+
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };
 

@@ -20,7 +20,7 @@
 #include "geometry_msgs/Pose.h"
 
 #define THREAD_POOL_MAX_NUM 16
-#define SSDF 50
+#define SSDF 30
 namespace Firing {
     enum INUStatus {
         UNKNOWN = 0,

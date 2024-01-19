@@ -156,4 +156,9 @@ public:
     std::string handler(AttachBuildMap params) override;
 };
 
+class MapForIdStrategy: public MessageStrategy<std::string, MultiMapInfo> {
+public:
+    MultiMapInfo handler(std::string params) override;
+};
+
 #endif //APP_COMMUNICATION_MAPSTRATEGY_H

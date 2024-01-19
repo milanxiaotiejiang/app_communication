@@ -490,5 +490,9 @@ int switch_ID(const std::string &str) {
         return ATTACH_BUILD_MAP;
     }
 
+    if (str == "map_for_id") {
+        return MAP_FOR_ID;
+    }
+
     return -1;
 }

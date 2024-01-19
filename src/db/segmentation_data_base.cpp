@@ -145,6 +145,10 @@ std::vector<MapPo> SegmentationDataBase::loadAllMap() {
     return segmentationStorage.get_all<MapPo>();
 }
 
+MapPo SegmentationDataBase::loadMapForId(std::string mapId) {
+    return segmentationStorage.get<MapPo>(mapId);
+}
+
 void SegmentationDataBase::updateMapName(const std::string &map_id, const std::string &map_name) {
     MapPo map = segmentationStorage.get<MapPo>(map_id);
     map.name = map_name;
@@ -204,7 +208,9 @@ MapPo SegmentationDataBase::updateFloor(const std::string &map_id, int floor) {
     bool exist = false;
     for (const auto &floorBuildMap: floorBuildMaps) {
         if (floorBuildMap.second.floor == floor) {
-            exist = true;
+            if (floorBuildMap.second.id != map_id) {
+                exist = true;
+            }
         }
     }
     if (exist)

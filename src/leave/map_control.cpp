@@ -28,6 +28,16 @@ bool MapControl::initialize(ros::NodeHandle handle) {
     }
 
     loadInformation(mapPo.id);
+
+    auto builds = SegmentationDataBase::instance().loadAllBuild();
+    if (builds.empty()) {
+        long buildId = SegmentationDataBase::instance().saveBuild("default_build");
+        auto maps = SegmentationDataBase::instance().loadAllMap();
+        for (const auto &map: maps) {
+            SegmentationDataBase::instance().attachBuildMap(buildId, map.id);
+        }
+    }
+
     return true;
 }
 

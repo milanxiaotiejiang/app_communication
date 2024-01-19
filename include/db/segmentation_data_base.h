@@ -74,6 +74,8 @@ public:
 
     std::vector<MapPo> loadAllMap();
 
+    MapPo loadMapForId(std::string mapId);
+
     void updateMapName(const std::string &map_id, const std::string &map_name);
 
     MapPo updateMapElevator(const std::string &map_id);

@@ -137,6 +137,8 @@ MapScore EndMapStrategy::handler(BuildMapParam params) {
             // 只修改地图名称
             MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
             SegmentationDataBase::instance().updateMapName(mapPo.id, params.getMapName());
+            SegmentationDataBase::instance().updateFloor(mapPo.id, params.getFloor());
+            SegmentationDataBase::instance().changeBaseStation(mapPo.id, params.isBaseStation());
         }
 
 //        // 更新本地内存中数据，单地图其实没必要更新
@@ -650,4 +652,36 @@ std::string AttachBuildMapStrategy::handler(AttachBuildMap params) {
         throw app::exception(make_error_code(error::multiple_map_building_data_error));
     }
     return "";
+}
+
+MultiMapInfo MapForIdStrategy::handler(std::string params) {
+    auto map = SegmentationDataBase::instance().loadMapForId(params);
+
+    auto buildMaps = SegmentationDataBase::instance().findBuildMapsForMap(params);
+
+    MapAttribute mapAttribute;
+    mapAttribute.attrPath = path::robot_slam_map_dir() + map.id + path::separator() + path::mymap_yaml;
+    if (!MapAttributeSingleton::readAnyMapInfo(mapAttribute))
+        throw app::exception(make_error_code(error::map_id_does_not_exist));
+
+    long buildId = -1;
+    std::string buildName = "";
+
+    if (buildMaps.empty()) {
+    } else if (buildMaps.size() == 1) {
+
+        buildId = buildMaps[0].first.id;
+        buildName = buildMaps[0].first.name;
+    } else {
+        throw app::exception(make_error_code(error::multiple_map_building_data_error));
+    }
+
+    return MultiMapInfo(map.id, map.name, map.main, map.path, map.elevator, map.elevator_position_x,
+                        map.elevator_position_y, map.elevator_position_z, map.elevator_orientation_x,
+                        map.elevator_orientation_y, map.elevator_orientation_z, map.elevator_orientation_w,
+                        map.floor, map.base_station, mapAttribute.originPoint.x, mapAttribute.originPoint.y,
+                        mapAttribute.originPose.position.x, mapAttribute.originPose.position.y,
+                        mapAttribute.originPoint.y,
+                        mapAttribute.mapCols, mapAttribute.mapRows,
+                        buildId, buildName);
 }
