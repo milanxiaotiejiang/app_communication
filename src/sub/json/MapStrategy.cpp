@@ -685,3 +685,8 @@ MultiMapInfo MapForIdStrategy::handler(std::string params) {
                         mapAttribute.mapCols, mapAttribute.mapRows,
                         buildId, buildName);
 }
+
+std::string TTElevatorStrategy::handler(std::string params) {
+    PublishOutManager::instance().publishElevatorManager();
+    return "";
+}

@@ -14,13 +14,24 @@
 
 bool MapControl::initialize(ros::NodeHandle handle) {
     SegmentationDataBase::instance().sync_schema();
+
     if (!SegmentationDataBase::instance().loadMainMap()) {
         return false;
     }
 
+    MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
+
+    if (SegmentationDataBase::instance().loadAllBuild().empty()) {
+        SegmentationDataBase::instance().removeBuild();
+        long buildId = SegmentationDataBase::instance().saveBuild("default_build");
+        auto maps = SegmentationDataBase::instance().loadAllMap();
+        for (const auto &map: maps) {
+            SegmentationDataBase::instance().attachBuildMap(buildId, map.id);
+        }
+    }
+
     change_map_service_client = handle.serviceClient<nav_msgs::LoadMap>("change_map");
 
-    MapPo &mapPo = SegmentationDataBase::instance().getDbMap();
 
     cppfs::FileHandle dir = cppfs::fs::open(path::robot_slam_map_dir() + mapPo.id + path::separator());
     if (!dir.exists()) {
@@ -28,15 +39,6 @@ bool MapControl::initialize(ros::NodeHandle handle) {
     }
 
     loadInformation(mapPo.id);
-
-    auto builds = SegmentationDataBase::instance().loadAllBuild();
-    if (builds.empty()) {
-        long buildId = SegmentationDataBase::instance().saveBuild("default_build");
-        auto maps = SegmentationDataBase::instance().loadAllMap();
-        for (const auto &map: maps) {
-            SegmentationDataBase::instance().attachBuildMap(buildId, map.id);
-        }
-    }
 
     return true;
 }

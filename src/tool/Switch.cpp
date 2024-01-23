@@ -494,5 +494,9 @@ int switch_ID(const std::string &str) {
         return MAP_FOR_ID;
     }
 
+    if (str == "tt_elevator") {
+        return TT_ELEVATOR;
+    }
+
     return -1;
 }

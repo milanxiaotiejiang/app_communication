@@ -84,6 +84,8 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
             enterElevator();
         } else if (flag.data == 2) {
             ttSendLightUpTargetFloor();
+        } else if (flag.data == 10) {
+            imitateArrivedCount = 100;
         } else if (flag.data == 100) {
             if (!NodeWorkModeManager::instance().enterWorkMode(2)) {
                 throw app::exception(make_error_code(error::mode_switching_is_not_supported));
@@ -151,8 +153,13 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
                 if (distance_x < MOVING_DISTANCE - SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER) {// 0.00556789
                     publishCmd(0.2, 0);
                 } else {
-                    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre " << print_str << " 转向 ... ";
-                    controlCmd = ControlCmd::ROTATE;
+                    if (command == ControlCommand::EXIT_ELEVATOR) {
+                        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre " << print_str << " 转向 ... ";
+                        controlCmd = ControlCmd::REACH;
+                    } else {
+                        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre " << print_str << " 转向 ... ";
+                        controlCmd = ControlCmd::ROTATE;
+                    }
                 }
                 break;
             }
@@ -496,16 +503,14 @@ void ElevatorControlManager::arrive_floor_thread_func() {
                 wait_to_cv.notify_one();
             }
         }
-        if (TT_IMITATE_ARRIVED) {
-            imitateArrivedCount++;
-            if (imitateArrivedCount > 10) {
-                LOG_IF(INFO, DEBUG_ELEVATOR)
-                << "ElevatorControlManager pre 模拟已经到达 " << mTargetFloor << " 层 ... ";
-                unseal = false;
-                mElevatorArrived = true;
-                wait_from_cv.notify_one();
-                wait_to_cv.notify_one();
-            }
+
+        if (imitateArrivedCount > 10) {
+            LOG_IF(INFO, DEBUG_ELEVATOR)
+                            << "ElevatorControlManager pre 模拟已经到达 " << mTargetFloor << " 层 ... ";
+            unseal = false;
+            mElevatorArrived = true;
+            wait_from_cv.notify_one();
+            wait_to_cv.notify_one();
         }
     }
 }
@@ -567,10 +572,10 @@ void ElevatorControlManager::doPreCirculation() {
                 PointPlanner::instance().goToPath(preCirculationBlock);
             } else if (preAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
                 LOG_IF(INFO, DEBUG_ELEVATOR)
-                << "ElevatorControlManager pre 开始调整电梯点位，"
-                << "总次数为 " << (MAX_ADJUSTMENT_FREQUENCY - 1)
-                << " ，当前次数为 " << preAdjustmentFrequency
-                << " 次 ... ";
+                                << "ElevatorControlManager pre 开始调整电梯点位，"
+                                << "总次数为 " << (MAX_ADJUSTMENT_FREQUENCY - 1)
+                                << " ，当前次数为 " << preAdjustmentFrequency
+                                << " 次 ... ";
                 auto point = preCirculationBlock.plannerPoints[0];
                 point.core_move = true;
                 PointPlanner::instance().goToPoint(point);
@@ -680,10 +685,10 @@ void ElevatorControlManager::doPostCirculation() {
                 PointPlanner::instance().goToPath(postCirculationBlock);
             } else if (postAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
                 LOG_IF(INFO, DEBUG_ELEVATOR)
-                << "ElevatorControlManager post 开始调整电梯点位，"
-                << "总次数为 " << (MAX_ADJUSTMENT_FREQUENCY - 1)
-                << " ，当前次数为 " << preAdjustmentFrequency
-                << " 次 ... ";
+                                << "ElevatorControlManager post 开始调整电梯点位，"
+                                << "总次数为 " << (MAX_ADJUSTMENT_FREQUENCY - 1)
+                                << " ，当前次数为 " << preAdjustmentFrequency
+                                << " 次 ... ";
                 auto point = postCirculationBlock.plannerPoints[0];
                 point.core_move = true;
                 PointPlanner::instance().goToPoint(point);
@@ -801,55 +806,53 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 开启楼层查询功能 ... ";
     openQueryFloor();
 
-    if (Environment::instance().isRealEnvironment) {
-        // 2
-        sendLightUpTargetFloor(fromFloor, [this, &fromFloor](const EleProtocol &response) {
-            // 3
-            LOG_IF(INFO, DEBUG_ELEVATOR)
-            << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << fromFloor << " ... ";
-            openWaitingArrive(fromFloor);
-        });
-
+    // 2
+    sendLightUpTargetFloor(fromFloor, [this, &fromFloor](const EleProtocol &response) {
         // 3
-        std::unique_lock<std::mutex> from_lock(wait_from_mutex);
-        if (!wait_from_cv.wait_for(from_lock, std::chrono::seconds(60), [this] { return mElevatorArrived; }))
-            throw std::runtime_error("takeElevator wait_from_mutex timeout ...");
-        closeWaitingArrive();
-        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << fromFloor << " 层 ... ";
+        LOG_IF(INFO, DEBUG_ELEVATOR)
+                        << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << fromFloor << " ... ";
+        openWaitingArrive(fromFloor);
+    });
 
-        // 4
-        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行进入电梯逻辑 ... ";
-        isConfirmEntry = false;
-        enterElevator();
-        std::unique_lock<std::mutex> entry_lock(wait_entry_mutex);
-        if (!wait_entry_cv.wait_for(entry_lock, std::chrono::seconds(60), [this] { return isConfirmEntry; }))
-            throw std::runtime_error("takeElevator wait_entry_mutex timeout ...");
-        closeWaitingArrive();
-        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 已进入电梯 ... ";
+    // 3
+    std::unique_lock<std::mutex> from_lock(wait_from_mutex);
+    if (!wait_from_cv.wait_for(from_lock, std::chrono::seconds(60), [this] { return mElevatorArrived; }))
+        throw std::runtime_error("takeElevator wait_from_mutex timeout ...");
+    closeWaitingArrive();
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << fromFloor << " 层 ... ";
 
-        // 5
-        sendLightUpTargetFloor(toFloor, [this, &toFloor](const EleProtocol &response) {
-            // 6
-            LOG_IF(INFO, DEBUG_ELEVATOR)
-            << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << toFloor << " ... ";
-            openWaitingArrive(toFloor);
-        });
+    // 4
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行进入电梯逻辑 ... ";
+    isConfirmEntry = false;
+    enterElevator();
+    std::unique_lock<std::mutex> entry_lock(wait_entry_mutex);
+    if (!wait_entry_cv.wait_for(entry_lock, std::chrono::seconds(60), [this] { return isConfirmEntry; }))
+        throw std::runtime_error("takeElevator wait_entry_mutex timeout ...");
+    closeWaitingArrive();
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 已进入电梯 ... ";
 
+    // 5
+    sendLightUpTargetFloor(toFloor, [this, &toFloor](const EleProtocol &response) {
         // 6
-        std::unique_lock<std::mutex> to_lock(wait_to_mutex);
-        if (!wait_to_cv.wait_for(to_lock, std::chrono::seconds(60), [this] { return mElevatorArrived; }))
-            throw std::runtime_error("takeElevator wait_to_mutex timeout ...");
-        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
+        LOG_IF(INFO, DEBUG_ELEVATOR)
+                        << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << toFloor << " ... ";
+        openWaitingArrive(toFloor);
+    });
 
-        // 7
-        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行离开电梯逻辑 ... ";
-        isConfirmExit = false;
-        exitElevator();
-        std::unique_lock<std::mutex> exit_lock(wait_exit_mutex);
-        if (!wait_exit_cv.wait_for(exit_lock, std::chrono::seconds(60), [this] { return isConfirmExit; }))
-            throw std::runtime_error("takeElevator wait_exit_mutex timeout ...");
-        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 已离开电梯 ... ";
-    }
+    // 6
+    std::unique_lock<std::mutex> to_lock(wait_to_mutex);
+    if (!wait_to_cv.wait_for(to_lock, std::chrono::seconds(60), [this] { return mElevatorArrived; }))
+        throw std::runtime_error("takeElevator wait_to_mutex timeout ...");
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
+
+    // 7
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行离开电梯逻辑 ... ";
+    isConfirmExit = false;
+    exitElevator();
+    std::unique_lock<std::mutex> exit_lock(wait_exit_mutex);
+    if (!wait_exit_cv.wait_for(exit_lock, std::chrono::seconds(60), [this] { return isConfirmExit; }))
+        throw std::runtime_error("takeElevator wait_exit_mutex timeout ...");
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 已离开电梯 ... ";
 
     closeQueryFloor();
     closeWaitingArrive();
@@ -878,48 +881,59 @@ void ElevatorControlManager::switchMapsInWorkMode(const std::string &fromMapId, 
     if (!MapControl::instance().checkMapInformation(toMapId))
         throw std::runtime_error("not exist toMapId : " + toMapId + " ...");
 
-    // 备份之前的地图
-    MapControl::instance().backupAndRetrieve(fromMapId);
-    // 改变为新地图信息
-    SegmentationDataBase::instance().changeMap(toMapId);
-    SegmentationDataBase::instance().loadMainMap();
-    // 加载新资源
-    MapControl::instance().loadInformation(toMapId);
-    // 重新加载基站信息
-    MapAttributeSingleton::instance().loadStation();
-    // 更新内存中禁区
-    MapAttributeSingleton::instance().resetProhibition();
-    MapAttributeSingleton::instance().loadVirtualWall();
-    MapAttributeSingleton::instance().loadPenaltyZone();
-    // 更新内存中定时任务
-    ScheduleManagerSingleton::instance().trigger_task_update();
-    // 重新规划牛耕田算法的全覆盖
-    ExplorationCenter::instance().repaintCoveragePath();
+    if (Environment::instance().isRealEnvironment) {
+        // 备份之前的地图
+        MapControl::instance().backupAndRetrieve(fromMapId);
+        // 改变为新地图信息
+        SegmentationDataBase::instance().changeMap(toMapId);
+        SegmentationDataBase::instance().loadMainMap();
+        // 加载新资源
+        MapControl::instance().loadInformation(toMapId);
+        // 重新加载基站信息
+        MapAttributeSingleton::instance().loadStation();
+        // 更新内存中禁区
+        MapAttributeSingleton::instance().resetProhibition();
+        MapAttributeSingleton::instance().loadVirtualWall();
+        MapAttributeSingleton::instance().loadPenaltyZone();
+        // 更新内存中定时任务
+        ScheduleManagerSingleton::instance().trigger_task_update();
+        // 重新规划牛耕田算法的全覆盖
+        ExplorationCenter::instance().repaintCoveragePath();
 
 
-    int step = NodeControl::instance().restoreWork();
-    if (step != 2)
-        throw std::runtime_error("map switching failed toMapId : " + toMapId + " ...");
+        int step = NodeControl::instance().restoreWork();
+        if (step != 2)
+            throw std::runtime_error("map switching failed toMapId : " + toMapId + " ...");
 
-    MapControl::instance().changeMapServer();
-    // 发布给 move_base 最新的禁行区域
-    PublishInnerManager::instance().publishResetProhibition();
+        MapControl::instance().changeMapServer();
+        // 发布给 move_base 最新的禁行区域
+        PublishInnerManager::instance().publishResetProhibition();
+    } else {
+        // 改变为新地图信息
+        SegmentationDataBase::instance().changeMap(toMapId);
+        SegmentationDataBase::instance().loadMainMap();
+    }
+
 }
 
 void ElevatorControlManager::sendLightUpTargetFloor(int floor, const MessageSuccessCallback &successCallback) {
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 点亮楼层 " << floor << " ... ";
-    EleProtocol eleProtocol(CMD_LIGHT_UP_TARGET_FLOOR);
-    std::vector<uint8_t> data;
-    data.push_back(EleStatus::reverseFloorRule(floor));
-    eleProtocol.setData(data);
-    //todo
-    eleProtocol.setAddress({0x16, 0x27});
-    sendSyncMessage(MessageFactory::charToMessageId(CMD_LIGHT_UP_TARGET_FLOOR), eleProtocol.getProtocol(),
-                    successCallback,
-                    [this](LadderControlError) {
-                        LOG_IF(ERROR, DEBUG_ELEVATOR) << "sendLightUpTargetFloor error ...";
-                        goPreError();
-                    });
+    if (Environment::instance().isRealEnvironment) {
+        EleProtocol eleProtocol(CMD_LIGHT_UP_TARGET_FLOOR);
+        std::vector<uint8_t> data;
+        data.push_back(EleStatus::reverseFloorRule(floor));
+        eleProtocol.setData(data);
+        //todo
+        eleProtocol.setAddress({0x16, 0x27});
+        sendSyncMessage(MessageFactory::charToMessageId(CMD_LIGHT_UP_TARGET_FLOOR), eleProtocol.getProtocol(),
+                        successCallback,
+                        [this](LadderControlError) {
+                            LOG_IF(ERROR, DEBUG_ELEVATOR) << "sendLightUpTargetFloor error ...";
+                            goPreError();
+                        });
+    } else {
+        successCallback(EleProtocol::errorEleProtocol());
+    }
 }
 
 void ElevatorControlManager::sendDelayedDoorClosing() {
@@ -980,7 +994,6 @@ void ElevatorControlManager::sendSyncMessage(ElevatorControlManager::MessageIdEn
         }
     };
 
-
     auto message = MessageFactory::createSyncMessage(messageId, data, messageCallback);
     message_queue.push(message);
     queue_cond.notify_one();
@@ -1020,18 +1033,46 @@ void ElevatorControlManager::closeWaitingArrive() {
 
 void ElevatorControlManager::poseEstimate(const RealPoint &realPoint) {
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager poseEstimate 重新定位 " << "... ";
-    geometry_msgs::PoseWithCovarianceStamped pose;
-    pose.header.frame_id = "map";
-    pose.header.stamp = ros::Time::now();
-    pose.pose.pose.position.x = realPoint.realPosition.x;
-    pose.pose.pose.position.y = realPoint.realPosition.y;
-    pose.pose.pose.position.z = realPoint.realPosition.z;
-    pose.pose.pose.orientation.x = realPoint.realOrientation.x;
-    pose.pose.pose.orientation.y = realPoint.realOrientation.y;
-    pose.pose.pose.orientation.z = realPoint.realOrientation.z;
-    pose.pose.pose.orientation.w = realPoint.realOrientation.w;
 
-    publisherPose.publish(pose);
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager poseEstimate " <<
+                                 "  realPoint.realPosition.x : " << realPoint.realPosition.x <<
+                                 "  realPoint.realPosition.y : " << realPoint.realPosition.y <<
+                                 "  realPoint.realPosition.z : " << realPoint.realPosition.z <<
+                                 "  realPoint.realOrientation.x : " << realPoint.realOrientation.x <<
+                                 "  realPoint.realOrientation.y : " << realPoint.realOrientation.y <<
+                                 "  realPoint.realOrientation.z : " << realPoint.realOrientation.z <<
+                                 "  realPoint.realOrientation.w : " << realPoint.realOrientation.w <<
+                                 "... ";
+    geometry_msgs::PoseWithCovarianceStamped original_pose;
+    original_pose.header.frame_id = "map";
+    original_pose.header.stamp = ros::Time::now();
+    original_pose.pose.pose.position.x = realPoint.realPosition.x;
+    original_pose.pose.pose.position.y = realPoint.realPosition.y;
+    original_pose.pose.pose.position.z = realPoint.realPosition.z;
+    original_pose.pose.pose.orientation.x = realPoint.realOrientation.x;
+    original_pose.pose.pose.orientation.y = realPoint.realOrientation.y;
+    original_pose.pose.pose.orientation.z = realPoint.realOrientation.z;
+    original_pose.pose.pose.orientation.w = realPoint.realOrientation.w;
+
+// 将四元数转换为tf::Quaternion
+    tf::Quaternion original_orientation;
+    tf::quaternionMsgToTF(original_pose.pose.pose.orientation, original_orientation);
+
+// 创建一个表示180度旋转的四元数（绕Z轴）
+    tf::Quaternion rotation;
+    rotation.setRPY(0, 0, M_PI); // 绕Z轴旋转180度
+
+// 将原始方向和旋转相结合
+    tf::Quaternion new_orientation = original_orientation * rotation;
+
+// 将新方向转换回geometry_msgs::Quaternion
+    geometry_msgs::Quaternion new_orientation_msg;
+    tf::quaternionTFToMsg(new_orientation, new_orientation_msg);
+
+// 更新原始pose消息
+    original_pose.pose.pose.orientation = new_orientation_msg;
+
+    publisherPose.publish(original_pose);
 }
 
 void ElevatorControlManager::initialize(ros::NodeHandle handle) {
@@ -1052,21 +1093,23 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     elevator_post_thread = std::thread(&ElevatorControlManager::elevator_post_thread_func, this);
     elevator_post_thread.detach();
 
-    std::string portName = "/dev/elevator";  // 替换为您的串口设备名称
+    if (Environment::instance().isRealEnvironment) {
 
-    try {
+        std::string portName = "/dev/elevator";  // 替换为您的串口设备名称
 
-        if (!hasSerialPortAccess(portName)) {
-            LOG_IF(ERROR, DEBUG_ELEVATOR) << "Error: No access to " << portName;
-            LOG_IF(ERROR, DEBUG_ELEVATOR) << "Please check the permissions for the serial port.";
-            LOG_IF(ERROR, DEBUG_ELEVATOR)
-            << "You may need to run this program as root or add your user to the dialout group (on Linux).";
-            return;
-        }
+        try {
 
-        boostSerial = new boost::asio::serial_port(boostIo, portName);
-        //波特率（Baud Rate）:波特率是指每秒传输的比特（位）数。它是衡量串口通信速度的标准指标。设置波特率要确保与连接的设备匹配，否则可能会导致数据传输错误。
-        boostSerial->set_option(boost::asio::serial_port_base::baud_rate(115200));
+            if (!hasSerialPortAccess(portName)) {
+                LOG_IF(ERROR, DEBUG_ELEVATOR) << "Error: No access to " << portName;
+                LOG_IF(ERROR, DEBUG_ELEVATOR) << "Please check the permissions for the serial port.";
+                LOG_IF(ERROR, DEBUG_ELEVATOR)
+                                << "You may need to run this program as root or add your user to the dialout group (on Linux).";
+                return;
+            }
+
+            boostSerial = new boost::asio::serial_port(boostIo, portName);
+            //波特率（Baud Rate）:波特率是指每秒传输的比特（位）数。它是衡量串口通信速度的标准指标。设置波特率要确保与连接的设备匹配，否则可能会导致数据传输错误。
+            boostSerial->set_option(boost::asio::serial_port_base::baud_rate(115200));
 //        //字符大小（Character Size）:字符大小指的是串口通信中每个数据字节的位数。最常见的设置是 8 位，但有些系统或设备可能使用 7 位或其他大小。
 //        boostSerial->set_option(boost::asio::serial_port_base::character_size(8));
 //        //奇偶校验（Parity）:奇偶校验是一种错误检测机制，它可以是无（none）、奇数（odd）或偶数（even）。无奇偶校验意味着不进行错误检测。
@@ -1077,21 +1120,26 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
 //        boostSerial->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
 
 
-        serial_sender_thread = std::thread(&ElevatorControlManager::serial_send_thread_func, this,
-                                           std::ref(*boostSerial));
-        serial_receiver_thread = std::thread(&ElevatorControlManager::serial_receive_thread_func, this,
-                                             std::ref(*boostSerial));
-        query_floor_thread = std::thread(&ElevatorControlManager::query_floor_thread_func, this);
-        arrive_floor_thread = std::thread(&ElevatorControlManager::arrive_floor_thread_func, this);
+            serial_sender_thread = std::thread(&ElevatorControlManager::serial_send_thread_func, this,
+                                               std::ref(*boostSerial));
+            serial_receiver_thread = std::thread(&ElevatorControlManager::serial_receive_thread_func, this,
+                                                 std::ref(*boostSerial));
+            query_floor_thread = std::thread(&ElevatorControlManager::query_floor_thread_func, this);
+            arrive_floor_thread = std::thread(&ElevatorControlManager::arrive_floor_thread_func, this);
 
-        serial_sender_thread.detach();
-        serial_receiver_thread.detach();
-        query_floor_thread.detach();
+            serial_sender_thread.detach();
+            serial_receiver_thread.detach();
+            query_floor_thread.detach();
+            arrive_floor_thread.detach();
+        } catch (const std::exception &e) {
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
+        } catch (...) {
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << "open dev error .";
+        }
+    } else {
+
+        arrive_floor_thread = std::thread(&ElevatorControlManager::arrive_floor_thread_func, this);
         arrive_floor_thread.detach();
-    } catch (const std::exception &e) {
-        LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-    } catch (...) {
-        LOG_IF(ERROR, DEBUG_ELEVATOR) << "open dev error .";
     }
 
     subscriberElevatorManager = handle.subscribe("/elevator_manager", 1,
@@ -1186,7 +1234,7 @@ void ElevatorControlManager::handlePostFlow(const std::vector<RealBlock> &postFl
 
 void ElevatorControlManager::completePreCirculation(const bool arrive) {
     LOG_IF(INFO, DEBUG_ELEVATOR)
-    << "ElevatorControlManager pre 移动或调整电梯点位结果 " << arrive << "... ";
+                    << "ElevatorControlManager pre 移动或调整电梯点位结果 " << arrive << "... ";
     if (arrive) {
         if (preAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
             {
@@ -1210,7 +1258,7 @@ void ElevatorControlManager::completePreCirculation(const bool arrive) {
 
 void ElevatorControlManager::completePostCirculation(const bool arrive) {
     LOG_IF(INFO, DEBUG_ELEVATOR)
-    << "ElevatorControlManager completePostCirculation 移动或调整电梯点位有完成 " << arrive << "... ";
+                    << "ElevatorControlManager completePostCirculation 移动或调整电梯点位有完成 " << arrive << "... ";
     if (arrive) {
         if (postAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
             {

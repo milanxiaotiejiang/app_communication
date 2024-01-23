@@ -44,6 +44,7 @@ private:
     ros::Publisher pubCarpet;
     ros::Publisher pubPad;
     ros::Publisher pubCloud;
+    ros::Publisher pubElevatorManager;
 public:
     static auto &instance() {
         static PublishOutManager obj;
@@ -74,6 +75,7 @@ public:
 
     void publishResourcesUpdateForCloud(const std_msgs::Int32 &message) const;
 
+    void publishElevatorManager() const;
 };
 
 

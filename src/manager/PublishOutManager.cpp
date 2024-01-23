@@ -23,6 +23,8 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
 
     pubPad = handle.advertise<std_msgs::Int32>(RESOURCES_UPDATE_FOR_PAD, 1);
     pubCloud = handle.advertise<std_msgs::Int32>(RESOURCES_UPDATE_FOR_CLOUD, 1);
+
+    pubElevatorManager = handle.advertise<std_msgs::Int32>("/elevator_manager", 1);
 }
 
 void PublishOutManager::publishJson(const std::string &message) const {
@@ -122,4 +124,10 @@ void PublishOutManager::publishResourcesUpdateForPad(const std_msgs::Int32 &mess
 
 void PublishOutManager::publishResourcesUpdateForCloud(const std_msgs::Int32 &message) const {
     pubCloud.publish(message);
+}
+
+void PublishOutManager::publishElevatorManager() const {
+    std_msgs::Int32 data;
+    data.data = 10;
+    pubElevatorManager.publish(data);
 }

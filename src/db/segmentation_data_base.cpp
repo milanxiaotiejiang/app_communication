@@ -122,6 +122,14 @@ void SegmentationDataBase::changeMap(const std::string &map_id) {
 }
 
 MapPo SegmentationDataBase::installDefaultMap() {
+    auto builds = SegmentationDataBase::instance().loadAllBuild();
+    if (builds.empty()) {
+        throw std::runtime_error("builds is empty ...");
+    }
+    SegmentationDataBase::instance().removeBuild();
+
+    long buildId = SegmentationDataBase::instance().saveBuild("default_build");
+
     auto mapList = segmentationStorage.get_all<MapPo>();
     for (const auto &item: mapList) {
         removeAllRoom(item.id);
@@ -138,6 +146,8 @@ MapPo SegmentationDataBase::installDefaultMap() {
     map.floor = 0;
     map.base_station = true;
     segmentationStorage.replace(map);
+
+    SegmentationDataBase::instance().attachBuildMap(buildId, map.id);
     return map;
 }
 

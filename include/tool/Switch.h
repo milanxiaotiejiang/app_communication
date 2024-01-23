@@ -198,6 +198,8 @@ enum MESSAGE_ID {
 
     MAP_FOR_ID,
 
+    TT_ELEVATOR,
+
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1
 };
 

@@ -502,6 +502,10 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new MapForIdStrategy();
             break;
 
+        case TT_ELEVATOR:
+            messageStrategy = new TTElevatorStrategy();
+            break;
+
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);
