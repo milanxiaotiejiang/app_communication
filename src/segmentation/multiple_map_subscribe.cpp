@@ -127,7 +127,7 @@ void MultipleMapSubscribe::buildManagerSubscribeCallback(const std_msgs::Int32 &
                                                                true);
         } else if (flag.data == 100000) {
             SegmentationDataBase::instance().removeBuild();
-            long buildId = SegmentationDataBase::instance().saveBuild("B6");
+            long buildId = SegmentationDataBase::instance().saveBuild("B6", 0);
             const std::vector<MapPo> &allMap = SegmentationDataBase::instance().loadAllMap();
             for (const auto &item: allMap) {
                 SegmentationDataBase::instance().attachBuildMap(buildId, item.id);

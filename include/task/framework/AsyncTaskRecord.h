@@ -64,6 +64,10 @@ protected:
         return runTask.getProList();
     }
 
+    int getBuildElevatorAddress() const {
+        return runTask.getBuildElevatorAddress();
+    }
+
     bool asyncMap() const {
         return runTask.isAsyncMap();
     }

@@ -177,7 +177,8 @@ public:
                             ),
                             make_table("build",
                                        make_column("id", &BuildPo::id, primary_key()),
-                                       make_column("name", &BuildPo::name, default_value(""))
+                                       make_column("name", &BuildPo::name, default_value("")),
+                                       make_column("elevator_address", &BuildPo::elevator_address, default_value(0))
                             ),
                             make_table("build_map_mapping",
                                        make_column("o_build_id", &BuildMapMapping::o_build_id),

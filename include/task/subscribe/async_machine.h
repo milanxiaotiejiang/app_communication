@@ -232,6 +232,10 @@ public:
                 return "建图中";
             case 10016:
                 return "过闸机中";
+            case 10020:
+                return "梯控前";
+            case 10021:
+                return "梯控后";
             default:
                 return "未知";
         }

@@ -140,6 +140,8 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             } else {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "HeadTailPointCall : 梯控前期逻辑开始 ...";
                 setFlow(event::flow::trigger_special_pre_conditions);
+
+                ElevatorControlManager::instance().setBuildElevatorAddress(getBuildElevatorAddress());
                 ElevatorControlManager::instance().handlePreFlow(preBlocks());
             }
             break;

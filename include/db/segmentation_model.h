@@ -217,10 +217,11 @@ class BuildPo {
 public:
     long id{};
     std::string name;
+    int elevator_address;
 
     BuildPo();
 
-    BuildPo(long id, const std::string &name);
+    BuildPo(long id, const std::string &name, int elevatorAddress);
 
     friend std::ostream &operator<<(std::ostream &os, const BuildPo &build);
 };

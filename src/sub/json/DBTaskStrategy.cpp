@@ -409,7 +409,7 @@ std::vector<BuildTimer> ListTimerTaskBuildStrategy::handler(std::string params) 
     auto buildList = SegmentationDataBase::instance().loadAllBuild();
     for (const auto &build: buildList) {
         BuildTimer buildTimer;
-        buildTimer.setBuild(BuildVo(build.id, build.name));
+        buildTimer.setBuild(BuildVo(build.id, build.name, build.elevator_address));
         auto mapList = SegmentationDataBase::instance().findBuildMapsForBuild(build.id);
         for (const auto &buildMap: mapList) {
             auto timerList = TaskDataBase::instance().loadTimerFoMap(buildMap.second.id);

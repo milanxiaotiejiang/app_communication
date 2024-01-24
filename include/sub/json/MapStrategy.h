@@ -126,6 +126,11 @@ public:
     std::string handler(BuildVo params) override;
 };
 
+class ModifyBuildElevatorAddressStrategy : public MessageStrategy<BuildVo, std::string> {
+public:
+    std::string handler(BuildVo params) override;
+};
+
 class ListBuildStrategy : public MessageStrategy<std::string, std::vector<BuildVo>> {
 public:
     std::vector<BuildVo> handler(std::string params) override;

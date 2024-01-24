@@ -23,7 +23,7 @@ bool MapControl::initialize(ros::NodeHandle handle) {
 
     if (SegmentationDataBase::instance().loadAllBuild().empty()) {
         SegmentationDataBase::instance().removeBuild();
-        long buildId = SegmentationDataBase::instance().saveBuild("default_build");
+        long buildId = SegmentationDataBase::instance().saveBuild("default_build", 0);
         auto maps = SegmentationDataBase::instance().loadAllMap();
         for (const auto &map: maps) {
             SegmentationDataBase::instance().attachBuildMap(buildId, map.id);

@@ -186,6 +186,7 @@ enum MESSAGE_ID {
     ADD_BUILD,                              //添加楼宇
     DELETE_BUILD,                           //根据id删除楼宇
     MODIFY_BUILD_NAME,                      //根据id修改楼宇名称
+    MODIFY_BUILD_ELEVATOR_ADDRESS,
     LIST_BUILD,                             //查询所有楼宇
 
     MODIFY_MAP_BASE_STATION,                //修改地图是否有基站

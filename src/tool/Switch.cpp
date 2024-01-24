@@ -468,6 +468,9 @@ int switch_ID(const std::string &str) {
     if (str == "modify_build_name") {
         return MODIFY_BUILD_NAME;
     }
+    if (str == "modify_build_elevator_address") {
+        return MODIFY_BUILD_ELEVATOR_ADDRESS;
+    }
     if (str == "list_build") {
         return LIST_BUILD;
     }

@@ -614,6 +614,8 @@ void AsyncTaskCall::callBackBasePoint() {
     } else {
         LOG_IF(INFO, DEBUG_ELEVATOR) << "HeadTailPointCall : 梯控后期逻辑开始 ...";
         setFlow(event::flow::trigger_special_post_conditions);
+
+        ElevatorControlManager::instance().setBuildElevatorAddress(getBuildElevatorAddress());
         ElevatorControlManager::instance().handlePostFlow(postBlocks());
     }
 

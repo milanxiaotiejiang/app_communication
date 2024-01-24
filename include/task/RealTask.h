@@ -69,6 +69,8 @@ private:
     int post_floor;
     RealPoint post_point;
 
+    int buildElevatorAddress;
+
     std::vector<RealBlock> proList;
     std::vector<RealBlock> postList;
 
@@ -353,6 +355,14 @@ public:
 
     void setPostList(const std::vector<RealBlock> &postList) {
         RealTask::postList = postList;
+    }
+
+    int getBuildElevatorAddress() const {
+        return buildElevatorAddress;
+    }
+
+    void setBuildElevatorAddress(int buildElevatorAddress) {
+        RealTask::buildElevatorAddress = buildElevatorAddress;
     }
 
     void assignmentPoint(RealBlock &block, int blockId) const {

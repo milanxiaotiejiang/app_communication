@@ -105,8 +105,10 @@ public:
         this->data = data;
     }
 
-    void setAddress(const std::vector<uint8_t> &address) {
-        this->address = address;
+    void setAddress(int elevatorAddress) {
+        //todo
+        this->address.push_back(elevatorAddress & 0xff);
+        this->address.push_back((elevatorAddress >> 8) & 0xff);
     }
 
     std::vector<uint8_t> getProtocol() {

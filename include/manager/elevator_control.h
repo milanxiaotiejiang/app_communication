@@ -186,6 +186,7 @@ private:
         }
     };
 
+    int mElevatorAddress;
 
     ros::Subscriber subscriberOdom;
     ros::Subscriber subscriberImu;
@@ -264,7 +265,9 @@ private:
     std::atomic<bool> postError;
 
     std::atomic<int> preAdjustmentFrequency;
+    std::atomic<int> preRetryFrequency;
     std::atomic<int> postAdjustmentFrequency;
+    std::atomic<int> postRetryFrequency;
 
     uint8_t recentlyFloor;
     uint8_t recentlyElevatorStatus;
@@ -351,6 +354,8 @@ public:
     void setCallbackElevatorPre(const std::function<void(bool)> &callbackElevatorPre);
 
     void setCallbackElevatorPost(const std::function<void(bool)> &callbackElevatorPost);
+
+    void setBuildElevatorAddress(int elevatorAddress);
 
     void enterElevator();
 

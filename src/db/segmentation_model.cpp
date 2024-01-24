@@ -126,12 +126,13 @@ std::ostream &operator<<(std::ostream &os, const Gate &gate) {
 
 BuildPo::BuildPo() {}
 
-BuildPo::BuildPo(long id, const std::string &name) : id(id), name(name) {}
-
 std::ostream &operator<<(std::ostream &os, const BuildPo &build) {
     os << "id: " << build.id << " name: " << build.name;
     return os;
 }
+
+BuildPo::BuildPo(long id, const std::string &name, int elevatorAddress) : id(id), name(name),
+                                                                          elevator_address(elevatorAddress) {}
 
 BuildMapMapping::BuildMapMapping() {}
 

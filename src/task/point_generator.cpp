@@ -957,12 +957,14 @@ void ExplorationGenerator::elevatorPointList(RealTask &task) {
      */
 
     std::vector<RealBlock> proList;
-    const RealBlock &preCirculationBlock = createPreCirculationBlock(task);
-    const RealBlock &preElevatorBlock = createPreElevatorBlock(task);
-    const RealBlock &preSwitchMapBlock = createPreSwitchMapBlock(task);
-    proList.push_back(preCirculationBlock);
-    proList.push_back(preElevatorBlock);
-    proList.push_back(preSwitchMapBlock);
+    if (task.getDoMapId() != task.getPreMapId()) {
+        const RealBlock &preCirculationBlock = createPreCirculationBlock(task);
+        const RealBlock &preElevatorBlock = createPreElevatorBlock(task);
+        const RealBlock &preSwitchMapBlock = createPreSwitchMapBlock(task);
+        proList.push_back(preCirculationBlock);
+        proList.push_back(preElevatorBlock);
+        proList.push_back(preSwitchMapBlock);
+    }
     task.setProList(proList);
 
     std::vector<RealBlock> postList;

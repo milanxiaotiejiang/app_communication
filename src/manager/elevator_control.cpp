@@ -637,8 +637,8 @@ void ElevatorControlManager::doPreSwitchMap() {
             auto toMapId = mapPair.second;
 
             LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager doPreSwitchMap 开始切换地图 "
-                                         << "fromMapId : " << fromMapId
-                                         << "toMapId : " << toMapId
+                                         << " fromMapId : " << fromMapId
+                                         << " toMapId : " << toMapId
                                          << "... ";
             if (fromMapId != toMapId) {
                 switchMapsInWorkMode(fromMapId, toMapId);
@@ -816,7 +816,7 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
 
     // 3
     std::unique_lock<std::mutex> from_lock(wait_from_mutex);
-    if (!wait_from_cv.wait_for(from_lock, std::chrono::seconds(60), [this] { return mElevatorArrived; }))
+    if (!wait_from_cv.wait_for(from_lock, std::chrono::seconds(60 * 5), [this] { return mElevatorArrived; }))
         throw std::runtime_error("takeElevator wait_from_mutex timeout ...");
     closeWaitingArrive();
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << fromFloor << " 层 ... ";
@@ -841,7 +841,7 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
 
     // 6
     std::unique_lock<std::mutex> to_lock(wait_to_mutex);
-    if (!wait_to_cv.wait_for(to_lock, std::chrono::seconds(60), [this] { return mElevatorArrived; }))
+    if (!wait_to_cv.wait_for(to_lock, std::chrono::seconds(60 * 5), [this] { return mElevatorArrived; }))
         throw std::runtime_error("takeElevator wait_to_mutex timeout ...");
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
 
@@ -923,8 +923,7 @@ void ElevatorControlManager::sendLightUpTargetFloor(int floor, const MessageSucc
         std::vector<uint8_t> data;
         data.push_back(EleStatus::reverseFloorRule(floor));
         eleProtocol.setData(data);
-        //todo
-        eleProtocol.setAddress({0x16, 0x27});
+        eleProtocol.setAddress(mElevatorAddress);
         sendSyncMessage(MessageFactory::charToMessageId(CMD_LIGHT_UP_TARGET_FLOOR), eleProtocol.getProtocol(),
                         successCallback,
                         [this](LadderControlError) {
@@ -942,7 +941,7 @@ void ElevatorControlManager::sendDelayedDoorClosing() {
     std::vector<uint8_t> data;
     data.push_back(MAXIMUM_DELAY_TIME);
     eleProtocol.setData(data);
-    eleProtocol.setAddress({0x08, 0x00});
+    eleProtocol.setAddress(mElevatorAddress);
     sendAsyncMessage(eleProtocol);
     // 崩溃
 //    sendSyncMessage(MessageFactory::charToMessageId(CMD_DELAYED_DOOR_CLOSING), eleProtocol.getProtocol(),
@@ -995,6 +994,13 @@ void ElevatorControlManager::sendSyncMessage(ElevatorControlManager::MessageIdEn
     };
 
     auto message = MessageFactory::createSyncMessage(messageId, data, messageCallback);
+
+    std::cout << "write  ";
+    for (auto byte: message.data) {
+        std::cout << "0x" << std::hex << static_cast<int>(byte) << " ";
+    }
+    std::cout << std::endl;
+
     message_queue.push(message);
     queue_cond.notify_one();
 }
@@ -1148,6 +1154,10 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
 
 }
 
+void ElevatorControlManager::setBuildElevatorAddress(int elevatorAddress) {
+    mElevatorAddress = elevatorAddress;
+}
+
 void ElevatorControlManager::setCallbackElevatorPre(const std::function<void(bool)> &callbackElevatorPre) {
     ElevatorControlManager::callbackElevatorPre = callbackElevatorPre;
 }
@@ -1204,6 +1214,7 @@ void ElevatorControlManager::handlePreFlow(const std::vector<RealBlock> &preFlow
     preElevatorBlock = preFlows[1];
     preSwitchMapBlock = preFlows[2];
     preAdjustmentFrequency = 0;
+    preRetryFrequency = 0;
 
     //todo 逻辑判断，看看执行哪个流程
 
@@ -1223,6 +1234,7 @@ void ElevatorControlManager::handlePostFlow(const std::vector<RealBlock> &postFl
     postElevatorBlock = postFlows[1];
     postSwitchMapBlock = postFlows[2];
     postAdjustmentFrequency = 0;
+    postRetryFrequency = 0;
 
     //todo 逻辑判断，看看执行哪个流程
     {
@@ -1252,7 +1264,17 @@ void ElevatorControlManager::completePreCirculation(const bool arrive) {
 
 
     } else {
-        goPreError();
+        if (preRetryFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+            preAdjustmentFrequency = 0;
+            {
+                std::unique_lock<std::mutex> lk(pre_mutex_);
+                preState = ElevatorPreState::PRE_CIRCULATION;
+            }
+            pre_condition_variable_.notify_one();
+        } else {
+            goPreError();
+        }
+        preRetryFrequency++;
     }
 }
 
@@ -1274,7 +1296,17 @@ void ElevatorControlManager::completePostCirculation(const bool arrive) {
             post_condition_variable_.notify_one();
         }
     } else {
-        goPostError();
+        if (postRetryFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+            postAdjustmentFrequency = 0;
+            {
+                std::unique_lock<std::mutex> lk(post_mutex_);
+                postState = ElevatorPostState::POST_CIRCULATION;
+            }
+            post_condition_variable_.notify_one();
+        } else {
+            goPostError();
+        }
+        postRetryFrequency++;
     }
 }
 

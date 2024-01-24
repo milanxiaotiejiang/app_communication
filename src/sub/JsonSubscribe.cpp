@@ -476,6 +476,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case MODIFY_BUILD_NAME:
             messageStrategy = new ModifyBuildNameStrategy();
             break;
+        case MODIFY_BUILD_ELEVATOR_ADDRESS:
+            messageStrategy = new ModifyBuildElevatorAddressStrategy();
+            break;
         case LIST_BUILD:
             messageStrategy = new ListBuildStrategy();
             break;

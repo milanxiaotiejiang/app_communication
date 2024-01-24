@@ -65,7 +65,7 @@ void NodeControl::initialize(ros::NodeHandle handle) {
     handle.param<int>("/node_controller/available/inu", availableInu, 0);
     NodeControl::instance().cameraFiringAvailable = availableInu;
 
-    if (Environment::instance().isRealEnvironment) {
+    if (!Environment::instance().isRealEnvironment) {
         setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
         return;
     }
@@ -378,6 +378,9 @@ void NodeControl::trySleep() {
 //            LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
 //        }
 //    }
+    if (!Environment::instance().isRealEnvironment) {
+        return;
+    }
     asyncOn([this]() {
         node::WorkState back_work_state_ = work_state_;
         node::MapState back_map_state_ = map_state_;

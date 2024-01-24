@@ -554,7 +554,7 @@ std::string MultipleMapFeasibleZoneStrategy::handler(CompositePointList params) 
 
 long AddBuildStrategy::handler(BuildVo params) {
     checkName(params.getName());
-    return SegmentationDataBase::instance().saveBuild(params.getName());
+    return SegmentationDataBase::instance().saveBuild(params.getName(), params.getElevatorAddress());
 }
 
 std::string DeleteBuildStrategy::handler(long params) {
@@ -564,7 +564,12 @@ std::string DeleteBuildStrategy::handler(long params) {
 
 std::string ModifyBuildNameStrategy::handler(BuildVo params) {
     checkName(params.getName());
-    SegmentationDataBase::instance().modifyBuild(params.getId(), params.getName());
+    SegmentationDataBase::instance().modifyBuildName(params.getId(), params.getName());
+    return "";
+}
+
+std::string ModifyBuildElevatorAddressStrategy::handler(BuildVo params) {
+    SegmentationDataBase::instance().modifyBuildElevatorAddress(params.getId(), params.getElevatorAddress());
     return "";
 }
 
@@ -581,7 +586,7 @@ std::vector<BuildVo> ListBuildStrategy::handler(std::string params) {
         std::vector<BuildVo> buildResults;
         auto buildList = SegmentationDataBase::instance().loadAllBuild();
         for (const auto &item: buildList) {
-            BuildVo build(item.id, item.name);
+            BuildVo build(item.id, item.name, item.elevator_address);
             build.setMain(item.id == currentBuild.id);
             buildResults.push_back(build);
         }

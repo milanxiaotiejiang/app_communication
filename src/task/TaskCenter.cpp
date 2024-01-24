@@ -260,10 +260,9 @@ std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int
     realTask.setOnSource(SqliteDataBase::SourceToString(on_source));
     TaskExploration::task2RealTask(task, realTask);
 
-
+    bool needLadderControl = false;
     const std::string &oMapId = task.getOMapId();
     if (oMapId != SegmentationDataBase::instance().getDbMap().id) {
-//        throw app::exception(make_error_code(error::cross_floor_tasks_are_currently_not_supported));
 
         if (!SegmentationDataBase::instance().getDbMap().elevator)
             throw app::exception(make_error_code(error::the_current_map_does_not_have_ladder_control_points_set));
@@ -271,7 +270,6 @@ std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int
         auto taskMap = SegmentationDataBase::instance().selectMapById(oMapId);
         if (!taskMap.elevator)
             throw app::exception(make_error_code(error::no_ladder_control_points_have_been_set_on_the_task_map));
-
 
         //多地图任务，进行任务类型判断
         TaskMode mode = SqliteDataBase::TaskModeFromInt(realTask.getMode());
@@ -283,17 +281,36 @@ std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int
                 throw app::exception(
                         make_error_code(error::cross_floor_tasks_currently_only_support_full_coverage_tasks));
 
+        needLadderControl = true;
+
+    } else {
+        bool hasBaseStation = SegmentationDataBase::instance().getDbMap().base_station;
+        if (!hasBaseStation) {
+
+            if (!SegmentationDataBase::instance().getDbMap().elevator)
+                throw app::exception(make_error_code(error::the_current_map_does_not_have_ladder_control_points_set));
+
+            needLadderControl = true;
+        }
+    }
+
+    if (needLadderControl) {
+//        throw app::exception(make_error_code(error::cross_floor_tasks_are_currently_not_supported));
+
         //多地图任务，进行楼宇判断
         auto buildMaps = SegmentationDataBase::instance().findBuildMapsForMap(oMapId);
         if (buildMaps.empty()) {
             throw app::exception(make_error_code(error::no_multi_map_buildings_have_been_set_up));
         } else if (buildMaps.size() == 1) {
 
+            auto taskMap = SegmentationDataBase::instance().selectMapById(oMapId);
+
             std::pair<BuildPo, MapPo> buildMap = buildMaps[0];
             BuildPo &buildPo = buildMap.first;
 
             realTask.setAsyncMap(true);
             realTask.setBuildId(buildPo.id);
+            realTask.setBuildElevatorAddress(buildPo.elevator_address);
 
             // 设置任务地图的梯控信息
             RealPoint taskPoint;

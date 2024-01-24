@@ -152,7 +152,7 @@ public:
 
     GateInfo queryGateForId(long id);
 
-    long saveBuild(const std::string &name);
+    long saveBuild(const std::string &name, int elevator_address);
 
     void removeBuild(long id);
 
@@ -162,7 +162,9 @@ public:
 
     BuildPo queryBuildForId(long id);
 
-    void modifyBuild(long id, const std::string &name);
+    void modifyBuildName(long id, const std::string &name);
+
+    void modifyBuildElevatorAddress(long id, int elevator_address);
 
     void attachBuildMap(long buildId, const std::string &mapId);
 

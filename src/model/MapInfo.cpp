@@ -346,8 +346,6 @@ std::ostream &operator<<(std::ostream &os, const MapScore &score) {
 
 BuildVo::BuildVo() {}
 
-BuildVo::BuildVo(long id, const std::string &name) : id(id), name(name) {}
-
 long BuildVo::getId() const {
     return id;
 }
@@ -370,6 +368,17 @@ bool BuildVo::isMain() const {
 
 void BuildVo::setMain(bool main) {
     BuildVo::main = main;
+}
+
+BuildVo::BuildVo(long id, const std::string &name, int elevatorAddress) : id(id), name(name),
+                                                                          elevator_address(elevatorAddress) {}
+
+int BuildVo::getElevatorAddress() const {
+    return elevator_address;
+}
+
+void BuildVo::setElevatorAddress(int elevatorAddress) {
+    elevator_address = elevatorAddress;
 }
 
 BuildTimer::BuildTimer() {}

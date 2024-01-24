@@ -18,10 +18,11 @@ private:
     long id{};
     std::string name;
     bool main;
+    int elevator_address;
 public:
     BuildVo();
 
-    BuildVo(long id, const std::string &name);
+    BuildVo(long id, const std::string &name, int elevatorAddress);
 
     long getId() const;
 
@@ -35,17 +36,23 @@ public:
 
     void setMain(bool main);
 
+    int getElevatorAddress() const;
+
+    void setElevatorAddress(int elevatorAddress);
+
     friend void to_json(json &j, const BuildVo &b) {
         j = json{
-                {"id",   b.id},
-                {"name", b.name},
-                {"main", b.main},
+                {"id",               b.id},
+                {"name",             b.name},
+                {"elevator_address", b.elevator_address},
+                {"main",             b.main},
         };
     }
 
     friend void from_json(const json &j, BuildVo &b) {
         j.at("id").get_to(b.id);
         j.at("name").get_to(b.name);
+        j.at("elevator_address").get_to(b.elevator_address);
         j.at("main").get_to(b.main);
     }
 };
@@ -84,12 +91,12 @@ public:
 
     friend void to_json(json &j, const BuildMapParam &b) {
         j = json{
-                {"save",     b.save},
-                {"reset",    b.reset},
-                {"new_map",  b.new_map},
-                {"map_name", b.map_name},
-                {"build_id", b.buildId},
-                {"floor", b.floor},
+                {"save",         b.save},
+                {"reset",        b.reset},
+                {"new_map",      b.new_map},
+                {"map_name",     b.map_name},
+                {"build_id",     b.buildId},
+                {"floor",        b.floor},
                 {"base_station", b.base_station},
         };
     }
