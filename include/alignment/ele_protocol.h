@@ -87,11 +87,14 @@ struct EleStatus {
 
 class EleProtocol {
 public:
-    EleProtocol(uint8_t cmd) : cmd(cmd) {
+    EleProtocol(uint8_t cmd, int elevatorAddress) : cmd(cmd) {
         // 初始化默认值
         header = {0x7f, 0xf7};
         flag = 0x29;
-        address = {0x10, 0x27};
+//        address = {0x01, 0x00};
+        this->address.clear();
+        this->address.push_back(elevatorAddress & 0xff);
+        this->address.push_back((elevatorAddress >> 8) & 0xff);
         mac = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
         uniqueCode = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12};
     }
@@ -106,7 +109,7 @@ public:
     }
 
     void setAddress(int elevatorAddress) {
-        //todo
+        this->address.clear();
         this->address.push_back(elevatorAddress & 0xff);
         this->address.push_back((elevatorAddress >> 8) & 0xff);
     }

@@ -269,6 +269,7 @@ private:
     std::atomic<int> postAdjustmentFrequency;
     std::atomic<int> postRetryFrequency;
 
+    int recentlyDataLengthSize;
     uint8_t recentlyFloor;
     uint8_t recentlyElevatorStatus;
 

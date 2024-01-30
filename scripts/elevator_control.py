@@ -95,10 +95,10 @@ if __name__ == "__main__":
             if not user_input:
                 print("输入错误，请重新输入")
                 continue
-            response = ele_controller.create_and_send_command(bytearray([0x16, 0x27]), 0x60, bytearray([user_input]))
+            response = ele_controller.create_and_send_command(bytearray([0x01, 0x00]), 0x60, bytearray([user_input]))
         elif user_input == 2:
             # Command to query current floor
-            response = ele_controller.create_and_send_command(bytearray([0x10, 0x27]), 0x61)
+            response = ele_controller.create_and_send_command(bytearray([0x01, 0x00]), 0x61)
         elif user_input == 3:
             # Command to delay door closing
             user_input = int(input("请输入目标楼层: "))

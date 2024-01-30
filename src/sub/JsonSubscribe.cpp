@@ -387,6 +387,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case MODIFY_TIMER_NAME:
             messageStrategy = new ModifyTimerNameStrategy();
             break;
+        case LIST_TIMER_TASK_BUILD:
+            messageStrategy = new ListTimerTaskBuildStrategy();
+            break;
 
         case EXPLORATION_TASK:
             messageStrategy = new ExplorationTaskStrategy();

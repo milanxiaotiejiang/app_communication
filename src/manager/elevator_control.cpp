@@ -181,7 +181,7 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
                     }
                 }
                 if (angle_difference < 180 - 100 * SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER) {// 0.00556789
-                    publishCmd(0, 0.2);
+                    publishCmd(0, 0.4);
                 } else {
                     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager normal_rotate ： " << normal_rotate;
                     if (!normal_rotate) {
@@ -454,6 +454,7 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
                 if (dataLengthSize >= 4) {
                     recentlyElevatorStatus = static_cast<unsigned char>(data[1]);//电梯状态
                 }
+                recentlyDataLengthSize = dataLengthSize;
 //                if (dataLengthSize >= 16) {
 //                    // 预留(2byte)
 //                    std::vector<uint8_t> residenceTime(data.begin() + 4, data.begin() + 6);//楼层停留时间
@@ -478,8 +479,8 @@ void ElevatorControlManager::query_floor_thread_func() {
         query_cond.wait(lock, [this] {
             return inquiry;
         });
+        sendAsyncMessage(EleProtocol(CMD_QUERY_FLOOR_WHERE_LOCATED, mElevatorAddress));
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        sendAsyncMessage(EleProtocol(CMD_QUERY_FLOOR_WHERE_LOCATED));
     }
 }
 
@@ -492,21 +493,32 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         });
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-        int cFloor = EleStatus::floorRule(recentlyFloor);
-        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 电梯处于 " << cFloor << " 层 ... ";
-        if (mTargetFloor == cFloor) {
-            auto status = EleStatus::parseElevatorStatus(recentlyElevatorStatus);
-            if (status.doorState == ElevatorStatus::DoorState::Open) {
-                unseal = false;
-                mElevatorArrived = true;
-                wait_from_cv.notify_one();
-                wait_to_cv.notify_one();
+        bool isArrived = false;
+        if (recentlyDataLengthSize != 0) {
+            int cFloor = EleStatus::floorRule(recentlyFloor);
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 电梯处于 " << cFloor << " 层 ... ";
+            if (mTargetFloor == cFloor) {
+                if (recentlyDataLengthSize == 1) {
+                    sendDelayedDoorClosing();
+                    std::this_thread::sleep_for(std::chrono::seconds(2));
+                    isArrived = true;
+                } else if (recentlyDataLengthSize == 4) {
+                    auto status = EleStatus::parseElevatorStatus(recentlyElevatorStatus);
+                    if (status.doorState == ElevatorStatus::DoorState::Open) {
+                        isArrived = true;
+                    }
+                }
             }
         }
 
         if (imitateArrivedCount > 10) {
             LOG_IF(INFO, DEBUG_ELEVATOR)
                             << "ElevatorControlManager pre 模拟已经到达 " << mTargetFloor << " 层 ... ";
+            isArrived = true;
+        }
+
+        if (isArrived) {
+            recentlyDataLengthSize = 0;
             unseal = false;
             mElevatorArrived = true;
             wait_from_cv.notify_one();
@@ -845,6 +857,8 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
         throw std::runtime_error("takeElevator wait_to_mutex timeout ...");
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
 
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
     // 7
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行离开电梯逻辑 ... ";
     isConfirmExit = false;
@@ -919,7 +933,7 @@ void ElevatorControlManager::switchMapsInWorkMode(const std::string &fromMapId, 
 void ElevatorControlManager::sendLightUpTargetFloor(int floor, const MessageSuccessCallback &successCallback) {
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 点亮楼层 " << floor << " ... ";
     if (Environment::instance().isRealEnvironment) {
-        EleProtocol eleProtocol(CMD_LIGHT_UP_TARGET_FLOOR);
+        EleProtocol eleProtocol(CMD_LIGHT_UP_TARGET_FLOOR, mElevatorAddress);
         std::vector<uint8_t> data;
         data.push_back(EleStatus::reverseFloorRule(floor));
         eleProtocol.setData(data);
@@ -937,7 +951,7 @@ void ElevatorControlManager::sendLightUpTargetFloor(int floor, const MessageSucc
 
 void ElevatorControlManager::sendDelayedDoorClosing() {
 //    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 延迟关门 ... ";
-    EleProtocol eleProtocol(CMD_DELAYED_DOOR_CLOSING);
+    EleProtocol eleProtocol(CMD_DELAYED_DOOR_CLOSING, mElevatorAddress);
     std::vector<uint8_t> data;
     data.push_back(MAXIMUM_DELAY_TIME);
     eleProtocol.setData(data);
@@ -958,6 +972,7 @@ void ElevatorControlManager::sendSyncMessage(ElevatorControlManager::MessageIdEn
                                              const std::vector<uint8_t> &data,
                                              const MessageSuccessCallback &successCallback,
                                              const MessageFailCallback &failCallback) {
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 2 ... ";
     MessageCallback messageCallback = [&successCallback, &failCallback](const EleProtocol &response,
                                                                         LadderControlError error) {
         switch (error) {
@@ -995,12 +1010,6 @@ void ElevatorControlManager::sendSyncMessage(ElevatorControlManager::MessageIdEn
 
     auto message = MessageFactory::createSyncMessage(messageId, data, messageCallback);
 
-    std::cout << "write  ";
-    for (auto byte: message.data) {
-        std::cout << "0x" << std::hex << static_cast<int>(byte) << " ";
-    }
-    std::cout << std::endl;
-
     message_queue.push(message);
     queue_cond.notify_one();
 }
@@ -1023,6 +1032,7 @@ void ElevatorControlManager::closeQueryFloor() {
 }
 
 void ElevatorControlManager::openWaitingArrive(int targetFloor) {
+    recentlyDataLengthSize = 0;
     mTargetFloor = targetFloor;
     mElevatorArrived = false;
     imitateArrivedCount = 0;

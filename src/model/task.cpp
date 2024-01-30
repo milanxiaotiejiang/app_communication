@@ -290,3 +290,11 @@ int TimerVo::getEndDay() const {
 void TimerVo::setEndDay(int endDay) {
     end_day = endDay;
 }
+
+const std::string &TimerVo::getOMapId() const {
+    return o_map_id;
+}
+
+void TimerVo::setOMapId(const std::string &oMapId) {
+    o_map_id = oMapId;
+}
