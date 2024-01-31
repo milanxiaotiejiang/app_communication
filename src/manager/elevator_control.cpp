@@ -19,6 +19,7 @@
 #include "manager/PublishInnerManager.h"
 #include "exploration/ExplorationCenter.h"
 #include "alignment/ele_protocol.h"
+#include "future/timer_call.h"
 #include <iostream>
 #include <cstdint>
 
@@ -826,6 +827,12 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
         openWaitingArrive(fromFloor);
     });
 
+    if (!Environment::instance().isRealEnvironment) {
+        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(5), [this]() {
+            imitateArrivedCount = 100;
+        });
+    }
+
     // 3
     std::unique_lock<std::mutex> from_lock(wait_from_mutex);
     if (!wait_from_cv.wait_for(from_lock, std::chrono::seconds(60 * 5), [this] { return mElevatorArrived; }))
@@ -850,6 +857,12 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
                         << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << toFloor << " ... ";
         openWaitingArrive(toFloor);
     });
+
+    if (!Environment::instance().isRealEnvironment) {
+        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(5), [this]() {
+            imitateArrivedCount = 100;
+        });
+    }
 
     // 6
     std::unique_lock<std::mutex> to_lock(wait_to_mutex);

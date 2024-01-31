@@ -16,8 +16,8 @@ protected:
     std::deque<TaskStack> stopStack;
 
     std::deque<RealTask> waitTaskQueue;
-    std::vector<RealBlock> preConditions;
     std::deque<RealBlock> plannerQueue;
+    std::vector<RealBlock> preConditions;
     std::vector<RealBlock> postConditions;
 
     RealTask runTask;

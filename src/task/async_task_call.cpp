@@ -65,7 +65,15 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
 
     ElevatorControlManager::instance().setCallbackElevatorPre([this](bool result) {
         notify_one([this, &result]() {
+
+            if (!Environment::instance().isRealEnvironment) {
+                async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(6), [this]() {
+                    manualBackToBase(true);
+                });
+            }
+
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : notify pre elevator finish ...";
+            callOpenMechanism(baseWorkStatus(), isKnife(), []() {});
             preConditions.clear();
             flowElevatorPrePoint.arrive = result;
             pushBlock(flowElevatorPrePoint);
@@ -614,7 +622,7 @@ void AsyncTaskCall::callBackBasePoint() {
     } else {
         LOG_IF(INFO, DEBUG_ELEVATOR) << "HeadTailPointCall : 梯控后期逻辑开始 ...";
         setFlow(event::flow::trigger_special_post_conditions);
-
+        MechanismManager::instance().resetWorkStatus();
         ElevatorControlManager::instance().setBuildElevatorAddress(getBuildElevatorAddress());
         ElevatorControlManager::instance().handlePostFlow(postBlocks());
     }
