@@ -68,7 +68,8 @@ class ElevatorController:
 if __name__ == "__main__":
 
     # Create an instance of ElevatorController
-    ele_controller = ElevatorController("/dev/elevator")
+    # ele_controller = ElevatorController("/dev/elevator")
+    ele_controller = ElevatorController("/dev/ttyUSB0")
 
     # Infinite loop to continuously accept user commands
     while True:

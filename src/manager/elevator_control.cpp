@@ -945,21 +945,21 @@ void ElevatorControlManager::switchMapsInWorkMode(const std::string &fromMapId, 
 
 void ElevatorControlManager::sendLightUpTargetFloor(int floor, const MessageSuccessCallback &successCallback) {
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 点亮楼层 " << floor << " ... ";
-    if (Environment::instance().isRealEnvironment) {
-        EleProtocol eleProtocol(CMD_LIGHT_UP_TARGET_FLOOR, mElevatorAddress);
-        std::vector<uint8_t> data;
-        data.push_back(EleStatus::reverseFloorRule(floor));
-        eleProtocol.setData(data);
-        eleProtocol.setAddress(mElevatorAddress);
-        sendSyncMessage(MessageFactory::charToMessageId(CMD_LIGHT_UP_TARGET_FLOOR), eleProtocol.getProtocol(),
-                        successCallback,
-                        [this](LadderControlError) {
-                            LOG_IF(ERROR, DEBUG_ELEVATOR) << "sendLightUpTargetFloor error ...";
-                            goPreError();
-                        });
-    } else {
-        successCallback(EleProtocol::errorEleProtocol());
-    }
+//    if (Environment::instance().isRealEnvironment) {
+    EleProtocol eleProtocol(CMD_LIGHT_UP_TARGET_FLOOR, mElevatorAddress);
+    std::vector<uint8_t> data;
+    data.push_back(EleStatus::reverseFloorRule(floor));
+    eleProtocol.setData(data);
+    eleProtocol.setAddress(mElevatorAddress);
+    sendSyncMessage(MessageFactory::charToMessageId(CMD_LIGHT_UP_TARGET_FLOOR), eleProtocol.getProtocol(),
+                    successCallback,
+                    [this](LadderControlError) {
+                        LOG_IF(ERROR, DEBUG_ELEVATOR) << "sendLightUpTargetFloor error ...";
+                        goPreError();
+                    });
+//    } else {
+//        successCallback(EleProtocol::errorEleProtocol());
+//    }
 }
 
 void ElevatorControlManager::sendDelayedDoorClosing() {
@@ -1083,22 +1083,22 @@ void ElevatorControlManager::poseEstimate(const RealPoint &realPoint) {
     original_pose.pose.pose.orientation.z = realPoint.realOrientation.z;
     original_pose.pose.pose.orientation.w = realPoint.realOrientation.w;
 
-// 将四元数转换为tf::Quaternion
+    // 将四元数转换为tf::Quaternion
     tf::Quaternion original_orientation;
     tf::quaternionMsgToTF(original_pose.pose.pose.orientation, original_orientation);
 
-// 创建一个表示180度旋转的四元数（绕Z轴）
+    // 创建一个表示180度旋转的四元数（绕Z轴）
     tf::Quaternion rotation;
     rotation.setRPY(0, 0, M_PI); // 绕Z轴旋转180度
 
-// 将原始方向和旋转相结合
+    // 将原始方向和旋转相结合
     tf::Quaternion new_orientation = original_orientation * rotation;
 
-// 将新方向转换回geometry_msgs::Quaternion
+    // 将新方向转换回geometry_msgs::Quaternion
     geometry_msgs::Quaternion new_orientation_msg;
     tf::quaternionTFToMsg(new_orientation, new_orientation_msg);
 
-// 更新原始pose消息
+    // 更新原始pose消息
     original_pose.pose.pose.orientation = new_orientation_msg;
 
     publisherPose.publish(original_pose);
@@ -1122,23 +1122,22 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     elevator_post_thread = std::thread(&ElevatorControlManager::elevator_post_thread_func, this);
     elevator_post_thread.detach();
 
-    if (Environment::instance().isRealEnvironment) {
 
-        std::string portName = "/dev/elevator";  // 替换为您的串口设备名称
+    std::string portName = Environment::instance().isRealEnvironment ? "/dev/elevator" : "/dev/ttyUSB0";
 
-        try {
+    try {
 
-            if (!hasSerialPortAccess(portName)) {
-                LOG_IF(ERROR, DEBUG_ELEVATOR) << "Error: No access to " << portName;
-                LOG_IF(ERROR, DEBUG_ELEVATOR) << "Please check the permissions for the serial port.";
-                LOG_IF(ERROR, DEBUG_ELEVATOR)
-                                << "You may need to run this program as root or add your user to the dialout group (on Linux).";
-                return;
-            }
+        if (!hasSerialPortAccess(portName)) {
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << "Error: No access to " << portName;
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << "Please check the permissions for the serial port.";
+            LOG_IF(ERROR, DEBUG_ELEVATOR)
+                            << "You may need to run this program as root or add your user to the dialout group (on Linux).";
+            return;
+        }
 
-            boostSerial = new boost::asio::serial_port(boostIo, portName);
-            //波特率（Baud Rate）:波特率是指每秒传输的比特（位）数。它是衡量串口通信速度的标准指标。设置波特率要确保与连接的设备匹配，否则可能会导致数据传输错误。
-            boostSerial->set_option(boost::asio::serial_port_base::baud_rate(115200));
+        boostSerial = new boost::asio::serial_port(boostIo, portName);
+        //波特率（Baud Rate）:波特率是指每秒传输的比特（位）数。它是衡量串口通信速度的标准指标。设置波特率要确保与连接的设备匹配，否则可能会导致数据传输错误。
+        boostSerial->set_option(boost::asio::serial_port_base::baud_rate(115200));
 //        //字符大小（Character Size）:字符大小指的是串口通信中每个数据字节的位数。最常见的设置是 8 位，但有些系统或设备可能使用 7 位或其他大小。
 //        boostSerial->set_option(boost::asio::serial_port_base::character_size(8));
 //        //奇偶校验（Parity）:奇偶校验是一种错误检测机制，它可以是无（none）、奇数（odd）或偶数（even）。无奇偶校验意味着不进行错误检测。
@@ -1149,26 +1148,21 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
 //        boostSerial->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
 
 
-            serial_sender_thread = std::thread(&ElevatorControlManager::serial_send_thread_func, this,
-                                               std::ref(*boostSerial));
-            serial_receiver_thread = std::thread(&ElevatorControlManager::serial_receive_thread_func, this,
-                                                 std::ref(*boostSerial));
-            query_floor_thread = std::thread(&ElevatorControlManager::query_floor_thread_func, this);
-            arrive_floor_thread = std::thread(&ElevatorControlManager::arrive_floor_thread_func, this);
-
-            serial_sender_thread.detach();
-            serial_receiver_thread.detach();
-            query_floor_thread.detach();
-            arrive_floor_thread.detach();
-        } catch (const std::exception &e) {
-            LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-        } catch (...) {
-            LOG_IF(ERROR, DEBUG_ELEVATOR) << "open dev error .";
-        }
-    } else {
-
+        serial_sender_thread = std::thread(&ElevatorControlManager::serial_send_thread_func, this,
+                                           std::ref(*boostSerial));
+        serial_receiver_thread = std::thread(&ElevatorControlManager::serial_receive_thread_func, this,
+                                             std::ref(*boostSerial));
+        query_floor_thread = std::thread(&ElevatorControlManager::query_floor_thread_func, this);
         arrive_floor_thread = std::thread(&ElevatorControlManager::arrive_floor_thread_func, this);
+
+        serial_sender_thread.detach();
+        serial_receiver_thread.detach();
+        query_floor_thread.detach();
         arrive_floor_thread.detach();
+    } catch (const std::exception &e) {
+        LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
+    } catch (...) {
+        LOG_IF(ERROR, DEBUG_ELEVATOR) << "open dev error .";
     }
 
     subscriberElevatorManager = handle.subscribe("/elevator_manager", 1,
@@ -1334,7 +1328,8 @@ void ElevatorControlManager::completePostCirculation(const bool arrive) {
 }
 
 void ElevatorControlManager::ttSendLightUpTargetFloor() {
-    sendLightUpTargetFloor(1, [this](const EleProtocol &response) {
+    setBuildElevatorAddress(1);
+    sendLightUpTargetFloor(1, [](const EleProtocol &response) {
         LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << 1 << " ... ";
     });
 }

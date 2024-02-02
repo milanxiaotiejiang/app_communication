@@ -31,7 +31,7 @@ const unsigned char CMD_QUERY_FLOOR_WHERE_LOCATED = 0x61;
 const unsigned char CMD_DELAYED_DOOR_CLOSING = 0x62;//MessageIdEnum::DELAYED_DOOR_CLOSING
 const unsigned char CMD_AUTOMATIC_DOOR_OPENING = 0x66;//MessageIdEnum::AUTOMATIC_DOOR_OPENING
 
-#define SERIAL_PORT_PRINT false
+#define SERIAL_PORT_PRINT true
 #define TT_IMITATE_ARRIVED true
 
 #define MAXIMUM_DELAY_TIME 9

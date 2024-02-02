@@ -240,6 +240,10 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
         }
     }
 
+    if (!Environment::instance().isRealEnvironment) {
+        return succeeded;
+    }
+
     if (!real_parse_crash_dir.empty() && !real_program_installation_dir.empty()) {
         auto CMD = real_parse_crash_dir + parse_crash + " " + real_program_installation_dir + " " + crash_file;
         LOG(INFO) << "CMD : " << CMD;
