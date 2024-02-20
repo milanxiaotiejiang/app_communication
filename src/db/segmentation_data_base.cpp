@@ -19,7 +19,9 @@ void SegmentationDataBase::resetMap(const MapPo &map) {
     mapPo.name = map.name;
     mapPo.path = map.path;
     mapPo.main = map.main;
+
     mapPo.elevator = map.elevator;
+
     mapPo.elevator_position_x = map.elevator_position_x;
     mapPo.elevator_position_y = map.elevator_position_y;
     mapPo.elevator_position_z = map.elevator_position_z;
@@ -27,6 +29,24 @@ void SegmentationDataBase::resetMap(const MapPo &map) {
     mapPo.elevator_orientation_y = map.elevator_orientation_y;
     mapPo.elevator_orientation_z = map.elevator_orientation_z;
     mapPo.elevator_orientation_w = map.elevator_orientation_w;
+
+    mapPo.elevator_inside_position_x = map.elevator_inside_position_x;
+    mapPo.elevator_inside_position_y = map.elevator_inside_position_y;
+    mapPo.elevator_inside_position_z = map.elevator_inside_position_z;
+    mapPo.elevator_inside_orientation_x = map.elevator_inside_orientation_x;
+    mapPo.elevator_inside_orientation_y = map.elevator_inside_orientation_y;
+    mapPo.elevator_inside_orientation_z = map.elevator_inside_orientation_z;
+    mapPo.elevator_inside_orientation_w = map.elevator_inside_orientation_w;
+
+    mapPo.p1x = map.p1x;
+    mapPo.p1y = map.p1y;
+    mapPo.p2x = map.p2x;
+    mapPo.p2y = map.p2y;
+    mapPo.p3x = map.p3x;
+    mapPo.p3y = map.p3y;
+    mapPo.p4x = map.p4x;
+    mapPo.p4y = map.p4y;
+
     mapPo.floor = map.floor;
     mapPo.base_station = map.base_station;
 }
@@ -156,7 +176,7 @@ std::vector<MapPo> SegmentationDataBase::loadAllMap() {
 }
 
 MapPo SegmentationDataBase::loadMapForId(std::string mapId) {
-    return segmentationStorage.get<MapPo>(mapId);
+    return segmentationStorage.get<MapPo>(std::move(mapId));
 }
 
 void SegmentationDataBase::updateMapName(const std::string &map_id, const std::string &map_name) {
@@ -169,17 +189,60 @@ void SegmentationDataBase::updateMapName(const std::string &map_id, const std::s
     }
 }
 
-MapPo SegmentationDataBase::updateMapElevator(const std::string &map_id) {
-    auto pose = MapAttributeSingleton::instance().getRobotCompletePosition();
+MapPo SegmentationDataBase::updateMapElevatorStatus(const std::string &map_id) {
     MapPo map = segmentationStorage.get<MapPo>(map_id);
     map.elevator = true;
-    map.elevator_position_x = pose.position.x;
-    map.elevator_position_y = pose.position.y;
-    map.elevator_position_z = pose.position.z;
-    map.elevator_orientation_x = pose.orientation.x;
-    map.elevator_orientation_y = pose.orientation.y;
-    map.elevator_orientation_z = pose.orientation.z;
-    map.elevator_orientation_w = pose.orientation.w;
+
+    segmentationStorage.update(map);
+
+    if (map.id == mapPo.id) {
+        resetMap(selectMapById(map_id));
+    }
+    return map;
+}
+
+MapPo SegmentationDataBase::updateMapElevatorPoint(const std::string &map_id, bool inside) {
+    auto pose = MapAttributeSingleton::instance().getRobotCompletePosition();
+    MapPo map = segmentationStorage.get<MapPo>(map_id);
+
+    if (inside) {
+        map.elevator_inside_position_x = pose.position.x;
+        map.elevator_inside_position_y = pose.position.y;
+        map.elevator_inside_position_z = pose.position.z;
+        map.elevator_inside_orientation_x = pose.orientation.x;
+        map.elevator_inside_orientation_y = pose.orientation.y;
+        map.elevator_inside_orientation_z = pose.orientation.z;
+        map.elevator_inside_orientation_w = pose.orientation.w;
+    } else {
+        map.elevator_position_x = pose.position.x;
+        map.elevator_position_y = pose.position.y;
+        map.elevator_position_z = pose.position.z;
+        map.elevator_orientation_x = pose.orientation.x;
+        map.elevator_orientation_y = pose.orientation.y;
+        map.elevator_orientation_z = pose.orientation.z;
+        map.elevator_orientation_w = pose.orientation.w;
+    }
+
+    segmentationStorage.update(map);
+
+    if (map.id == mapPo.id) {
+        resetMap(selectMapById(map_id));
+    }
+    return map;
+}
+
+MapPo SegmentationDataBase::updateMapElevatorRect(const std::string &map_id, std::vector<int> points) {
+    MapPo map = segmentationStorage.get<MapPo>(map_id);
+
+    map.p1x = points[0];
+    map.p1y = points[1];
+    map.p2x = points[2];
+    map.p2y = points[3];
+    map.p3x = points[4];
+    map.p3y = points[5];
+    map.p4x = points[6];
+    map.p4y = points[7];
+
     segmentationStorage.update(map);
 
     if (map.id == mapPo.id) {
@@ -574,6 +637,7 @@ std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForBui
                     &BuildPo::name,
                     &BuildPo::elevator_address,
                     &MapPo::elevator,
+
                     &MapPo::elevator_position_x,
                     &MapPo::elevator_position_y,
                     &MapPo::elevator_position_z,
@@ -581,6 +645,24 @@ std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForBui
                     &MapPo::elevator_orientation_y,
                     &MapPo::elevator_orientation_z,
                     &MapPo::elevator_orientation_w,
+
+                    &MapPo::elevator_inside_position_x,
+                    &MapPo::elevator_inside_position_y,
+                    &MapPo::elevator_inside_position_z,
+                    &MapPo::elevator_inside_orientation_x,
+                    &MapPo::elevator_inside_orientation_y,
+                    &MapPo::elevator_inside_orientation_z,
+                    &MapPo::elevator_inside_orientation_w,
+
+                    &MapPo::p1x,
+                    &MapPo::p1y,
+                    &MapPo::p2x,
+                    &MapPo::p2y,
+                    &MapPo::p3x,
+                    &MapPo::p3y,
+                    &MapPo::p4x,
+                    &MapPo::p4y,
+
                     &MapPo::floor,
                     &MapPo::base_station
             )),
@@ -602,6 +684,7 @@ std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForBui
                 std::get<2>(row),//path
                 std::get<3>(row),//main
                 std::get<7>(row),//elevator
+
                 std::get<8>(row),//elevator_position_x
                 std::get<9>(row),//elevator_position_y
                 std::get<10>(row),//elevator_position_z
@@ -609,8 +692,26 @@ std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForBui
                 std::get<12>(row),//elevator_orientation_y
                 std::get<13>(row),//elevator_orientation_z
                 std::get<14>(row),//elevator_orientation_w
-                std::get<15>(row),//floor
-                std::get<16>(row)//base_station
+
+                std::get<15>(row),//elevator_inside_position_x
+                std::get<16>(row),//elevator_inside_position_y
+                std::get<17>(row),//elevator_inside_position_z
+                std::get<18>(row),//elevator_inside_orientation_x
+                std::get<19>(row),//elevator_inside_orientation_y
+                std::get<20>(row),//elevator_inside_orientation_z
+                std::get<21>(row),//elevator_inside_orientation_w
+
+                std::get<22>(row),//p1x
+                std::get<23>(row),//p1y
+                std::get<24>(row),//p2x
+                std::get<25>(row),//p2y
+                std::get<26>(row),//p3x
+                std::get<27>(row),//p3y
+                std::get<28>(row),//p4x
+                std::get<29>(row),//p4y
+
+                std::get<30>(row),//floor
+                std::get<31>(row)//base_station
         );
         auto pair = std::make_pair(b, m);
         vos.push_back(pair);
@@ -626,10 +727,13 @@ std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForMap
                     &MapPo::name,
                     &MapPo::path,
                     &MapPo::main,
+
                     &BuildPo::id,
                     &BuildPo::name,
                     &BuildPo::elevator_address,
+
                     &MapPo::elevator,
+
                     &MapPo::elevator_position_x,
                     &MapPo::elevator_position_y,
                     &MapPo::elevator_position_z,
@@ -637,6 +741,24 @@ std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForMap
                     &MapPo::elevator_orientation_y,
                     &MapPo::elevator_orientation_z,
                     &MapPo::elevator_orientation_w,
+
+                    &MapPo::elevator_inside_position_x,
+                    &MapPo::elevator_inside_position_y,
+                    &MapPo::elevator_inside_position_z,
+                    &MapPo::elevator_inside_orientation_x,
+                    &MapPo::elevator_inside_orientation_y,
+                    &MapPo::elevator_inside_orientation_z,
+                    &MapPo::elevator_inside_orientation_w,
+
+                    &MapPo::p1x,
+                    &MapPo::p1y,
+                    &MapPo::p2x,
+                    &MapPo::p2y,
+                    &MapPo::p3x,
+                    &MapPo::p3y,
+                    &MapPo::p4x,
+                    &MapPo::p4y,
+
                     &MapPo::floor,
                     &MapPo::base_station
             )),
@@ -657,7 +779,9 @@ std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForMap
                 std::get<1>(row),//name
                 std::get<2>(row),//path
                 std::get<3>(row),//main
+
                 std::get<7>(row),//elevator
+
                 std::get<8>(row),//elevator_position_x
                 std::get<9>(row),//elevator_position_y
                 std::get<10>(row),//elevator_position_z
@@ -665,8 +789,26 @@ std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForMap
                 std::get<12>(row),//elevator_orientation_y
                 std::get<13>(row),//elevator_orientation_z
                 std::get<14>(row),//elevator_orientation_w
-                std::get<15>(row),//floor
-                std::get<16>(row)//base_station
+
+                std::get<8>(row),//elevator_inside_position_x
+                std::get<9>(row),//elevator_inside_position_y
+                std::get<10>(row),//elevator_inside_position_z
+                std::get<11>(row),//elevator_inside_orientation_x
+                std::get<12>(row),//elevator_inside_orientation_y
+                std::get<13>(row),//elevator_inside_orientation_z
+                std::get<14>(row),//elevator_inside_orientation_w
+
+                std::get<15>(row),//p1x
+                std::get<16>(row),//p1y
+                std::get<17>(row),//p2x
+                std::get<18>(row),//p2y
+                std::get<19>(row),//p3x
+                std::get<20>(row),//p3y
+                std::get<21>(row),//p4x
+                std::get<21>(row),//p4y
+
+                std::get<30>(row),//floor
+                std::get<31>(row)//base_station
         );
         auto pair = std::make_pair(b, m);
         vos.push_back(pair);

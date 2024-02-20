@@ -15,7 +15,9 @@ public:
 
     static void task2RealTask(const TaskVo &task, RealTask &realTask);
 
-    static void mapElevator2RealPoint(const MapPo &map, RealPoint &realPoint);
+    static void mapElevatorOutside2RealPoint(const MapPo &map, RealPoint &realPoint);
+
+    static void mapElevatorInside2RealPoint(const MapPo &map, RealPoint &realPoint);
 
     static RoomCoverage explorationPlanningPath(const RealTask &task);
 

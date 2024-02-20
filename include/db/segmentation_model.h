@@ -15,6 +15,7 @@ public:
     std::string path;
     bool main;
     bool elevator;
+
     double elevator_position_x{};
     double elevator_position_y{};
     double elevator_position_z{};
@@ -23,6 +24,23 @@ public:
     double elevator_orientation_z{};
     double elevator_orientation_w{};
 
+    double elevator_inside_position_x{};
+    double elevator_inside_position_y{};
+    double elevator_inside_position_z{};
+    double elevator_inside_orientation_x{};
+    double elevator_inside_orientation_y{};
+    double elevator_inside_orientation_z{};
+    double elevator_inside_orientation_w{};
+
+    int p1x{};
+    int p1y{};
+    int p2x{};
+    int p2y{};
+    int p3x{};
+    int p3y{};
+    int p4x{};
+    int p4y{};
+
     int floor;
     bool base_station;
 
@@ -30,8 +48,11 @@ public:
 
     MapPo(const std::string &id, const std::string &name, const std::string &path, bool main, bool elevator,
           double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ, double elevatorOrientationX,
-          double elevatorOrientationY, double elevatorOrientationZ, double elevatorOrientationW, int floor,
-          bool baseStation);
+          double elevatorOrientationY, double elevatorOrientationZ, double elevatorOrientationW,
+          double elevatorInsidePositionX, double elevatorInsidePositionY, double elevatorInsidePositionZ,
+          double elevatorInsideOrientationX, double elevatorInsideOrientationY, double elevatorInsideOrientationZ,
+          double elevatorInsideOrientationW, double p1X, double p1Y, double p2X, double p2Y, double p3X, double p3Y,
+          double p4X, double p4Y, int floor, bool baseStation);
 
     friend std::ostream &operator<<(std::ostream &os, const MapPo &po);
 };

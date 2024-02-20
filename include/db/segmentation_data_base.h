@@ -78,7 +78,11 @@ public:
 
     void updateMapName(const std::string &map_id, const std::string &map_name);
 
-    MapPo updateMapElevator(const std::string &map_id);
+    MapPo updateMapElevatorStatus(const std::string &map_id);
+
+    MapPo updateMapElevatorPoint(const std::string &map_id, bool inside);
+
+    MapPo updateMapElevatorRect(const std::string &map_id, std::vector<int> points);
 
     MapPo removeMapElevator(const std::string &map_id);
 

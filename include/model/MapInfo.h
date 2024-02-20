@@ -226,13 +226,32 @@ private:
     double elevator_orientation_z{};
     double elevator_orientation_w{};
 
+    double elevator_inside_position_x;
+    double elevator_inside_position_y;
+    double elevator_inside_position_z;
+    double elevator_inside_orientation_x;
+    double elevator_inside_orientation_y;
+    double elevator_inside_orientation_z;
+    double elevator_inside_orientation_w;
+
+    int p1x;
+    int p1y;
+    int p2x;
+    int p2y;
+    int p3x;
+    int p3y;
+    int p4x;
+    int p4y;
+
     int floor;
     bool base_station;
+
     double base_station_point_x;
     double base_station_point_y;
     double base_station_pose_x;
     double base_station_pose_y;
     double base_station_pose_z;
+
     int map_cols;
     int map_rows;
 
@@ -246,9 +265,12 @@ public:
     MultiMapInfo(const std::string &id, const std::string &name, bool main, const std::string &path, bool elevator,
                  double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ,
                  double elevatorOrientationX, double elevatorOrientationY, double elevatorOrientationZ,
-                 double elevatorOrientationW, int floor, bool baseStation, double baseStationPointX,
-                 double baseStationPointY, double baseStationPoseX, double baseStationPoseY, double baseStationPoseZ,
-                 int mapCols, int mapRows, long buildId, const std::string &buildName);
+                 double elevatorOrientationW, double elevatorInsidePositionX, double elevatorInsidePositionY,
+                 double elevatorInsidePositionZ, double elevatorInsideOrientationX, double elevatorInsideOrientationY,
+                 double elevatorInsideOrientationZ, double elevatorInsideOrientationW, double p1X, double p1Y,
+                 double p2X, double p2Y, double p3X, double p3Y, double p4X, double p4Y, int floor, bool baseStation,
+                 double baseStationPointX, double baseStationPointY, double baseStationPoseX, double baseStationPoseY,
+                 double baseStationPoseZ, int mapCols, int mapRows, long buildId, const std::string &buildName);
 
     const std::string &getId() const;
 
@@ -324,29 +346,47 @@ public:
 
     friend void to_json(json &j, const MultiMapInfo &b) {
         j = json{
-                {"id",                     b.id},
-                {"name",                   b.name},
-                {"main",                   b.main},
-                {"path",                   b.path},
-                {"elevator",               b.elevator},
-                {"elevator_position_x",    b.elevator_position_x},
-                {"elevator_position_y",    b.elevator_position_y},
-                {"elevator_position_z",    b.elevator_position_z},
-                {"elevator_orientation_x", b.elevator_orientation_x},
-                {"elevator_orientation_y", b.elevator_orientation_y},
-                {"elevator_orientation_z", b.elevator_orientation_z},
-                {"elevator_orientation_w", b.elevator_orientation_w},
-                {"floor",                  b.floor},
-                {"base_station",           b.base_station},
-                {"base_station_point_x",   b.base_station_point_x},
-                {"base_station_point_y",   b.base_station_point_y},
-                {"base_station_pose_x",    b.base_station_pose_x},
-                {"base_station_pose_y",    b.base_station_pose_y},
-                {"base_station_pose_z",    b.base_station_pose_z},
-                {"map_cols",               b.map_cols},
-                {"map_rows",               b.map_rows},
-                {"build_id",               b.buildId},
-                {"build_name",             b.buildName},
+                {"id",                            b.id},
+                {"name",                          b.name},
+                {"main",                          b.main},
+                {"path",                          b.path},
+                {"elevator",                      b.elevator},
+                {"elevator_position_x",           b.elevator_position_x},
+                {"elevator_position_y",           b.elevator_position_y},
+                {"elevator_position_z",           b.elevator_position_z},
+                {"elevator_orientation_x",        b.elevator_orientation_x},
+                {"elevator_orientation_y",        b.elevator_orientation_y},
+                {"elevator_orientation_z",        b.elevator_orientation_z},
+                {"elevator_orientation_w",        b.elevator_orientation_w},
+
+                {"elevator_inside_position_x",    b.elevator_inside_position_x},
+                {"elevator_inside_position_y",    b.elevator_inside_position_y},
+                {"elevator_inside_position_z",    b.elevator_inside_position_z},
+                {"elevator_inside_orientation_x", b.elevator_inside_orientation_x},
+                {"elevator_inside_orientation_y", b.elevator_inside_orientation_y},
+                {"elevator_inside_orientation_z", b.elevator_inside_orientation_z},
+                {"elevator_inside_orientation_w", b.elevator_inside_orientation_w},
+
+                {"p1x",                           b.p1x},
+                {"p1y",                           b.p1y},
+                {"p2x",                           b.p2x},
+                {"p2y",                           b.p2y},
+                {"p3x",                           b.p3x},
+                {"p3y",                           b.p3y},
+                {"p4x",                           b.p4x},
+                {"p4y",                           b.p4y},
+
+                {"floor",                         b.floor},
+                {"base_station",                  b.base_station},
+                {"base_station_point_x",          b.base_station_point_x},
+                {"base_station_point_y",          b.base_station_point_y},
+                {"base_station_pose_x",           b.base_station_pose_x},
+                {"base_station_pose_y",           b.base_station_pose_y},
+                {"base_station_pose_z",           b.base_station_pose_z},
+                {"map_cols",                      b.map_cols},
+                {"map_rows",                      b.map_rows},
+                {"build_id",                      b.buildId},
+                {"build_name",                    b.buildName},
         };
     }
 
@@ -363,6 +403,24 @@ public:
         j.at("elevator_orientation_y").get_to(b.elevator_orientation_y);
         j.at("elevator_orientation_z").get_to(b.elevator_orientation_z);
         j.at("elevator_orientation_w").get_to(b.elevator_orientation_w);
+
+        j.at("elevator_inside_position_x").get_to(b.elevator_inside_position_x);
+        j.at("elevator_inside_position_y").get_to(b.elevator_inside_position_y);
+        j.at("elevator_inside_position_z").get_to(b.elevator_inside_position_z);
+        j.at("elevator_inside_orientation_x").get_to(b.elevator_inside_orientation_x);
+        j.at("elevator_inside_orientation_y").get_to(b.elevator_inside_orientation_y);
+        j.at("elevator_inside_orientation_z").get_to(b.elevator_inside_orientation_z);
+        j.at("elevator_inside_orientation_w").get_to(b.elevator_inside_orientation_w);
+
+        j.at("p1x").get_to(b.p1x);
+        j.at("p1y").get_to(b.p1y);
+        j.at("p2x").get_to(b.p2x);
+        j.at("p2y").get_to(b.p2y);
+        j.at("p3x").get_to(b.p3x);
+        j.at("p3y").get_to(b.p3y);
+        j.at("p4x").get_to(b.p4x);
+        j.at("p4y").get_to(b.p4y);
+
         j.at("floor").get_to(b.floor);
         j.at("base_station").get_to(b.base_station);
         j.at("base_station_point_x").get_to(b.base_station_point_x);
@@ -531,6 +589,40 @@ struct MapElevator {
     friend void from_json(const json &j, MapElevator &bean) {
         j.at("map_id").get_to(bean.map_id);
         j.at("elevator").get_to(bean.elevator);
+    }
+};
+
+struct MapElevatorPoint {
+    std::string map_id;
+    bool inside;
+
+    friend void to_json(json &j, const MapElevatorPoint &bean) {
+        j = json{
+                {"map_id", bean.map_id},
+                {"inside", bean.inside},
+        };
+    }
+
+    friend void from_json(const json &j, MapElevatorPoint &bean) {
+        j.at("map_id").get_to(bean.map_id);
+        j.at("inside").get_to(bean.inside);
+    }
+};
+
+struct MapElevatorRect {
+    std::string map_id;
+    std::vector<int> points;
+
+    friend void to_json(json &j, const MapElevatorRect &bean) {
+        j = json{
+                {"map_id", bean.map_id},
+                {"points", bean.points},
+        };
+    }
+
+    friend void from_json(const json &j, MapElevatorRect &bean) {
+        j.at("map_id").get_to(bean.map_id);
+        j.at("points").get_to(bean.points);
     }
 };
 

@@ -980,7 +980,7 @@ void ExplorationGenerator::elevatorPointList(RealTask &task) {
 }
 
 RealBlock ExplorationGenerator::createPreCirculationBlock(RealTask &task) {
-    const RealPoint &point = task.getPrePoint();
+    const RealPoint &point = task.getPreOutPoint();
 
     RealPoint realPoint;
     realPoint.realPosition = point.realPosition;
@@ -1000,11 +1000,15 @@ RealBlock ExplorationGenerator::createPreElevatorBlock(RealTask &task) {
     auto realBlock = buildBlock(0, task);
     realBlock.mustArrive = true;
     realBlock.plannerPoints.push_back(realPoint);
+    realBlock.plannerPoints.push_back(task.getPreOutPoint());
+    realBlock.plannerPoints.push_back(task.getPreInPoint());
+    realBlock.plannerPoints.push_back(task.getDoOutPoint());
+    realBlock.plannerPoints.push_back(task.getDoInPoint());
     return realBlock;
 }
 
 RealBlock ExplorationGenerator::createPreSwitchMapBlock(RealTask &task) {
-    const RealPoint &point = task.getDoPoint();
+    const RealPoint &point = task.getDoOutPoint();
 
     RealPoint realPoint;
     realPoint.realPosition = point.realPosition;
@@ -1020,7 +1024,7 @@ RealBlock ExplorationGenerator::createPreSwitchMapBlock(RealTask &task) {
 }
 
 RealBlock ExplorationGenerator::createPostCirculationBlock(RealTask &task) {
-    const RealPoint &point = task.getDoPoint();
+    const RealPoint &point = task.getDoOutPoint();
 
     RealPoint realPoint;
     realPoint.realPosition = point.realPosition;
@@ -1041,11 +1045,15 @@ RealBlock ExplorationGenerator::createPostElevatorBlock(RealTask &task) {
     auto realBlock = buildBlock(0, task);
     realBlock.mustArrive = true;
     realBlock.plannerPoints.push_back(realPoint);
+    realBlock.plannerPoints.push_back(task.getDoOutPoint());
+    realBlock.plannerPoints.push_back(task.getDoInPoint());
+    realBlock.plannerPoints.push_back(task.getPostOutPoint());
+    realBlock.plannerPoints.push_back(task.getPostInPoint());
     return realBlock;
 }
 
 RealBlock ExplorationGenerator::createPostSwitchMapBlock(RealTask &task) {
-    const RealPoint &point = task.getPostPoint();
+    const RealPoint &point = task.getPostOutPoint();
 
     RealPoint realPoint;
     realPoint.realPosition = point.realPosition;

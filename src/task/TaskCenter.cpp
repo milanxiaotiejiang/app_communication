@@ -313,30 +313,38 @@ std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int
             realTask.setBuildElevatorAddress(buildPo.elevator_address);
 
             // 设置任务地图的梯控信息
-            RealPoint taskPoint;
-            TaskExploration::mapElevator2RealPoint(taskMap, taskPoint);
+            RealPoint taskOutPoint;
+            TaskExploration::mapElevatorOutside2RealPoint(taskMap, taskOutPoint);
+            RealPoint taskInPoint;
+            TaskExploration::mapElevatorInside2RealPoint(taskMap, taskInPoint);
             realTask.setDoMapId(taskMap.id);
             realTask.setDoFloor(taskMap.floor);
-            realTask.setDoPoint(taskPoint);
+            realTask.setDoOutPoint(taskOutPoint);
+            realTask.setDoInPoint(taskInPoint);
 
             // 设置当前地图的梯控信息
             auto preMap = SegmentationDataBase::instance().getDbMap();
-            RealPoint preRealPoint;
-            TaskExploration::mapElevator2RealPoint(preMap, preRealPoint);
+            RealPoint preOutPoint;
+            TaskExploration::mapElevatorOutside2RealPoint(preMap, preOutPoint);
+            RealPoint preInPoint;
+            TaskExploration::mapElevatorInside2RealPoint(preMap, preInPoint);
             realTask.setPreMapId(preMap.id);
             realTask.setPreFloor(preMap.floor);
-            realTask.setPrePoint(preRealPoint);
+            realTask.setPreOutPoint(preOutPoint);
+            realTask.setPreInPoint(preInPoint);
 
             // 设置基站地图的梯控信息
             // 此处正在清洁的地图有基站则用之，正在清洁的没有找上一张地图，上一张没有，找最低层的基站（1、-1、2、-2）
             if (taskMap.base_station) {
                 realTask.setPostMapId(taskMap.id);
                 realTask.setPostFloor(taskMap.floor);
-                realTask.setPostPoint(taskPoint);
+                realTask.setPostOutPoint(taskOutPoint);
+                realTask.setPostInPoint(taskInPoint);
             } else if (preMap.base_station) {
                 realTask.setPostMapId(preMap.id);
                 realTask.setPostFloor(preMap.floor);
-                realTask.setPostPoint(preRealPoint);
+                realTask.setPostOutPoint(preOutPoint);
+                realTask.setPostInPoint(preInPoint);
             } else {
 
                 auto buildAllMaps = SegmentationDataBase::instance().findBuildMapsForBuild(buildPo.id);
@@ -367,11 +375,14 @@ std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int
 
                     auto postBuildMap = buildAllMaps[postMapIndex];
                     auto postMap = postBuildMap.second;
-                    RealPoint postPoint;
-                    TaskExploration::mapElevator2RealPoint(postMap, postPoint);
+                    RealPoint postOutPoint;
+                    TaskExploration::mapElevatorOutside2RealPoint(postMap, postOutPoint);
+                    RealPoint postInPoint;
+                    TaskExploration::mapElevatorInside2RealPoint(postMap, postInPoint);
                     realTask.setPostMapId(postMap.id);
                     realTask.setPostFloor(postMap.floor);
-                    realTask.setPostPoint(postPoint);
+                    realTask.setPostOutPoint(postOutPoint);
+                    realTask.setPostInPoint(postInPoint);
                 }
 
             }

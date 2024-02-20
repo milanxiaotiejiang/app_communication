@@ -28,6 +28,48 @@ struct ElevatorStatus {
     LastDirection lastDirection;
     Availability availability;
     NextDirection nextDirection;
+
+    static std::string printDoorState(DoorState state) {
+        if (state == DoorState::Open) {
+            return "Open";
+        } else if (state == DoorState::Closed) {
+            return "Closed";
+        } else {
+            return "Unknown";
+        }
+    }
+
+    static std::string printLastDirection(LastDirection state) {
+        if (state == LastDirection::Up) {
+            return "Up";
+        } else if (state == LastDirection::Down) {
+            return "Down";
+        } else {
+            return "Unknown";
+        }
+    }
+
+    static std::string printAvailability(Availability state) {
+        if (state == Availability::Disabled) {
+            return "Disabled";
+        } else if (state == Availability::Enabled) {
+            return "Enabled";
+        } else {
+            return "Unknown";
+        }
+    }
+
+    static std::string printNextDirection(NextDirection state) {
+        if (state == NextDirection::Unavailable) {
+            return "Unavailable";
+        } else if (state == NextDirection::Up) {
+            return "Up";
+        } else if (state == NextDirection::Down) {
+            return "Down";
+        } else {
+            return "Unknown";
+        }
+    }
 };
 
 struct EleStatus {
@@ -77,10 +119,18 @@ struct EleStatus {
 
     static ElevatorStatus parseElevatorStatus(uint8_t statusByte) {
         ElevatorStatus status;
-        status.doorState = static_cast<ElevatorStatus::DoorState>((statusByte >> 6) & 0x03);
-        status.lastDirection = static_cast<ElevatorStatus::LastDirection>((statusByte >> 4) & 0x03);
-        status.availability = static_cast<ElevatorStatus::Availability>((statusByte >> 2) & 0x01);
-        status.nextDirection = static_cast<ElevatorStatus::NextDirection>(statusByte & 0x03);
+//        status.doorState = static_cast<ElevatorStatus::DoorState>((statusByte >> 6) & 0x03);
+//        status.lastDirection = static_cast<ElevatorStatus::LastDirection>((statusByte >> 4) & 0x03);
+//        status.availability = static_cast<ElevatorStatus::Availability>((statusByte >> 2) & 0x01);
+//        status.nextDirection = static_cast<ElevatorStatus::NextDirection>(statusByte & 0x03);
+        auto i1 = statusByte >> 6;
+        auto i2 = statusByte >> 4;
+        auto i3 = statusByte >> 2;
+        auto i4 = statusByte;
+        status.doorState = static_cast<ElevatorStatus::DoorState>((statusByte >> 6));
+        status.lastDirection = static_cast<ElevatorStatus::LastDirection>((statusByte >> 4));
+        status.availability = static_cast<ElevatorStatus::Availability>((statusByte >> 2));
+        status.nextDirection = static_cast<ElevatorStatus::NextDirection>(statusByte );
         return status;
     }
 };
@@ -184,27 +234,30 @@ private:
     }
 
     friend std::ostream &operator<<(std::ostream &os, const EleProtocol &protocol) {
+        os << "cmd: " << std::hex << static_cast<int>(protocol.cmd) << " ";
+////        os << std::endl;
 //        os << "header: ";
 //        for (auto byte: protocol.header) os << std::hex << static_cast<int>(byte) << " ";
-//        os << std::endl;
-//        os << "length: " << std::hex << static_cast<int>(protocol.length) << std::endl;
-//        os << "flag: " << std::hex << static_cast<int>(protocol.flag) << std::endl;
+////        os << std::endl;
+//        os << "length: " << std::hex << static_cast<int>(protocol.length) << " ";
+////        os << std::endl;
+//        os << "flag: " << std::hex << static_cast<int>(protocol.flag) << " ";
+////        os << std::endl;
 //        os << "address: ";
 //        for (auto byte: protocol.address) os << std::hex << static_cast<int>(byte) << " ";
-//        os << std::endl;
+////        os << std::endl;
 //        os << "mac: ";
 //        for (auto byte: protocol.mac) os << std::hex << static_cast<int>(byte) << " ";
-//        os << std::endl;
-//        os << "dataLength: " << std::hex << static_cast<int>(protocol.dataLength) << std::endl;
-//        os << "cmd: " << std::hex << static_cast<int>(protocol.cmd) << std::endl;
+////        os << std::endl;
+//        os << "dataLength: " << std::hex << static_cast<int>(protocol.dataLength) << " ";
+////        os << std::endl;
 //        os << "data: ";
 //        for (auto byte: protocol.data) os << std::hex << static_cast<int>(byte) << " ";
-//        os << std::endl;
+////        os << std::endl;
 //        os << "uniqueCode: ";
 //        for (auto byte: protocol.uniqueCode) os << std::hex << static_cast<int>(byte) << " ";
-//        os << std::endl;
-//        os << "checksum: " << std::hex << static_cast<int>(protocol.checksum) << std::endl;
-        os << "cmd: " << std::hex << static_cast<int>(protocol.cmd);
+////        os << std::endl;
+//        os << "checksum: " << std::hex << static_cast<int>(protocol.checksum);
         return os;
     }
 };

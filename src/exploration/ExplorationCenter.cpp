@@ -135,7 +135,8 @@ void ExplorationCenter::buildBasicElementsTakeEntireMap(
         cv::Mat &build_map, cv::Point2d &build_origin,
         cv::Point &build_station_point, cv::Point &build_robot_position,
         std::vector<std::vector<Point>> &virtual_wall_list,
-        std::vector<std::vector<Point>> &penalty_zone_list) {
+        std::vector<std::vector<Point>> &penalty_zone_list,
+        std::vector<cv::Point> &elevator_list) {
 
     cv::Mat basic_map;
 
@@ -156,6 +157,14 @@ void ExplorationCenter::buildBasicElementsTakeEntireMap(
         build_origin = {mapAttribute.originPose.position.x, mapAttribute.originPose.position.y};
         if (add_prohibition)
             loadMultipleProhibition(mapId, virtual_wall_list, penalty_zone_list);
+    }
+
+    auto mapPo = SegmentationDataBase::instance().loadMapForId(mapId);
+    if (mapPo.elevator) {
+        elevator_list.emplace_back(mapPo.p1x, mapPo.p1y);
+        elevator_list.emplace_back(mapPo.p2x, mapPo.p2y);
+        elevator_list.emplace_back(mapPo.p3x, mapPo.p3y);
+        elevator_list.emplace_back(mapPo.p4x, mapPo.p4y);
     }
 
     build_station_point = MapAttributeSingleton::instance()
@@ -187,6 +196,13 @@ void ExplorationCenter::buildBasicElementsTakeEntireMap(
         cv::bitwise_xor(map, andMat, map);
     }
 
+    if (mapPo.elevator) {
+        cv::Mat elevator_image = elevatorMat(map, elevator_list);
+        cv::Mat andMat;
+        cv::bitwise_and(map, elevator_image, andMat);
+        cv::bitwise_xor(map, andMat, map);
+    }
+
     build_map = map.clone();
 }
 
@@ -196,7 +212,8 @@ void ExplorationCenter::buildBasicElementsTakeAfferentMap(
         cv::Mat &build_map, cv::Point2d &build_origin,
         cv::Point &build_station_point, cv::Point &build_robot_position,
         std::vector<std::vector<Point>> &virtual_wall_list,
-        std::vector<std::vector<Point>> &penalty_zone_list) {
+        std::vector<std::vector<Point>> &penalty_zone_list,
+        std::vector<cv::Point> &elevator_list) {
 
     if (SegmentationDataBase::instance().getDbMap().id == mapId) {
         build_origin = MapAttributeSingleton::instance().getMapOrigin();
@@ -213,6 +230,14 @@ void ExplorationCenter::buildBasicElementsTakeAfferentMap(
         build_origin = {mapAttribute.originPose.position.x, mapAttribute.originPose.position.y};
         if (add_prohibition)
             loadMultipleProhibition(mapId, virtual_wall_list, penalty_zone_list);
+    }
+
+    auto mapPo = SegmentationDataBase::instance().loadMapForId(mapId);
+    if (mapPo.elevator) {
+        elevator_list.emplace_back(mapPo.p1x, mapPo.p1y);
+        elevator_list.emplace_back(mapPo.p2x, mapPo.p2y);
+        elevator_list.emplace_back(mapPo.p3x, mapPo.p3y);
+        elevator_list.emplace_back(mapPo.p4x, mapPo.p4y);
     }
 
     build_station_point = MapAttributeSingleton::instance()
@@ -244,6 +269,13 @@ void ExplorationCenter::buildBasicElementsTakeAfferentMap(
         cv::bitwise_xor(map, andMat, map);
     }
 
+    if (mapPo.elevator) {
+        cv::Mat elevator_image = elevatorMat(map, elevator_list);
+        cv::Mat andMat;
+        cv::bitwise_and(map, elevator_image, andMat);
+        cv::bitwise_xor(map, andMat, map);
+    }
+
     build_map = map.clone();
 }
 
@@ -253,6 +285,7 @@ ExplorationCenter::generatePlanningPath(const std::string &mapId, const cv::Mat 
                                         ExplorationModel model, int explorer_mode,
                                         std::vector<std::vector<Point>> &virtual_wall_list,
                                         std::vector<std::vector<Point>> &penalty_zone_list,
+                                        std::vector<cv::Point> &elevator_list,
                                         std::vector<geometry_msgs::Pose2D> &exploration_path,
                                         std::vector<cv::Point> &point_path,
                                         std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path) {
@@ -507,9 +540,10 @@ void ExplorationCenter::infinitelyNearBoundary(const std::string &mapId,
     cv::Point build_robot_position;
     std::vector<std::vector<Point>> virtual_wall_list;
     std::vector<std::vector<Point>> penalty_zone_list;
+    std::vector<cv::Point> elevator_list;
     buildBasicElementsTakeEntireMap(mapId, true, false, cv::Point(0, 0),
                                     build_map, build_origin, build_station_point, build_robot_position,
-                                    virtual_wall_list, penalty_zone_list);
+                                    virtual_wall_list, penalty_zone_list, elevator_list);
 
     cv::Mat map = build_map.clone();
 
@@ -627,9 +661,10 @@ void ExplorationCenter::generatePlanningPathRect(const std::string &mapId, const
     cv::Point build_robot_position;
     std::vector<std::vector<Point>> virtual_wall_list;
     std::vector<std::vector<Point>> penalty_zone_list;
+    std::vector<cv::Point> elevator_list;
     buildBasicElementsTakeAfferentMap(mapId, base_map, addProhibition, false, cv::Point(0, 0),
                                       build_map, build_origin, build_station_point, build_robot_position,
-                                      virtual_wall_list, penalty_zone_list);
+                                      virtual_wall_list, penalty_zone_list, elevator_list);
 
     generatePlanningPath(mapId,
                          build_map,
@@ -640,6 +675,7 @@ void ExplorationCenter::generatePlanningPathRect(const std::string &mapId, const
                          explorer_mode,
                          virtual_wall_list,
                          penalty_zone_list,
+                         elevator_list,
                          exploration_path,
                          point_path,
                          complex_path
@@ -677,9 +713,10 @@ void ExplorationCenter::generatePlanningPathSub(const std::string &mapId, const 
     cv::Point build_robot_position;
     std::vector<std::vector<Point>> virtual_wall_list;
     std::vector<std::vector<Point>> penalty_zone_list;
+    std::vector<cv::Point> elevator_list;
     buildBasicElementsTakeAfferentMap(mapId, map, addProhibition, false, cv::Point(0, 0),
                                       build_map, build_origin, build_station_point, build_robot_position,
-                                      virtual_wall_list, penalty_zone_list);
+                                      virtual_wall_list, penalty_zone_list, elevator_list);
 
     generatePlanningPath(mapId,
                          room_map,
@@ -690,6 +727,7 @@ void ExplorationCenter::generatePlanningPathSub(const std::string &mapId, const 
                          explorer_mode,
                          virtual_wall_list,
                          penalty_zone_list,
+                         elevator_list,
                          exploration_path,
                          point_path,
                          complex_path
@@ -725,9 +763,10 @@ void ExplorationCenter::generatePlanningPathFull(const std::string &mapId,
     cv::Point build_robot_position;
     std::vector<std::vector<Point>> virtual_wall_list;
     std::vector<std::vector<Point>> penalty_zone_list;
+    std::vector<cv::Point> elevator_list;
     buildBasicElementsTakeEntireMap(mapId, addProhibition, false, cv::Point(0, 0),
                                     build_map, build_origin, build_station_point, build_robot_position,
-                                    virtual_wall_list, penalty_zone_list);
+                                    virtual_wall_list, penalty_zone_list, elevator_list);
 
     generatePlanningPath(mapId,
                          build_map,
@@ -738,6 +777,7 @@ void ExplorationCenter::generatePlanningPathFull(const std::string &mapId,
                          explorer_mode,
                          virtual_wall_list,
                          penalty_zone_list,
+                         elevator_list,
                          exploration_path,
                          point_path,
                          complex_path
@@ -774,9 +814,10 @@ void ExplorationCenter::generatePlanningSegmentationPath(const std::string &mapI
     cv::Point build_robot_position;
     std::vector<std::vector<Point>> virtual_wall_list;
     std::vector<std::vector<Point>> penalty_zone_list;
+    std::vector<cv::Point> elevator_list;
     buildBasicElementsTakeEntireMap(mapId, addProhibition, false, cv::Point(0, 0),
                                     build_map, build_origin, build_station_point, build_robot_position,
-                                    virtual_wall_list, penalty_zone_list);
+                                    virtual_wall_list, penalty_zone_list, elevator_list);
 
     cv::Mat room_map = build_map.clone();
 
@@ -837,6 +878,7 @@ void ExplorationCenter::generatePlanningSegmentationPath(const std::string &mapI
                                                                explorer_mode,
                                                                virtual_wall_list,
                                                                penalty_zone_list,
+                                                               elevator_list,
                                                                child_exploration_path,
                                                                child_point_path,
                                                                complex_path
@@ -1106,6 +1148,14 @@ cv::Mat ExplorationCenter::prohibitionMat(const cv::Mat &room_map, const cv::Poi
         }
     }
     return prohibition_image;
+}
+
+cv::Mat ExplorationCenter::elevatorMat(const cv::Mat &room_map, const std::vector<cv::Point> &elevatorList) const {
+    cv::Mat elevator_image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
+    std::vector<std::vector<cv::Point>> polygon_array;
+    polygon_array.push_back(elevatorList);
+    cv::fillPoly(elevator_image, polygon_array, cv::Scalar(255));
+    return elevator_image;
 }
 
 void ExplorationCenter::morphologicalEdging(cv::Mat &room_map, int map_correction_closing_neighborhood_size) const {

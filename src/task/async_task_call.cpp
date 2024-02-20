@@ -67,8 +67,12 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
         notify_one([this, &result]() {
 
             if (!Environment::instance().isRealEnvironment) {
-                async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(6), [this]() {
-                    manualBackToBase(true);
+                async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(10), [this]() {
+                    try {
+                        manualBackToBase(true);
+                    } catch (...) {
+                        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : notify pre elevator error ...";
+                    }
                 });
             }
 

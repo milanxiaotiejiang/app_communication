@@ -116,7 +116,7 @@ void MultipleMapSubscribe::buildManagerSubscribeCallback(const std_msgs::Int32 &
             Environment::instance().no_station_mapping_mode = true;
             ros::param::set("/no_station_mapping_mode", true);
         } else if (flag.data == 10000) {
-            SegmentationDataBase::instance().updateMapElevator(SegmentationDataBase::instance().getDbMap().id);
+            SegmentationDataBase::instance().updateMapElevatorStatus(SegmentationDataBase::instance().getDbMap().id);
         } else if (flag.data == 10001) {
             SegmentationDataBase::instance().removeMapElevator(SegmentationDataBase::instance().getDbMap().id);
         } else if (flag.data == 10010) {

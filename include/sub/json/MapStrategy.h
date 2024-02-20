@@ -151,6 +151,16 @@ public:
     std::string handler(MapElevator params) override;
 };
 
+class ModifyMapElevatorPointStrategy : public MessageStrategy<MapElevatorPoint, MultiMapInfo> {
+public:
+    MultiMapInfo handler(MapElevatorPoint params) override;
+};
+
+class ModifyMapElevatorRectStrategy : public MessageStrategy<MapElevatorRect, MultiMapInfo> {
+public:
+    MultiMapInfo handler(MapElevatorRect params) override;
+};
+
 class ListMapForBuildStrategy : public MessageStrategy<long, std::vector<MultiMapInfo>> {
 public:
     std::vector<MultiMapInfo> handler(long params) override;
@@ -170,5 +180,6 @@ class TTElevatorStrategy : public MessageStrategy<std::string, std::string> {
 public:
     std::string handler(std::string params) override;
 };
+
 
 #endif //APP_COMMUNICATION_MAPSTRATEGY_H

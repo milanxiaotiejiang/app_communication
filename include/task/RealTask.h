@@ -59,15 +59,18 @@ private:
     // 当任务地图没有基站时，需要查找切换前的地图是否有基站，切换前地图没有基站时，需要查找当前楼宇是否有基站。
     std::string do_map_id;
     int do_floor;
-    RealPoint do_point;
+    RealPoint do_out_point;
+    RealPoint do_in_point;
 
     std::string pre_map_id;
     int pre_floor;
-    RealPoint pre_point;
+    RealPoint pre_out_point;
+    RealPoint pre_in_point;
 
     std::string post_map_id;
     int post_floor;
-    RealPoint post_point;
+    RealPoint post_out_point;
+    RealPoint post_in_point;
 
     int buildElevatorAddress;
 
@@ -285,12 +288,12 @@ public:
         do_floor = doFloor;
     }
 
-    const RealPoint &getDoPoint() const {
-        return do_point;
+    const RealPoint &getDoOutPoint() const {
+        return do_out_point;
     }
 
-    void setDoPoint(const RealPoint &doPoint) {
-        do_point = doPoint;
+    void setDoOutPoint(const RealPoint &doOutPoint) {
+        do_out_point = doOutPoint;
     }
 
     const std::string &getPreMapId() const {
@@ -309,12 +312,12 @@ public:
         pre_floor = preFloor;
     }
 
-    const RealPoint &getPrePoint() const {
-        return pre_point;
+    const RealPoint &getPreOutPoint() const {
+        return pre_out_point;
     }
 
-    void setPrePoint(const RealPoint &prePoint) {
-        pre_point = prePoint;
+    void setPreOutPoint(const RealPoint &prePoint) {
+        pre_out_point = prePoint;
     }
 
     const std::string &getPostMapId() const {
@@ -333,12 +336,36 @@ public:
         post_floor = postFloor;
     }
 
-    const RealPoint &getPostPoint() const {
-        return post_point;
+    const RealPoint &getPostOutPoint() const {
+        return post_out_point;
     }
 
-    void setPostPoint(const RealPoint &postPoint) {
-        post_point = postPoint;
+    void setPostOutPoint(const RealPoint &postPoint) {
+        post_out_point = postPoint;
+    }
+
+    const RealPoint &getDoInPoint() const {
+        return do_in_point;
+    }
+
+    void setDoInPoint(const RealPoint &doInPoint) {
+        do_in_point = doInPoint;
+    }
+
+    const RealPoint &getPreInPoint() const {
+        return pre_in_point;
+    }
+
+    void setPreInPoint(const RealPoint &preInPoint) {
+        pre_in_point = preInPoint;
+    }
+
+    const RealPoint &getPostInPoint() const {
+        return post_in_point;
+    }
+
+    void setPostInPoint(const RealPoint &postInPoint) {
+        post_in_point = postInPoint;
     }
 
     const std::vector<RealBlock> &getProList() const {

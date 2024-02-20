@@ -85,6 +85,12 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
             enterElevator();
         } else if (flag.data == 2) {
             ttSendLightUpTargetFloor();
+        } else if (flag.data == 3) {
+            ttSendDelayedDoorClosing();
+        } else if (flag.data == 4) {
+            ttOpenQueryFloor();
+        } else if (flag.data == 5) {
+            ttCloseQueryFloor();
         } else if (flag.data == 10) {
             imitateArrivedCount = 100;
         } else if (flag.data == 100) {
@@ -246,9 +252,10 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
 
         auto now = std::chrono::steady_clock::now();
         // 确保两次消息发送之间至少有500毫秒的间隔
-        if (now - last_send_time < std::chrono::milliseconds(500)) {
+        if (now - last_send_time < std::chrono::milliseconds(300)) {
             lock.unlock();
-            std::this_thread::sleep_for(std::chrono::milliseconds(500) - (now - last_send_time));
+//            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager sleep " << " ";
+            std::this_thread::sleep_for(std::chrono::milliseconds(300) - (now - last_send_time));
             lock.lock();
         }
 
@@ -280,13 +287,19 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
         if (isSend) {
             try {
                 // 发送消息
-                if (SERIAL_PORT_PRINT) {
+                //['0x7f 0xf7 0x17 0x29 0x01 0x00 0x11 0x22 0x33 0x44 0x55 0x66 0xc 0x61 0x1 0x2 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0x10 0x11 0x12 0x37']
+                //  0x7f 0xf7 0x17 0x29 0x80 0xd9 0x11 0x22 0x33 0x44 0x55 0x66 0xc 0x61 0x1 0x2 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0x10 0x11 0x12 0x6f
+                if (SERIAL_PORT_SEND_PRINT) {
                     std::cout << "write  ";
                     for (auto byte: message.data) {
                         std::cout << "0x" << std::hex << static_cast<int>(byte) << " ";
                     }
                     std::cout << std::endl;
+
+                    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager write ： " << "0x"
+                                                 << std::hex << static_cast<int>(message.data[13]) << "  ";
                 }
+
                 boost::asio::write(serial, boost::asio::buffer(message.data));
 
 //                uint8_t cmd = message.data[13];
@@ -397,20 +410,20 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
         uint8_t checksum = buffer.back();
         bool check = EleProtocol::checkCalculateChecksum(length, flag, address, mac, dataLength, cmd, data, checksum);
 
-        if (SERIAL_PORT_PRINT) {
+        if (SERIAL_PORT_ACCEPT_PRINT) {
             std::cout << "read  " << check << "  ";
             for (auto byte: buffer) {
                 std::cout << "0x" << std::hex << static_cast<int>(byte) << " ";
             }
             std::cout << std::endl;
-        }
 
-        if (cmd == CMD_DELAYED_DOOR_CLOSING) {
-            std::cout << "read  " << check << "  ";
-            for (auto byte: buffer) {
-                std::cout << "0x" << std::hex << static_cast<int>(byte) << " ";
+            if (cmd == CMD_DELAYED_DOOR_CLOSING) {
+                std::cout << "read  " << check << "  ";
+                for (auto byte: buffer) {
+                    std::cout << "0x" << std::hex << static_cast<int>(byte) << " ";
+                }
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
         }
 
         if (!check) {
@@ -449,6 +462,7 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
         } else {
             // 处理其他类型的消息，直接给成员变量即可
             if (cmd == CMD_QUERY_FLOOR_WHERE_LOCATED) {
+
                 if (dataLengthSize >= 1) {
                     recentlyFloor = static_cast<unsigned char>(data[0]);//某个楼层
                 }
@@ -456,6 +470,21 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
                     recentlyElevatorStatus = static_cast<unsigned char>(data[1]);//电梯状态
                 }
                 recentlyDataLengthSize = dataLengthSize;
+
+                if (SERIAL_PORT_ACCEPT_PRINT) {
+                    int cFloor = EleStatus::floorRule(recentlyFloor);
+                    auto status = EleStatus::parseElevatorStatus(recentlyElevatorStatus);
+                    LOG_IF(INFO, DEBUG_ELEVATOR)
+                                    << "ElevatorControlManager pre 电梯状态"
+                                    << "  dataSize : " << recentlyDataLengthSize
+                                    << "  floor : " << cFloor
+                                    << "  doorState : " << ElevatorStatus::printDoorState(status.doorState)
+                                    << "  lastDirection : " << ElevatorStatus::printLastDirection(status.lastDirection)
+                                    << "  availability : " << ElevatorStatus::printAvailability(status.availability)
+                                    << "  nextDirection : " << ElevatorStatus::printNextDirection(status.nextDirection)
+                                    << " ... ";
+                }
+
 //                if (dataLengthSize >= 16) {
 //                    // 预留(2byte)
 //                    std::vector<uint8_t> residenceTime(data.begin() + 4, data.begin() + 6);//楼层停留时间
@@ -464,12 +493,31 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
 //                    // 预留(4byte)
 //                }
 
+            } else if (cmd == CMD_LIGHT_UP_TARGET_FLOOR) {
+//                EleProtocol eleProtocol(header, length, flag, address, mac, dataLength, cmd, data, checksum);
+//                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager read ： " << eleProtocol << "  ";
+            } else if (cmd == CMD_DELAYED_DOOR_CLOSING) {
+//                EleProtocol eleProtocol(header, length, flag, address, mac, dataLength, cmd, data, checksum);
+//                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager read ： " << eleProtocol << "  ";
             }
 
         }
 
         // 清除处理过的消息
         buffer.erase(buffer.begin(), buffer.begin() + length + 4);
+    }
+}
+
+void ElevatorControlManager::light_up_thread_func() {
+    while (true) {
+        std::unique_lock<std::mutex> lock(light_mutex);
+        // 等待直到消息队列非空
+        light_cond.wait(lock, [this] {
+            return inLight;
+        });
+//        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 点亮楼层 " << lightFloor << " ... ";
+        sendSimpleLightUpTargetFloor(lightFloor);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 }
 
@@ -480,6 +528,7 @@ void ElevatorControlManager::query_floor_thread_func() {
         query_cond.wait(lock, [this] {
             return inquiry;
         });
+//        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 楼层查询 ... ";
         sendAsyncMessage(EleProtocol(CMD_QUERY_FLOOR_WHERE_LOCATED, mElevatorAddress));
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
@@ -494,19 +543,30 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         });
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
+        int cFloor = EleStatus::floorRule(recentlyFloor);
+        auto status = EleStatus::parseElevatorStatus(recentlyElevatorStatus);
+        LOG_IF(INFO, DEBUG_ELEVATOR)
+                        << "ElevatorControlManager pre 电梯状态"
+                        << "  dataSize : " << recentlyDataLengthSize
+                        << "  floor : " << cFloor
+                        //                        << "  doorState : " << ElevatorStatus::printDoorState(status.doorState)
+                        //                        << "  lastDirection : " << ElevatorStatus::printLastDirection(status.lastDirection)
+                        //                        << "  availability : " << ElevatorStatus::printAvailability(status.availability)
+                        //                        << "  nextDirection : " << ElevatorStatus::printNextDirection(status.nextDirection)
+                        << " ... ";
+
         bool isArrived = false;
         if (recentlyDataLengthSize != 0) {
-            int cFloor = EleStatus::floorRule(recentlyFloor);
-            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 电梯处于 " << cFloor << " 层 ... ";
             if (mTargetFloor == cFloor) {
-                if (recentlyDataLengthSize == 1) {
-                    sendDelayedDoorClosing();
-                    std::this_thread::sleep_for(std::chrono::seconds(2));
+                if (JUMP_ELEVATOR_STATUS_DOOR_STATE) {
                     isArrived = true;
-                } else if (recentlyDataLengthSize == 4) {
-                    auto status = EleStatus::parseElevatorStatus(recentlyElevatorStatus);
-                    if (status.doorState == ElevatorStatus::DoorState::Open) {
+                } else {
+                    if (recentlyDataLengthSize == 1) {
                         isArrived = true;
+                    } else if (recentlyDataLengthSize == 4) {
+                        if (status.doorState == ElevatorStatus::DoorState::Open) {
+                            isArrived = true;
+                        }
                     }
                 }
             }
@@ -519,6 +579,14 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         }
 
         if (isArrived) {
+
+            closeLightUp();
+
+            for (int i = 0; i < 2; i++) {
+                sendDelayedDoorClosing();
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
+
             recentlyDataLengthSize = 0;
             unseal = false;
             mElevatorArrived = true;
@@ -544,6 +612,7 @@ void ElevatorControlManager::arrive_floor_thread_func() {
             doPreSwitchMap();
         } else if (preState == ElevatorPreState::PRE_OVER) {
             LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre over " << !preError << " ... ";
+            inElevatorFlow = false;
             callbackElevatorPre(!preError);
         }
 
@@ -567,7 +636,7 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         } else if (postState == ElevatorPostState::POST_SWITCH_MAP) {
             doPostSwitchMap();
         } else if (postState == ElevatorPostState::POST_OVER) {
-            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre over " << !postError << " ... ";
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post over " << !postError << " ... ";
             callbackElevatorPost(!postError);
         }
 
@@ -617,7 +686,11 @@ void ElevatorControlManager::doPreElevator() {
             auto fromFloor = floorPair.first;
             auto toFloor = floorPair.second;
 
-            takeElevator(fromFloor, toFloor);
+            auto outPoint = preElevatorBlock.plannerPoints[1];
+            auto inPoint = preElevatorBlock.plannerPoints[2];
+
+            takeElevator(fromFloor, toFloor, preElevatorBlock.plannerPoints[1], preElevatorBlock.plannerPoints[2],
+                         preElevatorBlock.plannerPoints[3], preElevatorBlock.plannerPoints[4]);
 
             {
                 std::unique_lock<std::mutex> lk(pre_mutex_);
@@ -653,9 +726,11 @@ void ElevatorControlManager::doPreSwitchMap() {
                                          << " fromMapId : " << fromMapId
                                          << " toMapId : " << toMapId
                                          << "... ";
-            if (fromMapId != toMapId) {
-                switchMapsInWorkMode(fromMapId, toMapId);
-                poseEstimate(mapPoint);
+            if (Environment::instance().isRealEnvironment) {
+                if (fromMapId != toMapId) {
+                    switchMapsInWorkMode(fromMapId, toMapId);
+                    poseEstimate(mapPoint);
+                }
             }
 
             {
@@ -730,7 +805,9 @@ void ElevatorControlManager::doPostElevator() {
             auto fromFloor = floorPair.first;
             auto toFloor = floorPair.second;
 
-            takeElevator(fromFloor, toFloor);
+            takeElevator(fromFloor, toFloor,
+                         postElevatorBlock.plannerPoints[1], postElevatorBlock.plannerPoints[2],
+                         postElevatorBlock.plannerPoints[3], postElevatorBlock.plannerPoints[4]);
 
             {
                 std::unique_lock<std::mutex> lk(post_mutex_);
@@ -765,9 +842,12 @@ void ElevatorControlManager::doPostSwitchMap() {
                                          << "fromMapId : " << fromMapId
                                          << "toMapId : " << toMapId
                                          << "... ";
-            if (fromMapId != toMapId) {
-                switchMapsInWorkMode(fromMapId, toMapId);
-                poseEstimate(mapPoint);
+
+            if (Environment::instance().isRealEnvironment) {
+                if (fromMapId != toMapId) {
+                    switchMapsInWorkMode(fromMapId, toMapId);
+                    poseEstimate(mapPoint);
+                }
             }
 
             {
@@ -809,33 +889,27 @@ void ElevatorControlManager::goPostError() {
  7. 出电梯
     4.1 延迟关闭电梯
  */
-void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
+void ElevatorControlManager::takeElevator(int fromFloor, int toFloor, const RealPoint &fromOutPoint,
+                                          const RealPoint &fromInPoint, const RealPoint &toOutPoint,
+                                          const RealPoint &toInPoint) {
+    closeLightUp();
     closeQueryFloor();
     closeWaitingArrive();
 
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 乘坐电梯从 " << fromFloor << " 到 " << toFloor << " 层 ...";
 
     // 1
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 开启楼层点亮功能 " << fromFloor << " ... ";
+    openLightUp(fromFloor);
+    openWaitingArrive(fromFloor);
+
+    // 2
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 开启楼层查询功能 ... ";
     openQueryFloor();
 
-    // 2
-    sendLightUpTargetFloor(fromFloor, [this, &fromFloor](const EleProtocol &response) {
-        // 3
-        LOG_IF(INFO, DEBUG_ELEVATOR)
-                        << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << fromFloor << " ... ";
-        openWaitingArrive(fromFloor);
-    });
-
-    if (!Environment::instance().isRealEnvironment) {
-        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(5), [this]() {
-            imitateArrivedCount = 100;
-        });
-    }
-
     // 3
     std::unique_lock<std::mutex> from_lock(wait_from_mutex);
-    if (!wait_from_cv.wait_for(from_lock, std::chrono::seconds(60 * 5), [this] { return mElevatorArrived; }))
+    if (!wait_from_cv.wait_for(from_lock, std::chrono::seconds(60 * 10), [this] { return mElevatorArrived; }))
         throw std::runtime_error("takeElevator wait_from_mutex timeout ...");
     closeWaitingArrive();
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << fromFloor << " 层 ... ";
@@ -843,30 +917,21 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
     // 4
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行进入电梯逻辑 ... ";
     isConfirmEntry = false;
-    enterElevator();
+    enterElevator(fromInPoint);
     std::unique_lock<std::mutex> entry_lock(wait_entry_mutex);
-    if (!wait_entry_cv.wait_for(entry_lock, std::chrono::seconds(60), [this] { return isConfirmEntry; }))
+    if (!wait_entry_cv.wait_for(entry_lock, std::chrono::seconds(60 * 2), [this] { return isConfirmEntry; }))
         throw std::runtime_error("takeElevator wait_entry_mutex timeout ...");
     closeWaitingArrive();
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 已进入电梯 ... ";
 
     // 5
-    sendLightUpTargetFloor(toFloor, [this, &toFloor](const EleProtocol &response) {
-        // 6
-        LOG_IF(INFO, DEBUG_ELEVATOR)
-                        << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << toFloor << " ... ";
-        openWaitingArrive(toFloor);
-    });
-
-    if (!Environment::instance().isRealEnvironment) {
-        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(5), [this]() {
-            imitateArrivedCount = 100;
-        });
-    }
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 开启楼层点亮功能 " << toFloor << " ... ";
+    openLightUp(toFloor);
+    openWaitingArrive(toFloor);
 
     // 6
     std::unique_lock<std::mutex> to_lock(wait_to_mutex);
-    if (!wait_to_cv.wait_for(to_lock, std::chrono::seconds(60 * 5), [this] { return mElevatorArrived; }))
+    if (!wait_to_cv.wait_for(to_lock, std::chrono::seconds(60 * 10), [this] { return mElevatorArrived; }))
         throw std::runtime_error("takeElevator wait_to_mutex timeout ...");
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
 
@@ -875,9 +940,9 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor) {
     // 7
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行离开电梯逻辑 ... ";
     isConfirmExit = false;
-    exitElevator();
+    exitElevator(toOutPoint);
     std::unique_lock<std::mutex> exit_lock(wait_exit_mutex);
-    if (!wait_exit_cv.wait_for(exit_lock, std::chrono::seconds(60), [this] { return isConfirmExit; }))
+    if (!wait_exit_cv.wait_for(exit_lock, std::chrono::seconds(60 * 2), [this] { return isConfirmExit; }))
         throw std::runtime_error("takeElevator wait_exit_mutex timeout ...");
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 已离开电梯 ... ";
 
@@ -945,25 +1010,30 @@ void ElevatorControlManager::switchMapsInWorkMode(const std::string &fromMapId, 
 
 void ElevatorControlManager::sendLightUpTargetFloor(int floor, const MessageSuccessCallback &successCallback) {
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 点亮楼层 " << floor << " ... ";
-//    if (Environment::instance().isRealEnvironment) {
+//    EleProtocol eleProtocol(CMD_LIGHT_UP_TARGET_FLOOR, mElevatorAddress);
+//    std::vector<uint8_t> data;
+//    data.push_back(EleStatus::reverseFloorRule(floor));
+//    eleProtocol.setData(data);
+//    eleProtocol.setAddress(mElevatorAddress);
+//    sendSyncMessage(MessageFactory::charToMessageId(CMD_LIGHT_UP_TARGET_FLOOR), eleProtocol.getProtocol(),
+//                    successCallback,
+//                    [this](LadderControlError) {
+//                        LOG_IF(ERROR, DEBUG_ELEVATOR) << "sendLightUpTargetFloor error ...";
+//                        goPreError();
+//                    });
+}
+
+void ElevatorControlManager::sendSimpleLightUpTargetFloor(int floor) {
     EleProtocol eleProtocol(CMD_LIGHT_UP_TARGET_FLOOR, mElevatorAddress);
     std::vector<uint8_t> data;
     data.push_back(EleStatus::reverseFloorRule(floor));
     eleProtocol.setData(data);
     eleProtocol.setAddress(mElevatorAddress);
-    sendSyncMessage(MessageFactory::charToMessageId(CMD_LIGHT_UP_TARGET_FLOOR), eleProtocol.getProtocol(),
-                    successCallback,
-                    [this](LadderControlError) {
-                        LOG_IF(ERROR, DEBUG_ELEVATOR) << "sendLightUpTargetFloor error ...";
-                        goPreError();
-                    });
-//    } else {
-//        successCallback(EleProtocol::errorEleProtocol());
-//    }
+    sendAsyncMessage(eleProtocol);
 }
 
 void ElevatorControlManager::sendDelayedDoorClosing() {
-//    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 延迟关门 ... ";
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 延迟关门 ... ";
     EleProtocol eleProtocol(CMD_DELAYED_DOOR_CLOSING, mElevatorAddress);
     std::vector<uint8_t> data;
     data.push_back(MAXIMUM_DELAY_TIME);
@@ -985,53 +1055,66 @@ void ElevatorControlManager::sendSyncMessage(ElevatorControlManager::MessageIdEn
                                              const std::vector<uint8_t> &data,
                                              const MessageSuccessCallback &successCallback,
                                              const MessageFailCallback &failCallback) {
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 2 ... ";
-    MessageCallback messageCallback = [&successCallback, &failCallback](const EleProtocol &response,
-                                                                        LadderControlError error) {
-        switch (error) {
-            case LadderControlError::NORMAL:
-                // "Message normal.";
-                std::cout << "Message normal. " << response << std::endl;
-                successCallback(response);
-                break;
-            case LadderControlError::TIMEOUT:
-                // "Message timeout.";
-                if (SERIAL_PORT_PRINT)
-                    std::cout << "Message timeout." << std::endl;
-                failCallback(error);
-                break;
-            case LadderControlError::FREQUENTLY:
-                // "Message frequently.";
-                if (SERIAL_PORT_PRINT)
-                    std::cout << "Message frequently." << std::endl;
-                failCallback(error);
-                break;
-            case LadderControlError::ERROR:
-                // "Message other.";
-                if (SERIAL_PORT_PRINT)
-                    std::cout << "Message other." << std::endl;
-                failCallback(error);
-                break;
-            default:
-                // "Received response: ";
-                if (SERIAL_PORT_PRINT)
-                    std::cout << "Received response: " << std::endl;
-                failCallback(error);
-                break;
-        }
-    };
-
-    auto message = MessageFactory::createSyncMessage(messageId, data, messageCallback);
-
-    message_queue.push(message);
-    queue_cond.notify_one();
+//    MessageCallback messageCallback = [&successCallback, &failCallback](const EleProtocol &response,
+//                                                                        LadderControlError error) {
+//        switch (error) {
+//            case LadderControlError::NORMAL:
+//                // "Message normal.";
+//                std::cout << "Message normal. " << response << std::endl;
+//                successCallback(response);
+//                break;
+//            case LadderControlError::TIMEOUT:
+//                // "Message timeout.";
+//                if (SERIAL_PORT_PRINT)
+//                    std::cout << "Message timeout." << std::endl;
+//                failCallback(error);
+//                break;
+//            case LadderControlError::FREQUENTLY:
+//                // "Message frequently.";
+//                if (SERIAL_PORT_PRINT)
+//                    std::cout << "Message frequently." << std::endl;
+//                failCallback(error);
+//                break;
+//            case LadderControlError::ERROR:
+//                // "Message other.";
+//                if (SERIAL_PORT_PRINT)
+//                    std::cout << "Message other." << std::endl;
+//                failCallback(error);
+//                break;
+//            default:
+//                // "Received response: ";
+//                if (SERIAL_PORT_PRINT)
+//                    std::cout << "Received response: " << std::endl;
+//                failCallback(error);
+//                break;
+//        }
+//    };
+//
+//    auto message = MessageFactory::createSyncMessage(messageId, data, messageCallback);
+//
+//    message_queue.push(message);
+//    queue_cond.notify_one();
 }
 
 void ElevatorControlManager::sendAsyncMessage(EleProtocol eleProtocol) {
     std::vector<uint8_t> data = eleProtocol.getProtocol();
     auto message = MessageFactory::createAsyncMessage(data);
-    message_queue.push(message);
-    queue_cond.notify_one();
+    {
+        std::unique_lock<std::mutex> lock(queue_mutex);
+        message_queue.push(message);
+        queue_cond.notify_one();
+    }
+}
+
+void ElevatorControlManager::openLightUp(int floor) {
+    lightFloor = floor;
+    inLight = true;
+    light_cond.notify_one();
+}
+
+void ElevatorControlManager::closeLightUp() {
+    inLight = false;
+    light_cond.notify_one();
 }
 
 void ElevatorControlManager::openQueryFloor() {
@@ -1152,11 +1235,13 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
                                            std::ref(*boostSerial));
         serial_receiver_thread = std::thread(&ElevatorControlManager::serial_receive_thread_func, this,
                                              std::ref(*boostSerial));
+        light_up_thread = std::thread(&ElevatorControlManager::light_up_thread_func, this);
         query_floor_thread = std::thread(&ElevatorControlManager::query_floor_thread_func, this);
         arrive_floor_thread = std::thread(&ElevatorControlManager::arrive_floor_thread_func, this);
 
         serial_sender_thread.detach();
         serial_receiver_thread.detach();
+        light_up_thread.detach();
         query_floor_thread.detach();
         arrive_floor_thread.detach();
     } catch (const std::exception &e) {
@@ -1221,11 +1306,94 @@ void ElevatorControlManager::exitElevator() {
     });
 }
 
+void ElevatorControlManager::enterElevator(const RealPoint &point) {
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 开始执行进电梯逻辑 ... ";
+    planInterrupt = true;
+    prePlanCmd = PlanCmd::PLAN_NONE;
+    prePlanRetryCount = 0;
+    PointPlanner::instance().goToPoint(point);
+    pool_.execute([this, &point] {
+        sendDelayedDoorClosing();
+        std::chrono::steady_clock::time_point last_send_time = std::chrono::steady_clock::now();
+        while (planInterrupt) {
+            int append_sleep_time = 0;
+
+            if (prePlanCmd == PlanCmd::PLAN_NONE) {
+
+            } else if (prePlanCmd == PlanCmd::PLAN_ERROR) {
+                if (prePlanRetryCount > 3) {
+                    planInterrupt = false;
+                    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 进电梯出错 ... ";
+                } else {
+                    prePlanCmd = PlanCmd::PLAN_AGAIN;
+                }
+            } else if (prePlanCmd == PlanCmd::PLAN_SUCCESS) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 进电梯成功 ... ";
+                planInterrupt = false;
+                isConfirmEntry = true;
+                wait_entry_cv.notify_one();
+            } else if (prePlanCmd == PlanCmd::PLAN_AGAIN) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 重试 ... ";
+                prePlanCmd = PlanCmd::PLAN_NONE;
+                PointPlanner::instance().goToPoint(point);
+            }
+
+            if (std::chrono::steady_clock::now() - last_send_time > std::chrono::seconds(MAXIMUM_DELAY_TIME - 1)) {
+                sendDelayedDoorClosing();
+                last_send_time = std::chrono::steady_clock::now();
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME + append_sleep_time));
+        }
+    });
+}
+
+void ElevatorControlManager::exitElevator(const RealPoint &point) {
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 开始执行出电梯逻辑 ... ";
+    planInterrupt = true;
+    postPlanCmd = PlanCmd::PLAN_NONE;
+    postPlanRetryCount = 0;
+    PointPlanner::instance().goToPoint(point);
+    pool_.execute([this, &point] {
+        sendDelayedDoorClosing();
+        std::chrono::steady_clock::time_point last_send_time = std::chrono::steady_clock::now();
+        while (planInterrupt) {
+            int append_sleep_time = 0;
+
+            if (postPlanCmd == PlanCmd::PLAN_NONE) {
+
+            } else if (postPlanCmd == PlanCmd::PLAN_ERROR) {
+                if (postPlanRetryCount > 3) {
+                    planInterrupt = false;
+                    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 出电梯出错 ... ";
+                } else {
+                    postPlanCmd = PlanCmd::PLAN_AGAIN;
+                }
+            } else if (postPlanCmd == PlanCmd::PLAN_SUCCESS) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 出电梯成功 ... ";
+                planInterrupt = false;
+                isConfirmExit = true;
+                wait_exit_cv.notify_one();
+            } else if (postPlanCmd == PlanCmd::PLAN_AGAIN) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 重试 ... ";
+                postPlanCmd = PlanCmd::PLAN_NONE;
+                PointPlanner::instance().goToPoint(point);
+            }
+
+            if (std::chrono::steady_clock::now() - last_send_time > std::chrono::seconds(MAXIMUM_DELAY_TIME - 1)) {
+                sendDelayedDoorClosing();
+                last_send_time = std::chrono::steady_clock::now();
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME + append_sleep_time));
+        }
+    });
+}
+
 
 void ElevatorControlManager::handlePreFlow(const std::vector<RealBlock> &preFlows) {
     if (preFlows.size() != 3) {
         throw app::exception(make_error_code(error::elevator_pre_flow_error));
     }
+    inElevatorFlow = true;
     preError = false;
     preCirculationBlock = preFlows[0];
     preElevatorBlock = preFlows[1];
@@ -1262,68 +1430,83 @@ void ElevatorControlManager::handlePostFlow(const std::vector<RealBlock> &postFl
 }
 
 void ElevatorControlManager::completePreCirculation(const bool arrive) {
-    LOG_IF(INFO, DEBUG_ELEVATOR)
-                    << "ElevatorControlManager pre 移动或调整电梯点位结果 " << arrive << "... ";
-    if (arrive) {
-        if (preAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
-            {
-                std::unique_lock<std::mutex> lk(pre_mutex_);
-                preState = ElevatorPreState::PRE_CIRCULATION;
-            }
-            pre_condition_variable_.notify_one();
-        } else {
-            {
-                std::unique_lock<std::mutex> lk(pre_mutex_);
-                preState = ElevatorPreState::PRE_ELEVATOR;
-            }
-            pre_condition_variable_.notify_one();
-        }
+    if (planInterrupt) {
 
+        prePlanCmd = arrive ? PlanCmd::PLAN_SUCCESS : PlanCmd::PLAN_ERROR;
+        postPlanCmd = arrive ? PlanCmd::PLAN_SUCCESS : PlanCmd::PLAN_ERROR;
 
     } else {
-        if (preRetryFrequency < MAX_ADJUSTMENT_FREQUENCY) {
-            preAdjustmentFrequency = 0;
-            {
-                std::unique_lock<std::mutex> lk(pre_mutex_);
-                preState = ElevatorPreState::PRE_CIRCULATION;
+        LOG_IF(INFO, DEBUG_ELEVATOR)
+                        << "ElevatorControlManager pre 移动或调整电梯点位结果 " << arrive << "... ";
+        if (arrive) {
+            if (preAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+                {
+                    std::unique_lock<std::mutex> lk(pre_mutex_);
+                    preState = ElevatorPreState::PRE_CIRCULATION;
+                }
+                pre_condition_variable_.notify_one();
+            } else {
+                {
+                    std::unique_lock<std::mutex> lk(pre_mutex_);
+                    preState = ElevatorPreState::PRE_ELEVATOR;
+                }
+                pre_condition_variable_.notify_one();
             }
-            pre_condition_variable_.notify_one();
+
+
         } else {
-            goPreError();
+            if (preRetryFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+                preAdjustmentFrequency = 0;
+                {
+                    std::unique_lock<std::mutex> lk(pre_mutex_);
+                    preState = ElevatorPreState::PRE_CIRCULATION;
+                }
+                pre_condition_variable_.notify_one();
+            } else {
+                goPreError();
+            }
+            preRetryFrequency++;
         }
-        preRetryFrequency++;
     }
 }
 
 void ElevatorControlManager::completePostCirculation(const bool arrive) {
-    LOG_IF(INFO, DEBUG_ELEVATOR)
-                    << "ElevatorControlManager completePostCirculation 移动或调整电梯点位有完成 " << arrive << "... ";
-    if (arrive) {
-        if (postAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
-            {
-                std::unique_lock<std::mutex> lk(post_mutex_);
-                postState = ElevatorPostState::POST_CIRCULATION;
-            }
-            post_condition_variable_.notify_one();
-        } else {
-            {
-                std::unique_lock<std::mutex> lk(post_mutex_);
-                postState = ElevatorPostState::POST_ELEVATOR;
-            }
-            post_condition_variable_.notify_one();
-        }
+    if (planInterrupt) {
+
+        prePlanCmd = arrive ? PlanCmd::PLAN_SUCCESS : PlanCmd::PLAN_ERROR;
+        postPlanCmd = arrive ? PlanCmd::PLAN_SUCCESS : PlanCmd::PLAN_ERROR;
+
     } else {
-        if (postRetryFrequency < MAX_ADJUSTMENT_FREQUENCY) {
-            postAdjustmentFrequency = 0;
-            {
-                std::unique_lock<std::mutex> lk(post_mutex_);
-                postState = ElevatorPostState::POST_CIRCULATION;
+        LOG_IF(INFO, DEBUG_ELEVATOR)
+                        << "ElevatorControlManager completePostCirculation 移动或调整电梯点位有完成 " << arrive
+                        << "... ";
+        if (arrive) {
+            if (postAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+                {
+                    std::unique_lock<std::mutex> lk(post_mutex_);
+                    postState = ElevatorPostState::POST_CIRCULATION;
+                }
+                post_condition_variable_.notify_one();
+            } else {
+                {
+                    std::unique_lock<std::mutex> lk(post_mutex_);
+                    postState = ElevatorPostState::POST_ELEVATOR;
+                }
+                post_condition_variable_.notify_one();
             }
-            post_condition_variable_.notify_one();
         } else {
-            goPostError();
+            if (postRetryFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+                postAdjustmentFrequency = 0;
+                {
+                    std::unique_lock<std::mutex> lk(post_mutex_);
+                    postState = ElevatorPostState::POST_CIRCULATION;
+                }
+                post_condition_variable_.notify_one();
+            } else {
+                goPostError();
+            }
+            postRetryFrequency++;
         }
-        postRetryFrequency++;
     }
 }
 
@@ -1332,4 +1515,19 @@ void ElevatorControlManager::ttSendLightUpTargetFloor() {
     sendLightUpTargetFloor(1, [](const EleProtocol &response) {
         LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 开启楼层判断逻辑，楼层为 " << 1 << " ... ";
     });
+}
+
+void ElevatorControlManager::ttSendDelayedDoorClosing() {
+    setBuildElevatorAddress(1);
+    sendDelayedDoorClosing();
+}
+
+void ElevatorControlManager::ttOpenQueryFloor() {
+    setBuildElevatorAddress(1);
+    openQueryFloor();
+}
+
+void ElevatorControlManager::ttCloseQueryFloor() {
+    setBuildElevatorAddress(1);
+    closeQueryFloor();
 }

@@ -54,20 +54,23 @@ private:
                                          cv::Mat &build_map, cv::Point2d &build_origin,
                                          cv::Point &build_station_point, cv::Point &build_robot_position,
                                          std::vector<std::vector<Point>> &virtual_wall_list,
-                                         std::vector<std::vector<Point>> &penalty_zone_list);
+                                         std::vector<std::vector<Point>> &penalty_zone_list,
+                                         std::vector<cv::Point> &elevator_list);
 
     void buildBasicElementsTakeAfferentMap(const std::string &mapId, cv::Mat &room_map, bool add_prohibition,
                                            bool ordain_start, const cv::Point &start_position,
                                            cv::Mat &build_map, cv::Point2d &build_origin,
                                            cv::Point &build_station_point, cv::Point &build_robot_position,
                                            std::vector<std::vector<Point>> &virtual_wall_list,
-                                           std::vector<std::vector<Point>> &penalty_zone_list);
+                                           std::vector<std::vector<Point>> &penalty_zone_list,
+                                           std::vector<cv::Point> &elevator_list);
 
     void generatePlanningPath(const std::string &mapId, const cv::Mat &roomMap, cv::Point2d &mapOrigin,
                               cv::Point &stationPoint, cv::Point &robotPosition,
                               ExplorationModel model, int explorer_mode,
                               std::vector<std::vector<Point>> &virtual_wall_list,
                               std::vector<std::vector<Point>> &penalty_zone_list,
+                              std::vector<cv::Point> &elevator_list,
                               std::vector<geometry_msgs::Pose2D> &exploration_path,
                               std::vector<cv::Point> &point_path,
                               std::vector<std::vector<geometry_msgs::Pose2D>> &complex_path);
@@ -93,6 +96,8 @@ private:
     cv::Mat prohibitionMat(const cv::Mat &room_map, const cv::Point2d &map_origin,
                            const std::vector<std::vector<Point>> &virtualWallList,
                            const std::vector<std::vector<Point>> &penaltyZoneList) const;
+
+    cv::Mat elevatorMat(const cv::Mat &room_map, const std::vector<cv::Point> &elevatorList) const;
 
     void morphologicalEdging(cv::Mat &room_map, int map_correction_closing_neighborhood_size) const;
 

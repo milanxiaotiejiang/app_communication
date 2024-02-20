@@ -29,21 +29,33 @@ std::ostream &operator<<(std::ostream &os, const MapPo &po) {
 
 MapPo::MapPo(const std::string &id, const std::string &name, const std::string &path, bool main, bool elevator,
              double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ, double elevatorOrientationX,
-             double elevatorOrientationY, double elevatorOrientationZ, double elevatorOrientationW, int floor,
-             bool baseStation) : id(id),
-                                 name(name),
-                                 path(path),
-                                 main(main),
-                                 elevator(elevator),
-                                 elevator_position_x(elevatorPositionX),
-                                 elevator_position_y(elevatorPositionY),
-                                 elevator_position_z(elevatorPositionZ),
-                                 elevator_orientation_x(elevatorOrientationX),
-                                 elevator_orientation_y(elevatorOrientationY),
-                                 elevator_orientation_z(elevatorOrientationZ),
-                                 elevator_orientation_w(elevatorOrientationW),
-                                 floor(floor),
-                                 base_station(baseStation) {}
+             double elevatorOrientationY, double elevatorOrientationZ, double elevatorOrientationW,
+             double elevatorInsidePositionX, double elevatorInsidePositionY, double elevatorInsidePositionZ,
+             double elevatorInsideOrientationX, double elevatorInsideOrientationY, double elevatorInsideOrientationZ,
+             double elevatorInsideOrientationW, double p1X, double p1Y, double p2X, double p2Y, double p3X, double p3Y,
+             double p4X, double p4Y, int floor, bool baseStation) : id(id), name(name), path(path), main(main),
+                                                                    elevator(elevator),
+                                                                    elevator_position_x(elevatorPositionX),
+                                                                    elevator_position_y(elevatorPositionY),
+                                                                    elevator_position_z(elevatorPositionZ),
+                                                                    elevator_orientation_x(elevatorOrientationX),
+                                                                    elevator_orientation_y(elevatorOrientationY),
+                                                                    elevator_orientation_z(elevatorOrientationZ),
+                                                                    elevator_orientation_w(elevatorOrientationW),
+                                                                    elevator_inside_position_x(elevatorInsidePositionX),
+                                                                    elevator_inside_position_y(elevatorInsidePositionY),
+                                                                    elevator_inside_position_z(elevatorInsidePositionZ),
+                                                                    elevator_inside_orientation_x(
+                                                                            elevatorInsideOrientationX),
+                                                                    elevator_inside_orientation_y(
+                                                                            elevatorInsideOrientationY),
+                                                                    elevator_inside_orientation_z(
+                                                                            elevatorInsideOrientationZ),
+                                                                    elevator_inside_orientation_w(
+                                                                            elevatorInsideOrientationW), p1x(p1X),
+                                                                    p1y(p1Y), p2x(p2X), p2y(p2Y), p3x(p3X), p3y(p3Y),
+                                                                    p4x(p4X), p4y(p4Y), floor(floor),
+                                                                    base_station(baseStation) {}
 
 
 MapPo::MapPo() = default;

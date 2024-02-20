@@ -192,6 +192,8 @@ enum MESSAGE_ID {
     MODIFY_MAP_BASE_STATION,                //修改地图是否有基站
     MODIFY_MAP_FLOOR,                       //修改地图楼层
     MODIFY_MAP_ELEVATOR,                    //修改地图中梯控点位开关
+    MODIFY_MAP_ELEVATOR_POINT,              //修改地图中梯控点位
+    MODIFY_MAP_ELEVATOR_RECT,
 
     LIST_MAP_FOR_BUILD,                     //根据楼宇id查询地图列表
 

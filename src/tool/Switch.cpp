@@ -484,6 +484,12 @@ int switch_ID(const std::string &str) {
     if (str == "modify_map_elevator") {
         return MODIFY_MAP_ELEVATOR;
     }
+    if (str == "modify_map_elevator_point") {
+        return MODIFY_MAP_ELEVATOR_POINT;
+    }
+    if (str == "modify_map_elevator_rect") {
+        return MODIFY_MAP_ELEVATOR_RECT;
+    }
 
     if (str == "list_map_for_build") {
         return LIST_MAP_FOR_BUILD;

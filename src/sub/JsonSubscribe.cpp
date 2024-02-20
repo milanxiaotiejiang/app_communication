@@ -495,6 +495,12 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case MODIFY_MAP_ELEVATOR:
             messageStrategy = new ModifyMapElevatorStrategy();
             break;
+        case MODIFY_MAP_ELEVATOR_POINT:
+            messageStrategy = new ModifyMapElevatorPointStrategy();
+            break;
+        case MODIFY_MAP_ELEVATOR_RECT:
+            messageStrategy = new ModifyMapElevatorRectStrategy();
+            break;
 
         case LIST_MAP_FOR_BUILD:
             messageStrategy = new ListMapForBuildStrategy();
@@ -520,7 +526,11 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
     }
 
     int end_time = ros::Time::now().sec;
-    LOG_IF(INFO, DEBUG_REQUEST) << "----------------" << "JsonSubscribe end : " << entrance.getMethod() << " "
-                                << end_time - start_time << " s " << "----------------";
+    LOG_IF(INFO, DEBUG_REQUEST)
+                    << "----------------" << "JsonSubscribe end : " << entrance.getMethod()
+                    << " "
+                    << entrance.getId()
+                    << " "
+                    << end_time - start_time << " s " << "----------------";
 
 }

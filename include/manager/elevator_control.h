@@ -31,7 +31,10 @@ const unsigned char CMD_QUERY_FLOOR_WHERE_LOCATED = 0x61;
 const unsigned char CMD_DELAYED_DOOR_CLOSING = 0x62;//MessageIdEnum::DELAYED_DOOR_CLOSING
 const unsigned char CMD_AUTOMATIC_DOOR_OPENING = 0x66;//MessageIdEnum::AUTOMATIC_DOOR_OPENING
 
-#define SERIAL_PORT_PRINT true
+#define SERIAL_PORT_PRINT false
+#define SERIAL_PORT_SEND_PRINT false
+#define SERIAL_PORT_ACCEPT_PRINT false
+#define JUMP_ELEVATOR_STATUS_DOOR_STATE true
 #define TT_IMITATE_ARRIVED true
 
 #define MAXIMUM_DELAY_TIME 9
@@ -65,6 +68,13 @@ private:
         MOVE,
         ROTATE,
         REACH
+    };
+
+    enum PlanCmd {
+        PLAN_NONE,
+        PLAN_ERROR,
+        PLAN_SUCCESS,
+        PLAN_AGAIN
     };
 
     enum ElevatorPreState {
@@ -175,9 +185,9 @@ private:
         static bool charInMessageIdEnum(unsigned char ch) {
             switch (ch) {
                 case CMD_LIGHT_UP_TARGET_FLOOR:
-                    return true;
+                    return false;
                 case CMD_DELAYED_DOOR_CLOSING:
-                    return true;
+                    return false;
                 case CMD_AUTOMATIC_DOOR_OPENING:
                     return true;
                 default:
@@ -211,6 +221,7 @@ private:
 
     std::thread serial_sender_thread;
     std::thread serial_receiver_thread;
+    std::thread light_up_thread;
     std::thread query_floor_thread;
     std::thread arrive_floor_thread;
 
@@ -219,6 +230,11 @@ private:
     std::condition_variable queue_cond;
     std::map<int, std::pair<std::chrono::steady_clock::time_point, MessageCallback>> sent_messages;
     std::mutex map_mutex;
+
+    std::condition_variable light_cond;
+    std::mutex light_mutex;
+    bool inLight;
+    int lightFloor;
 
     std::condition_variable query_cond;
     std::mutex query_mutex;
@@ -244,6 +260,16 @@ private:
 
     std::atomic<bool> mainInterrupt;
     std::atomic<ControlCmd> controlCmd;
+
+    std::atomic<bool> inElevatorFlow;
+
+    std::atomic<bool> planInterrupt;
+
+    std::atomic<PlanCmd> prePlanCmd;
+    std::atomic<int> prePlanRetryCount;
+
+    std::atomic<PlanCmd> postPlanCmd;
+    std::atomic<int> postPlanRetryCount;
 
     bool isConfirmEntry;
     bool isConfirmExit;
@@ -303,6 +329,8 @@ private:
 
     [[noreturn]] void serial_receive_thread_func(boost::asio::serial_port &serial);
 
+    [[noreturn]] void light_up_thread_func();
+
     [[noreturn]] void query_floor_thread_func();
 
     [[noreturn]] void arrive_floor_thread_func();
@@ -327,9 +355,12 @@ private:
 
     void goPostError();
 
-    void takeElevator(int fromFloor, int toFloor);
+    void takeElevator(int fromFloor, int toFloor, const RealPoint &fromOutPoint, const RealPoint &fromInPoint,
+                      const RealPoint &toOutPoint, const RealPoint &toInPoint);
 
     void sendLightUpTargetFloor(int floor, const MessageSuccessCallback &successCallback);
+
+    void sendSimpleLightUpTargetFloor(int floor);
 
     void sendDelayedDoorClosing();
 
@@ -339,6 +370,10 @@ private:
 
     void sendAsyncMessage(EleProtocol eleProtocol);
 
+    void openLightUp(int floor);
+
+    void closeLightUp();
+
     void openQueryFloor();
 
     void closeQueryFloor();
@@ -347,7 +382,7 @@ private:
 
     void closeWaitingArrive();
 
-    void poseEstimate(const RealPoint& realPoint);
+    void poseEstimate(const RealPoint &realPoint);
 
 public:
     void initialize(ros::NodeHandle handle);
@@ -362,6 +397,10 @@ public:
 
     void exitElevator();
 
+    void enterElevator(const RealPoint &point);
+
+    void exitElevator(const RealPoint &point);
+
     void printElevator();
 
     void handlePreFlow(const std::vector<RealBlock> &preFlows);
@@ -375,6 +414,12 @@ public:
     static void switchMapsInWorkMode(const std::string &fromMapId, const std::string &toMapId);
 
     void ttSendLightUpTargetFloor();
+
+    void ttSendDelayedDoorClosing();
+
+    void ttOpenQueryFloor();
+
+    void ttCloseQueryFloor();
 };
 
 
