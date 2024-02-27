@@ -19,6 +19,7 @@
 #include "std_msgs/Int32.h"
 #include "net/ros/SensorSelfModel.h"
 #include "alignment/rrmap2.h"
+#include "model/ElevatorStatus.h"
 
 class PublishOutManager {
 private:
@@ -45,6 +46,7 @@ private:
     ros::Publisher pubPad;
     ros::Publisher pubCloud;
     ros::Publisher pubElevatorManager;
+    ros::Publisher pubElevatorStatus;
 public:
     static auto &instance() {
         static PublishOutManager obj;
@@ -76,6 +78,8 @@ public:
     void publishResourcesUpdateForCloud(const std_msgs::Int32 &message) const;
 
     void publishElevatorManager() const;
+
+    void publishElevatorStatus(const ElevatorModel elevatorModel) const;
 };
 
 

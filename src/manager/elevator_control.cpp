@@ -555,6 +555,10 @@ void ElevatorControlManager::arrive_floor_thread_func() {
                         //                        << "  nextDirection : " << ElevatorStatus::printNextDirection(status.nextDirection)
                         << " ... ";
 
+        if (mElevatorCallback != nullptr)
+            mElevatorCallback(cFloor, static_cast<int>(status.doorState), static_cast<int>(status.lastDirection),
+                              static_cast<int>(status.availability), static_cast<int>(status.nextDirection));
+
         bool isArrived = false;
         if (recentlyDataLengthSize != 0) {
             if (mTargetFloor == cFloor) {
@@ -606,10 +610,12 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         });
         if (preState == ElevatorPreState::PRE_CIRCULATION) {
             doPreCirculation();
-        } else if (preState == ElevatorPreState::PRE_ELEVATOR) {
-            doPreElevator();
+        } else if (preState == ElevatorPreState::PRE_ELEVATOR_IN) {
+            doPreElevatorIn();
         } else if (preState == ElevatorPreState::PRE_SWITCH_MAP) {
             doPreSwitchMap();
+        } else if (preState == ElevatorPreState::PRE_ELEVATOR_OUT) {
+            doPreElevatorOut();
         } else if (preState == ElevatorPreState::PRE_OVER) {
             LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre over " << !preError << " ... ";
             inElevatorFlow = false;
@@ -631,10 +637,12 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         });
         if (postState == ElevatorPostState::POST_CIRCULATION) {
             doPostCirculation();
-        } else if (postState == ElevatorPostState::POST_ELEVATOR) {
-            doPostElevator();
+        } else if (postState == ElevatorPostState::POST_ELEVATOR_IN) {
+            doPostElevatorIn();
         } else if (postState == ElevatorPostState::POST_SWITCH_MAP) {
             doPostSwitchMap();
+        } else if (postState == ElevatorPostState::POST_ELEVATOR_OUT) {
+            doPostElevatorOut();
         } else if (postState == ElevatorPostState::POST_OVER) {
             LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post over " << !postError << " ... ";
             callbackElevatorPost(!postError);
@@ -676,21 +684,21 @@ void ElevatorControlManager::doPreCirculation() {
     });
 }
 
-void ElevatorControlManager::doPreElevator() {
+void ElevatorControlManager::doPreElevatorIn() {
     pool_.execute([this]() {
         try {
-            if (preElevatorBlock.plannerPoints.empty())
-                throw std::runtime_error("preCirculationBlock plannerPoints is empty ...");
-            auto point = preElevatorBlock.plannerPoints[0];
+            if (preElevatorInBlock.plannerPoints.empty())
+                throw std::runtime_error("preElevatorInBlock plannerPoints is empty ...");
+            auto point = preElevatorInBlock.plannerPoints[0];
             std::pair<int, int> &floorPair = point.targetFloorPair;
             auto fromFloor = floorPair.first;
             auto toFloor = floorPair.second;
 
-            auto outPoint = preElevatorBlock.plannerPoints[1];
-            auto inPoint = preElevatorBlock.plannerPoints[2];
+            auto outPoint = preElevatorInBlock.plannerPoints[1];
+            auto inPoint = preElevatorInBlock.plannerPoints[2];
 
-            takeElevator(fromFloor, toFloor, preElevatorBlock.plannerPoints[1], preElevatorBlock.plannerPoints[2],
-                         preElevatorBlock.plannerPoints[3], preElevatorBlock.plannerPoints[4]);
+            takeElevatorIn(fromFloor, toFloor, preElevatorInBlock.plannerPoints[1],
+                           preElevatorInBlock.plannerPoints[2]);
 
             {
                 std::unique_lock<std::mutex> lk(pre_mutex_);
@@ -705,7 +713,7 @@ void ElevatorControlManager::doPreElevator() {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
             goPreError();
         } catch (...) {
-            LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPreElevator other exception";
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPreElevatorIn other exception";
             goPreError();
         }
     });
@@ -735,7 +743,7 @@ void ElevatorControlManager::doPreSwitchMap() {
 
             {
                 std::unique_lock<std::mutex> lk(pre_mutex_);
-                preState = ElevatorPreState::PRE_OVER;
+                preState = ElevatorPreState::PRE_ELEVATOR_OUT;
             }
             pre_condition_variable_.notify_one();
         } catch (app::exception const &e) {
@@ -746,6 +754,37 @@ void ElevatorControlManager::doPreSwitchMap() {
             goPreError();
         } catch (...) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPreSwitchMap other exception";
+            goPreError();
+        }
+    });
+}
+
+void ElevatorControlManager::doPreElevatorOut() {
+    pool_.execute([this]() {
+        try {
+            if (preElevatorOutBlock.plannerPoints.empty())
+                throw std::runtime_error("preElevatorOutBlock plannerPoints is empty ...");
+            auto point = preElevatorOutBlock.plannerPoints[0];
+            std::pair<int, int> &floorPair = point.targetFloorPair;
+            auto fromFloor = floorPair.first;
+            auto toFloor = floorPair.second;
+
+            takeElevatorOut(fromFloor, toFloor, preElevatorOutBlock.plannerPoints[1],
+                            preElevatorOutBlock.plannerPoints[2]);
+
+            {
+                std::unique_lock<std::mutex> lk(pre_mutex_);
+                preState = ElevatorPreState::PRE_OVER;
+            }
+            pre_condition_variable_.notify_one();
+        } catch (app::exception const &e) {
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
+            goPreError();
+        } catch (const std::exception &e) {
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
+            goPreError();
+        } catch (...) {
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPreElevatorOut other exception";
             goPreError();
         }
     });
@@ -795,19 +834,18 @@ void ElevatorControlManager::doPostCirculation() {
     });
 }
 
-void ElevatorControlManager::doPostElevator() {
+void ElevatorControlManager::doPostElevatorIn() {
     pool_.execute([this]() {
         try {
-            if (postElevatorBlock.plannerPoints.empty())
-                throw std::runtime_error("postCirculationBlock plannerPoints is empty ...");
-            auto point = postElevatorBlock.plannerPoints[0];
+            if (postElevatorInBlock.plannerPoints.empty())
+                throw std::runtime_error("postElevatorInBlock plannerPoints is empty ...");
+            auto point = postElevatorInBlock.plannerPoints[0];
             std::pair<int, int> &floorPair = point.targetFloorPair;
             auto fromFloor = floorPair.first;
             auto toFloor = floorPair.second;
 
-            takeElevator(fromFloor, toFloor,
-                         postElevatorBlock.plannerPoints[1], postElevatorBlock.plannerPoints[2],
-                         postElevatorBlock.plannerPoints[3], postElevatorBlock.plannerPoints[4]);
+            takeElevatorIn(fromFloor, toFloor, postElevatorInBlock.plannerPoints[1],
+                           postElevatorInBlock.plannerPoints[2]);
 
             {
                 std::unique_lock<std::mutex> lk(post_mutex_);
@@ -821,7 +859,7 @@ void ElevatorControlManager::doPostElevator() {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
             goPostError();
         } catch (...) {
-            LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPostElevator other exception";
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPostElevatorIn other exception";
             goPostError();
         }
     });
@@ -838,7 +876,7 @@ void ElevatorControlManager::doPostSwitchMap() {
             auto fromMapId = mapPair.first;
             auto toMapId = mapPair.second;
 
-            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager doPostElevator 开始切换地图 "
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager doPostSwitchMap 开始切换地图 "
                                          << "fromMapId : " << fromMapId
                                          << "toMapId : " << toMapId
                                          << "... ";
@@ -852,7 +890,7 @@ void ElevatorControlManager::doPostSwitchMap() {
 
             {
                 std::unique_lock<std::mutex> lk(post_mutex_);
-                postState = ElevatorPostState::POST_OVER;
+                postState = ElevatorPostState::POST_ELEVATOR_OUT;
             }
             post_condition_variable_.notify_one();
         } catch (app::exception const &e) {
@@ -863,6 +901,37 @@ void ElevatorControlManager::doPostSwitchMap() {
             goPostError();
         } catch (...) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPostSwitchMap other exception";
+            goPostError();
+        }
+    });
+}
+
+void ElevatorControlManager::doPostElevatorOut() {
+    pool_.execute([this]() {
+        try {
+            if (postElevatorOutBlock.plannerPoints.empty())
+                throw std::runtime_error("postElevatorOutBlock plannerPoints is empty ...");
+            auto point = postElevatorOutBlock.plannerPoints[0];
+            std::pair<int, int> &floorPair = point.targetFloorPair;
+            auto fromFloor = floorPair.first;
+            auto toFloor = floorPair.second;
+
+            takeElevatorOut(fromFloor, toFloor, postElevatorOutBlock.plannerPoints[1],
+                            postElevatorOutBlock.plannerPoints[2]);
+
+            {
+                std::unique_lock<std::mutex> lk(post_mutex_);
+                postState = ElevatorPostState::POST_OVER;
+            }
+            post_condition_variable_.notify_one();
+        } catch (app::exception const &e) {
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
+            goPostError();
+        } catch (const std::exception &e) {
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
+            goPostError();
+        } catch (...) {
+            LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPostElevatorOut other exception";
             goPostError();
         }
     });
@@ -889,9 +958,8 @@ void ElevatorControlManager::goPostError() {
  7. 出电梯
     4.1 延迟关闭电梯
  */
-void ElevatorControlManager::takeElevator(int fromFloor, int toFloor, const RealPoint &fromOutPoint,
-                                          const RealPoint &fromInPoint, const RealPoint &toOutPoint,
-                                          const RealPoint &toInPoint) {
+void ElevatorControlManager::takeElevatorIn(int fromFloor, int toFloor, const RealPoint &fromOutPoint,
+                                            const RealPoint &fromInPoint) {
     closeLightUp();
     closeQueryFloor();
     closeWaitingArrive();
@@ -910,7 +978,7 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor, const Real
     // 3
     std::unique_lock<std::mutex> from_lock(wait_from_mutex);
     if (!wait_from_cv.wait_for(from_lock, std::chrono::seconds(60 * 10), [this] { return mElevatorArrived; }))
-        throw std::runtime_error("takeElevator wait_from_mutex timeout ...");
+        throw std::runtime_error("takeElevatorIn wait_from_mutex timeout ...");
     closeWaitingArrive();
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << fromFloor << " 层 ... ";
 
@@ -920,19 +988,23 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor, const Real
     enterElevator(fromInPoint);
     std::unique_lock<std::mutex> entry_lock(wait_entry_mutex);
     if (!wait_entry_cv.wait_for(entry_lock, std::chrono::seconds(60 * 2), [this] { return isConfirmEntry; }))
-        throw std::runtime_error("takeElevator wait_entry_mutex timeout ...");
+        throw std::runtime_error("takeElevatorIn wait_entry_mutex timeout ...");
     closeWaitingArrive();
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 已进入电梯 ... ";
 
     // 5
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 开启楼层点亮功能 " << toFloor << " ... ";
     openLightUp(toFloor);
+}
+
+void ElevatorControlManager::takeElevatorOut(int fromFloor, int toFloor, const RealPoint &toOutPoint,
+                                             const RealPoint &toInPoint) {
     openWaitingArrive(toFloor);
 
     // 6
     std::unique_lock<std::mutex> to_lock(wait_to_mutex);
     if (!wait_to_cv.wait_for(to_lock, std::chrono::seconds(60 * 10), [this] { return mElevatorArrived; }))
-        throw std::runtime_error("takeElevator wait_to_mutex timeout ...");
+        throw std::runtime_error("takeElevatorOut wait_to_mutex timeout ...");
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
 
     std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -943,7 +1015,7 @@ void ElevatorControlManager::takeElevator(int fromFloor, int toFloor, const Real
     exitElevator(toOutPoint);
     std::unique_lock<std::mutex> exit_lock(wait_exit_mutex);
     if (!wait_exit_cv.wait_for(exit_lock, std::chrono::seconds(60 * 2), [this] { return isConfirmExit; }))
-        throw std::runtime_error("takeElevator wait_exit_mutex timeout ...");
+        throw std::runtime_error("takeElevatorOut wait_exit_mutex timeout ...");
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 已离开电梯 ... ";
 
     closeQueryFloor();
@@ -1166,23 +1238,23 @@ void ElevatorControlManager::poseEstimate(const RealPoint &realPoint) {
     original_pose.pose.pose.orientation.z = realPoint.realOrientation.z;
     original_pose.pose.pose.orientation.w = realPoint.realOrientation.w;
 
-    // 将四元数转换为tf::Quaternion
-    tf::Quaternion original_orientation;
-    tf::quaternionMsgToTF(original_pose.pose.pose.orientation, original_orientation);
-
-    // 创建一个表示180度旋转的四元数（绕Z轴）
-    tf::Quaternion rotation;
-    rotation.setRPY(0, 0, M_PI); // 绕Z轴旋转180度
-
-    // 将原始方向和旋转相结合
-    tf::Quaternion new_orientation = original_orientation * rotation;
-
-    // 将新方向转换回geometry_msgs::Quaternion
-    geometry_msgs::Quaternion new_orientation_msg;
-    tf::quaternionTFToMsg(new_orientation, new_orientation_msg);
-
-    // 更新原始pose消息
-    original_pose.pose.pose.orientation = new_orientation_msg;
+//    // 将四元数转换为tf::Quaternion
+//    tf::Quaternion original_orientation;
+//    tf::quaternionMsgToTF(original_pose.pose.pose.orientation, original_orientation);
+//
+//    // 创建一个表示180度旋转的四元数（绕Z轴）
+//    tf::Quaternion rotation;
+//    rotation.setRPY(0, 0, M_PI); // 绕Z轴旋转180度
+//
+//    // 将原始方向和旋转相结合
+//    tf::Quaternion new_orientation = original_orientation * rotation;
+//
+//    // 将新方向转换回geometry_msgs::Quaternion
+//    geometry_msgs::Quaternion new_orientation_msg;
+//    tf::quaternionTFToMsg(new_orientation, new_orientation_msg);
+//
+//    // 更新原始pose消息
+//    original_pose.pose.pose.orientation = new_orientation_msg;
 
     publisherPose.publish(original_pose);
 }
@@ -1258,6 +1330,10 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
 
 void ElevatorControlManager::setBuildElevatorAddress(int elevatorAddress) {
     mElevatorAddress = elevatorAddress;
+}
+
+void ElevatorControlManager::setElevatorCallback(ElevatorControlManager::ElevatorCallback callback) {
+    ElevatorControlManager::mElevatorCallback = callback;
 }
 
 void ElevatorControlManager::setCallbackElevatorPre(const std::function<void(bool)> &callbackElevatorPre) {
@@ -1390,14 +1466,15 @@ void ElevatorControlManager::exitElevator(const RealPoint &point) {
 
 
 void ElevatorControlManager::handlePreFlow(const std::vector<RealBlock> &preFlows) {
-    if (preFlows.size() != 3) {
+    if (preFlows.size() != 4) {
         throw app::exception(make_error_code(error::elevator_pre_flow_error));
     }
     inElevatorFlow = true;
     preError = false;
     preCirculationBlock = preFlows[0];
-    preElevatorBlock = preFlows[1];
+    preElevatorInBlock = preFlows[1];
     preSwitchMapBlock = preFlows[2];
+    preElevatorOutBlock = preFlows[3];
     preAdjustmentFrequency = 0;
     preRetryFrequency = 0;
 
@@ -1411,13 +1488,14 @@ void ElevatorControlManager::handlePreFlow(const std::vector<RealBlock> &preFlow
 }
 
 void ElevatorControlManager::handlePostFlow(const std::vector<RealBlock> &postFlows) {
-    if (postFlows.size() != 3) {
+    if (postFlows.size() != 4) {
         throw app::exception(make_error_code(error::elevator_post_flow_error));
     }
     postError = false;
     postCirculationBlock = postFlows[0];
-    postElevatorBlock = postFlows[1];
+    postElevatorInBlock = postFlows[1];
     postSwitchMapBlock = postFlows[2];
+    postElevatorOutBlock = postFlows[3];
     postAdjustmentFrequency = 0;
     postRetryFrequency = 0;
 
@@ -1448,7 +1526,7 @@ void ElevatorControlManager::completePreCirculation(const bool arrive) {
             } else {
                 {
                     std::unique_lock<std::mutex> lk(pre_mutex_);
-                    preState = ElevatorPreState::PRE_ELEVATOR;
+                    preState = ElevatorPreState::PRE_ELEVATOR_IN;
                 }
                 pre_condition_variable_.notify_one();
             }
@@ -1490,7 +1568,7 @@ void ElevatorControlManager::completePostCirculation(const bool arrive) {
             } else {
                 {
                     std::unique_lock<std::mutex> lk(post_mutex_);
-                    postState = ElevatorPostState::POST_ELEVATOR;
+                    postState = ElevatorPostState::POST_ELEVATOR_IN;
                 }
                 post_condition_variable_.notify_one();
             }

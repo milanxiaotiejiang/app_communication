@@ -24,6 +24,7 @@
 #include "task/manager/NodeWorkModeManager.h"
 #include "segmentation/GateComprehensive.h"
 #include "manager/elevator_control.h"
+#include "manager/PublishOutManager.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -62,6 +63,13 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
             }
         }
     });
+
+
+    ElevatorControlManager::instance().setElevatorCallback(
+            [](int floor, int doorState, int lastDirection, int availability, int nextDirection) {
+                PublishOutManager::instance().publishElevatorStatus(
+                        ElevatorModel(floor, doorState, lastDirection, availability, nextDirection));
+            });
 
     ElevatorControlManager::instance().setCallbackElevatorPre([this](bool result) {
         notify_one([this, &result]() {

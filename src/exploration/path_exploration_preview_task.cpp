@@ -46,7 +46,6 @@ void TaskExploration::mapElevatorOutside2RealPoint(const MapPo &map, RealPoint &
                                     map.elevator_orientation_z, map.elevator_orientation_w);
     realPoint.realPosition = std::move(realPosition);
     realPoint.realOrientation = std::move(realOrientation);
-    realPoint.core_move = true;
 }
 
 void TaskExploration::mapElevatorInside2RealPoint(const MapPo &map, RealPoint &realPoint) {
@@ -55,7 +54,6 @@ void TaskExploration::mapElevatorInside2RealPoint(const MapPo &map, RealPoint &r
                                     map.elevator_inside_orientation_z, map.elevator_inside_orientation_w);
     realPoint.realPosition = std::move(realPosition);
     realPoint.realOrientation = std::move(realOrientation);
-    realPoint.core_move = true;
 }
 
 RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {

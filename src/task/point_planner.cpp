@@ -150,7 +150,7 @@ void PointPlanner::goToPoint(const RealPoint &point) {
         core_move->sendGoal(goal, &coreMoveDoneCB, &coreMoveActiveCB, &coreMoveFeedBackCB);
     } else {
         replan_msgs::ReplanGoal path;
-        cpToPath(std::vector<RealPoint>{point}, path, replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE, false);
+        cpToPath(std::vector<RealPoint>{point}, path, replan_msgs::ReplanGoal::POINT_MUST_ARRIVE, false);
         share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
     }
 }

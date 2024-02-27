@@ -80,16 +80,18 @@ private:
     enum ElevatorPreState {
         PRE_NONE,
         PRE_CIRCULATION,
-        PRE_ELEVATOR,
+        PRE_ELEVATOR_IN,
         PRE_SWITCH_MAP,
+        PRE_ELEVATOR_OUT,
         PRE_OVER,
     };
 
     enum ElevatorPostState {
         POST_NONE,
         POST_CIRCULATION,
-        POST_ELEVATOR,
+        POST_ELEVATOR_IN,
         POST_SWITCH_MAP,
+        POST_ELEVATOR_OUT,
         POST_OVER,
     };
 
@@ -196,6 +198,11 @@ private:
         }
     };
 
+public:
+
+    typedef void (*ElevatorCallback)(int floor, int doorState, int lastDirection, int availability, int nextDirection);
+
+private:
     int mElevatorAddress;
 
     ros::Subscriber subscriberOdom;
@@ -278,11 +285,13 @@ private:
     std::atomic<ElevatorPostState> postState;
 
     RealBlock preCirculationBlock;
-    RealBlock preElevatorBlock;
+    RealBlock preElevatorInBlock;
     RealBlock preSwitchMapBlock;
+    RealBlock preElevatorOutBlock;
     RealBlock postCirculationBlock;
-    RealBlock postElevatorBlock;
+    RealBlock postElevatorInBlock;
     RealBlock postSwitchMapBlock;
+    RealBlock postElevatorOutBlock;
 
     std::function<void(bool)> callbackElevatorPre;
     std::function<void(bool)> callbackElevatorPost;
@@ -308,7 +317,10 @@ private:
     std::mutex wait_exit_mutex;
     std::condition_variable wait_exit_cv;
 
+    ElevatorCallback mElevatorCallback;
+
 private:
+
     bool hasSerialPortAccess(const std::string &portName);
 
     void publishCmd(double x = 0, double z = 0) const;
@@ -341,22 +353,27 @@ private:
 
     void doPreCirculation();
 
-    void doPreElevator();
+    void doPreElevatorIn();
 
     void doPreSwitchMap();
+
+    void doPreElevatorOut();
 
     void goPreError();
 
     void doPostCirculation();
 
-    void doPostElevator();
+    void doPostElevatorIn();
 
     void doPostSwitchMap();
 
+    void doPostElevatorOut();
+
     void goPostError();
 
-    void takeElevator(int fromFloor, int toFloor, const RealPoint &fromOutPoint, const RealPoint &fromInPoint,
-                      const RealPoint &toOutPoint, const RealPoint &toInPoint);
+    void takeElevatorIn(int fromFloor, int toFloor, const RealPoint &fromOutPoint, const RealPoint &fromInPoint);
+
+    void takeElevatorOut(int fromFloor, int toFloor, const RealPoint &toOutPoint, const RealPoint &toInPoint);
 
     void sendLightUpTargetFloor(int floor, const MessageSuccessCallback &successCallback);
 
@@ -386,6 +403,8 @@ private:
 
 public:
     void initialize(ros::NodeHandle handle);
+
+    void setElevatorCallback(ElevatorCallback callback);
 
     void setCallbackElevatorPre(const std::function<void(bool)> &callbackElevatorPre);
 

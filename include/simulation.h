@@ -66,6 +66,8 @@ public:
     bool rectangular_ambulatory_plane = true;
     bool gzip_map = true;
 
+    bool isRealEnvironmentTest = true;
+
     bool rec_app_node_crash = false;
 
     std::string nebula_base_url;

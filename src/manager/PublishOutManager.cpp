@@ -25,6 +25,8 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
     pubCloud = handle.advertise<std_msgs::Int32>(RESOURCES_UPDATE_FOR_CLOUD, 1);
 
     pubElevatorManager = handle.advertise<std_msgs::Int32>("/elevator_manager", 1);
+
+    pubElevatorStatus = handle.advertise<std_msgs::String>(ELEVATOR_STATUS, 1);
 }
 
 void PublishOutManager::publishJson(const std::string &message) const {
@@ -130,4 +132,19 @@ void PublishOutManager::publishElevatorManager() const {
     std_msgs::Int32 data;
     data.data = 10;
     pubElevatorManager.publish(data);
+}
+
+void PublishOutManager::publishElevatorStatus(const ElevatorModel elevatorModel) const {
+    RequestModel<ElevatorModel> requestModel;
+    requestModel.setOp("publish");
+    requestModel.setTopic(ELEVATOR_STATUS);
+    requestModel.setMsg(elevatorModel);
+
+    json jsonResult = requestModel;
+
+    WsServerManager::instance().sendRequestData(ELEVATOR_STATUS, jsonResult.dump());
+
+    std_msgs::String result;
+    result.data.append(jsonResult.dump());
+    pubElevatorStatus.publish(result);
 }

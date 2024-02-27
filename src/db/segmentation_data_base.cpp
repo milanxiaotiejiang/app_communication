@@ -205,6 +205,7 @@ MapPo SegmentationDataBase::updateMapElevatorPoint(const std::string &map_id, bo
     auto pose = MapAttributeSingleton::instance().getRobotCompletePosition();
     MapPo map = segmentationStorage.get<MapPo>(map_id);
 
+    map.elevator = true;
     if (inside) {
         map.elevator_inside_position_x = pose.position.x;
         map.elevator_inside_position_y = pose.position.y;

@@ -66,11 +66,15 @@ public:
 
     RealBlock createPreSwitchMapBlock(RealTask &task);
 
+    RealBlock createPreElevator2Block(RealTask &task);
+
     RealBlock createPostCirculationBlock(RealTask &task);
 
     RealBlock createPostElevatorBlock(RealTask &task);
 
     RealBlock createPostSwitchMapBlock(RealTask &task);
+
+    RealBlock createPostElevator2Block(RealTask &task);
 
 };
 
