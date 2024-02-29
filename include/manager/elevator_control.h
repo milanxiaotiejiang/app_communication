@@ -5,7 +5,24 @@
 #ifndef APP_COMMUNICATION_ELEVATOR_CONTROL_H
 #define APP_COMMUNICATION_ELEVATOR_CONTROL_H
 
-#define MAX_ADJUSTMENT_FREQUENCY 2
+//两消息之间的间隔
+#define THE_INTERVAL_BETWEEN_TWO_MESSAGES 300
+//移动到电梯点重试次数
+#define MAXIMUM_NUMBER_OF_RETRY_ATTEMPTS_FOR_ERRORS_TO_THE_ELEVATOR 2
+//进出电梯错误重试次数
+#define MAXIMUM_NUMBER_OF_RETRIES_FOR_ELEVATOR_LOGIC_ERRORS 4
+//进入电梯前的调整频率
+#define MAXIMUM_NUMBER_OF_ENTERING_THE_ELEVATOR 1
+//点亮楼层
+#define THE_TIME_INTERVAL_FOR_CONTINUOUSLY_LIGHTING_UP_FLOORS 1000
+//查询楼层
+#define THE_TIME_INTERVAL_FOR_CONTINUOUS_FLOOR_QUERIES 1000
+//判断楼层
+#define THE_TIME_INTERVAL_FOR_CONTINUOUS_FLOOR_DETERMINATION 1000
+//等待电梯
+#define MAXIMUM_WAITING_TIME_FOR_ELEVATOR 60 * 10 * 1000
+//进出电梯
+#define MAXIMUM_TIME_FOR_ENTERING_AND_EXITING_THE_ELEVATOR 60 * 2 * 1000
 
 #include <ros/ros.h>
 
@@ -34,7 +51,7 @@ const unsigned char CMD_AUTOMATIC_DOOR_OPENING = 0x66;//MessageIdEnum::AUTOMATIC
 #define SERIAL_PORT_PRINT false
 #define SERIAL_PORT_SEND_PRINT false
 #define SERIAL_PORT_ACCEPT_PRINT false
-#define JUMP_ELEVATOR_STATUS_DOOR_STATE true
+#define JUMP_ELEVATOR_STATUS_DOOR_STATE false
 #define TT_IMITATE_ARRIVED true
 
 #define MAXIMUM_DELAY_TIME 9
@@ -72,8 +89,11 @@ private:
 
     enum PlanCmd {
         PLAN_NONE,
-        PLAN_ERROR,
-        PLAN_SUCCESS,
+        PLAN_CORE_MOVE_ERROR,
+        PLAN_CORE_MOVE_SUCCESS,
+        PLAN_MOVE_BASE_ING,
+        PLAN_MOVE_BASE_ERROR,
+        PLAN_MOVE_BASE_SUCCESS,
         PLAN_AGAIN
     };
 
@@ -268,18 +288,19 @@ private:
     std::atomic<bool> mainInterrupt;
     std::atomic<ControlCmd> controlCmd;
 
-    std::atomic<bool> inElevatorFlow;
+    std::atomic<bool> planElevatorRelatedInterrupt;
 
-    std::atomic<bool> planInterrupt;
+    std::atomic<PlanCmd> enterPlanCmd;
+    std::atomic<int> enterPlanRetryCount;
 
-    std::atomic<PlanCmd> prePlanCmd;
-    std::atomic<int> prePlanRetryCount;
-
-    std::atomic<PlanCmd> postPlanCmd;
-    std::atomic<int> postPlanRetryCount;
+    std::atomic<PlanCmd> exitPlanCmd;
+    std::atomic<int> exitPlanRetryCount;
 
     bool isConfirmEntry;
     bool isConfirmExit;
+
+    std::atomic<bool> isElevatorEntryResult;
+    std::atomic<bool> isElevatorExitResult;
 
     std::atomic<ElevatorPreState> preState;
     std::atomic<ElevatorPostState> postState;
@@ -400,6 +421,10 @@ private:
     void closeWaitingArrive();
 
     void poseEstimate(const RealPoint &realPoint);
+
+    void setPlanCmd(bool arrive, const std::string &tag);
+
+    void waitDelayClosingDoor();
 
 public:
     void initialize(ros::NodeHandle handle);

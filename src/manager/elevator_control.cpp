@@ -252,10 +252,11 @@ void ElevatorControlManager::movement_controls_func(ControlCommand command) {
 
         auto now = std::chrono::steady_clock::now();
         // 确保两次消息发送之间至少有500毫秒的间隔
-        if (now - last_send_time < std::chrono::milliseconds(300)) {
+        if (now - last_send_time < std::chrono::milliseconds(THE_INTERVAL_BETWEEN_TWO_MESSAGES)) {
             lock.unlock();
 //            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager sleep " << " ";
-            std::this_thread::sleep_for(std::chrono::milliseconds(300) - (now - last_send_time));
+            std::this_thread::sleep_for(
+                    std::chrono::milliseconds(THE_INTERVAL_BETWEEN_TWO_MESSAGES) - (now - last_send_time));
             lock.lock();
         }
 
@@ -517,7 +518,7 @@ void ElevatorControlManager::light_up_thread_func() {
         });
 //        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 点亮楼层 " << lightFloor << " ... ";
         sendSimpleLightUpTargetFloor(lightFloor);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(THE_TIME_INTERVAL_FOR_CONTINUOUSLY_LIGHTING_UP_FLOORS));
     }
 }
 
@@ -530,7 +531,7 @@ void ElevatorControlManager::query_floor_thread_func() {
         });
 //        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 楼层查询 ... ";
         sendAsyncMessage(EleProtocol(CMD_QUERY_FLOOR_WHERE_LOCATED, mElevatorAddress));
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(THE_TIME_INTERVAL_FOR_CONTINUOUS_FLOOR_QUERIES));
     }
 }
 
@@ -541,7 +542,7 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         arrive_cond.wait(lock, [this] {
             return unseal;
         });
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(THE_TIME_INTERVAL_FOR_CONTINUOUS_FLOOR_DETERMINATION));
 
         int cFloor = EleStatus::floorRule(recentlyFloor);
         auto status = EleStatus::parseElevatorStatus(recentlyElevatorStatus);
@@ -585,12 +586,7 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         if (isArrived) {
 
             closeLightUp();
-
-            for (int i = 0; i < 2; i++) {
-                sendDelayedDoorClosing();
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-
+            waitDelayClosingDoor();
             recentlyDataLengthSize = 0;
             unseal = false;
             mElevatorArrived = true;
@@ -618,7 +614,6 @@ void ElevatorControlManager::arrive_floor_thread_func() {
             doPreElevatorOut();
         } else if (preState == ElevatorPreState::PRE_OVER) {
             LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre over " << !preError << " ... ";
-            inElevatorFlow = false;
             callbackElevatorPre(!preError);
         }
 
@@ -660,10 +655,10 @@ void ElevatorControlManager::doPreCirculation() {
             if (preAdjustmentFrequency == 0) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 开始移动到电梯点位 ... ";
                 PointPlanner::instance().goToPath(preCirculationBlock);
-            } else if (preAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+            } else if (preAdjustmentFrequency < MAXIMUM_NUMBER_OF_RETRY_ATTEMPTS_FOR_ERRORS_TO_THE_ELEVATOR) {
                 LOG_IF(INFO, DEBUG_ELEVATOR)
                                 << "ElevatorControlManager pre 开始调整电梯点位，"
-                                << "总次数为 " << (MAX_ADJUSTMENT_FREQUENCY - 1)
+                                << "总次数为 " << (MAXIMUM_NUMBER_OF_RETRY_ATTEMPTS_FOR_ERRORS_TO_THE_ELEVATOR - 1)
                                 << " ，当前次数为 " << preAdjustmentFrequency
                                 << " 次 ... ";
                 auto point = preCirculationBlock.plannerPoints[0];
@@ -810,10 +805,10 @@ void ElevatorControlManager::doPostCirculation() {
             if (postAdjustmentFrequency == 0) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 开始移动到电梯点位 ... ";
                 PointPlanner::instance().goToPath(postCirculationBlock);
-            } else if (postAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+            } else if (postAdjustmentFrequency < MAXIMUM_NUMBER_OF_RETRY_ATTEMPTS_FOR_ERRORS_TO_THE_ELEVATOR) {
                 LOG_IF(INFO, DEBUG_ELEVATOR)
                                 << "ElevatorControlManager post 开始调整电梯点位，"
-                                << "总次数为 " << (MAX_ADJUSTMENT_FREQUENCY - 1)
+                                << "总次数为 " << (MAXIMUM_NUMBER_OF_RETRY_ATTEMPTS_FOR_ERRORS_TO_THE_ELEVATOR - 1)
                                 << " ，当前次数为 " << preAdjustmentFrequency
                                 << " 次 ... ";
                 auto point = postCirculationBlock.plannerPoints[0];
@@ -977,7 +972,8 @@ void ElevatorControlManager::takeElevatorIn(int fromFloor, int toFloor, const Re
 
     // 3
     std::unique_lock<std::mutex> from_lock(wait_from_mutex);
-    if (!wait_from_cv.wait_for(from_lock, std::chrono::seconds(60 * 10), [this] { return mElevatorArrived; }))
+    if (!wait_from_cv.wait_for(from_lock, std::chrono::milliseconds(MAXIMUM_WAITING_TIME_FOR_ELEVATOR),
+                               [this] { return mElevatorArrived; }))
         throw std::runtime_error("takeElevatorIn wait_from_mutex timeout ...");
     closeWaitingArrive();
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << fromFloor << " 层 ... ";
@@ -987,8 +983,12 @@ void ElevatorControlManager::takeElevatorIn(int fromFloor, int toFloor, const Re
     isConfirmEntry = false;
     enterElevator(fromInPoint);
     std::unique_lock<std::mutex> entry_lock(wait_entry_mutex);
-    if (!wait_entry_cv.wait_for(entry_lock, std::chrono::seconds(60 * 2), [this] { return isConfirmEntry; }))
+    if (!wait_entry_cv.wait_for(entry_lock,
+                                std::chrono::milliseconds(MAXIMUM_TIME_FOR_ENTERING_AND_EXITING_THE_ELEVATOR),
+                                [this] { return isConfirmEntry; }))
         throw std::runtime_error("takeElevatorIn wait_entry_mutex timeout ...");
+    if (!isElevatorEntryResult)
+        throw std::runtime_error("takeElevatorIn wait_entry_mutex error ...");
     closeWaitingArrive();
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 已进入电梯 ... ";
 
@@ -1003,19 +1003,26 @@ void ElevatorControlManager::takeElevatorOut(int fromFloor, int toFloor, const R
 
     // 6
     std::unique_lock<std::mutex> to_lock(wait_to_mutex);
-    if (!wait_to_cv.wait_for(to_lock, std::chrono::seconds(60 * 10), [this] { return mElevatorArrived; }))
+    if (!wait_to_cv.wait_for(to_lock, std::chrono::milliseconds(MAXIMUM_WAITING_TIME_FOR_ELEVATOR),
+                             [this] { return mElevatorArrived; }))
         throw std::runtime_error("takeElevatorOut wait_to_mutex timeout ...");
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
 
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    for (int i = 0; i < MAXIMUM_NUMBER_OF_ENTERING_THE_ELEVATOR; i++) {
+        sendDelayedDoorClosing();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
 
     // 7
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行离开电梯逻辑 ... ";
     isConfirmExit = false;
     exitElevator(toOutPoint);
     std::unique_lock<std::mutex> exit_lock(wait_exit_mutex);
-    if (!wait_exit_cv.wait_for(exit_lock, std::chrono::seconds(60 * 2), [this] { return isConfirmExit; }))
+    if (!wait_exit_cv.wait_for(exit_lock, std::chrono::milliseconds(MAXIMUM_TIME_FOR_ENTERING_AND_EXITING_THE_ELEVATOR),
+                               [this] { return isConfirmExit; }))
         throw std::runtime_error("takeElevatorOut wait_exit_mutex timeout ...");
+    if (!isElevatorExitResult)
+        throw std::runtime_error("takeElevatorOut wait_exit_mutex error ...");
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 已离开电梯 ... ";
 
     closeQueryFloor();
@@ -1259,6 +1266,51 @@ void ElevatorControlManager::poseEstimate(const RealPoint &realPoint) {
     publisherPose.publish(original_pose);
 }
 
+void ElevatorControlManager::setPlanCmd(bool arrive, const std::string &tag) {
+    if (arrive) {
+        if (enterPlanCmd == PLAN_NONE) {
+            enterPlanCmd = PLAN_CORE_MOVE_SUCCESS;
+        } else if (enterPlanCmd == PLAN_MOVE_BASE_ING) {
+            enterPlanCmd = PLAN_MOVE_BASE_SUCCESS;
+        } else {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager " << tag << " " << arrive << "... ";
+        }
+    } else {
+        if (enterPlanCmd == PLAN_NONE) {
+            enterPlanCmd = PLAN_CORE_MOVE_ERROR;
+        } else if (enterPlanCmd == PLAN_MOVE_BASE_ING) {
+            enterPlanCmd = PLAN_MOVE_BASE_ERROR;
+        } else {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager " << tag << " " << arrive << "... ";
+        }
+    }
+
+    if (arrive) {
+        if (exitPlanCmd == PLAN_NONE) {
+            exitPlanCmd = PLAN_CORE_MOVE_SUCCESS;
+        } else if (exitPlanCmd == PLAN_MOVE_BASE_ING) {
+            exitPlanCmd = PLAN_MOVE_BASE_SUCCESS;
+        } else {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager " << tag << " " << arrive << "... ";
+        }
+    } else {
+        if (exitPlanCmd == PLAN_NONE) {
+            exitPlanCmd = PLAN_CORE_MOVE_ERROR;
+        } else if (exitPlanCmd == PLAN_MOVE_BASE_ING) {
+            exitPlanCmd = PLAN_MOVE_BASE_ERROR;
+        } else {
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager " << tag << " " << arrive << "... ";
+        }
+    }
+}
+
+void ElevatorControlManager::waitDelayClosingDoor() {
+    for (int i = 0; i < MAXIMUM_NUMBER_OF_ENTERING_THE_ELEVATOR; i++) {
+        sendDelayedDoorClosing();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+}
+
 void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     interruptAccessElevators();
     pool_.setNumOfThreads(4);
@@ -1384,34 +1436,74 @@ void ElevatorControlManager::exitElevator() {
 
 void ElevatorControlManager::enterElevator(const RealPoint &point) {
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 开始执行进电梯逻辑 ... ";
-    planInterrupt = true;
-    prePlanCmd = PlanCmd::PLAN_NONE;
-    prePlanRetryCount = 0;
-    PointPlanner::instance().goToPoint(point);
-    pool_.execute([this, &point] {
+
+    isElevatorEntryResult = false;
+    planElevatorRelatedInterrupt = true;
+    enterPlanCmd = PlanCmd::PLAN_NONE;
+    enterPlanRetryCount = 0;
+
+    RealPoint coreMovePoint;
+//    realPoint.id = point.id;
+//    realPoint.blockId = point.blockId;
+    coreMovePoint.realPosition = point.realPosition;
+    coreMovePoint.realOrientation = point.realOrientation;
+//    realPoint.cmcMode = point.cmcMode;
+//    realPoint.timeout = point.timeout;
+//    realPoint.currentStep = point.currentStep;
+    coreMovePoint.core_move = true;
+//    realPoint.gateControl = point.gateControl;
+//    realPoint.gate_uuid = point.gate_uuid;
+//    realPoint.gate_factory_id = point.gate_factory_id;
+//    realPoint.elevatorControl = point.elevatorControl;
+//    realPoint.targetFloorPair = point.targetFloorPair;
+//    realPoint.targetMapIdPair = point.targetMapIdPair;
+
+    // 先用 core_move 进入电梯
+    PointPlanner::instance().goToPoint(coreMovePoint);
+
+    pool_.execute([this, &point, &coreMovePoint] {
         sendDelayedDoorClosing();
         std::chrono::steady_clock::time_point last_send_time = std::chrono::steady_clock::now();
-        while (planInterrupt) {
+        while (planElevatorRelatedInterrupt) {
             int append_sleep_time = 0;
 
-            if (prePlanCmd == PlanCmd::PLAN_NONE) {
+            switch (enterPlanCmd) {
+                case PlanCmd::PLAN_NONE:
 
-            } else if (prePlanCmd == PlanCmd::PLAN_ERROR) {
-                if (prePlanRetryCount > 3) {
-                    planInterrupt = false;
-                    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 进电梯出错 ... ";
-                } else {
-                    prePlanCmd = PlanCmd::PLAN_AGAIN;
-                }
-            } else if (prePlanCmd == PlanCmd::PLAN_SUCCESS) {
-                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 进电梯成功 ... ";
-                planInterrupt = false;
-                isConfirmEntry = true;
-                wait_entry_cv.notify_one();
-            } else if (prePlanCmd == PlanCmd::PLAN_AGAIN) {
-                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 重试 ... ";
-                prePlanCmd = PlanCmd::PLAN_NONE;
-                PointPlanner::instance().goToPoint(point);
+                    break;
+                case PlanCmd::PLAN_CORE_MOVE_ERROR:
+                    enterPlanCmd = PlanCmd::PLAN_AGAIN;// 失败直接进入重试逻辑
+                    break;
+                case PlanCmd::PLAN_CORE_MOVE_SUCCESS:// 再用 move_base 进行转向等二次调整
+                    PointPlanner::instance().goToPoint(point, true);
+                    enterPlanCmd = PlanCmd::PLAN_MOVE_BASE_ING;
+                    break;
+                case PlanCmd::PLAN_MOVE_BASE_ING:
+
+                    break;
+                case PlanCmd::PLAN_MOVE_BASE_ERROR:
+                    enterPlanCmd = PlanCmd::PLAN_AGAIN;// 失败直接进入重试逻辑
+                    break;
+                case PlanCmd::PLAN_MOVE_BASE_SUCCESS:// 进入电梯成功
+                    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 进电梯成功 ... ";
+                    planElevatorRelatedInterrupt = false;
+                    isElevatorEntryResult = false;
+                    isConfirmEntry = true;
+                    wait_entry_cv.notify_one();
+                    break;
+                case PlanCmd::PLAN_AGAIN:
+                    if (enterPlanRetryCount > MAXIMUM_NUMBER_OF_RETRIES_FOR_ELEVATOR_LOGIC_ERRORS) {
+                        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 进电梯出错 ... ";
+                        planElevatorRelatedInterrupt = false;
+                        isElevatorEntryResult = false;
+                        isConfirmEntry = true;
+                        wait_entry_cv.notify_one();
+                    } else {
+                        PointPlanner::instance().goToPoint(coreMovePoint);
+                        enterPlanCmd = PlanCmd::PLAN_NONE;
+                    }
+                    enterPlanRetryCount++;
+                    break;
             }
 
             if (std::chrono::steady_clock::now() - last_send_time > std::chrono::seconds(MAXIMUM_DELAY_TIME - 1)) {
@@ -1425,34 +1517,53 @@ void ElevatorControlManager::enterElevator(const RealPoint &point) {
 
 void ElevatorControlManager::exitElevator(const RealPoint &point) {
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 开始执行出电梯逻辑 ... ";
-    planInterrupt = true;
-    postPlanCmd = PlanCmd::PLAN_NONE;
-    postPlanRetryCount = 0;
+
+    isElevatorExitResult = false;
+    planElevatorRelatedInterrupt = true;
+    exitPlanCmd = PlanCmd::PLAN_MOVE_BASE_ING;
+    exitPlanRetryCount = 0;
+
     PointPlanner::instance().goToPoint(point);
+
     pool_.execute([this, &point] {
         sendDelayedDoorClosing();
         std::chrono::steady_clock::time_point last_send_time = std::chrono::steady_clock::now();
-        while (planInterrupt) {
+        while (planElevatorRelatedInterrupt) {
             int append_sleep_time = 0;
 
-            if (postPlanCmd == PlanCmd::PLAN_NONE) {
+            switch (enterPlanCmd) {
+                case PlanCmd::PLAN_NONE:
+                    break;
+                case PlanCmd::PLAN_CORE_MOVE_ERROR:
+                    break;
+                case PlanCmd::PLAN_CORE_MOVE_SUCCESS:
+                    break;
+                case PlanCmd::PLAN_MOVE_BASE_ING:
 
-            } else if (postPlanCmd == PlanCmd::PLAN_ERROR) {
-                if (postPlanRetryCount > 3) {
-                    planInterrupt = false;
-                    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 出电梯出错 ... ";
-                } else {
-                    postPlanCmd = PlanCmd::PLAN_AGAIN;
-                }
-            } else if (postPlanCmd == PlanCmd::PLAN_SUCCESS) {
-                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 出电梯成功 ... ";
-                planInterrupt = false;
-                isConfirmExit = true;
-                wait_exit_cv.notify_one();
-            } else if (postPlanCmd == PlanCmd::PLAN_AGAIN) {
-                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 重试 ... ";
-                postPlanCmd = PlanCmd::PLAN_NONE;
-                PointPlanner::instance().goToPoint(point);
+                    break;
+                case PlanCmd::PLAN_MOVE_BASE_ERROR:
+                    enterPlanCmd = PlanCmd::PLAN_AGAIN;
+                    break;
+                case PlanCmd::PLAN_MOVE_BASE_SUCCESS:
+                    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 出电梯成功 ... ";
+                    planElevatorRelatedInterrupt = false;
+                    isElevatorExitResult = true;
+                    isConfirmExit = true;
+                    wait_exit_cv.notify_one();
+                    break;
+                case PlanCmd::PLAN_AGAIN:
+                    if (exitPlanRetryCount > MAXIMUM_NUMBER_OF_RETRIES_FOR_ELEVATOR_LOGIC_ERRORS) {
+                        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 进电梯出错 ... ";
+                        planElevatorRelatedInterrupt = false;
+                        isElevatorExitResult = false;
+                        isConfirmEntry = true;
+                        wait_entry_cv.notify_one();
+                    } else {
+                        PointPlanner::instance().goToPoint(point);
+                        enterPlanCmd = PlanCmd::PLAN_MOVE_BASE_ING;
+                    }
+                    exitPlanRetryCount++;
+                    break;
             }
 
             if (std::chrono::steady_clock::now() - last_send_time > std::chrono::seconds(MAXIMUM_DELAY_TIME - 1)) {
@@ -1469,7 +1580,6 @@ void ElevatorControlManager::handlePreFlow(const std::vector<RealBlock> &preFlow
     if (preFlows.size() != 4) {
         throw app::exception(make_error_code(error::elevator_pre_flow_error));
     }
-    inElevatorFlow = true;
     preError = false;
     preCirculationBlock = preFlows[0];
     preElevatorInBlock = preFlows[1];
@@ -1508,16 +1618,15 @@ void ElevatorControlManager::handlePostFlow(const std::vector<RealBlock> &postFl
 }
 
 void ElevatorControlManager::completePreCirculation(const bool arrive) {
-    if (planInterrupt) {
+    if (planElevatorRelatedInterrupt) {
 
-        prePlanCmd = arrive ? PlanCmd::PLAN_SUCCESS : PlanCmd::PLAN_ERROR;
-        postPlanCmd = arrive ? PlanCmd::PLAN_SUCCESS : PlanCmd::PLAN_ERROR;
+        setPlanCmd(arrive, "completePreCirculation");
 
     } else {
         LOG_IF(INFO, DEBUG_ELEVATOR)
                         << "ElevatorControlManager pre 移动或调整电梯点位结果 " << arrive << "... ";
         if (arrive) {
-            if (preAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+            if (preAdjustmentFrequency < MAXIMUM_NUMBER_OF_RETRY_ATTEMPTS_FOR_ERRORS_TO_THE_ELEVATOR) {
                 {
                     std::unique_lock<std::mutex> lk(pre_mutex_);
                     preState = ElevatorPreState::PRE_CIRCULATION;
@@ -1533,7 +1642,7 @@ void ElevatorControlManager::completePreCirculation(const bool arrive) {
 
 
         } else {
-            if (preRetryFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+            if (preRetryFrequency < MAXIMUM_NUMBER_OF_RETRY_ATTEMPTS_FOR_ERRORS_TO_THE_ELEVATOR) {
                 preAdjustmentFrequency = 0;
                 {
                     std::unique_lock<std::mutex> lk(pre_mutex_);
@@ -1548,18 +1657,18 @@ void ElevatorControlManager::completePreCirculation(const bool arrive) {
     }
 }
 
-void ElevatorControlManager::completePostCirculation(const bool arrive) {
-    if (planInterrupt) {
 
-        prePlanCmd = arrive ? PlanCmd::PLAN_SUCCESS : PlanCmd::PLAN_ERROR;
-        postPlanCmd = arrive ? PlanCmd::PLAN_SUCCESS : PlanCmd::PLAN_ERROR;
+void ElevatorControlManager::completePostCirculation(const bool arrive) {
+    if (planElevatorRelatedInterrupt) {
+
+        setPlanCmd(arrive, "completePostCirculation");
 
     } else {
         LOG_IF(INFO, DEBUG_ELEVATOR)
                         << "ElevatorControlManager completePostCirculation 移动或调整电梯点位有完成 " << arrive
                         << "... ";
         if (arrive) {
-            if (postAdjustmentFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+            if (postAdjustmentFrequency < MAXIMUM_NUMBER_OF_RETRY_ATTEMPTS_FOR_ERRORS_TO_THE_ELEVATOR) {
                 {
                     std::unique_lock<std::mutex> lk(post_mutex_);
                     postState = ElevatorPostState::POST_CIRCULATION;
@@ -1573,7 +1682,7 @@ void ElevatorControlManager::completePostCirculation(const bool arrive) {
                 post_condition_variable_.notify_one();
             }
         } else {
-            if (postRetryFrequency < MAX_ADJUSTMENT_FREQUENCY) {
+            if (postRetryFrequency < MAXIMUM_NUMBER_OF_RETRY_ATTEMPTS_FOR_ERRORS_TO_THE_ELEVATOR) {
                 postAdjustmentFrequency = 0;
                 {
                     std::unique_lock<std::mutex> lk(post_mutex_);

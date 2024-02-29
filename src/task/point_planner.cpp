@@ -138,7 +138,7 @@ void PointPlanner::goToPath(const RealBlock &block) {
     share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
 }
 
-void PointPlanner::goToPoint(const RealPoint &point) {
+void PointPlanner::goToPoint(const RealPoint &point, bool mustArrive) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::task_planner_failed_to_start));
     }
@@ -150,7 +150,10 @@ void PointPlanner::goToPoint(const RealPoint &point) {
         core_move->sendGoal(goal, &coreMoveDoneCB, &coreMoveActiveCB, &coreMoveFeedBackCB);
     } else {
         replan_msgs::ReplanGoal path;
-        cpToPath(std::vector<RealPoint>{point}, path, replan_msgs::ReplanGoal::POINT_MUST_ARRIVE, false);
+        cpToPath(std::vector<RealPoint>{point}, path,
+                 mustArrive ? replan_msgs::ReplanGoal::POINT_MUST_ARRIVE
+                            : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE,
+                 false);
         share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
     }
 }
