@@ -82,6 +82,7 @@ namespace clean_history_db {
         history.history_state_ = history_state::error;
 
         CleanHistoryDataBase::instance().updateHistory(history);
+        return true;
     }
 
     std::tuple<int, std::string, std::string>

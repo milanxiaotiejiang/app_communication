@@ -43,6 +43,7 @@ static int hex2int(char c) {
     } else if ((c >= '0') && (c <= '9')) {
         return c - '0';
     }
+    return c;
 }
 
 static int hexstring2int(std::string const &hexStr) {

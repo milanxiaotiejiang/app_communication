@@ -8,7 +8,7 @@
 #include "glog/logging.h"
 #include "string"
 
-#define DEBUG_REQUEST true
+#define DEBUG_REQUEST false
 #define DEBUG_FIRING true
 #define DEBUG_EXPLORATION false
 #define DEBUG_EXPLORATION_CACHE false
@@ -23,7 +23,7 @@
 #define DEBUG_RESTORE true
 #define DEBUG_GATE true
 #define DEBUG_CLEAN_MECHANISM false
-#define DEBUG_MULTIPLE_MAP true
+#define DEBUG_MULTIPLE_MAP false
 #define DEBUG_ELEVATOR true
 
 
@@ -66,7 +66,7 @@ public:
     bool rectangular_ambulatory_plane = true;
     bool gzip_map = true;
 
-    bool isRealEnvironmentTest = true;
+    bool isRealEnvironmentTest = false;
 
     bool rec_app_node_crash = false;
 

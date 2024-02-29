@@ -339,6 +339,7 @@ public:
                 }
             }
         }
+        return nullptr;
     }
 };
 
@@ -431,6 +432,7 @@ public:
                 }
             }
         }
+        return nullptr;
     }
 
     bool sendMap(const std::pair<void *const, Ask> &ask, std::string &key) {
@@ -475,6 +477,7 @@ public:
                 }
             }
         }
+        return nullptr;
     }
 };
 
@@ -563,6 +566,7 @@ public:
         } catch (...) {
             LOG(ERROR) << "other start exception";
         }
+        return nullptr;
     }
 
     WsServerDataThread *getWsServerDataThread() const {

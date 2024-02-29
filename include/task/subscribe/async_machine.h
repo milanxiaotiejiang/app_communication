@@ -200,6 +200,7 @@ public:
             case event::flow::trigger_special_post_conditions:
                 return 10021;
         }
+        return -1;
     }
 
     std::string getMachineMessage(int code) {

@@ -396,6 +396,7 @@ long OperateAddSubregionStrategy::handler(ModifyTaskSubregion params) {
 
 std::string OperateDeleteSubregionStrategy::handler(ModifyTaskSubregion params) {
     TaskDataBase::instance().operateDeleteSubregion(params.id, params.subregion);
+    return "";
 }
 
 std::string ModifyTimerNameStrategy::handler(ModifyTimerName params) {

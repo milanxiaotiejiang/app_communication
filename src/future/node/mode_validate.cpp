@@ -57,6 +57,7 @@ bool ModeValidate::validateCartographer(node::State state) {
         case node::State::map:
             return NodeControl::instance().cartoMode() == 1 && NodeControl::instance().heart_beat > 30;
     }
+    return true;
 }
 
 bool ModeValidate::validateMoveBase(int open) {
