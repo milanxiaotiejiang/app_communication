@@ -358,6 +358,8 @@ private:
 
     void movement_controls_func(ControlCommand command);
 
+    void turn_controls_func();
+
     [[noreturn]] void serial_send_thread_func(boost::asio::serial_port &serial);
 
     [[noreturn]] void serial_receive_thread_func(boost::asio::serial_port &serial);

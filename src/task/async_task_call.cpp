@@ -1520,6 +1520,14 @@ void AsyncTaskCall::restore() {
         LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "任务的前期准备工作，如工作模式切换、出站等，无法处理返回基站";
         return;
     }
+    if (isPreConditions(restore_flow)) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "梯控前期流程，无法处理返回基站";
+        return;
+    }
+    if (isPostConditions(restore_flow)) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "梯控后期流程，无法处理返回基站";
+        return;
+    }
     if (!Environment::instance().direct_start_move_base) {
         LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "direct_start_move_base 为 false, move_base 暂不支持";
     }
