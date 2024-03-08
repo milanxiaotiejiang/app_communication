@@ -400,6 +400,57 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<bool>("no_station_mapping_mode", no_station_mapping_mode, false);
     if (no_station_mapping_mode)
         Environment::instance().no_station_mapping_mode = no_station_mapping_mode;
+
+
+    int the_interval_between_two_messages;
+    nh.param<int>("the_interval_between_two_messages", the_interval_between_two_messages, 300);
+    Environment::instance().the_interval_between_two_messages = the_interval_between_two_messages;
+    int maximum_number_of_retry_attempts_for_errors_to_the_elevator;
+    nh.param<int>("maximum_number_of_retry_attempts_for_errors_to_the_elevator",
+                  maximum_number_of_retry_attempts_for_errors_to_the_elevator, 2);
+    Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator = maximum_number_of_retry_attempts_for_errors_to_the_elevator;
+    int maximum_number_of_retries_for_elevator_logic_errors;
+    nh.param<int>("maximum_number_of_retries_for_elevator_logic_errors",
+                  maximum_number_of_retries_for_elevator_logic_errors, 4);
+    Environment::instance().maximum_number_of_retries_for_elevator_logic_errors = maximum_number_of_retries_for_elevator_logic_errors;
+    int maximum_number_of_entering_the_elevator;
+    nh.param<int>("maximum_number_of_entering_the_elevator", maximum_number_of_entering_the_elevator, 1);
+    Environment::instance().maximum_number_of_entering_the_elevator = maximum_number_of_entering_the_elevator;
+    int the_time_interval_for_continuously_lighting_up_floors;
+    nh.param<int>("the_time_interval_for_continuously_lighting_up_floors",
+                   the_time_interval_for_continuously_lighting_up_floors, 3000);
+    Environment::instance().the_time_interval_for_continuously_lighting_up_floors = the_time_interval_for_continuously_lighting_up_floors;
+    int the_time_interval_for_continuous_floor_queries;
+    nh.param<int>("the_time_interval_for_continuous_floor_queries", the_time_interval_for_continuous_floor_queries,
+                   1000);
+    Environment::instance().the_time_interval_for_continuous_floor_queries = the_time_interval_for_continuous_floor_queries;
+    int the_time_interval_for_continuous_floor_determination;
+    nh.param<int>("the_time_interval_for_continuous_floor_determination",
+                   the_time_interval_for_continuous_floor_determination, 1000);
+    Environment::instance().the_time_interval_for_continuous_floor_determination = the_time_interval_for_continuous_floor_determination;
+    int maximum_waiting_time_for_elevator;
+    nh.param<int>("maximum_waiting_time_for_elevator", maximum_waiting_time_for_elevator, 60 * 10 * 1000);
+    Environment::instance().maximum_waiting_time_for_elevator = maximum_waiting_time_for_elevator;
+    int maximum_time_for_entering_and_exiting_the_elevator;
+    nh.param<int>("maximum_time_for_entering_and_exiting_the_elevator",
+                   maximum_time_for_entering_and_exiting_the_elevator, 60 * 2 * 1000);
+    Environment::instance().maximum_time_for_entering_and_exiting_the_elevator = maximum_time_for_entering_and_exiting_the_elevator;
+    double entering_inner_steering_speed;
+    nh.param<double>("entering_inner_steering_speed", entering_inner_steering_speed, 0.4);
+    Environment::instance().entering_inner_steering_speed = entering_inner_steering_speed;
+    bool serial_port_send_print;
+    nh.param<bool>("serial_port_send_print", serial_port_send_print, false);
+    Environment::instance().serial_port_send_print = serial_port_send_print;
+    bool serial_port_accept_print;
+    nh.param<bool>("serial_port_accept_print", serial_port_accept_print, false);
+    Environment::instance().serial_port_accept_print = serial_port_accept_print;
+    bool jump_elevator_status_door_state;
+    nh.param<bool>("jump_elevator_status_door_state", jump_elevator_status_door_state, true);
+    Environment::instance().jump_elevator_status_door_state = jump_elevator_status_door_state;
+    int maximum_delay_time;
+    nh.param<int>("maximum_delay_time", maximum_delay_time, 9);
+    Environment::instance().maximum_delay_time = maximum_delay_time;
+
 }
 
 void release() {

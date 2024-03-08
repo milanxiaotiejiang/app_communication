@@ -5,24 +5,38 @@
 #ifndef APP_COMMUNICATION_ELEVATOR_CONTROL_H
 #define APP_COMMUNICATION_ELEVATOR_CONTROL_H
 
-//两消息之间的间隔
-#define THE_INTERVAL_BETWEEN_TWO_MESSAGES 300
-//移动到电梯点重试次数
-#define MAXIMUM_NUMBER_OF_RETRY_ATTEMPTS_FOR_ERRORS_TO_THE_ELEVATOR 2
-//进出电梯错误重试次数
-#define MAXIMUM_NUMBER_OF_RETRIES_FOR_ELEVATOR_LOGIC_ERRORS 4
-//进入电梯前的调整频率
-#define MAXIMUM_NUMBER_OF_ENTERING_THE_ELEVATOR 1
-//点亮楼层
-#define THE_TIME_INTERVAL_FOR_CONTINUOUSLY_LIGHTING_UP_FLOORS 1000
-//查询楼层
-#define THE_TIME_INTERVAL_FOR_CONTINUOUS_FLOOR_QUERIES 1000
-//判断楼层
-#define THE_TIME_INTERVAL_FOR_CONTINUOUS_FLOOR_DETERMINATION 1000
-//等待电梯
-#define MAXIMUM_WAITING_TIME_FOR_ELEVATOR 60 * 10 * 1000
-//进出电梯
-#define MAXIMUM_TIME_FOR_ENTERING_AND_EXITING_THE_ELEVATOR 60 * 2 * 1000
+////两消息之间的间隔
+//#define the_interval_between_two_messages 300
+////移动到电梯点重试次数
+//#define maximum_number_of_retry_attempts_for_errors_to_the_elevator 2
+////进出电梯错误重试次数
+//#define maximum_number_of_retries_for_elevator_logic_errors 4
+////进入电梯前的调整频率
+//#define maximum_number_of_entering_the_elevator 1
+////点亮楼层
+//#define the_time_interval_for_continuously_lighting_up_floors 3000
+////查询楼层
+//#define the_time_interval_for_continuous_floor_queries 1000
+////判断楼层
+//#define the_time_interval_for_continuous_floor_determination 1000
+////等待电梯
+//#define maximum_waiting_time_for_elevator 60 * 10 * 1000
+////进出电梯
+//#define maximum_time_for_entering_and_exiting_the_elevator 60 * 2 * 1000
+////转向
+//#define entering_inner_steering_speed 0.4
+//
+//
+//#define serial_port_send_print false
+//#define serial_port_accept_print false
+//#define jump_elevator_status_door_state true
+//
+//#define maximum_delay_time 9
+
+
+#define SLEEP_TIME 10
+#define MOVING_DISTANCE 1.6
+#define INEXPLICABLE_MAGIC_NUMBER 0.00556789
 
 #include <ros/ros.h>
 
@@ -47,14 +61,6 @@ const unsigned char CMD_LIGHT_UP_TARGET_FLOOR = 0x60;//MessageIdEnum::LIGHTING_U
 const unsigned char CMD_QUERY_FLOOR_WHERE_LOCATED = 0x61;
 const unsigned char CMD_DELAYED_DOOR_CLOSING = 0x62;//MessageIdEnum::DELAYED_DOOR_CLOSING
 const unsigned char CMD_AUTOMATIC_DOOR_OPENING = 0x66;//MessageIdEnum::AUTOMATIC_DOOR_OPENING
-
-#define SERIAL_PORT_PRINT false
-#define SERIAL_PORT_SEND_PRINT false
-#define SERIAL_PORT_ACCEPT_PRINT false
-#define JUMP_ELEVATOR_STATUS_DOOR_STATE false
-#define TT_IMITATE_ARRIVED true
-
-#define MAXIMUM_DELAY_TIME 9
 
 class ElevatorControlManager {
 private:
@@ -340,6 +346,8 @@ private:
 
     ElevatorCallback mElevatorCallback;
 
+    std::function<void(bool)> mElevatorMovementCallback;
+
 private:
 
     bool hasSerialPortAccess(const std::string &portName);
@@ -432,6 +440,8 @@ public:
     void initialize(ros::NodeHandle handle);
 
     void setElevatorCallback(ElevatorCallback callback);
+
+    void setElevatorMovementCallback(const std::function<void(bool)> &callback);
 
     void setCallbackElevatorPre(const std::function<void(bool)> &callbackElevatorPre);
 

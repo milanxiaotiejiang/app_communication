@@ -71,6 +71,13 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
                         ElevatorModel(floor, doorState, lastDirection, availability, nextDirection));
             });
 
+    ElevatorControlManager::instance().setElevatorMovementCallback([this](bool inside) {
+        mElevatorInside = inside;
+        std_msgs::Int32 message;
+        message.data = inside ? 0 : 1;
+        PublishInnerManager::instance().pubMetalDetectionSwitch(message);
+    });
+
     ElevatorControlManager::instance().setCallbackElevatorPre([this](bool result) {
         notify_one([this, &result]() {
 
@@ -1418,6 +1425,9 @@ void AsyncTaskCall::executeLift(bool lift) {
 //        return;
 //    }
     if (!isRegularTask(currentFlow())) {
+        return;
+    }
+    if (mElevatorInside) {
         return;
     }
     if (lift) {

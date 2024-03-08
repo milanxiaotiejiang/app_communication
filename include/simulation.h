@@ -83,6 +83,21 @@ public:
 
     bool no_station_mapping_mode{true};
 
+    int the_interval_between_two_messages{300};
+    int maximum_number_of_retry_attempts_for_errors_to_the_elevator{2};
+    int maximum_number_of_retries_for_elevator_logic_errors{4};
+    int maximum_number_of_entering_the_elevator{1};
+    int the_time_interval_for_continuously_lighting_up_floors{3000};
+    int the_time_interval_for_continuous_floor_queries{1000};
+    int the_time_interval_for_continuous_floor_determination{1000};
+    int maximum_waiting_time_for_elevator{60 * 10 * 1000};
+    int maximum_time_for_entering_and_exiting_the_elevator{60 * 2 * 1000};
+    double entering_inner_steering_speed{0.4};
+    bool serial_port_send_print{false};
+    bool serial_port_accept_print{false};
+    bool jump_elevator_status_door_state{true};
+    int maximum_delay_time{9};
+
     static bool will() {
         return (rand() % 10) > 5;
     }

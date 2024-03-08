@@ -36,6 +36,8 @@ protected:
 
     RealBlock flowReadyBackPoint;
 
+    std::atomic<bool> mElevatorInside;
+
     std::string runTaskId() const {
         return runTask.getId();
     }

@@ -54,7 +54,8 @@ private:
     pub_maintenance_mode,//
     pub_detection,//
     pub_open_gate,//
-    pub_hardware_reset;
+    pub_hardware_reset,//
+    pub_metal_detection_switch;
 
 public:
     static auto &instance() {
@@ -115,6 +116,8 @@ public:
     void pubOpenGate();
 
     void pubHardwareReset();
+
+    void pubMetalDetectionSwitch(const std_msgs::Int32 &message) const;
 };
 
 #endif //APP_COMMUNICATION_PUBLISHINNERMANAGER_H
