@@ -817,3 +817,32 @@ std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForMap
 
     return vos;
 }
+
+std::vector<std::string> SegmentationDataBase::findMapIdsForCurrentBuild(const std::string &mapId) {
+
+    auto buildMapList = segmentationStorage.get_all<BuildMapMapping>(
+            where(c(&BuildMapMapping::o_map_id) == mapId)
+    );
+    if (buildMapList.size() != 1) {
+        return {};
+    }
+    auto currentBuildMap = buildMapList[0];
+
+    auto buildId = currentBuildMap.o_build_id;
+
+    auto results = segmentationStorage.select(
+            distinct(columns(
+                    &MapPo::id
+            )),
+            inner_join<MapPo>(on(c(&MapPo::id) == &BuildMapMapping::o_map_id)),
+            inner_join<BuildPo>(on(c(&BuildPo::id) == &BuildMapMapping::o_build_id)),
+            where(c(&BuildMapMapping::o_build_id) == buildId)
+    );
+
+    std::vector<std::string> mapIds;
+    for (const auto &row: results) {
+        mapIds.push_back(std::get<0>(row));
+    }
+
+    return mapIds;
+}

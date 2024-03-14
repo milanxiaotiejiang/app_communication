@@ -177,6 +177,8 @@ public:
     std::vector<std::pair<BuildPo, MapPo>> findBuildMapsForBuild(long buildId);
 
     std::vector<std::pair<BuildPo, MapPo>> findBuildMapsForMap(const std::string &mapId);
+
+    std::vector<std::string> findMapIdsForCurrentBuild(const std::string &mapId);
 };
 
 
