@@ -76,9 +76,9 @@ void ElevatorControlManager::subscribeImuCallback(const sensor_msgs::Imu &imu) {
 void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::Int32 &flag) {
     try {//elevator_manager
         if (flag.data == 0) {
-            exitElevator();
+//            exitElevator();
         } else if (flag.data == 1) {
-            enterElevator();
+//            enterElevator();
         } else if (flag.data == 2) {
             ttSendLightUpTargetFloor();
         } else if (flag.data == 3) {
@@ -123,118 +123,118 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
 //    publisherCmdVel.publish(move_cmd);
 //}
 
-void ElevatorControlManager::movement_controls_func(ControlCommand command) {
-    interruptAccessElevators();
-    recordSensorData();
-
-    std::string print_str;
-    if (command == ControlCommand::ENTER_ELEVATOR) {
-        print_str = "进电梯";
-    } else if (command == ControlCommand::EXIT_ELEVATOR) {
-        print_str = "出电梯";
-    }
-
-    sendDelayedDoorClosing();
-
-    std::chrono::steady_clock::time_point last_send_time = std::chrono::steady_clock::now();
-
-    while (mainInterrupt) {
-
-        int append_sleep_time = 0;
-
-//        printElevator();
-
-        switch (controlCmd) {
-            case ControlCmd::NONE:
-                publishCmd();
-                controlCmd = ControlCmd::MOVE;
-                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre " << print_str << " 前进 ... ";
-                break;
-            case ControlCmd::MOVE: {
-                double distance_x = sqrt(pow(abs(odom_x - old_x), 2) + pow(abs(odom_y - old_y), 2));
-//                double distance_x = std::abs(odom_x - old_x);
-                if (distance_x < MOVING_DISTANCE - SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER) {// 0.00556789
-                    publishCmd(0.2, 0);
-                } else {
-                    if (command == ControlCommand::EXIT_ELEVATOR) {
-                        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre " << print_str << " 转向 ... ";
-                        controlCmd = ControlCmd::REACH;
-                    } else {
-                        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre " << print_str << " 转向 ... ";
-                        controlCmd = ControlCmd::ROTATE;
-                    }
-                }
-                break;
-            }
-            case ControlCmd::ROTATE: {
-                auto old_angle = old_yaw * 180.0 / M_PI;
-                auto curr_angle = imu_yaw * 180.0 / M_PI;
-                auto angle_difference = curr_angle - old_angle;
-                if (angle_difference < 0) {
-                    angle_difference += 360;
-                }
-                if (angle_difference > 180) {
-                    angle_difference = 360 - angle_difference;
-                }
-                bool normal_rotate = true;
-                if (controlCmd == ControlCmd::ROTATE && angle_difference > 90) {
-                    normal_rotate = angle_difference - last_angle > -(SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER);
-                    if (!normal_rotate) {
-                        angle_difference = 188;
-                    }
-                }
-                if (angle_difference < 180 - 100 * SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER) {// 0.00556789
-                    publishCmd(0, 0.4);
-                } else {
-                    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager normal_rotate ： " << normal_rotate;
-                    if (!normal_rotate) {
-                        publishCmd(0, -0.2);
-                    }
-                    controlCmd = ControlCmd::REACH;
-                }
-                last_angle = angle_difference;
-                break;
-            }
-            case ControlCmd::REACH: {
-                publishCmd(0, 0);
-                mainInterrupt = false;
-
-                double distance_x = sqrt(pow(abs(odom_x - old_x), 2) + pow(abs(odom_y - old_y), 2));
-                auto old_angle = old_yaw * 180.0 / M_PI;
-                auto curr_angle = imu_yaw * 180.0 / M_PI;
-                auto angle_difference = curr_angle - old_angle;
-                if (angle_difference < 0) {
-                    angle_difference += 360;
-                }
-                if (angle_difference > 180) {
-                    angle_difference = 360 - angle_difference;
-                }
-
-                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager over ： " << !mainInterrupt
-                                             << "， * ： " << (distance_x - MOVING_DISTANCE)
-                                             << "， * ： " << (180 - angle_difference);
-
-                if (command == ControlCommand::ENTER_ELEVATOR) {
-                    isConfirmEntry = true;
-                    wait_entry_cv.notify_one();
-                } else if (command == ControlCommand::EXIT_ELEVATOR) {
-                    isConfirmExit = true;
-                    wait_exit_cv.notify_one();
-                }
-                break;
-            }
-
-        }
-
-        if (std::chrono::steady_clock::now() - last_send_time >
-            std::chrono::seconds(Environment::instance().maximum_delay_time - 1)) {
-            sendDelayedDoorClosing();
-            last_send_time = std::chrono::steady_clock::now();
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME + append_sleep_time));
-    }
-
-}
+//void ElevatorControlManager::movement_controls_func(ControlCommand command) {
+//    interruptAccessElevators();
+//    recordSensorData();
+//
+//    std::string print_str;
+//    if (command == ControlCommand::ENTER_ELEVATOR) {
+//        print_str = "进电梯";
+//    } else if (command == ControlCommand::EXIT_ELEVATOR) {
+//        print_str = "出电梯";
+//    }
+//
+//    sendDelayedDoorClosing();
+//
+//    std::chrono::steady_clock::time_point last_send_time = std::chrono::steady_clock::now();
+//
+//    while (mainInterrupt) {
+//
+//        int append_sleep_time = 0;
+//
+////        printElevator();
+//
+//        switch (controlCmd) {
+//            case ControlCmd::NONE:
+//                publishCmd();
+//                controlCmd = ControlCmd::MOVE;
+//                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre " << print_str << " 前进 ... ";
+//                break;
+//            case ControlCmd::MOVE: {
+//                double distance_x = sqrt(pow(abs(odom_x - old_x), 2) + pow(abs(odom_y - old_y), 2));
+////                double distance_x = std::abs(odom_x - old_x);
+//                if (distance_x < MOVING_DISTANCE - SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER) {// 0.00556789
+//                    publishCmd(0.2, 0);
+//                } else {
+//                    if (command == ControlCommand::EXIT_ELEVATOR) {
+//                        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre " << print_str << " 转向 ... ";
+//                        controlCmd = ControlCmd::REACH;
+//                    } else {
+//                        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre " << print_str << " 转向 ... ";
+//                        controlCmd = ControlCmd::ROTATE;
+//                    }
+//                }
+//                break;
+//            }
+//            case ControlCmd::ROTATE: {
+//                auto old_angle = old_yaw * 180.0 / M_PI;
+//                auto curr_angle = imu_yaw * 180.0 / M_PI;
+//                auto angle_difference = curr_angle - old_angle;
+//                if (angle_difference < 0) {
+//                    angle_difference += 360;
+//                }
+//                if (angle_difference > 180) {
+//                    angle_difference = 360 - angle_difference;
+//                }
+//                bool normal_rotate = true;
+//                if (controlCmd == ControlCmd::ROTATE && angle_difference > 90) {
+//                    normal_rotate = angle_difference - last_angle > -(SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER);
+//                    if (!normal_rotate) {
+//                        angle_difference = 188;
+//                    }
+//                }
+//                if (angle_difference < 180 - 100 * SLEEP_TIME * INEXPLICABLE_MAGIC_NUMBER) {// 0.00556789
+//                    publishCmd(0, 0.4);
+//                } else {
+//                    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager normal_rotate ： " << normal_rotate;
+//                    if (!normal_rotate) {
+//                        publishCmd(0, -0.2);
+//                    }
+//                    controlCmd = ControlCmd::REACH;
+//                }
+//                last_angle = angle_difference;
+//                break;
+//            }
+//            case ControlCmd::REACH: {
+//                publishCmd(0, 0);
+//                mainInterrupt = false;
+//
+//                double distance_x = sqrt(pow(abs(odom_x - old_x), 2) + pow(abs(odom_y - old_y), 2));
+//                auto old_angle = old_yaw * 180.0 / M_PI;
+//                auto curr_angle = imu_yaw * 180.0 / M_PI;
+//                auto angle_difference = curr_angle - old_angle;
+//                if (angle_difference < 0) {
+//                    angle_difference += 360;
+//                }
+//                if (angle_difference > 180) {
+//                    angle_difference = 360 - angle_difference;
+//                }
+//
+//                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager over ： " << !mainInterrupt
+//                                             << "， * ： " << (distance_x - MOVING_DISTANCE)
+//                                             << "， * ： " << (180 - angle_difference);
+//
+//                if (command == ControlCommand::ENTER_ELEVATOR) {
+//                    isConfirmEntry = true;
+//                    wait_entry_cv.notify_one();
+//                } else if (command == ControlCommand::EXIT_ELEVATOR) {
+//                    isConfirmExit = true;
+//                    wait_exit_cv.notify_one();
+//                }
+//                break;
+//            }
+//
+//        }
+//
+//        if (std::chrono::steady_clock::now() - last_send_time >
+//            std::chrono::seconds(Environment::instance().maximum_delay_time - 1)) {
+//            sendDelayedDoorClosing();
+//            last_send_time = std::chrono::steady_clock::now();
+//        }
+//        std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME + append_sleep_time));
+//    }
+//
+//}
 
 
 void ElevatorControlManager::turn_controls_func() {
@@ -243,6 +243,11 @@ void ElevatorControlManager::turn_controls_func() {
     recordSensorData();
 
     while (mainInterrupt) {
+
+        if (isUrgencyStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+            continue;
+        }
 
         switch (controlCmd) {
             case ControlCmd::NONE:
@@ -583,8 +588,11 @@ void ElevatorControlManager::light_up_thread_func() {
         light_cond.wait(lock, [this] {
             return inLight;
         });
-//        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 点亮楼层 " << lightFloor << " ... ";
-        sendSimpleLightUpTargetFloor(lightFloor);
+
+        if (!isUrgencyStop) {
+//            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 点亮楼层 " << lightFloor << " ... ";
+            sendSimpleLightUpTargetFloor(lightFloor);
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(
                 Environment::instance().the_time_interval_for_continuously_lighting_up_floors));
     }
@@ -597,8 +605,10 @@ void ElevatorControlManager::query_floor_thread_func() {
         query_cond.wait(lock, [this] {
             return inquiry;
         });
-//        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 楼层查询 ... ";
-        sendAsyncMessage(EleProtocol(CMD_QUERY_FLOOR_WHERE_LOCATED, mElevatorAddress));
+        if (!isUrgencyStop) {
+//            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 楼层查询 ... ";
+            sendAsyncMessage(EleProtocol(CMD_QUERY_FLOOR_WHERE_LOCATED, mElevatorAddress));
+        }
         std::this_thread::sleep_for(
                 std::chrono::milliseconds(Environment::instance().the_time_interval_for_continuous_floor_queries));
     }
@@ -1515,19 +1525,19 @@ void ElevatorControlManager::printElevator() {
                                  << "， angle_difference ： " << angle_difference;
 }
 
-void ElevatorControlManager::enterElevator() {
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager enterElevator 开始执行进电梯逻辑 ... ";
-    pool_.execute([this] {
-        movement_controls_func(ControlCommand::ENTER_ELEVATOR);
-    });
-}
+//void ElevatorControlManager::enterElevator() {
+//    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager enterElevator 开始执行进电梯逻辑 ... ";
+//    pool_.execute([this] {
+//        movement_controls_func(ControlCommand::ENTER_ELEVATOR);
+//    });
+//}
 
-void ElevatorControlManager::exitElevator() {
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager exitElevator 开始执行出电梯逻辑 ... ";
-    pool_.execute([this] {
-        movement_controls_func(ControlCommand::EXIT_ELEVATOR);
-    });
-}
+//void ElevatorControlManager::exitElevator() {
+//    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager exitElevator 开始执行出电梯逻辑 ... ";
+//    pool_.execute([this] {
+//        movement_controls_func(ControlCommand::EXIT_ELEVATOR);
+//    });
+//}
 
 void ElevatorControlManager::enterElevator(const RealPoint &point) {
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager enterElevator 开始执行进电梯逻辑 ... ";
@@ -1852,6 +1862,10 @@ void ElevatorControlManager::completePostCirculation(const bool arrive) {
             postRetryFrequency++;
         }
     }
+}
+
+void ElevatorControlManager::setUrgencyStop(bool isUrgencyStop) {
+    this->isUrgencyStop = isUrgencyStop;
 }
 
 void ElevatorControlManager::ttSendLightUpTargetFloor() {

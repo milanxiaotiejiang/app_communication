@@ -5,9 +5,11 @@
 #include "task/manager/NativeSystemManager.h"
 #include "model/SelfCheckErrorType.h"
 #include "manager/InternalEventPubManager.h"
+#include "manager/elevator_control.h"
 
 void NativeSystemManager::urgencyStop(bool isUrgencyStop) {
     asyncTaskCall->executeUrgencyStop(isUrgencyStop);
+    ElevatorControlManager::instance().setUrgencyStop(isUrgencyStop);
 }
 
 void NativeSystemManager::lowBatteryToBackBase() {

@@ -348,6 +348,8 @@ private:
 
     std::function<void(bool)> mElevatorMovementCallback;
 
+    bool isUrgencyStop;
+
 private:
 
     bool hasSerialPortAccess(const std::string &portName);
@@ -364,7 +366,7 @@ private:
 
     void elevatorManagerSubscribeCallback(const std_msgs::Int32 &flag);
 
-    void movement_controls_func(ControlCommand command);
+//    void movement_controls_func(ControlCommand command);
 
     void turn_controls_func();
 
@@ -449,9 +451,9 @@ public:
 
     void setBuildElevatorAddress(int elevatorAddress);
 
-    void enterElevator();
+//    void enterElevator();
 
-    void exitElevator();
+//    void exitElevator();
 
     void enterElevator(const RealPoint &point);
 
@@ -466,6 +468,8 @@ public:
     void completePreCirculation(bool arrive);
 
     void completePostCirculation(bool arrive);
+
+    void setUrgencyStop(bool isUrgencyStop);
 
     static void switchMapsInWorkMode(const std::string &fromMapId, const std::string &toMapId);
 
