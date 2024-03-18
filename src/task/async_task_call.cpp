@@ -423,6 +423,8 @@ void AsyncTaskCall::goodGame(event::GG gg) {
     LOG(WARNING) << "AsyncTaskCall : goodGame " << gg;
     finishedPoints;
 
+    PublishOutManager::instance().publishTaskStatus(TaskDataBase::instance().loadTaskFoId(runTaskId()));
+
     double cleanedRatio = 0.0;
     if (!finishedPoints.empty()) {
         PointProgressVo &back = finishedPoints.back();
@@ -563,7 +565,7 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
             point.currentStep, block.totalStep,
             block.currentFrequency, block.totalFrequency,
             block.work_status, block.mode, block.inClean,
-            runTaskId(), block.newTaskId,
+            runId(), block.newTaskId,
             (double((double) point.id / block.totalStep))
     );
 

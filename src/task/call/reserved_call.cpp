@@ -233,14 +233,14 @@ void ReservedCall::softwareInterruptTask(const RealBlock &block) {
 void ReservedCall::goodGame(event::GG gg) {
     notifier.triggerTaskEnd();
     runTask;
-    InternalEventPubManager::get_instance()->taskStop(runTaskId());
+    InternalEventPubManager::get_instance()->taskStop(runId());
     CleanHistoryCenter::instance().complete();
     AsyncTaskCall::goodGame(gg);
 }
 
 void ReservedCall::garbage(event::SB sb) {
     InternalEventPubManager::get_instance()->pubAlarm(SelfCheckErrorType::SOFTWARE_INTERRUPT);
-    InternalEventPubManager::get_instance()->taskStop(runTaskId());
+    InternalEventPubManager::get_instance()->taskStop(runId());
     AsyncTaskCall::garbage(sb);
 }
 

@@ -38,6 +38,7 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
     pub_open_gate = handle.advertise<std_msgs::Int32>("/open_gate", 1);
     pub_hardware_reset = handle.advertise<std_msgs::Int32>("/hardware_reset", 1);
     pub_metal_detection_switch = handle.advertise<std_msgs::Int32>("/mrrobot/metal_detection_switch", 1);
+    pub_sewage_pump_switch = handle.advertise<std_msgs::Int32>("/mrrobot/sewage_pump_switch", 1);
 }
 
 void PublishInnerManager::publishPushMode(const std_msgs::Int32 &message) const {
@@ -163,4 +164,8 @@ void PublishInnerManager::pubHardwareReset() {
 
 void PublishInnerManager::pubMetalDetectionSwitch(const std_msgs::Int32 &message) const {
     pub_metal_detection_switch.publish(message);
+}
+
+void PublishInnerManager::pubSewagePumpSwitch(const std_msgs::Int32 &message) const {
+    pub_sewage_pump_switch.publish(message);
 }

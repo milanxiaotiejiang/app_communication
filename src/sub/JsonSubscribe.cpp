@@ -514,6 +514,10 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new MapForIdStrategy();
             break;
 
+        case SEWAGE_PUMP_SWITCH:
+            messageStrategy = new SewagePumpSwitchStrategy();
+            break;
+
         case TT_ELEVATOR:
             messageStrategy = new TTElevatorStrategy();
             break;

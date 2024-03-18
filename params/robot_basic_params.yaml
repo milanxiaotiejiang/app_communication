@@ -1,4 +1,4 @@
-ros_version: 2.0.14.1_630
+ros_version: 2.0.14.3_630
 machine_version: 630
 base_exist: true
 face_recognition: false
@@ -37,9 +37,9 @@ the_time_interval_for_continuous_floor_queries: 1000
 #判断楼层的指令发送时间间隔，单位毫秒
 the_time_interval_for_continuous_floor_determination: 1000
 #等待电梯的最长等待时间，单位毫秒
-maximum_waiting_time_for_elevator: 60 * 10 * 1000
+maximum_waiting_time_for_elevator: 600000
 #进出电梯最大等待时间，单位毫秒
-maximum_time_for_entering_and_exiting_the_elevator: 60 * 2 * 1000
+maximum_time_for_entering_and_exiting_the_elevator: 120000
 #电梯内转向180的速度
 entering_inner_steering_speed: 0.4
 #是否打印发送给梯控模块的日志

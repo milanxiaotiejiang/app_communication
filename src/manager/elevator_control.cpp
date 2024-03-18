@@ -856,8 +856,10 @@ void ElevatorControlManager::doPreElevatorOut() {
             auto fromFloor = floorPair.first;
             auto toFloor = floorPair.second;
 
+            auto relocationPoint = preSwitchMapBlock.plannerPoints[0];
+
             takeElevatorOut(fromFloor, toFloor, preElevatorOutBlock.plannerPoints[1],
-                            preElevatorOutBlock.plannerPoints[2]);
+                            preElevatorOutBlock.plannerPoints[2], relocationPoint);
 
             {
                 std::unique_lock<std::mutex> lk(pre_mutex_);
@@ -1008,8 +1010,10 @@ void ElevatorControlManager::doPostElevatorOut() {
             auto fromFloor = floorPair.first;
             auto toFloor = floorPair.second;
 
+            auto relocationPoint = postSwitchMapBlock.plannerPoints[0];
+
             takeElevatorOut(fromFloor, toFloor, postElevatorOutBlock.plannerPoints[1],
-                            postElevatorOutBlock.plannerPoints[2]);
+                            postElevatorOutBlock.plannerPoints[2], relocationPoint);
 
             {
                 std::unique_lock<std::mutex> lk(post_mutex_);
@@ -1097,7 +1101,7 @@ void ElevatorControlManager::takeElevatorIn(int fromFloor, int toFloor, const Re
 }
 
 void ElevatorControlManager::takeElevatorOut(int fromFloor, int toFloor, const RealPoint &toOutPoint,
-                                             const RealPoint &toInPoint) {
+                                             const RealPoint &toInPoint, const RealPoint &relocationPoint) {
     openWaitingArrive(toFloor);
 
     // 6
@@ -1108,7 +1112,15 @@ void ElevatorControlManager::takeElevatorOut(int fromFloor, int toFloor, const R
         throw std::runtime_error("takeElevatorOut wait_to_mutex timeout ...");
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
 
-    for (int i = 0; i < Environment::instance().maximum_number_of_entering_the_elevator; i++) {
+    for (int i = 0; i < Environment::instance().maximum_number_of_entering_the_elevator / 2; i++) {
+        sendDelayedDoorClosing();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+
+    // 强行重定位
+    poseEstimate(relocationPoint);
+
+    for (int i = 0; i < Environment::instance().maximum_number_of_entering_the_elevator / 2; i++) {
         sendDelayedDoorClosing();
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
@@ -1367,6 +1379,70 @@ void ElevatorControlManager::poseEstimate(const RealPoint &realPoint) {
     publisherPose.publish(original_pose);
 }
 
+RealPoint ElevatorControlManager::rotate180DegreesAroundZ(const RealPoint &point) {
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager rotate180 旋转180 " << "... ";
+
+//    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager rotate180 " <<
+//                                 "  realPoint.realPosition.x : " << point.realPosition.x <<
+//                                 "  realPoint.realPosition.y : " << point.realPosition.y <<
+//                                 "  realPoint.realPosition.z : " << point.realPosition.z <<
+//                                 "  realPoint.realOrientation.x : " << point.realOrientation.x <<
+//                                 "  realPoint.realOrientation.y : " << point.realOrientation.y <<
+//                                 "  realPoint.realOrientation.z : " << point.realOrientation.z <<
+//                                 "  realPoint.realOrientation.w : " << point.realOrientation.w <<
+//                                 "... ";
+
+    geometry_msgs::PoseWithCovarianceStamped original_pose;
+    original_pose.header.frame_id = "map";
+    original_pose.header.stamp = ros::Time::now();
+    original_pose.pose.pose.position.x = point.realPosition.x;
+    original_pose.pose.pose.position.y = point.realPosition.y;
+    original_pose.pose.pose.position.z = point.realPosition.z;
+    original_pose.pose.pose.orientation.x = point.realOrientation.x;
+    original_pose.pose.pose.orientation.y = point.realOrientation.y;
+    original_pose.pose.pose.orientation.z = point.realOrientation.z;
+    original_pose.pose.pose.orientation.w = point.realOrientation.w;
+
+    // 将四元数转换为tf::Quaternion
+    tf::Quaternion original_orientation;
+    tf::quaternionMsgToTF(original_pose.pose.pose.orientation, original_orientation);
+
+    // 创建一个表示180度旋转的四元数（绕Z轴）
+    tf::Quaternion rotation;
+    rotation.setRPY(0, 0, M_PI); // 绕Z轴旋转180度
+
+    // 将原始方向和旋转相结合
+    tf::Quaternion new_orientation = original_orientation * rotation;
+
+    // 将新方向转换回geometry_msgs::Quaternion
+    geometry_msgs::Quaternion new_orientation_msg;
+    tf::quaternionTFToMsg(new_orientation, new_orientation_msg);
+
+    // 更新原始pose消息
+    original_pose.pose.pose.orientation = new_orientation_msg;
+
+    auto rotatePose = original_pose.pose.pose;
+
+    RealPoint coreMovePoint;
+//    realPoint.id = point.id;
+//    realPoint.blockId = point.blockId;
+    coreMovePoint.realPosition = {rotatePose.position.x, rotatePose.position.y, rotatePose.position.z};
+    coreMovePoint.realOrientation = {rotatePose.orientation.x, rotatePose.orientation.y,
+                                     rotatePose.orientation.z, rotatePose.orientation.w};
+//    realPoint.cmcMode = point.cmcMode;
+//    realPoint.timeout = point.timeout;
+//    realPoint.currentStep = point.currentStep;
+    coreMovePoint.core_move = true;
+//    realPoint.gateControl = point.gateControl;
+//    realPoint.gate_uuid = point.gate_uuid;
+//    realPoint.gate_factory_id = point.gate_factory_id;
+//    realPoint.elevatorControl = point.elevatorControl;
+//    realPoint.targetFloorPair = point.targetFloorPair;
+//    realPoint.targetMapIdPair = point.targetMapIdPair;
+
+    return coreMovePoint;
+}
+
 void ElevatorControlManager::setPlanCmd(bool arrive, const std::string &tag) {
     if (arrive) {
         if (enterPlanCmd == PLAN_NONE) {
@@ -1547,22 +1623,7 @@ void ElevatorControlManager::enterElevator(const RealPoint &point) {
     enterPlanCmd = PlanCmd::PLAN_NONE;
     enterPlanRetryCount = 0;
 
-    RealPoint coreMovePoint;
-//    realPoint.id = point.id;
-//    realPoint.blockId = point.blockId;
-    coreMovePoint.realPosition = point.realPosition;
-    coreMovePoint.realOrientation = point.realOrientation;
-//    realPoint.cmcMode = point.cmcMode;
-//    realPoint.timeout = point.timeout;
-//    realPoint.currentStep = point.currentStep;
-    coreMovePoint.core_move = true;
-//    realPoint.gateControl = point.gateControl;
-//    realPoint.gate_uuid = point.gate_uuid;
-//    realPoint.gate_factory_id = point.gate_factory_id;
-//    realPoint.elevatorControl = point.elevatorControl;
-//    realPoint.targetFloorPair = point.targetFloorPair;
-//    realPoint.targetMapIdPair = point.targetMapIdPair;
-
+    RealPoint coreMovePoint = rotate180DegreesAroundZ(point);
     // 先用 core_move 进入电梯
     PointPlanner::instance().goToPoint(coreMovePoint);
 
@@ -1655,22 +1716,7 @@ void ElevatorControlManager::exitElevator(const RealPoint &point) {
 //                                 " " << point.realOrientation <<
 //                                 " ... ";
 
-    RealPoint coreMovePoint;
-//    realPoint.id = point.id;
-//    realPoint.blockId = point.blockId;
-    coreMovePoint.realPosition = point.realPosition;
-    coreMovePoint.realOrientation = point.realOrientation;
-//    realPoint.cmcMode = point.cmcMode;
-//    realPoint.timeout = point.timeout;
-//    realPoint.currentStep = point.currentStep;
-    coreMovePoint.core_move = true;
-//    realPoint.gateControl = point.gateControl;
-//    realPoint.gate_uuid = point.gate_uuid;
-//    realPoint.gate_factory_id = point.gate_factory_id;
-//    realPoint.elevatorControl = point.elevatorControl;
-//    realPoint.targetFloorPair = point.targetFloorPair;
-//    realPoint.targetMapIdPair = point.targetMapIdPair;
-
+    RealPoint coreMovePoint = rotate180DegreesAroundZ(point);
     // 先用 core_move 出电梯
     PointPlanner::instance().goToPoint(coreMovePoint);
 

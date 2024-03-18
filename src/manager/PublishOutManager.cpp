@@ -3,6 +3,8 @@
 //
 
 #include "manager/PublishOutManager.h"
+
+#include <utility>
 #include "net/WsServerManager.h"
 #include "net/base/RequestModel.h"
 #include "simulation.h"
@@ -27,6 +29,7 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
     pubElevatorManager = handle.advertise<std_msgs::Int32>("/elevator_manager", 1);
 
     pubElevatorStatus = handle.advertise<std_msgs::String>(ELEVATOR_STATUS, 1);
+    pubTaskStatus = handle.advertise<std_msgs::String>(TASK_STATUS, 1);
 }
 
 void PublishOutManager::publishJson(const std::string &message) const {
@@ -134,7 +137,7 @@ void PublishOutManager::publishElevatorManager() const {
     pubElevatorManager.publish(data);
 }
 
-void PublishOutManager::publishElevatorStatus(const ElevatorModel elevatorModel) const {
+void PublishOutManager::publishElevatorStatus(ElevatorModel elevatorModel) const {
     RequestModel<ElevatorModel> requestModel;
     requestModel.setOp("publish");
     requestModel.setTopic(ELEVATOR_STATUS);
@@ -147,4 +150,19 @@ void PublishOutManager::publishElevatorStatus(const ElevatorModel elevatorModel)
     std_msgs::String result;
     result.data.append(jsonResult.dump());
     pubElevatorStatus.publish(result);
+}
+
+void PublishOutManager::publishTaskStatus(TaskVo task) const {
+    RequestModel<TaskVo> requestModel;
+    requestModel.setOp("publish");
+    requestModel.setTopic(TASK_STATUS);
+    requestModel.setMsg(std::move(task));
+
+    json jsonResult = requestModel;
+
+    WsServerManager::instance().sendRequestData(TASK_STATUS, jsonResult.dump());
+
+    std_msgs::String result;
+    result.data.append(jsonResult.dump());
+    pubTaskStatus.publish(result);
 }

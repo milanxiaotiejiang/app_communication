@@ -26,6 +26,7 @@ const std::string RESPONSE_JSON = "/response_json";
 
 const std::string SENSOR_CHECK = "/sensor_check";
 const std::string ELEVATOR_STATUS = "/elevator_status";
+const std::string TASK_STATUS = "/task_status";
 const std::string APP_MRROBOT_UL_SENSOR1 = "/app/mrrobot/ul_sensor1";
 const std::string APP_MRROBOT_UL_SENSOR2 = "/app/mrrobot/ul_sensor2";
 const std::string APP_MRROBOT_UL_SENSOR3 = "/app/mrrobot/ul_sensor3";

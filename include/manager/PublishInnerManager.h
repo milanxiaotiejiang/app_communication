@@ -55,7 +55,8 @@ private:
     pub_detection,//
     pub_open_gate,//
     pub_hardware_reset,//
-    pub_metal_detection_switch;
+    pub_metal_detection_switch,//
+    pub_sewage_pump_switch;
 
 public:
     static auto &instance() {
@@ -118,6 +119,8 @@ public:
     void pubHardwareReset();
 
     void pubMetalDetectionSwitch(const std_msgs::Int32 &message) const;
+
+    void pubSewagePumpSwitch(const std_msgs::Int32 &message) const;
 };
 
 #endif //APP_COMMUNICATION_PUBLISHINNERMANAGER_H

@@ -503,6 +503,10 @@ int switch_ID(const std::string &str) {
         return MAP_FOR_ID;
     }
 
+    if (str == "sewage_pump_switch") {
+        return SEWAGE_PUMP_SWITCH;
+    }
+
     if (str == "tt_elevator") {
         return TT_ELEVATOR;
     }

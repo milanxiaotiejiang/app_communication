@@ -47,6 +47,7 @@ private:
     ros::Publisher pubCloud;
     ros::Publisher pubElevatorManager;
     ros::Publisher pubElevatorStatus;
+    ros::Publisher pubTaskStatus;
 public:
     static auto &instance() {
         static PublishOutManager obj;
@@ -79,7 +80,9 @@ public:
 
     void publishElevatorManager() const;
 
-    void publishElevatorStatus(const ElevatorModel elevatorModel) const;
+    void publishElevatorStatus(ElevatorModel elevatorModel) const;
+
+    void publishTaskStatus(TaskVo task) const;
 };
 
 

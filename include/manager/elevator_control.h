@@ -406,7 +406,8 @@ private:
 
     void takeElevatorIn(int fromFloor, int toFloor, const RealPoint &fromOutPoint, const RealPoint &fromInPoint);
 
-    void takeElevatorOut(int fromFloor, int toFloor, const RealPoint &toOutPoint, const RealPoint &toInPoint);
+    void takeElevatorOut(int fromFloor, int toFloor, const RealPoint &toOutPoint, const RealPoint &toInPoint,
+                         const RealPoint &relocationPoint);
 
     void sendLightUpTargetFloor(int floor, const MessageSuccessCallback &successCallback);
 
@@ -433,6 +434,8 @@ private:
     void closeWaitingArrive();
 
     void poseEstimate(const RealPoint &realPoint);
+
+    RealPoint rotate180DegreesAroundZ(const RealPoint &point);
 
     void setPlanCmd(bool arrive, const std::string &tag);
 

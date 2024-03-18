@@ -38,8 +38,12 @@ protected:
 
     std::atomic<bool> mElevatorInside;
 
-    std::string runTaskId() const {
+    std::string runId() const {
         return runTask.getId();
+    }
+
+    long runTaskId() const {
+        return runTask.getTaskId();
     }
 
     WorkStatus baseWorkStatus() const {

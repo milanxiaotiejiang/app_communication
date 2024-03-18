@@ -72,3 +72,10 @@ std::string MaintenanceModeStrategy::handler(int params) {
 bool MaintenanceModeStatusStrategy::handler(std::string params) {
     return MaintenanceModeSingleton::instance().isMaintenanceMode();
 }
+
+std::string SewagePumpSwitchStrategy::handler(bool params) {
+    std_msgs::Int32 message;
+    message.data = params ? 1 : 0;
+    PublishInnerManager::instance().pubMetalDetectionSwitch(message);
+    return "";
+}
