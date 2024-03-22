@@ -1,4 +1,4 @@
-ros_version: 2.0.14.3_630
+ros_version: 2.0.14.4_630
 machine_version: 630
 base_exist: true
 face_recognition: false
@@ -31,7 +31,7 @@ maximum_number_of_retries_for_elevator_logic_errors: 4
 #进入电梯前的调整频率，2即等待2秒
 maximum_number_of_entering_the_elevator: 2
 #点亮楼层的指令发送时间间隔，单位毫秒
-the_time_interval_for_continuously_lighting_up_floors: 3000
+the_time_interval_for_continuously_lighting_up_floors: 5000
 #查询楼层的指令发送时间间隔，单位毫秒
 the_time_interval_for_continuous_floor_queries: 1000
 #判断楼层的指令发送时间间隔，单位毫秒
@@ -49,4 +49,4 @@ serial_port_accept_print: false
 #是否跳过电梯门是否开启的判断，true为跳过，即不判断电梯门状态
 jump_elevator_status_door_state: true
 #延迟关闭电梯门的时间间隔，单位秒
-maximum_delay_time: 9
+maximum_delay_time: 10
