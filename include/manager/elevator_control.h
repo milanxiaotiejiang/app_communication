@@ -56,6 +56,10 @@
 #include <boost/asio.hpp>
 #include <queue>
 #include <utility>
+#include <ostream>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
+#include <costmap_2d/costmap_2d_ros.h>
 
 const unsigned char CMD_LIGHT_UP_TARGET_FLOOR = 0x60;//MessageIdEnum::LIGHTING_UP_THE_ELEVATOR
 const unsigned char CMD_QUERY_FLOOR_WHERE_LOCATED = 0x61;
@@ -224,13 +228,97 @@ private:
         }
     };
 
+    struct ConventionRetryMechanism {
+        int preAdjustmentFrequency;
+        int preRetryFrequency;
+        int postAdjustmentFrequency;
+        int postRetryFrequency;
+
+        friend std::ostream &
+        operator<<(std::ostream &os, const ElevatorControlManager::ConventionRetryMechanism &mechanism) {
+            os << "pre 调整频率: " << mechanism.preAdjustmentFrequency
+               << " pre 重试频率: " << mechanism.preRetryFrequency
+               << " post 调整频率: " << mechanism.postAdjustmentFrequency
+               << " post 重试频率: " << mechanism.postRetryFrequency;
+            return os;
+        }
+
+        void reset() {
+            preAdjustmentFrequency = 0;
+            preRetryFrequency = 0;
+            postAdjustmentFrequency = 0;
+            postRetryFrequency = 0;
+        }
+    };
+
+    struct ErrorRetryMechanism {
+        int preCirculationErrorRetryCount;//梯控前期-到电梯外点位错误
+        int preElevatorInErrorRetryCount;//梯控前期-进入电梯错误
+        int preSwitchMapErrorRetryCount;//梯控前期-切换地图错误
+        int preElevatorOutErrorRetryCount;//梯控前期-出电梯错误
+        int postCirculationErrorRetryCount;//梯控后期-到电梯外点位错误
+        int postElevatorInErrorRetryCount;//梯控后期-进入电梯错误
+        int postSwitchMapErrorRetryCount;//梯控后期-切换地图错误
+        int postElevatorOutErrorRetryCount;//梯控后期-出电梯错误
+
+        friend std::ostream &
+        operator<<(std::ostream &os, const ElevatorControlManager::ErrorRetryMechanism &mechanism) {
+            os << "pre 到电梯外点位错误 RetryCount: " << mechanism.preCirculationErrorRetryCount
+               << " pre 进入电梯错误 RetryCount: " << mechanism.preElevatorInErrorRetryCount
+               << " pre 切换地图错误 RetryCount: " << mechanism.preSwitchMapErrorRetryCount
+               << " pre 出电梯错误 RetryCount: " << mechanism.preElevatorOutErrorRetryCount
+               << " post 到电梯外点位错误 RetryCount: " << mechanism.postCirculationErrorRetryCount
+               << " post 进入电梯错误 RetryCount: " << mechanism.postElevatorInErrorRetryCount
+               << " post 切换地图错误 RetryCount: " << mechanism.postSwitchMapErrorRetryCount
+               << " post 出电梯错误 RetryCount: " << mechanism.postElevatorOutErrorRetryCount;
+            return os;
+        }
+
+        void reset() {
+            preCirculationErrorRetryCount = 0;
+            preElevatorInErrorRetryCount = 0;
+            preSwitchMapErrorRetryCount = 0;
+            preElevatorOutErrorRetryCount = 0;
+            postCirculationErrorRetryCount = 0;
+            postElevatorInErrorRetryCount = 0;
+            postSwitchMapErrorRetryCount = 0;
+            postElevatorOutErrorRetryCount = 0;
+        }
+    };
+
+    struct ElevatorSensor {
+        double odom_x;
+        double odom_y;
+//        double odom_yaw;
+        double imu_yaw;
+    };
+
+    struct ElevatorLastSensor {
+        double old_x;
+        double old_y;
+        double old_yaw;
+    };
+
 public:
+
+    enum ElevatorError {
+        NoElevatorError,
+        PreCirculationError,//梯控前期-到电梯外点位错误
+        PreElevatorInError,//梯控前期-进入电梯错误
+        PreSwitchMapError,//梯控前期-切换地图错误
+        PreElevatorOutError,//梯控前期-出电梯错误
+        PostCirculationError,//梯控后期-到电梯外点位错误
+        PostElevatorInError,//梯控后期-进入电梯错误
+        PostSwitchMapError,//梯控后期-切换地图错误
+        PostElevatorOutError,//梯控后期-出电梯错误
+    };
 
     typedef void (*ElevatorCallback)(int floor, int doorState, int lastDirection, int availability, int nextDirection);
 
 private:
     int mElevatorAddress;
 
+    ros::Subscriber subscriberMap;
     ros::Subscriber subscriberOdom;
     ros::Subscriber subscriberImu;
     ros::Publisher publisherCmdVel;
@@ -241,8 +329,8 @@ private:
 
     async::ThreadPool pool_;
 
-    std::thread elevator_pre_thread;
-    std::thread elevator_post_thread;
+//    std::thread elevator_pre_thread;
+//    std::thread elevator_post_thread;
 
     std::mutex pre_mutex_;
     std::condition_variable pre_condition_variable_;
@@ -252,11 +340,11 @@ private:
     boost::asio::io_service boostIo;
     boost::asio::serial_port *boostSerial = nullptr;
 
-    std::thread serial_sender_thread;
-    std::thread serial_receiver_thread;
-    std::thread light_up_thread;
-    std::thread query_floor_thread;
-    std::thread arrive_floor_thread;
+//    std::thread serial_sender_thread;
+//    std::thread serial_receiver_thread;
+//    std::thread light_up_thread;
+//    std::thread query_floor_thread;
+//    std::thread arrive_floor_thread;
 
     std::queue<Message> message_queue;
     std::mutex queue_mutex;
@@ -280,14 +368,8 @@ private:
     bool mElevatorArrived;
     int imitateArrivedCount;
 
-    double odom_x;
-    double odom_y;
-//    double odom_yaw;
-    double imu_yaw;
-
-    std::atomic<double> old_x;
-    std::atomic<double> old_y;
-    std::atomic<double> old_yaw;
+    ElevatorSensor elevatorSensor;
+    ElevatorLastSensor elevatorLastSensor;
 
     double last_angle;
 
@@ -320,16 +402,12 @@ private:
     RealBlock postSwitchMapBlock;
     RealBlock postElevatorOutBlock;
 
-    std::function<void(bool)> callbackElevatorPre;
-    std::function<void(bool)> callbackElevatorPost;
+    std::function<void(ElevatorError)> callbackElevatorPre;
+    std::function<void(ElevatorError)> callbackElevatorPost;
 
-    std::atomic<bool> preError;
-    std::atomic<bool> postError;
-
-    std::atomic<int> preAdjustmentFrequency;
-    std::atomic<int> preRetryFrequency;
-    std::atomic<int> postAdjustmentFrequency;
-    std::atomic<int> postRetryFrequency;
+//    std::atomic<bool> preError;
+//    std::atomic<bool> postError;
+    ElevatorError elevatorError;
 
     int recentlyDataLengthSize;
     uint8_t recentlyFloor;
@@ -348,7 +426,15 @@ private:
 
     std::function<void(bool)> mElevatorMovementCallback;
 
-    bool isUrgencyStop;
+    bool isUrgencyStop{false};
+    bool isGarbage{false};
+
+    ConventionRetryMechanism conventionRetryMechanism;
+    ErrorRetryMechanism errorRetryMechanism;
+
+    nav_msgs::OccupancyGrid occupancyGrid;
+
+    bool suspendLightUp;
 
 private:
 
@@ -359,6 +445,8 @@ private:
     void interruptAccessElevators();
 
     void recordSensorData();
+
+    void subscribeMapCallback(const nav_msgs::OccupancyGrid &msg);
 
     void subscribeOdomCallback(const nav_msgs::Odometry &msg);
 
@@ -392,7 +480,7 @@ private:
 
     void doPreElevatorOut();
 
-    void goPreError();
+    void goPreError(ElevatorError error);
 
     void doPostCirculation();
 
@@ -402,7 +490,7 @@ private:
 
     void doPostElevatorOut();
 
-    void goPostError();
+    void goPostError(ElevatorError error);
 
     void takeElevatorIn(int fromFloor, int toFloor, const RealPoint &fromOutPoint, const RealPoint &fromInPoint);
 
@@ -441,6 +529,12 @@ private:
 
     void waitDelayClosingDoor();
 
+    cv::Mat occupancyGridToCvMat(const nav_msgs::OccupancyGrid &map);
+
+    double averageIntensityForElevatorInside(const cv::Mat& image);
+
+    double averageIntensityForElevatorWay(const cv::Mat& image);
+
 public:
     void initialize(ros::NodeHandle handle);
 
@@ -448,9 +542,9 @@ public:
 
     void setElevatorMovementCallback(const std::function<void(bool)> &callback);
 
-    void setCallbackElevatorPre(const std::function<void(bool)> &callbackElevatorPre);
+    void setCallbackElevatorPre(const std::function<void(ElevatorError)> &callbackElevatorPre);
 
-    void setCallbackElevatorPost(const std::function<void(bool)> &callbackElevatorPost);
+    void setCallbackElevatorPost(const std::function<void(ElevatorError)> &callbackElevatorPost);
 
     void setBuildElevatorAddress(int elevatorAddress);
 
@@ -473,6 +567,8 @@ public:
     void completePostCirculation(bool arrive);
 
     void setUrgencyStop(bool isUrgencyStop);
+
+    void setGarbage(bool isGarbage);
 
     static void switchMapsInWorkMode(const std::string &fromMapId, const std::string &toMapId);
 

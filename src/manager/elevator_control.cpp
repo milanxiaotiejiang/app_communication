@@ -22,6 +22,8 @@
 #include "future/timer_call.h"
 #include <iostream>
 #include <cstdint>
+#include <costmap_2d/costmap_2d_ros.h>
+#include <tf2_ros/transform_listener.h>
 
 /**
   - 进电梯外点位（呼梯点被占用，参考“摆渡点不可达异常”）
@@ -83,14 +85,18 @@ void ElevatorControlManager::interruptAccessElevators() {
 }
 
 void ElevatorControlManager::recordSensorData() {
-    old_x = odom_x;
-    old_y = odom_y;
-    old_yaw = imu_yaw;
+    elevatorLastSensor.old_x = elevatorSensor.odom_x;
+    elevatorLastSensor.old_y = elevatorSensor.odom_y;
+    elevatorLastSensor.old_yaw = elevatorSensor.imu_yaw;
+}
+
+void ElevatorControlManager::subscribeMapCallback(const nav_msgs::OccupancyGrid &msg) {
+    occupancyGrid = msg;
 }
 
 void ElevatorControlManager::subscribeOdomCallback(const nav_msgs::Odometry &odometry) {
-    odom_x = odometry.pose.pose.position.x;
-    odom_y = odometry.pose.pose.position.y;
+    elevatorSensor.odom_x = odometry.pose.pose.position.x;
+    elevatorSensor.odom_y = odometry.pose.pose.position.y;
 //    odom_yaw = tf::getYaw(odometry.pose.pose.orientation);
 }
 
@@ -99,7 +105,7 @@ void ElevatorControlManager::subscribeImuCallback(const sensor_msgs::Imu &imu) {
     tf::Matrix3x3 m(q);
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
-    imu_yaw = yaw;
+    elevatorSensor.imu_yaw = yaw;
 
 //    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager imu_yaw ： " << (imu_yaw * 180.0 / M_PI)
 //                                 << " , roll : " << roll
@@ -126,6 +132,18 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
             if (!NodeWorkModeManager::instance().enterWorkMode(2)) {
                 throw app::exception(make_error_code(error::mode_switching_is_not_supported));
             }
+        } else if (flag.data == 1000) {
+
+            auto mat = occupancyGridToCvMat(occupancyGrid);
+
+            double box = averageIntensityForElevatorInside(mat);
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "电梯 Average intensity: " << box;
+            double way = averageIntensityForElevatorWay(mat);
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "通道 Average intensity: " << way;
+
+            cv::imshow("111", mat);
+            cv::waitKey();
+
         }
 
         //['0x7f 0xf7 0x18 0x29 0x16 0x27 0x11 0x22 0x33 0x44 0x55 0x66 0xd 0x60 0x1 0x1 0x2 0x3 0x4 0x5 0x6 0x7 0x8 0x9 0x10 0x11 0x12 0x9']
@@ -277,7 +295,7 @@ void ElevatorControlManager::turn_controls_func() {
 
     while (mainInterrupt) {
 
-        if (isUrgencyStop) {
+        if (isUrgencyStop || isGarbage) {
             std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
             continue;
         }
@@ -288,8 +306,8 @@ void ElevatorControlManager::turn_controls_func() {
             case ControlCmd::MOVE:
                 break;
             case ControlCmd::ROTATE: {
-                auto old_angle = old_yaw * 180.0 / M_PI;
-                auto curr_angle = imu_yaw * 180.0 / M_PI;
+                auto old_angle = elevatorLastSensor.old_yaw * 180.0 / M_PI;
+                auto curr_angle = elevatorSensor.imu_yaw * 180.0 / M_PI;
                 auto angle_difference = curr_angle - old_angle;
                 if (angle_difference < 0) {
                     angle_difference += 360;
@@ -320,8 +338,8 @@ void ElevatorControlManager::turn_controls_func() {
                 publishCmd(0, 0);
                 mainInterrupt = false;
 
-                auto old_angle = old_yaw * 180.0 / M_PI;
-                auto curr_angle = imu_yaw * 180.0 / M_PI;
+                auto old_angle = elevatorLastSensor.old_yaw * 180.0 / M_PI;
+                auto curr_angle = elevatorSensor.imu_yaw * 180.0 / M_PI;
                 auto angle_difference = curr_angle - old_angle;
                 if (angle_difference < 0) {
                     angle_difference += 360;
@@ -622,12 +640,13 @@ void ElevatorControlManager::light_up_thread_func() {
             return inLight;
         });
 
-        if (!isUrgencyStop) {
+        if (!isUrgencyStop && !isGarbage && !suspendLightUp) {
 //            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 点亮楼层 " << lightFloor << " ... ";
             sendSimpleLightUpTargetFloor(lightFloor);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(
                 Environment::instance().the_time_interval_for_continuously_lighting_up_floors));
+
     }
 }
 
@@ -638,7 +657,7 @@ void ElevatorControlManager::query_floor_thread_func() {
         query_cond.wait(lock, [this] {
             return inquiry;
         });
-        if (!isUrgencyStop) {
+        if (!isUrgencyStop && !isGarbage) {
 //            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 楼层查询 ... ";
             sendAsyncMessage(EleProtocol(CMD_QUERY_FLOOR_WHERE_LOCATED, mElevatorAddress));
         }
@@ -727,11 +746,37 @@ void ElevatorControlManager::arrive_floor_thread_func() {
             doPreElevatorOut();
         } else if (preState == ElevatorPreState::PRE_OVER) {
 
-            mElevatorMovementCallback(false);
-
-            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre over " << !preError << " ... ";
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre over " << elevatorError << " ... ";
             planElevatorRelatedInterrupt = false;
-            callbackElevatorPre(!preError);
+
+            if (elevatorError == ElevatorControlManager::ElevatorError::NoElevatorError) {
+                mElevatorMovementCallback(false);
+                callbackElevatorPre(elevatorError);
+            } else if (elevatorError == ElevatorControlManager::ElevatorError::PreCirculationError) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控前期-到电梯外点位错误 ... ";
+                if (errorRetryMechanism.preCirculationErrorRetryCount < 2) {
+                    errorRetryMechanism.preCirculationErrorRetryCount++;
+
+                    std::this_thread::sleep_for(std::chrono::milliseconds(60 * 1000));
+                    elevatorError = NoElevatorError;
+                    conventionRetryMechanism.reset();
+
+                    preState = ElevatorPreState::PRE_CIRCULATION;
+                    pre_condition_variable_.notify_one();
+                } else {
+                    callbackElevatorPost(elevatorError);
+                }
+            } else if (elevatorError == ElevatorControlManager::ElevatorError::PreElevatorInError) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控前期-进入电梯错误 ... ";
+                callbackElevatorPre(elevatorError);
+            } else if (elevatorError == ElevatorControlManager::ElevatorError::PreSwitchMapError) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控前期-到电梯外点位错误 ... ";
+                callbackElevatorPre(elevatorError);
+            } else if (elevatorError == ElevatorControlManager::ElevatorError::PreElevatorOutError) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控前期-出电梯错误 ... ";
+                callbackElevatorPre(elevatorError);
+            }
+
         }
 
         preState = ElevatorPreState::PRE_NONE;
@@ -757,10 +802,36 @@ void ElevatorControlManager::arrive_floor_thread_func() {
             doPostElevatorOut();
         } else if (postState == ElevatorPostState::POST_OVER) {
 
-            mElevatorMovementCallback(false);
+            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post over " << elevatorError << " ... ";
+            planElevatorRelatedInterrupt = false;
 
-            LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post over " << !postError << " ... ";
-            callbackElevatorPost(!postError);
+            if (elevatorError == ElevatorControlManager::ElevatorError::NoElevatorError) {
+                mElevatorMovementCallback(false);
+                callbackElevatorPost(elevatorError);
+            } else if (elevatorError == ElevatorControlManager::ElevatorError::PostCirculationError) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控后期-到电梯外点位错误 ... ";
+                if (errorRetryMechanism.postCirculationErrorRetryCount < 2) {
+                    errorRetryMechanism.postCirculationErrorRetryCount++;
+
+                    std::this_thread::sleep_for(std::chrono::milliseconds(60 * 1000));
+                    elevatorError = NoElevatorError;
+                    conventionRetryMechanism.reset();
+
+                    postState = ElevatorPostState::POST_CIRCULATION;
+                    post_condition_variable_.notify_one();
+                } else {
+                    callbackElevatorPost(elevatorError);
+                }
+            } else if (elevatorError == ElevatorControlManager::ElevatorError::PostElevatorInError) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控后期-进入电梯错误 ... ";
+                callbackElevatorPost(elevatorError);
+            } else if (elevatorError == ElevatorControlManager::ElevatorError::PostSwitchMapError) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控后期-切换地图错误 ... ";
+                callbackElevatorPost(elevatorError);
+            } else if (elevatorError == ElevatorControlManager::ElevatorError::PostElevatorOutError) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控后期-出电梯错误 ... ";
+                callbackElevatorPost(elevatorError);
+            }
         }
 
         postState = ElevatorPostState::POST_NONE;
@@ -772,32 +843,32 @@ void ElevatorControlManager::doPreCirculation() {
         try {
             if (preCirculationBlock.plannerPoints.empty())
                 throw std::runtime_error("preCirculationBlock plannerPoints is empty ...");
-            if (preAdjustmentFrequency == 0) {
+            if (conventionRetryMechanism.preAdjustmentFrequency == 0) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 开始移动到电梯点位 ... ";
                 PointPlanner::instance().goToPath(preCirculationBlock);
-            } else if (preAdjustmentFrequency <
+            } else if (conventionRetryMechanism.preAdjustmentFrequency <
                        Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator) {
                 LOG_IF(INFO, DEBUG_ELEVATOR)
                                 << "ElevatorControlManager pre 开始调整电梯点位，"
                                 << "总次数为 "
                                 << (Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator -
                                     1)
-                                << " ，当前次数为 " << preAdjustmentFrequency
+                                << " ，当前次数为 " << conventionRetryMechanism.preAdjustmentFrequency
                                 << " 次 ... ";
                 auto point = preCirculationBlock.plannerPoints[0];
                 point.core_move = true;
                 PointPlanner::instance().goToPoint(point);
             }
-            preAdjustmentFrequency++;
+            conventionRetryMechanism.preAdjustmentFrequency++;
         } catch (app::exception const &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPreError();
+            goPreError(PreCirculationError);
         } catch (const std::exception &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPreError();
+            goPreError(PreCirculationError);
         } catch (...) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPreCirculation other exception";
-            goPreError();
+            goPreError(PreCirculationError);
         }
     });
 }
@@ -828,13 +899,13 @@ void ElevatorControlManager::doPreElevatorIn() {
 
         } catch (app::exception const &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPreError();
+            goPreError(PreElevatorInError);
         } catch (const std::exception &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPreError();
+            goPreError(PreElevatorInError);
         } catch (...) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPreElevatorIn other exception";
-            goPreError();
+            goPreError(PreElevatorInError);
         }
     });
 }
@@ -868,13 +939,13 @@ void ElevatorControlManager::doPreSwitchMap() {
             pre_condition_variable_.notify_one();
         } catch (app::exception const &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPreError();
+            goPreError(PreSwitchMapError);
         } catch (const std::exception &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPreError();
+            goPreError(PreSwitchMapError);
         } catch (...) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPreSwitchMap other exception";
-            goPreError();
+            goPreError(PreSwitchMapError);
         }
     });
 }
@@ -901,24 +972,24 @@ void ElevatorControlManager::doPreElevatorOut() {
             pre_condition_variable_.notify_one();
         } catch (app::exception const &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPreError();
+            goPreError(PreElevatorOutError);
         } catch (const std::exception &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPreError();
+            goPreError(PreElevatorOutError);
         } catch (...) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPreElevatorOut other exception";
-            goPreError();
+            goPreError(PreElevatorOutError);
         }
     });
 }
 
-void ElevatorControlManager::goPreError() {
+void ElevatorControlManager::goPreError(ElevatorError error) {
     closeQueryFloor();
     closeWaitingArrive();
 
     {
         std::unique_lock<std::mutex> lk(pre_mutex_);
-        preError = true;
+        this->elevatorError = error;
         preState = ElevatorPreState::PRE_OVER;
     }
     pre_condition_variable_.notify_one();
@@ -929,32 +1000,32 @@ void ElevatorControlManager::doPostCirculation() {
         try {
             if (postCirculationBlock.plannerPoints.empty())
                 throw std::runtime_error("postCirculationBlock plannerPoints is empty ...");
-            if (postAdjustmentFrequency == 0) {
+            if (conventionRetryMechanism.postAdjustmentFrequency == 0) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 开始移动到电梯点位 ... ";
                 PointPlanner::instance().goToPath(postCirculationBlock);
-            } else if (postAdjustmentFrequency <
+            } else if (conventionRetryMechanism.postAdjustmentFrequency <
                        Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator) {
                 LOG_IF(INFO, DEBUG_ELEVATOR)
                                 << "ElevatorControlManager post 开始调整电梯点位，"
                                 << "总次数为 "
                                 << (Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator -
                                     1)
-                                << " ，当前次数为 " << preAdjustmentFrequency
+                                << " ，当前次数为 " << conventionRetryMechanism.preAdjustmentFrequency
                                 << " 次 ... ";
                 auto point = postCirculationBlock.plannerPoints[0];
                 point.core_move = true;
                 PointPlanner::instance().goToPoint(point);
             }
-            postAdjustmentFrequency++;
+            conventionRetryMechanism.postAdjustmentFrequency++;
         } catch (app::exception const &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPostError();
+            goPostError(PostCirculationError);
         } catch (const std::exception &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPostError();
+            goPostError(PostCirculationError);
         } catch (...) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPostCirculation other exception";
-            goPostError();
+            goPostError(PostCirculationError);
         }
     });
 }
@@ -981,13 +1052,13 @@ void ElevatorControlManager::doPostElevatorIn() {
             post_condition_variable_.notify_one();
         } catch (app::exception const &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPostError();
+            goPostError(PostElevatorInError);
         } catch (const std::exception &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPostError();
+            goPostError(PostElevatorInError);
         } catch (...) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPostElevatorIn other exception";
-            goPostError();
+            goPostError(PostElevatorInError);
         }
     });
 }
@@ -1022,13 +1093,13 @@ void ElevatorControlManager::doPostSwitchMap() {
             post_condition_variable_.notify_one();
         } catch (app::exception const &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPostError();
+            goPostError(PostSwitchMapError);
         } catch (const std::exception &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPostError();
+            goPostError(PostSwitchMapError);
         } catch (...) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPostSwitchMap other exception";
-            goPostError();
+            goPostError(PostSwitchMapError);
         }
     });
 }
@@ -1055,21 +1126,21 @@ void ElevatorControlManager::doPostElevatorOut() {
             post_condition_variable_.notify_one();
         } catch (app::exception const &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPostError();
+            goPostError(PostElevatorOutError);
         } catch (const std::exception &e) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
-            goPostError();
+            goPostError(PostElevatorOutError);
         } catch (...) {
             LOG_IF(ERROR, DEBUG_ELEVATOR) << "doPostElevatorOut other exception";
-            goPostError();
+            goPostError(PostElevatorOutError);
         }
     });
 }
 
-void ElevatorControlManager::goPostError() {
+void ElevatorControlManager::goPostError(ElevatorError error) {
     {
         std::unique_lock<std::mutex> lk(post_mutex_);
-        postError = true;
+        this->elevatorError = error;
         postState = ElevatorPostState::POST_OVER;
     }
     post_condition_variable_.notify_one();
@@ -1112,6 +1183,26 @@ void ElevatorControlManager::takeElevatorIn(int fromFloor, int toFloor, const Re
         throw std::runtime_error("takeElevatorIn wait_from_mutex timeout ...");
     closeWaitingArrive();
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << fromFloor << " 层 ... ";
+
+    // 4.0 todo
+//    costmap_2d::Costmap2DROS *costmap_ros_;
+//    costmap_ros_ = new costmap_2d::Costmap2DROS("my_costmap", *tfBuffer);
+//    costmap_ros_->start();
+//    auto costmap = costmap_ros_->getCostmap();
+//
+//    // 创建一个单通道的灰度图像，大小与成本地图相同
+//    cv::Mat mat(costmap->getSizeInCellsY(), costmap->getSizeInCellsX(), CV_8UC1);
+//
+//    // 遍历成本地图的每个单元
+//    for (unsigned int y = 0; y < costmap->getSizeInCellsY(); y++) {
+//        for (unsigned int x = 0; x < costmap->getSizeInCellsX(); x++) {
+//            // 获取成本值
+//            unsigned char cost = costmap->getCost(x, y);
+//
+//            // 根据成本值设置像素值（这里可能需要根据你的需要调整转换方式）
+//            mat.at<unsigned char>(y, x) = cost;
+//        }
+//    }
 
     // 4
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行进入电梯逻辑 ... ";
@@ -1521,12 +1612,132 @@ void ElevatorControlManager::waitDelayClosingDoor() {
     }
 }
 
+cv::Mat ElevatorControlManager::occupancyGridToCvMat(const nav_msgs::OccupancyGrid &map) {
+    // 地图的宽度和高度
+    int width = map.info.width;
+    int height = map.info.height;
+    // 创建一个单通道的8位图像
+    cv::Mat mat(height, width, CV_8UC1);
+    // 遍历地图数据，填充图像
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            // 计算当前单元格在地图数据数组中的索引
+            int index = i * width + j;
+
+            // 获取当前单元格的占用信息
+            int8_t value = map.data[index];
+
+            // 将占用概率映射到灰度值
+            if (value == -1) // 未知区域视为不可通行，给予黑色
+            {
+                mat.at<uchar>(i, j) = 0; // 黑色
+            } else {
+                // 可通行性越高，颜色越接近白色
+                // 由于占用概率越高表示越不可通行，我们需要将其反转
+                uchar scaled_value = static_cast<uchar>(255 - 2.55 * value);
+                mat.at<uchar>(i, j) = scaled_value;
+            }
+        }
+    }
+    // 将图像顺时针旋转90度
+    cv::rotate(mat, mat, cv::ROTATE_90_CLOCKWISE);
+    // 翻转图像，0表示沿x轴翻转（垂直翻转）
+    cv::flip(mat, mat, 0);
+    return mat;
+}
+
+double ElevatorControlManager::averageIntensityForElevatorInside(const cv::Mat &image) {
+    auto mapPo = SegmentationDataBase::instance().getDbMap();
+
+    // 定义源四边形的四个顶点(按照左上，右上，右下，左下的顺序)
+    std::vector<cv::Point> srcPoints;
+    srcPoints.emplace_back(mapPo.p1x, mapPo.p1y); // 第一个点的坐标
+    srcPoints.emplace_back(mapPo.p2x, mapPo.p2y); // 第二个点的坐标
+    srcPoints.emplace_back(mapPo.p3x, mapPo.p3y); // 第三个点的坐标
+    srcPoints.emplace_back(mapPo.p4x, mapPo.p4y); // 第四个点的坐标
+
+    // 创建一个与原图像大小相同的掩膜，初始值为0
+    cv::Mat mask = cv::Mat::zeros(image.size(), CV_8UC1);
+    // 根据多边形顶点填充掩膜，255表示选中的区域
+    std::vector<std::vector<cv::Point>> pts{srcPoints};
+    cv::fillPoly(mask, pts, cv::Scalar(255));
+    // 应用掩膜
+    cv::Mat maskedImage;
+    image.copyTo(maskedImage, mask);
+    // 计算平均值
+    cv::Scalar averageIntensity = cv::mean(image, mask);
+
+//    // 显示结果（如果需要）
+//    cv::imshow("Masked Image", maskedImage);
+//    cv::waitKey(0);
+
+    return averageIntensity[0];
+}
+
+double ElevatorControlManager::averageIntensityForElevatorWay(const cv::Mat &image) {
+    // 定义两个点
+    auto build_robot_position = MapAttributeSingleton::instance().getRobotPositionPoint(image);
+
+    auto mapPo = SegmentationDataBase::instance().getDbMap();
+
+    // 定义源四边形的四个顶点(按照左上，右上，右下，左下的顺序)
+    std::vector<cv::Point> points;
+    points.emplace_back(mapPo.p1x, mapPo.p1y); // 第一个点的坐标
+    points.emplace_back(mapPo.p2x, mapPo.p2y); // 第二个点的坐标
+    points.emplace_back(mapPo.p3x, mapPo.p3y); // 第三个点的坐标
+    points.emplace_back(mapPo.p4x, mapPo.p4y); // 第四个点的坐标
+
+    // 计算中心点
+    double centerX = 0, centerY = 0;
+    for (const auto &point: points) {
+        centerX += point.x;
+        centerY += point.y;
+    }
+    centerX /= points.size();
+    centerY /= points.size();
+
+    // 创建中心点
+    cv::Point centerPoint(static_cast<int>(centerX), static_cast<int>(centerY));
+
+    // 打印中心点坐标
+    std::cout << "Center Point: " << centerPoint << std::endl;
+
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+    double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
+    double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
+    // 定义线段的宽度
+    int lineWidth = grid_spacing_in_pixel; // 通道宽度
+
+    // 创建一个与原图像大小相同的掩膜，初始值为0
+    cv::Mat mask = cv::Mat::zeros(image.size(), CV_8UC1);
+
+    // 在掩膜上绘制线段
+    cv::line(mask, build_robot_position, centerPoint, cv::Scalar(255), lineWidth, cv::LINE_8);
+
+    // 应用掩膜
+    cv::Mat maskedImage;
+    image.copyTo(maskedImage, mask);
+
+    // 计算平均值
+    cv::Scalar averageIntensity = cv::mean(image, mask);
+
+//    // 显示结果（如果需要）
+//    cv::imshow("Masked Image", maskedImage);
+//    cv::waitKey(0);
+
+    return averageIntensity[0];
+}
+
 void ElevatorControlManager::initialize(ros::NodeHandle handle) {
+
     interruptAccessElevators();
     pool_.setNumOfThreads(4);
 
     preState = ElevatorPreState::PRE_NONE;
     postState = ElevatorPostState::POST_NONE;
+
+    subscriberMap = handle.subscribe("/move_base/global_costmap/costmap", 10,
+                                     &ElevatorControlManager::subscribeMapCallback, this);
 
     subscriberOdom = handle.subscribe("/odom", 10, &ElevatorControlManager::subscribeOdomCallback, this);
     subscriberImu = handle.subscribe(Environment::instance().isRealEnvironment ? "/imu/data" : "/imu",
@@ -1534,11 +1745,15 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     publisherCmdVel = handle.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     publisherPose = handle.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 10);
 
-    elevator_pre_thread = std::thread(&ElevatorControlManager::elevator_pre_thread_func, this);
+    std::thread elevator_pre_thread(&ElevatorControlManager::elevator_pre_thread_func, this);
     elevator_pre_thread.detach();
-    elevator_post_thread = std::thread(&ElevatorControlManager::elevator_post_thread_func, this);
+    std::thread elevator_post_thread(&ElevatorControlManager::elevator_post_thread_func, this);
     elevator_post_thread.detach();
 
+
+    subscriberElevatorManager = handle.subscribe("/elevator_manager", 1,
+                                                 &ElevatorControlManager::elevatorManagerSubscribeCallback,
+                                                 this);
 
     std::string portName = Environment::instance().isRealEnvironment ? "/dev/elevator" : "/dev/ttyUSB0";
 
@@ -1565,13 +1780,13 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
 //        boostSerial->set_option(boost::asio::serial_port_base::flow_control(boost::asio::serial_port_base::flow_control::none));
 
 
-        serial_sender_thread = std::thread(&ElevatorControlManager::serial_send_thread_func, this,
+        std::thread serial_sender_thread(&ElevatorControlManager::serial_send_thread_func, this,
+                                         std::ref(*boostSerial));
+        std::thread serial_receiver_thread(&ElevatorControlManager::serial_receive_thread_func, this,
                                            std::ref(*boostSerial));
-        serial_receiver_thread = std::thread(&ElevatorControlManager::serial_receive_thread_func, this,
-                                             std::ref(*boostSerial));
-        light_up_thread = std::thread(&ElevatorControlManager::light_up_thread_func, this);
-        query_floor_thread = std::thread(&ElevatorControlManager::query_floor_thread_func, this);
-        arrive_floor_thread = std::thread(&ElevatorControlManager::arrive_floor_thread_func, this);
+        std::thread light_up_thread(&ElevatorControlManager::light_up_thread_func, this);
+        std::thread query_floor_thread(&ElevatorControlManager::query_floor_thread_func, this);
+        std::thread arrive_floor_thread(&ElevatorControlManager::arrive_floor_thread_func, this);
 
         serial_sender_thread.detach();
         serial_receiver_thread.detach();
@@ -1583,10 +1798,6 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     } catch (...) {
         LOG_IF(ERROR, DEBUG_ELEVATOR) << "open dev error .";
     }
-
-    subscriberElevatorManager = handle.subscribe("/elevator_manager", 1,
-                                                 &ElevatorControlManager::elevatorManagerSubscribeCallback,
-                                                 this);
 
 }
 
@@ -1602,20 +1813,21 @@ void ElevatorControlManager::setElevatorMovementCallback(const std::function<voi
     ElevatorControlManager::mElevatorMovementCallback = callback;
 }
 
-void ElevatorControlManager::setCallbackElevatorPre(const std::function<void(bool)> &callbackElevatorPre) {
+void ElevatorControlManager::setCallbackElevatorPre(const std::function<void(ElevatorError)> &callbackElevatorPre) {
     ElevatorControlManager::callbackElevatorPre = callbackElevatorPre;
 }
 
-void ElevatorControlManager::setCallbackElevatorPost(const std::function<void(bool)> &callbackElevatorPost) {
+void ElevatorControlManager::setCallbackElevatorPost(const std::function<void(ElevatorError)> &callbackElevatorPost) {
     ElevatorControlManager::callbackElevatorPost = callbackElevatorPost;
 }
 
 void ElevatorControlManager::printElevator() {
-    double distance_x = sqrt(pow(abs(odom_x - old_x), 2) + pow(abs(odom_y - old_y), 2));
-    double difference_yaw = imu_yaw - old_yaw;
+    double distance_x = sqrt(pow(abs(elevatorSensor.odom_x - elevatorLastSensor.old_x), 2) +
+                             pow(abs(elevatorSensor.odom_y - elevatorLastSensor.old_y), 2));
+    double difference_yaw = elevatorSensor.imu_yaw - elevatorLastSensor.old_yaw;
 
-    auto old_angle = old_yaw * 180.0 / M_PI;
-    auto curr_angle = imu_yaw * 180.0 / M_PI;
+    auto old_angle = elevatorLastSensor.old_yaw * 180.0 / M_PI;
+    auto curr_angle = elevatorSensor.imu_yaw * 180.0 / M_PI;
 
     auto angle_difference = curr_angle - old_angle;
     if (angle_difference < 0) {
@@ -1626,8 +1838,8 @@ void ElevatorControlManager::printElevator() {
     }
 
     LOG_IF(INFO, DEBUG_ELEVATOR) << "distance_x ： " << distance_x
-                                 << "， old_yaw ： " << old_yaw
-                                 << "， imu_yaw ： " << imu_yaw
+                                 << "， old_yaw ： " << elevatorLastSensor.old_yaw
+                                 << "， imu_yaw ： " << elevatorSensor.imu_yaw
                                  << "， difference_yaw ： " << difference_yaw
                                  << "， old_angle ： " << old_angle
                                  << "， curr_angle ： " << curr_angle
@@ -1822,15 +2034,14 @@ void ElevatorControlManager::handlePreFlow(const std::vector<RealBlock> &preFlow
     if (preFlows.size() != 4) {
         throw app::exception(make_error_code(error::elevator_pre_flow_error));
     }
-    preError = false;
     preCirculationBlock = preFlows[0];
     preElevatorInBlock = preFlows[1];
     preSwitchMapBlock = preFlows[2];
     preElevatorOutBlock = preFlows[3];
-    preAdjustmentFrequency = 0;
-    preRetryFrequency = 0;
 
-    //todo 逻辑判断，看看执行哪个流程
+    elevatorError = NoElevatorError;
+    errorRetryMechanism.reset();
+    conventionRetryMechanism.reset();
 
     {
         std::unique_lock<std::mutex> lk(pre_mutex_);
@@ -1843,15 +2054,15 @@ void ElevatorControlManager::handlePostFlow(const std::vector<RealBlock> &postFl
     if (postFlows.size() != 4) {
         throw app::exception(make_error_code(error::elevator_post_flow_error));
     }
-    postError = false;
     postCirculationBlock = postFlows[0];
     postElevatorInBlock = postFlows[1];
     postSwitchMapBlock = postFlows[2];
     postElevatorOutBlock = postFlows[3];
-    postAdjustmentFrequency = 0;
-    postRetryFrequency = 0;
 
-    //todo 逻辑判断，看看执行哪个流程
+    elevatorError = NoElevatorError;
+    errorRetryMechanism.reset();
+    conventionRetryMechanism.reset();
+
     {
         std::unique_lock<std::mutex> lk(post_mutex_);
         postState = ElevatorPostState::POST_CIRCULATION;
@@ -1868,7 +2079,7 @@ void ElevatorControlManager::completePreCirculation(const bool arrive) {
         LOG_IF(INFO, DEBUG_ELEVATOR)
                         << "ElevatorControlManager pre 移动或调整电梯点位结果 " << arrive << "... ";
         if (arrive) {
-            if (preAdjustmentFrequency <
+            if (conventionRetryMechanism.preAdjustmentFrequency <
                 Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator) {
                 {
                     std::unique_lock<std::mutex> lk(pre_mutex_);
@@ -1885,18 +2096,18 @@ void ElevatorControlManager::completePreCirculation(const bool arrive) {
 
 
         } else {
-            if (preRetryFrequency <
+            if (conventionRetryMechanism.preRetryFrequency <
                 Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator) {
-                preAdjustmentFrequency = 0;
+                conventionRetryMechanism.preAdjustmentFrequency = 0;
                 {
                     std::unique_lock<std::mutex> lk(pre_mutex_);
                     preState = ElevatorPreState::PRE_CIRCULATION;
                 }
                 pre_condition_variable_.notify_one();
             } else {
-                goPreError();
+                goPreError(PreCirculationError);
             }
-            preRetryFrequency++;
+            conventionRetryMechanism.preRetryFrequency++;
         }
     }
 }
@@ -1912,7 +2123,7 @@ void ElevatorControlManager::completePostCirculation(const bool arrive) {
                         << "ElevatorControlManager completePostCirculation 移动或调整电梯点位有完成 " << arrive
                         << "... ";
         if (arrive) {
-            if (postAdjustmentFrequency <
+            if (conventionRetryMechanism.postAdjustmentFrequency <
                 Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator) {
                 {
                     std::unique_lock<std::mutex> lk(post_mutex_);
@@ -1927,24 +2138,28 @@ void ElevatorControlManager::completePostCirculation(const bool arrive) {
                 post_condition_variable_.notify_one();
             }
         } else {
-            if (postRetryFrequency <
+            if (conventionRetryMechanism.postRetryFrequency <
                 Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator) {
-                postAdjustmentFrequency = 0;
+                conventionRetryMechanism.postAdjustmentFrequency = 0;
                 {
                     std::unique_lock<std::mutex> lk(post_mutex_);
                     postState = ElevatorPostState::POST_CIRCULATION;
                 }
                 post_condition_variable_.notify_one();
             } else {
-                goPostError();
+                goPostError(PostCirculationError);
             }
-            postRetryFrequency++;
+            conventionRetryMechanism.postRetryFrequency++;
         }
     }
 }
 
 void ElevatorControlManager::setUrgencyStop(bool isUrgencyStop) {
     this->isUrgencyStop = isUrgencyStop;
+}
+
+void ElevatorControlManager::setGarbage(bool isGarbage) {
+    this->isGarbage = isGarbage;
 }
 
 void ElevatorControlManager::ttSendLightUpTargetFloor() {
@@ -1968,3 +2183,5 @@ void ElevatorControlManager::ttCloseQueryFloor() {
     setBuildElevatorAddress(1);
     closeQueryFloor();
 }
+
+

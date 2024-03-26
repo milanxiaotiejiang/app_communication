@@ -418,22 +418,22 @@ void initNodeParams(const ros::NodeHandle &nh) {
     Environment::instance().maximum_number_of_entering_the_elevator = maximum_number_of_entering_the_elevator;
     int the_time_interval_for_continuously_lighting_up_floors;
     nh.param<int>("the_time_interval_for_continuously_lighting_up_floors",
-                   the_time_interval_for_continuously_lighting_up_floors, 3000);
+                  the_time_interval_for_continuously_lighting_up_floors, 3000);
     Environment::instance().the_time_interval_for_continuously_lighting_up_floors = the_time_interval_for_continuously_lighting_up_floors;
     int the_time_interval_for_continuous_floor_queries;
     nh.param<int>("the_time_interval_for_continuous_floor_queries", the_time_interval_for_continuous_floor_queries,
-                   1000);
+                  1000);
     Environment::instance().the_time_interval_for_continuous_floor_queries = the_time_interval_for_continuous_floor_queries;
     int the_time_interval_for_continuous_floor_determination;
     nh.param<int>("the_time_interval_for_continuous_floor_determination",
-                   the_time_interval_for_continuous_floor_determination, 1000);
+                  the_time_interval_for_continuous_floor_determination, 1000);
     Environment::instance().the_time_interval_for_continuous_floor_determination = the_time_interval_for_continuous_floor_determination;
     int maximum_waiting_time_for_elevator;
     nh.param<int>("maximum_waiting_time_for_elevator", maximum_waiting_time_for_elevator, 60 * 10 * 1000);
     Environment::instance().maximum_waiting_time_for_elevator = maximum_waiting_time_for_elevator;
     int maximum_time_for_entering_and_exiting_the_elevator;
     nh.param<int>("maximum_time_for_entering_and_exiting_the_elevator",
-                   maximum_time_for_entering_and_exiting_the_elevator, 60 * 2 * 1000);
+                  maximum_time_for_entering_and_exiting_the_elevator, 60 * 2 * 1000);
     Environment::instance().maximum_time_for_entering_and_exiting_the_elevator = maximum_time_for_entering_and_exiting_the_elevator;
     double entering_inner_steering_speed;
     nh.param<double>("entering_inner_steering_speed", entering_inner_steering_speed, 0.4);

@@ -78,7 +78,7 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
         PublishInnerManager::instance().pubMetalDetectionSwitch(message);
     });
 
-    ElevatorControlManager::instance().setCallbackElevatorPre([this](bool result) {
+    ElevatorControlManager::instance().setCallbackElevatorPre([this](ElevatorControlManager::ElevatorError result) {
         notify_one([this, &result]() {
 
             if (!Environment::instance().isRealEnvironment) {
@@ -93,18 +93,32 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
 
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : notify pre elevator finish ...";
             callOpenMechanism(baseWorkStatus(), isKnife(), []() {});
-            preConditions.clear();
-            flowElevatorPrePoint.arrive = result;
-            pushBlock(flowElevatorPrePoint);
+            if (result == ElevatorControlManager::ElevatorError::NoElevatorError) {
+                preConditions.clear();
+                flowElevatorPrePoint.arrive = true;
+                pushBlock(flowElevatorPrePoint);
+            } else {
+                preConditions.clear();
+                flowElevatorPrePoint.arrive = false;
+                pushBlock(flowElevatorPrePoint);
+            }
+
+
         });
     });
 
-    ElevatorControlManager::instance().setCallbackElevatorPost([this](bool result) {
+    ElevatorControlManager::instance().setCallbackElevatorPost([this](ElevatorControlManager::ElevatorError result) {
         notify_one([this, &result]() {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : notify post elevator finish ...";
-            postConditions.clear();
-            flowElevatorPostPoint.arrive = result;
-            pushBlock(flowElevatorPostPoint);
+            if (result == ElevatorControlManager::ElevatorError::NoElevatorError) {
+                postConditions.clear();
+                flowElevatorPostPoint.arrive = true;
+                pushBlock(flowElevatorPostPoint);
+            } else {
+                postConditions.clear();
+                flowElevatorPostPoint.arrive = false;
+                pushBlock(flowElevatorPostPoint);
+            }
         });
     });
 }
@@ -469,6 +483,7 @@ void AsyncTaskCall::garbage(event::SB sb) {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 程序出现严重错误，不可恢复，以下是现场可保存的信息 " << sb;
     LOG_IF(INFO, DEBUG_TASK) << " start ————————————————————————————————————————————————————";
 
+    ElevatorControlManager::instance().setGarbage(true);
     CartographerServiceClient::instance().callSensorStatus();
 
     for (const auto &item: stopStack) {
