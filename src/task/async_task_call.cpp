@@ -97,6 +97,10 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
                 preConditions.clear();
                 flowElevatorPrePoint.arrive = true;
                 pushBlock(flowElevatorPrePoint);
+            } else if (result == ElevatorControlManager::ElevatorError::PreCirculationError) {
+                notify_one([this]() {
+                    pushManual(loop::manual_epoll::manual_force_back);
+                });
             } else {
                 preConditions.clear();
                 flowElevatorPrePoint.arrive = false;

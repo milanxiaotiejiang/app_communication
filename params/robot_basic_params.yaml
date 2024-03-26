@@ -50,3 +50,9 @@ serial_port_accept_print: false
 jump_elevator_status_door_state: true
 #延迟关闭电梯门的时间间隔，单位秒
 maximum_delay_time: 10
+
+pre_circulation_error_retry_count_max: 2
+post_circulation_error_retry_count_max: 2
+
+pre_circulation_error_retry_timeout: 30000
+post_circulation_error_retry_timeout: 30000

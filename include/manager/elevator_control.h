@@ -531,9 +531,11 @@ private:
 
     cv::Mat occupancyGridToCvMat(const nav_msgs::OccupancyGrid &map);
 
-    double averageIntensityForElevatorInside(const cv::Mat& image);
+    double averageIntensityForElevatorInside(const cv::Mat &image);
 
-    double averageIntensityForElevatorWay(const cv::Mat& image);
+    double averageIntensityForElevatorWay(const cv::Mat &image);
+
+    double calculateDistance(const geometry_msgs::Pose &pose1, const geometry_msgs::Pose &pose2);
 
 public:
     void initialize(ros::NodeHandle handle);

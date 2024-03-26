@@ -718,6 +718,7 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         if (isArrived) {
 
             closeLightUp();
+            sendDelayedDoorClosing();
             waitDelayClosingDoor();
             recentlyDataLengthSize = 0;
             unseal = false;
@@ -736,6 +737,9 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         pre_condition_variable_.wait(lk, [this] {
             return preState != ElevatorPreState::PRE_NONE;
         });
+
+        bool reprocess = false;
+
         if (preState == ElevatorPreState::PRE_CIRCULATION) {
             doPreCirculation();
         } else if (preState == ElevatorPreState::PRE_ELEVATOR_IN) {
@@ -754,32 +758,40 @@ void ElevatorControlManager::arrive_floor_thread_func() {
                 callbackElevatorPre(elevatorError);
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PreCirculationError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控前期-到电梯外点位错误 ... ";
-                if (errorRetryMechanism.preCirculationErrorRetryCount < 2) {
+                if (errorRetryMechanism.preCirculationErrorRetryCount <
+                    Environment::instance().pre_circulation_error_retry_count_max) {
                     errorRetryMechanism.preCirculationErrorRetryCount++;
 
-                    std::this_thread::sleep_for(std::chrono::milliseconds(60 * 1000));
+                    std::this_thread::sleep_for(
+                            std::chrono::milliseconds(Environment::instance().pre_circulation_error_retry_timeout));
                     elevatorError = NoElevatorError;
                     conventionRetryMechanism.reset();
 
                     preState = ElevatorPreState::PRE_CIRCULATION;
+                    reprocess = true;
                     pre_condition_variable_.notify_one();
                 } else {
-                    callbackElevatorPost(elevatorError);
+                    mElevatorMovementCallback(false);
+                    callbackElevatorPre(elevatorError);
                 }
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PreElevatorInError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控前期-进入电梯错误 ... ";
+                mElevatorMovementCallback(false);
                 callbackElevatorPre(elevatorError);
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PreSwitchMapError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控前期-到电梯外点位错误 ... ";
+                mElevatorMovementCallback(false);
                 callbackElevatorPre(elevatorError);
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PreElevatorOutError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控前期-出电梯错误 ... ";
+                mElevatorMovementCallback(false);
                 callbackElevatorPre(elevatorError);
             }
 
         }
 
-        preState = ElevatorPreState::PRE_NONE;
+        if (!reprocess)
+            preState = ElevatorPreState::PRE_NONE;
     }
 
 }
@@ -792,6 +804,9 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         post_condition_variable_.wait(lk, [this] {
             return postState != ElevatorPostState::POST_NONE;
         });
+
+        bool reprocess = false;
+
         if (postState == ElevatorPostState::POST_CIRCULATION) {
             doPostCirculation();
         } else if (postState == ElevatorPostState::POST_ELEVATOR_IN) {
@@ -810,31 +825,39 @@ void ElevatorControlManager::arrive_floor_thread_func() {
                 callbackElevatorPost(elevatorError);
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PostCirculationError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控后期-到电梯外点位错误 ... ";
-                if (errorRetryMechanism.postCirculationErrorRetryCount < 2) {
+                if (errorRetryMechanism.postCirculationErrorRetryCount <
+                    Environment::instance().post_circulation_error_retry_count_max) {
                     errorRetryMechanism.postCirculationErrorRetryCount++;
 
-                    std::this_thread::sleep_for(std::chrono::milliseconds(60 * 1000));
+                    std::this_thread::sleep_for(
+                            std::chrono::milliseconds(Environment::instance().post_circulation_error_retry_timeout));
                     elevatorError = NoElevatorError;
                     conventionRetryMechanism.reset();
 
                     postState = ElevatorPostState::POST_CIRCULATION;
+                    reprocess = true;
                     post_condition_variable_.notify_one();
                 } else {
+                    mElevatorMovementCallback(false);
                     callbackElevatorPost(elevatorError);
                 }
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PostElevatorInError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控后期-进入电梯错误 ... ";
+                mElevatorMovementCallback(false);
                 callbackElevatorPost(elevatorError);
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PostSwitchMapError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控后期-切换地图错误 ... ";
+                mElevatorMovementCallback(false);
                 callbackElevatorPost(elevatorError);
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PostElevatorOutError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控后期-出电梯错误 ... ";
+                mElevatorMovementCallback(false);
                 callbackElevatorPost(elevatorError);
             }
         }
 
-        postState = ElevatorPostState::POST_NONE;
+        if (!reprocess)
+            postState = ElevatorPostState::POST_NONE;
     }
 }
 
@@ -856,7 +879,7 @@ void ElevatorControlManager::doPreCirculation() {
                                 << " ，当前次数为 " << conventionRetryMechanism.preAdjustmentFrequency
                                 << " 次 ... ";
                 auto point = preCirculationBlock.plannerPoints[0];
-                point.core_move = true;
+//                point.core_move = true;
                 PointPlanner::instance().goToPoint(point);
             }
             conventionRetryMechanism.preAdjustmentFrequency++;
@@ -922,9 +945,9 @@ void ElevatorControlManager::doPreSwitchMap() {
             auto toMapId = mapPair.second;
 
             LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager doPreSwitchMap 开始切换地图 "
-                                         << " fromMapId : " << fromMapId
-                                         << " toMapId : " << toMapId
-                                         << "... ";
+                                         << "  fromMapId : " << fromMapId
+                                         << "  toMapId : " << toMapId
+                                         << "  ... ";
             if (Environment::instance().isRealEnvironment) {
                 if (fromMapId != toMapId) {
                     switchMapsInWorkMode(fromMapId, toMapId);
@@ -1013,7 +1036,7 @@ void ElevatorControlManager::doPostCirculation() {
                                 << " ，当前次数为 " << conventionRetryMechanism.preAdjustmentFrequency
                                 << " 次 ... ";
                 auto point = postCirculationBlock.plannerPoints[0];
-                point.core_move = true;
+//                point.core_move = true;
                 PointPlanner::instance().goToPoint(point);
             }
             conventionRetryMechanism.postAdjustmentFrequency++;
@@ -1075,9 +1098,9 @@ void ElevatorControlManager::doPostSwitchMap() {
             auto toMapId = mapPair.second;
 
             LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager doPostSwitchMap 开始切换地图 "
-                                         << "fromMapId : " << fromMapId
-                                         << "toMapId : " << toMapId
-                                         << "... ";
+                                         << "  fromMapId : " << fromMapId
+                                         << "  toMapId : " << toMapId
+                                         << " ... ";
 
             if (Environment::instance().isRealEnvironment) {
                 if (fromMapId != toMapId) {
@@ -1236,16 +1259,16 @@ void ElevatorControlManager::takeElevatorOut(int fromFloor, int toFloor, const R
         throw std::runtime_error("takeElevatorOut wait_to_mutex timeout ...");
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
 
+    sendDelayedDoorClosing();
     for (int i = 0; i < Environment::instance().maximum_number_of_entering_the_elevator / 2; i++) {
-        sendDelayedDoorClosing();
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
     // 强行重定位
     poseEstimate(relocationPoint);
 
+    sendDelayedDoorClosing();
     for (int i = 0; i < Environment::instance().maximum_number_of_entering_the_elevator / 2; i++) {
-        sendDelayedDoorClosing();
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
@@ -1349,10 +1372,13 @@ void ElevatorControlManager::sendSimpleLightUpTargetFloor(int floor) {
 }
 
 void ElevatorControlManager::sendDelayedDoorClosing() {
+    if (isUrgencyStop || isGarbage || suspendLightUp) {
+        return;
+    }
 //    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 延迟关门 ... ";
     EleProtocol eleProtocol(CMD_DELAYED_DOOR_CLOSING, mElevatorAddress);
     std::vector<uint8_t> data;
-    data.push_back(Environment::instance().maximum_delay_time);
+    data.push_back(Environment::instance().maximum_delay_time / 2);
     eleProtocol.setData(data);
     eleProtocol.setAddress(mElevatorAddress);
     sendAsyncMessage(eleProtocol);
@@ -1460,7 +1486,7 @@ void ElevatorControlManager::closeWaitingArrive() {
 }
 
 void ElevatorControlManager::poseEstimate(const RealPoint &realPoint) {
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager poseEstimate 重新定位 " << "... ";
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager poseEstimate 重新定位 " << " ... ";
 
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager poseEstimate " <<
                                  "  realPoint.realPosition.x : " << realPoint.realPosition.x <<
@@ -1470,7 +1496,7 @@ void ElevatorControlManager::poseEstimate(const RealPoint &realPoint) {
                                  "  realPoint.realOrientation.y : " << realPoint.realOrientation.y <<
                                  "  realPoint.realOrientation.z : " << realPoint.realOrientation.z <<
                                  "  realPoint.realOrientation.w : " << realPoint.realOrientation.w <<
-                                 "... ";
+                                 "  ... ";
     geometry_msgs::PoseWithCovarianceStamped original_pose;
     original_pose.header.frame_id = "map";
     original_pose.header.stamp = ros::Time::now();
@@ -1504,7 +1530,7 @@ void ElevatorControlManager::poseEstimate(const RealPoint &realPoint) {
 }
 
 RealPoint ElevatorControlManager::rotate180DegreesAroundZ(const RealPoint &point) {
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager rotate180 旋转180 " << "... ";
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager rotate180 将目标点旋转180度 " << " ... ";
 
 //    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager rotate180 " <<
 //                                 "  realPoint.realPosition.x : " << point.realPosition.x <<
@@ -1514,7 +1540,7 @@ RealPoint ElevatorControlManager::rotate180DegreesAroundZ(const RealPoint &point
 //                                 "  realPoint.realOrientation.y : " << point.realOrientation.y <<
 //                                 "  realPoint.realOrientation.z : " << point.realOrientation.z <<
 //                                 "  realPoint.realOrientation.w : " << point.realOrientation.w <<
-//                                 "... ";
+//                                 "  ... ";
 
     geometry_msgs::PoseWithCovarianceStamped original_pose;
     original_pose.header.frame_id = "map";
@@ -1607,7 +1633,6 @@ void ElevatorControlManager::setPlanCmd(bool arrive, const std::string &tag) {
 
 void ElevatorControlManager::waitDelayClosingDoor() {
     for (int i = 0; i < Environment::instance().maximum_number_of_entering_the_elevator; i++) {
-        sendDelayedDoorClosing();
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 }
@@ -1726,6 +1751,15 @@ double ElevatorControlManager::averageIntensityForElevatorWay(const cv::Mat &ima
 //    cv::waitKey(0);
 
     return averageIntensity[0];
+}
+
+double ElevatorControlManager::calculateDistance(const geometry_msgs::Pose &pose1, const geometry_msgs::Pose &pose2) {
+    // 计算两点间的Euclidean距离
+    double dx = pose1.position.x - pose2.position.x;
+    double dy = pose1.position.y - pose2.position.y;
+    double dz = pose1.position.z - pose2.position.z;
+
+    return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
 
 void ElevatorControlManager::initialize(ros::NodeHandle handle) {
@@ -1938,7 +1972,11 @@ void ElevatorControlManager::enterElevator(const RealPoint &point) {
 
             if (std::chrono::steady_clock::now() - last_send_time >
                 std::chrono::seconds(Environment::instance().maximum_delay_time - 1)) {
-                sendDelayedDoorClosing();
+                if (enterPlanCmd != PlanCmd::PLAN_CORE_MOVE_SUCCESS
+                    || enterPlanCmd != PlanCmd::PLAN_MOVE_BASE_ING
+                    || enterPlanCmd != PlanCmd::PLAN_MOVE_BASE_SUCCESS) {
+                    sendDelayedDoorClosing();
+                }
                 last_send_time = std::chrono::steady_clock::now();
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME + append_sleep_time));
@@ -2076,9 +2114,27 @@ void ElevatorControlManager::completePreCirculation(const bool arrive) {
         setPlanCmd(arrive, "completePreCirculation");
 
     } else {
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager pre 移动或调整电梯点位结果 " << arrive << " ... ";
+
+        auto currentRobotPose = MapAttributeSingleton::instance().getRobotCompletePosition();
+        auto targetPoint = preCirculationBlock.plannerPoints[0];
+
+        geometry_msgs::Pose targetPose;
+        targetPose.position.x = targetPoint.realPosition.x;
+        targetPose.position.y = targetPoint.realPosition.y;
+        targetPose.position.z = targetPoint.realPosition.z;
+        targetPose.orientation.x = targetPoint.realOrientation.x;
+        targetPose.orientation.y = targetPoint.realOrientation.y;
+        targetPose.orientation.z = targetPoint.realOrientation.z;
+        targetPose.orientation.w = targetPoint.realOrientation.w;
+
+        double distance = calculateDistance(currentRobotPose, targetPose);
         LOG_IF(INFO, DEBUG_ELEVATOR)
-                        << "ElevatorControlManager pre 移动或调整电梯点位结果 " << arrive << "... ";
-        if (arrive) {
+                        << "ElevatorControlManager pre The distance between the two points is: " << distance;
+
+        bool reconfirm = arrive;
+
+        if (reconfirm) {
             if (conventionRetryMechanism.preAdjustmentFrequency <
                 Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator) {
                 {
@@ -2119,10 +2175,27 @@ void ElevatorControlManager::completePostCirculation(const bool arrive) {
         setPlanCmd(arrive, "completePostCirculation");
 
     } else {
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager post 移动或调整电梯点位有完成 " << arrive << " ... ";
+
+        auto currentRobotPose = MapAttributeSingleton::instance().getRobotCompletePosition();
+        auto targetPoint = postCirculationBlock.plannerPoints[0];
+
+        geometry_msgs::Pose targetPose;
+        targetPose.position.x = targetPoint.realPosition.x;
+        targetPose.position.y = targetPoint.realPosition.y;
+        targetPose.position.z = targetPoint.realPosition.z;
+        targetPose.orientation.x = targetPoint.realOrientation.x;
+        targetPose.orientation.y = targetPoint.realOrientation.y;
+        targetPose.orientation.z = targetPoint.realOrientation.z;
+        targetPose.orientation.w = targetPoint.realOrientation.w;
+
+        double distance = calculateDistance(currentRobotPose, targetPose);
         LOG_IF(INFO, DEBUG_ELEVATOR)
-                        << "ElevatorControlManager completePostCirculation 移动或调整电梯点位有完成 " << arrive
-                        << "... ";
-        if (arrive) {
+                        << "ElevatorControlManager post The distance between the two points is: " << distance;
+
+        bool reconfirm = arrive;
+
+        if (reconfirm) {
             if (conventionRetryMechanism.postAdjustmentFrequency <
                 Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator) {
                 {

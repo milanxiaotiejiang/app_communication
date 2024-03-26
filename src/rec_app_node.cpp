@@ -451,6 +451,22 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<int>("maximum_delay_time", maximum_delay_time, 9);
     Environment::instance().maximum_delay_time = maximum_delay_time;
 
+
+    int pre_circulation_error_retry_count_max;
+    nh.param<int>("pre_circulation_error_retry_count_max", pre_circulation_error_retry_count_max, 2);
+    Environment::instance().pre_circulation_error_retry_count_max = pre_circulation_error_retry_count_max;
+
+    int post_circulation_error_retry_count_max;
+    nh.param<int>("post_circulation_error_retry_count_max", post_circulation_error_retry_count_max, 2);
+    Environment::instance().post_circulation_error_retry_count_max = post_circulation_error_retry_count_max;
+
+    int pre_circulation_error_retry_timeout;
+    nh.param<int>("pre_circulation_error_retry_timeout", pre_circulation_error_retry_timeout, 30 * 1000);
+    Environment::instance().pre_circulation_error_retry_timeout = pre_circulation_error_retry_timeout;
+
+    int post_circulation_error_retry_timeout;
+    nh.param<int>("post_circulation_error_retry_timeout", post_circulation_error_retry_timeout, 30 * 1000);
+    Environment::instance().post_circulation_error_retry_timeout = post_circulation_error_retry_timeout;
 }
 
 void release() {

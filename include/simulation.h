@@ -98,6 +98,13 @@ public:
     bool jump_elevator_status_door_state{true};
     int maximum_delay_time{9};
 
+
+    int pre_circulation_error_retry_count_max{2};
+    int post_circulation_error_retry_count_max{2};
+
+    int pre_circulation_error_retry_timeout{30000};
+    int post_circulation_error_retry_timeout{30000};
+
     static bool will() {
         return (rand() % 10) > 5;
     }
