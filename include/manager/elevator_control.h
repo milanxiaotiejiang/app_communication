@@ -318,7 +318,8 @@ public:
 private:
     int mElevatorAddress;
 
-    ros::Subscriber subscriberMap;
+    ros::Subscriber subscriberRawMap;
+    ros::Subscriber subscriberLocalMap;
     ros::Subscriber subscriberOdom;
     ros::Subscriber subscriberImu;
     ros::Publisher publisherCmdVel;
@@ -432,9 +433,13 @@ private:
     ConventionRetryMechanism conventionRetryMechanism;
     ErrorRetryMechanism errorRetryMechanism;
 
-    nav_msgs::OccupancyGrid occupancyGrid;
+    nav_msgs::OccupancyGrid rawOccupancyGrid;
+    nav_msgs::OccupancyGrid localOccupancyGrid;
 
     bool suspendLightUp;
+
+    std::unique_ptr<tf2_ros::Buffer> tfBuffer;
+    std::unique_ptr<tf2_ros::TransformListener> tfListener;
 
 private:
 
@@ -446,7 +451,9 @@ private:
 
     void recordSensorData();
 
-    void subscribeMapCallback(const nav_msgs::OccupancyGrid &msg);
+    void subscribeRawMapCallback(const nav_msgs::OccupancyGrid &msg);
+
+    void subscribeLocalMapCallback(const nav_msgs::OccupancyGrid &msg);
 
     void subscribeOdomCallback(const nav_msgs::Odometry &msg);
 
@@ -529,7 +536,12 @@ private:
 
     void waitDelayClosingDoor();
 
+    bool getTransform(const std::string &target_frame, const std::string &source_frame,
+                      geometry_msgs::TransformStamped &transform);
+
     cv::Mat occupancyGridToCvMat(const nav_msgs::OccupancyGrid &map);
+
+    void showMap(const cv::String &winname, cv::Mat mat);
 
     double averageIntensityForElevatorInside(const cv::Mat &image);
 

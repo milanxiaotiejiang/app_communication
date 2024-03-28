@@ -90,8 +90,12 @@ void ElevatorControlManager::recordSensorData() {
     elevatorLastSensor.old_yaw = elevatorSensor.imu_yaw;
 }
 
-void ElevatorControlManager::subscribeMapCallback(const nav_msgs::OccupancyGrid &msg) {
-    occupancyGrid = msg;
+void ElevatorControlManager::subscribeRawMapCallback(const nav_msgs::OccupancyGrid &msg) {
+    rawOccupancyGrid = msg;
+}
+
+void ElevatorControlManager::subscribeLocalMapCallback(const nav_msgs::OccupancyGrid &msg) {
+    localOccupancyGrid = msg;
 }
 
 void ElevatorControlManager::subscribeOdomCallback(const nav_msgs::Odometry &odometry) {
@@ -134,15 +138,52 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
             }
         } else if (flag.data == 1000) {
 
-            auto mat = occupancyGridToCvMat(occupancyGrid);
+            auto rawMap = occupancyGridToCvMat(rawOccupancyGrid);
+            auto localMap = occupancyGridToCvMat(localOccupancyGrid);
+            auto globalMap = rawMap.clone();
 
-            double box = averageIntensityForElevatorInside(mat);
+            geometry_msgs::TransformStamped transformStamped;
+            bool success = getTransform("map", "base_link", transformStamped);
+
+            if (!success) return;
+
+            double originOffsetX =
+                    (localOccupancyGrid.info.origin.position.x - rawOccupancyGrid.info.origin.position.x) /
+                    map_resolution_from_subscription;
+            double originOffsetY =
+                    (localOccupancyGrid.info.origin.position.y - rawOccupancyGrid.info.origin.position.y) /
+                    map_resolution_from_subscription;
+
+            // 将TF变换平移部分也转换为像素并添加到偏移中
+            int offsetX = static_cast<int>(
+                    (transformStamped.transform.translation.x / map_resolution_from_subscription) + originOffsetX);
+            int offsetY = static_cast<int>(
+                    (transformStamped.transform.translation.y / map_resolution_from_subscription) + originOffsetY);
+
+            // 遍历localMap，将其叠加到globalMap上
+            for (int y = 0; y < localMap.rows; ++y) {
+                for (int x = 0; x < localMap.cols; ++x) {
+                    int globalX = offsetX + x;
+                    int globalY = offsetY + y;
+
+                    // 确保不超出globalMap的边界
+                    if (globalX >= 0 && globalX < globalMap.cols &&
+                        globalY >= 0 && globalY < globalMap.rows) {
+                        uchar localValue = localMap.at<uchar>(y, x);
+                        // 这里简单地覆盖，根据需要可以进行更复杂的合并策略
+                        globalMap.at<uchar>(globalY, globalX) = localValue;
+                    }
+                }
+            }
+
+            double box = averageIntensityForElevatorInside(globalMap);
             LOG_IF(INFO, DEBUG_ELEVATOR) << "电梯 Average intensity: " << box;
-            double way = averageIntensityForElevatorWay(mat);
+            double way = averageIntensityForElevatorWay(globalMap);
             LOG_IF(INFO, DEBUG_ELEVATOR) << "通道 Average intensity: " << way;
 
-            cv::imshow("111", mat);
-            cv::waitKey();
+            showMap("rawMap", rawMap);
+            showMap("localMap", localMap);
+            showMap("globalMap", globalMap);
 
         }
 
@@ -1637,6 +1678,17 @@ void ElevatorControlManager::waitDelayClosingDoor() {
     }
 }
 
+bool ElevatorControlManager::getTransform(const std::string &target_frame, const std::string &source_frame,
+                                          geometry_msgs::TransformStamped &transform) {
+    try {
+        transform = tfBuffer->lookupTransform(target_frame, source_frame, ros::Time(0), ros::Duration(1.0));
+        return true;
+    } catch (const tf2::TransformException &ex) {
+        ROS_WARN("%s", ex.what());
+        return false;
+    }
+}
+
 cv::Mat ElevatorControlManager::occupancyGridToCvMat(const nav_msgs::OccupancyGrid &map) {
     // 地图的宽度和高度
     int width = map.info.width;
@@ -1664,11 +1716,18 @@ cv::Mat ElevatorControlManager::occupancyGridToCvMat(const nav_msgs::OccupancyGr
             }
         }
     }
-    // 将图像顺时针旋转90度
-    cv::rotate(mat, mat, cv::ROTATE_90_CLOCKWISE);
-    // 翻转图像，0表示沿x轴翻转（垂直翻转）
-    cv::flip(mat, mat, 0);
+
     return mat;
+}
+
+void ElevatorControlManager::showMap(const cv::String &winname, cv::Mat mat) {
+    auto show = mat.clone();
+    // 将图像顺时针旋转90度
+    cv::rotate(show, show, cv::ROTATE_90_CLOCKWISE);
+    // 翻转图像，0表示沿x轴翻转（垂直翻转）
+    cv::flip(show, show, 0);
+    cv::imshow(winname, show);
+    cv::waitKey();
 }
 
 double ElevatorControlManager::averageIntensityForElevatorInside(const cv::Mat &image) {
@@ -1725,7 +1784,7 @@ double ElevatorControlManager::averageIntensityForElevatorWay(const cv::Mat &ima
     cv::Point centerPoint(static_cast<int>(centerX), static_cast<int>(centerY));
 
     // 打印中心点坐标
-    std::cout << "Center Point: " << centerPoint << std::endl;
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "Center Point: " << centerPoint;
 
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
     double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
@@ -1764,14 +1823,20 @@ double ElevatorControlManager::calculateDistance(const geometry_msgs::Pose &pose
 
 void ElevatorControlManager::initialize(ros::NodeHandle handle) {
 
+    // 确保ROS节点已经初始化
+    tfBuffer = std::make_unique<tf2_ros::Buffer>();
+    tfListener = std::make_unique<tf2_ros::TransformListener>(*tfBuffer);
+
     interruptAccessElevators();
     pool_.setNumOfThreads(4);
 
     preState = ElevatorPreState::PRE_NONE;
     postState = ElevatorPostState::POST_NONE;
 
-    subscriberMap = handle.subscribe("/move_base/global_costmap/costmap", 10,
-                                     &ElevatorControlManager::subscribeMapCallback, this);
+    subscriberRawMap = handle.subscribe("/raw_map", 10,
+                                        &ElevatorControlManager::subscribeRawMapCallback, this);
+    subscriberLocalMap = handle.subscribe("/move_base/local_costmap/costmap", 10,
+                                          &ElevatorControlManager::subscribeLocalMapCallback, this);
 
     subscriberOdom = handle.subscribe("/odom", 10, &ElevatorControlManager::subscribeOdomCallback, this);
     subscriberImu = handle.subscribe(Environment::instance().isRealEnvironment ? "/imu/data" : "/imu",
@@ -1788,6 +1853,26 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     subscriberElevatorManager = handle.subscribe("/elevator_manager", 1,
                                                  &ElevatorControlManager::elevatorManagerSubscribeCallback,
                                                  this);
+
+
+//    ros::Rate rate(10.0);
+//    while (handle.ok()) {
+//        geometry_msgs::TransformStamped transformStamped;
+//        try {
+//            // 请确保这里的"base_link"和"map"替换成适合你的系统的框架ID
+//            transformStamped = tfBuffer->lookupTransform("map", "base_link", ros::Time(0), ros::Duration(1.0));
+//            // transformStamped.transform.translation 给出了 local_costmap 在全局地图中的位置
+//            std::cout << "Local costmap origin in global map: x = "
+//                      << transformStamped.transform.translation.x
+//                      << ", y = "
+//                      << transformStamped.transform.translation.y << std::endl;
+//        } catch (tf2::TransformException &ex) {
+//            ROS_WARN("%s", ex.what());
+//            ros::Duration(1.0).sleep();
+//            continue;
+//        }
+//        rate.sleep();
+//    }
 
     std::string portName = Environment::instance().isRealEnvironment ? "/dev/elevator" : "/dev/ttyUSB0";
 
