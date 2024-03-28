@@ -176,6 +176,11 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
                 }
             }
 
+            // 将图像顺时针旋转90度
+            cv::rotate(globalMap, globalMap, cv::ROTATE_90_CLOCKWISE);
+            // 翻转图像，0表示沿x轴翻转（垂直翻转）
+            cv::flip(globalMap, globalMap, 0);
+
             double box = averageIntensityForElevatorInside(globalMap);
             LOG_IF(INFO, DEBUG_ELEVATOR) << "电梯 Average intensity: " << box;
             double way = averageIntensityForElevatorWay(globalMap);
@@ -183,7 +188,8 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
 
             showMap("rawMap", rawMap);
             showMap("localMap", localMap);
-            showMap("globalMap", globalMap);
+            cv::imshow("globalMap", globalMap);
+            cv::waitKey();
 
         }
 
