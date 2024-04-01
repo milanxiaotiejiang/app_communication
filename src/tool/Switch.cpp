@@ -507,6 +507,10 @@ int switch_ID(const std::string &str) {
         return SEWAGE_PUMP_SWITCH;
     }
 
+    if ("abnormal") {
+        return ABNORMAL;
+    }
+
     if (str == "tt_elevator") {
         return TT_ELEVATOR;
     }

@@ -98,9 +98,9 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
                 flowElevatorPrePoint.arrive = true;
                 pushBlock(flowElevatorPrePoint);
             } else if (result == ElevatorControlManager::ElevatorError::PreCirculationError) {
-                notify_one([this]() {
-                    pushManual(loop::manual_epoll::manual_force_back);
-                });
+                preConditions.clear();
+                postConditions.clear();
+                pushManual(loop::manual_epoll::manual_force_back);
             } else {
                 preConditions.clear();
                 flowElevatorPrePoint.arrive = false;
@@ -150,6 +150,12 @@ void AsyncTaskCall::handleManualOperation() {
             mGateDistribution->cancelDistribution();
             cancelAny();
             goodGame(event::GG::gg_task_over);
+            break;
+        case loop::manual_epoll::manual_abnormal:
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动异常，进入异常模式 ...";
+            mGateDistribution->cancelDistribution();
+            cancelAny();
+            garbage(event::SB::sb_unrecoverable);
             break;
         default:
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall handleManualOperation : " << epoll_manual << " ...";
@@ -1575,5 +1581,12 @@ void AsyncTaskCall::restore() {
     notify_one([this]() {
         setFlow(event::flow::ensure_move_to_start_point);
         pushManual(loop::manual_epoll::manual_force_back);
+    });
+}
+
+void AsyncTaskCall::abnormal() {
+    notify_one([this]() {
+        setFlow(event::flow::software_interrupt_task);
+        pushManual(loop::manual_epoll::manual_abnormal);
     });
 }

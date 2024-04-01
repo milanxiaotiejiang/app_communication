@@ -1,4 +1,4 @@
-ros_version: 2.0.14.6_630
+ros_version: 2.0.14.7_630
 machine_version: 630
 base_exist: true
 face_recognition: false
@@ -54,5 +54,7 @@ maximum_delay_time: 10
 pre_circulation_error_retry_count_max: 2
 post_circulation_error_retry_count_max: 2
 
-pre_circulation_error_retry_timeout: 30000
-post_circulation_error_retry_timeout: 30000
+pre_circulation_error_retry_timeout: 10000
+post_circulation_error_retry_timeout: 10000
+
+outside_from_target_distance: 10

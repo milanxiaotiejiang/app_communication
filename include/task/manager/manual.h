@@ -55,6 +55,8 @@ public:
     void reboot();
 
     void restore();
+
+    void abnormal();
 };
 
 

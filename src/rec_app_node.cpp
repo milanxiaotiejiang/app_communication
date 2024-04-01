@@ -455,7 +455,6 @@ void initNodeParams(const ros::NodeHandle &nh) {
     int pre_circulation_error_retry_count_max;
     nh.param<int>("pre_circulation_error_retry_count_max", pre_circulation_error_retry_count_max, 2);
     Environment::instance().pre_circulation_error_retry_count_max = pre_circulation_error_retry_count_max;
-
     int post_circulation_error_retry_count_max;
     nh.param<int>("post_circulation_error_retry_count_max", post_circulation_error_retry_count_max, 2);
     Environment::instance().post_circulation_error_retry_count_max = post_circulation_error_retry_count_max;
@@ -463,10 +462,14 @@ void initNodeParams(const ros::NodeHandle &nh) {
     int pre_circulation_error_retry_timeout;
     nh.param<int>("pre_circulation_error_retry_timeout", pre_circulation_error_retry_timeout, 30 * 1000);
     Environment::instance().pre_circulation_error_retry_timeout = pre_circulation_error_retry_timeout;
-
     int post_circulation_error_retry_timeout;
     nh.param<int>("post_circulation_error_retry_timeout", post_circulation_error_retry_timeout, 30 * 1000);
     Environment::instance().post_circulation_error_retry_timeout = post_circulation_error_retry_timeout;
+
+    int outside_from_target_distance;
+    nh.param<int>("outside_from_target_distance", outside_from_target_distance, 70);
+    Environment::instance().outside_from_target_distance = outside_from_target_distance;
+
 }
 
 void release() {

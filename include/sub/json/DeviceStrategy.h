@@ -114,4 +114,9 @@ public:
     bool handler(std::string params) override;
 };
 
+class AbnormalStrategy : public MessageStringStrategy {
+public:
+    void handler() override;
+};
+
 #endif//APP_COMMUNICATION_DEVICESTRATEGY_H

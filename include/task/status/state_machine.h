@@ -81,6 +81,7 @@ namespace loop {
         manual_back,//手动返回
         manual_force_back,//手动强制返回基站
         manual_task_over,//手动下达新任务
+        manual_abnormal,//手动异常
         manual_unknown,
     };
 

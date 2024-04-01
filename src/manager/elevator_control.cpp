@@ -91,7 +91,7 @@ void ElevatorControlManager::recordSensorData() {
 }
 
 void ElevatorControlManager::subscribeRawMapCallback(const nav_msgs::OccupancyGrid &msg) {
-    rawOccupancyGrid = msg;
+    normalOccupancyGrid = msg;
 }
 
 void ElevatorControlManager::subscribeLocalMapCallback(const nav_msgs::OccupancyGrid &msg) {
@@ -138,58 +138,7 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
             }
         } else if (flag.data == 1000) {
 
-            auto rawMap = occupancyGridToCvMat(rawOccupancyGrid);
-            auto localMap = occupancyGridToCvMat(localOccupancyGrid);
-            auto globalMap = rawMap.clone();
-
-            geometry_msgs::TransformStamped transformStamped;
-            bool success = getTransform("map", "base_link", transformStamped);
-
-            if (!success) return;
-
-            double originOffsetX =
-                    (localOccupancyGrid.info.origin.position.x - rawOccupancyGrid.info.origin.position.x) /
-                    map_resolution_from_subscription;
-            double originOffsetY =
-                    (localOccupancyGrid.info.origin.position.y - rawOccupancyGrid.info.origin.position.y) /
-                    map_resolution_from_subscription;
-
-            // 将TF变换平移部分也转换为像素并添加到偏移中
-            int offsetX = static_cast<int>(
-                    (transformStamped.transform.translation.x / map_resolution_from_subscription) + originOffsetX);
-            int offsetY = static_cast<int>(
-                    (transformStamped.transform.translation.y / map_resolution_from_subscription) + originOffsetY);
-
-            // 遍历localMap，将其叠加到globalMap上
-            for (int y = 0; y < localMap.rows; ++y) {
-                for (int x = 0; x < localMap.cols; ++x) {
-                    int globalX = offsetX + x;
-                    int globalY = offsetY + y;
-
-                    // 确保不超出globalMap的边界
-                    if (globalX >= 0 && globalX < globalMap.cols &&
-                        globalY >= 0 && globalY < globalMap.rows) {
-                        uchar localValue = localMap.at<uchar>(y, x);
-                        // 这里简单地覆盖，根据需要可以进行更复杂的合并策略
-                        globalMap.at<uchar>(globalY, globalX) = localValue;
-                    }
-                }
-            }
-
-            // 将图像顺时针旋转90度
-            cv::rotate(globalMap, globalMap, cv::ROTATE_90_CLOCKWISE);
-            // 翻转图像，0表示沿x轴翻转（垂直翻转）
-            cv::flip(globalMap, globalMap, 0);
-
-            double box = averageIntensityForElevatorInside(globalMap);
-            LOG_IF(INFO, DEBUG_ELEVATOR) << "电梯 Average intensity: " << box;
-            double way = averageIntensityForElevatorWay(globalMap);
-            LOG_IF(INFO, DEBUG_ELEVATOR) << "通道 Average intensity: " << way;
-
-            showMap("rawMap", rawMap);
-            showMap("localMap", localMap);
-            cv::imshow("globalMap", globalMap);
-            cv::waitKey();
+            elevatorInternalInspection();
 
         }
 
@@ -760,9 +709,14 @@ void ElevatorControlManager::arrive_floor_thread_func() {
             LOG_IF(INFO, DEBUG_ELEVATOR)
                             << "ElevatorControlManager pre 模拟已经到达 " << mTargetFloor << " 层 ... ";
             isArrived = true;
+            internalSpatialAnalysisCount = 0;
         }
 
         if (isArrived) {
+
+//            bool result = elevatorInternalInspection();
+
+            internalSpatialAnalysisCount++;
 
             closeLightUp();
             sendDelayedDoorClosing();
@@ -772,6 +726,7 @@ void ElevatorControlManager::arrive_floor_thread_func() {
             mElevatorArrived = true;
             wait_from_cv.notify_one();
             wait_to_cv.notify_one();
+
         }
     }
 }
@@ -1425,7 +1380,7 @@ void ElevatorControlManager::sendDelayedDoorClosing() {
 //    LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 延迟关门 ... ";
     EleProtocol eleProtocol(CMD_DELAYED_DOOR_CLOSING, mElevatorAddress);
     std::vector<uint8_t> data;
-    data.push_back(Environment::instance().maximum_delay_time / 2);
+    data.push_back(Environment::instance().maximum_delay_time * 3 / 4);
     eleProtocol.setData(data);
     eleProtocol.setAddress(mElevatorAddress);
     sendAsyncMessage(eleProtocol);
@@ -1517,12 +1472,14 @@ void ElevatorControlManager::closeQueryFloor() {
 }
 
 void ElevatorControlManager::openWaitingArrive(int targetFloor) {
-    recentlyDataLengthSize = 0;
-    mTargetFloor = targetFloor;
-    mElevatorArrived = false;
-    imitateArrivedCount = 0;
-    unseal = true;
-    arrive_cond.notify_one();
+    async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::milliseconds(500), [this, &targetFloor]() {
+        recentlyDataLengthSize = 0;
+        mTargetFloor = targetFloor;
+        mElevatorArrived = false;
+        imitateArrivedCount = 0;
+        unseal = true;
+        arrive_cond.notify_one();
+    });
 }
 
 void ElevatorControlManager::closeWaitingArrive() {
@@ -1695,10 +1652,10 @@ bool ElevatorControlManager::getTransform(const std::string &target_frame, const
     }
 }
 
-cv::Mat ElevatorControlManager::occupancyGridToCvMat(const nav_msgs::OccupancyGrid &map) {
+cv::Mat ElevatorControlManager::occupancyGridToCvMat(const nav_msgs::OccupancyGrid &occupancyGrid) {
     // 地图的宽度和高度
-    int width = map.info.width;
-    int height = map.info.height;
+    int width = occupancyGrid.info.width;
+    int height = occupancyGrid.info.height;
     // 创建一个单通道的8位图像
     cv::Mat mat(height, width, CV_8UC1);
     // 遍历地图数据，填充图像
@@ -1708,7 +1665,7 @@ cv::Mat ElevatorControlManager::occupancyGridToCvMat(const nav_msgs::OccupancyGr
             int index = i * width + j;
 
             // 获取当前单元格的占用信息
-            int8_t value = map.data[index];
+            int8_t value = occupancyGrid.data[index];
 
             // 将占用概率映射到灰度值
             if (value == -1) // 未知区域视为不可通行，给予黑色
@@ -1717,7 +1674,7 @@ cv::Mat ElevatorControlManager::occupancyGridToCvMat(const nav_msgs::OccupancyGr
             } else {
                 // 可通行性越高，颜色越接近白色
                 // 由于占用概率越高表示越不可通行，我们需要将其反转
-                uchar scaled_value = static_cast<uchar>(255 - 2.55 * value);
+                auto scaled_value = static_cast<uchar>(255 - 2.55 * value);
                 mat.at<uchar>(i, j) = scaled_value;
             }
         }
@@ -1726,8 +1683,65 @@ cv::Mat ElevatorControlManager::occupancyGridToCvMat(const nav_msgs::OccupancyGr
     return mat;
 }
 
+cv::Mat ElevatorControlManager::localMapTransformGlobal(const cv::Mat benchmarkMap, const cv::Mat &localMap) {
+    geometry_msgs::TransformStamped transformStamped;
+    bool success = getTransform("map", "base_link", transformStamped);
+
+    if (!success)
+        throw std::runtime_error("map to base_link error.");
+
+    // 首先，根据TF变换计算旋转角度
+    tf2::Quaternion q(
+            transformStamped.transform.rotation.x,
+            transformStamped.transform.rotation.y,
+            transformStamped.transform.rotation.z,
+            transformStamped.transform.rotation.w
+    );
+    double roll, pitch, yaw;
+    tf2::Matrix3x3 m(q);
+    m.getRPY(roll, pitch, yaw); // Convert to Euler angles
+
+    // 旋转localMap
+    cv::Point2f center(localMap.cols / 2.0, localMap.rows / 2.0);
+    cv::Mat rotMatrix = cv::getRotationMatrix2D(center, yaw * 180.0 / CV_PI, 1.0); // Convert yaw to degrees
+    cv::Mat rotatedLocalMap;
+    cv::warpAffine(localMap, rotatedLocalMap, rotMatrix, localMap.size());
+
+    geometry_msgs::Pose robotPosition = MapAttributeSingleton::instance().getRobotCompletePosition();
+
+    // 计算平移
+    double originOffsetX =
+            (transformStamped.transform.translation.x + localOccupancyGrid.info.origin.position.x -
+             normalOccupancyGrid.info.origin.position.x - robotPosition.position.x)
+            / map_resolution_from_subscription;
+    double originOffsetY =
+            (transformStamped.transform.translation.y + localOccupancyGrid.info.origin.position.y -
+             normalOccupancyGrid.info.origin.position.y - robotPosition.position.y)
+            / map_resolution_from_subscription;
+    int offsetX = static_cast<int>(originOffsetX);
+    int offsetY = static_cast<int>(originOffsetY);
+
+    cv::Mat whiteMap = cv::Mat::ones(benchmarkMap.size(), CV_8UC1) * 255;
+
+    for (int y = 0; y < localMap.rows; ++y) {
+        for (int x = 0; x < localMap.cols; ++x) {
+            uchar value = localMap.at<uchar>(y, x);
+            // 假设障碍物阈值为125，可以根据实际情况调整
+            if (value < 125) {
+                int globalX = offsetX + x; // offsetX和offsetY是localMap相对于whiteMap的偏移
+                int globalY = offsetY + y;
+                if (globalX >= 0 && globalX < whiteMap.cols && globalY >= 0 && globalY < whiteMap.rows) {
+                    whiteMap.at<uchar>(globalY, globalX) = 0; // 将障碍物设置为黑色
+                }
+            }
+        }
+    }
+    return whiteMap;
+}
+
 void ElevatorControlManager::showMap(const cv::String &winname, cv::Mat mat) {
     auto show = mat.clone();
+//    cv::resize(show, show, cv::Size(), 0.5, 0.5, cv::INTER_LINEAR);
     // 将图像顺时针旋转90度
     cv::rotate(show, show, cv::ROTATE_90_CLOCKWISE);
     // 翻转图像，0表示沿x轴翻转（垂直翻转）
@@ -1736,35 +1750,7 @@ void ElevatorControlManager::showMap(const cv::String &winname, cv::Mat mat) {
     cv::waitKey();
 }
 
-double ElevatorControlManager::averageIntensityForElevatorInside(const cv::Mat &image) {
-    auto mapPo = SegmentationDataBase::instance().getDbMap();
-
-    // 定义源四边形的四个顶点(按照左上，右上，右下，左下的顺序)
-    std::vector<cv::Point> srcPoints;
-    srcPoints.emplace_back(mapPo.p1x, mapPo.p1y); // 第一个点的坐标
-    srcPoints.emplace_back(mapPo.p2x, mapPo.p2y); // 第二个点的坐标
-    srcPoints.emplace_back(mapPo.p3x, mapPo.p3y); // 第三个点的坐标
-    srcPoints.emplace_back(mapPo.p4x, mapPo.p4y); // 第四个点的坐标
-
-    // 创建一个与原图像大小相同的掩膜，初始值为0
-    cv::Mat mask = cv::Mat::zeros(image.size(), CV_8UC1);
-    // 根据多边形顶点填充掩膜，255表示选中的区域
-    std::vector<std::vector<cv::Point>> pts{srcPoints};
-    cv::fillPoly(mask, pts, cv::Scalar(255));
-    // 应用掩膜
-    cv::Mat maskedImage;
-    image.copyTo(maskedImage, mask);
-    // 计算平均值
-    cv::Scalar averageIntensity = cv::mean(image, mask);
-
-//    // 显示结果（如果需要）
-//    cv::imshow("Masked Image", maskedImage);
-//    cv::waitKey(0);
-
-    return averageIntensity[0];
-}
-
-double ElevatorControlManager::averageIntensityForElevatorWay(const cv::Mat &image) {
+cv::Point ElevatorControlManager::midpointElevator(const cv::Mat &image) {
     // 定义两个点
     auto build_robot_position = MapAttributeSingleton::instance().getRobotPositionPoint(image);
 
@@ -1791,6 +1777,41 @@ double ElevatorControlManager::averageIntensityForElevatorWay(const cv::Mat &ima
 
     // 打印中心点坐标
     LOG_IF(INFO, DEBUG_ELEVATOR) << "Center Point: " << centerPoint;
+    return centerPoint;
+}
+
+double ElevatorControlManager::averageIntensityForElevatorInside(const cv::Mat &image) {
+    auto mapPo = SegmentationDataBase::instance().getDbMap();
+
+    // 定义源四边形的四个顶点(按照左上，右上，右下，左下的顺序)
+    std::vector<cv::Point> srcPoints;
+    srcPoints.emplace_back(mapPo.p1x, mapPo.p1y); // 第一个点的坐标
+    srcPoints.emplace_back(mapPo.p2x, mapPo.p2y); // 第二个点的坐标
+    srcPoints.emplace_back(mapPo.p3x, mapPo.p3y); // 第三个点的坐标
+    srcPoints.emplace_back(mapPo.p4x, mapPo.p4y); // 第四个点的坐标
+
+    // 创建一个与原图像大小相同的掩膜，初始值为0
+    cv::Mat mask = cv::Mat::zeros(image.size(), CV_8UC1);
+    // 根据多边形顶点填充掩膜，255表示选中的区域
+    std::vector<std::vector<cv::Point>> pts{srcPoints};
+    cv::fillPoly(mask, pts, cv::Scalar(255));
+    // 应用掩膜
+    cv::Mat maskedImage;
+    image.copyTo(maskedImage, mask);
+    // 计算平均值
+    cv::Scalar averageIntensity = cv::mean(image, mask);
+
+    // 显示结果（如果需要）
+//    cv::resize(maskedImage, maskedImage, cv::Size(), 0.5, 0.5, cv::INTER_LINEAR);
+//    cv::imshow("Inside Image", maskedImage);
+//    cv::waitKey(0);
+
+    return averageIntensity[0];
+}
+
+double ElevatorControlManager::averageIntensityForElevatorWay(const cv::Mat &image, cv::Point &midpoint) {
+
+    auto build_robot_position = MapAttributeSingleton::instance().getRobotPositionPoint(image);
 
     auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
     double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//0.565685 网格正方形的边长
@@ -1802,7 +1823,7 @@ double ElevatorControlManager::averageIntensityForElevatorWay(const cv::Mat &ima
     cv::Mat mask = cv::Mat::zeros(image.size(), CV_8UC1);
 
     // 在掩膜上绘制线段
-    cv::line(mask, build_robot_position, centerPoint, cv::Scalar(255), lineWidth, cv::LINE_8);
+    cv::line(mask, build_robot_position, midpoint, cv::Scalar(255), lineWidth, cv::LINE_8);
 
     // 应用掩膜
     cv::Mat maskedImage;
@@ -1811,8 +1832,9 @@ double ElevatorControlManager::averageIntensityForElevatorWay(const cv::Mat &ima
     // 计算平均值
     cv::Scalar averageIntensity = cv::mean(image, mask);
 
-//    // 显示结果（如果需要）
-//    cv::imshow("Masked Image", maskedImage);
+    // 显示结果（如果需要）
+//    cv::resize(maskedImage, maskedImage, cv::Size(), 0.5, 0.5, cv::INTER_LINEAR);
+//    cv::imshow("Way Image", maskedImage);
 //    cv::waitKey(0);
 
     return averageIntensity[0];
@@ -1827,6 +1849,61 @@ double ElevatorControlManager::calculateDistance(const geometry_msgs::Pose &pose
     return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
 
+bool ElevatorControlManager::elevatorInternalInspection() {
+    auto normalMap = occupancyGridToCvMat(normalOccupancyGrid);
+    showMap("normalMap", normalMap);
+
+    auto localMap = occupancyGridToCvMat(localOccupancyGrid);
+//            showMap("localMap", localMap);
+
+    auto adapterMap = localMapTransformGlobal(normalMap, localMap);
+    showMap("adapterMap", adapterMap);
+
+    cv::Mat globalMap;
+    cv::bitwise_and(normalMap, adapterMap, globalMap);
+    showMap("globalMap", globalMap);
+
+    // 将图像顺时针旋转90度
+    cv::rotate(globalMap, globalMap, cv::ROTATE_90_CLOCKWISE);
+    // 翻转图像，0表示沿x轴翻转（垂直翻转）
+    cv::flip(globalMap, globalMap, 0);
+
+    double box = averageIntensityForElevatorInside(globalMap);
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "电梯 Average intensity: " << box;
+    auto centerPoint = midpointElevator(globalMap);
+    double way = averageIntensityForElevatorWay(globalMap, centerPoint);
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "通道 Average intensity: " << way;
+
+    auto build_robot_position = MapAttributeSingleton::instance().getRobotPositionPoint(globalMap);
+
+    auto show_map = globalMap.clone();
+    cv::circle(show_map, centerPoint, 3, cv::Scalar(150), CV_FILLED);
+    cv::circle(show_map, build_robot_position, 3, cv::Scalar(150), CV_FILLED);
+    cv::imshow("show_map", show_map);
+    cv::waitKey();
+
+
+    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+
+    auto original_map = globalMap.clone();
+    cv::Mat downsampled_map;
+    path_planner_.downsampleMap(original_map, downsampled_map, 1.0, plan.robot_radius,
+                                map_resolution_from_subscription);
+    cv::imshow("downsampled_map", downsampled_map);
+    cv::waitKey();
+
+    std::vector<cv::Point> current_path;
+    double length = path_planner_.planPath(original_map, downsampled_map,
+                                           build_robot_position, centerPoint, 1.0, plan.robot_radius,
+                                           map_resolution_from_subscription, 0, nullptr, &current_path);
+
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "astar * length : " << length;
+    if (length > 1e90) {
+        return false;
+    }
+    return true;
+}
+
 void ElevatorControlManager::initialize(ros::NodeHandle handle) {
 
     // 确保ROS节点已经初始化
@@ -1839,7 +1916,7 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     preState = ElevatorPreState::PRE_NONE;
     postState = ElevatorPostState::POST_NONE;
 
-    subscriberRawMap = handle.subscribe("/raw_map", 10,
+    subscriberRawMap = handle.subscribe("/map"/*"/raw_map"*/, 10,
                                         &ElevatorControlManager::subscribeRawMapCallback, this);
     subscriberLocalMap = handle.subscribe("/move_base/local_costmap/costmap", 10,
                                           &ElevatorControlManager::subscribeLocalMapCallback, this);
@@ -2220,10 +2297,16 @@ void ElevatorControlManager::completePreCirculation(const bool arrive) {
         targetPose.orientation.w = targetPoint.realOrientation.w;
 
         double distance = calculateDistance(currentRobotPose, targetPose);
-        LOG_IF(INFO, DEBUG_ELEVATOR)
-                        << "ElevatorControlManager pre The distance between the two points is: " << distance;
 
-        bool reconfirm = arrive;
+        bool reconfirm = false;
+        if (arrive) {
+            if (distance * 100 < Environment::instance().outside_from_target_distance) {
+                reconfirm = true;
+            } else {
+                LOG_IF(INFO, DEBUG_ELEVATOR)
+                                << "ElevatorControlManager pre The distance between the two points is: " << distance;
+            }
+        }
 
         if (reconfirm) {
             if (conventionRetryMechanism.preAdjustmentFrequency <
@@ -2281,10 +2364,16 @@ void ElevatorControlManager::completePostCirculation(const bool arrive) {
         targetPose.orientation.w = targetPoint.realOrientation.w;
 
         double distance = calculateDistance(currentRobotPose, targetPose);
-        LOG_IF(INFO, DEBUG_ELEVATOR)
-                        << "ElevatorControlManager post The distance between the two points is: " << distance;
 
-        bool reconfirm = arrive;
+        bool reconfirm = false;
+        if (arrive) {
+            if (distance * 100 < Environment::instance().outside_from_target_distance) {
+                reconfirm = true;
+            } else {
+                LOG_IF(INFO, DEBUG_ELEVATOR)
+                                << "ElevatorControlManager post The distance between the two points is: " << distance;
+            }
+        }
 
         if (reconfirm) {
             if (conventionRetryMechanism.postAdjustmentFrequency <

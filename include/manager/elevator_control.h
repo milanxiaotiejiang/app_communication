@@ -52,6 +52,7 @@
 #include "future/thread_pool.h"
 #include "task/RealBlock.h"
 #include "alignment/ele_protocol.h"
+#include "exploration/A_star_pathplanner.h"
 
 #include <boost/asio.hpp>
 #include <queue>
@@ -433,13 +434,17 @@ private:
     ConventionRetryMechanism conventionRetryMechanism;
     ErrorRetryMechanism errorRetryMechanism;
 
-    nav_msgs::OccupancyGrid rawOccupancyGrid;
+    nav_msgs::OccupancyGrid normalOccupancyGrid;
     nav_msgs::OccupancyGrid localOccupancyGrid;
 
     bool suspendLightUp;
 
     std::unique_ptr<tf2_ros::Buffer> tfBuffer;
     std::unique_ptr<tf2_ros::TransformListener> tfListener;
+
+    AStarPlanner path_planner_;
+
+    int internalSpatialAnalysisCount;
 
 private:
 
@@ -539,15 +544,21 @@ private:
     bool getTransform(const std::string &target_frame, const std::string &source_frame,
                       geometry_msgs::TransformStamped &transform);
 
-    cv::Mat occupancyGridToCvMat(const nav_msgs::OccupancyGrid &map);
+    cv::Mat occupancyGridToCvMat(const nav_msgs::OccupancyGrid &occupancyGrid);
+
+    cv::Mat localMapTransformGlobal(const cv::Mat benchmarkMap, const cv::Mat &localMap);
 
     void showMap(const cv::String &winname, cv::Mat mat);
 
+    cv::Point midpointElevator(const cv::Mat &image);
+
     double averageIntensityForElevatorInside(const cv::Mat &image);
 
-    double averageIntensityForElevatorWay(const cv::Mat &image);
+    double averageIntensityForElevatorWay(const cv::Mat &image, cv::Point &midpoint);
 
     double calculateDistance(const geometry_msgs::Pose &pose1, const geometry_msgs::Pose &pose2);
+
+    bool elevatorInternalInspection();
 
 public:
     void initialize(ros::NodeHandle handle);

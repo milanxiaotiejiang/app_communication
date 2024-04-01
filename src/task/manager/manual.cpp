@@ -63,3 +63,7 @@ std::vector<PointProgressVo> ManualManager::runTaskPointList() {
 void ManualManager::restore() {
     asyncTaskCall->restore();
 }
+
+void ManualManager::abnormal() {
+    asyncTaskCall->abnormal();
+}

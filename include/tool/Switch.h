@@ -203,6 +203,8 @@ enum MESSAGE_ID {
 
     SEWAGE_PUMP_SWITCH,
 
+    ABNORMAL,
+
     TT_ELEVATOR,
 
     ID_MESSGAE_MAX_, //枚举类型中未定义的值会比前一个值大1

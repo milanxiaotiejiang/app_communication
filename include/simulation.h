@@ -105,6 +105,8 @@ public:
     int pre_circulation_error_retry_timeout{30000};
     int post_circulation_error_retry_timeout{30000};
 
+    int outside_from_target_distance{10};
+
     static bool will() {
         return (rand() % 10) > 5;
     }
