@@ -43,7 +43,6 @@ public:
 class SewagePumpSwitchStrategy : public MessageStrategy<bool, std::string> {
 public:
     std::string handler(bool params) override;
-
 };
 
 #endif //APP_COMMUNICATION_MATERIALSTRATEGY_H
