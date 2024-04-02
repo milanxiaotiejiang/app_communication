@@ -484,6 +484,10 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<int>("post_elevator_in_error_retry_timeout", post_elevator_in_error_retry_timeout, 30 * 1000);
     Environment::instance().post_elevator_in_error_retry_timeout = post_elevator_in_error_retry_timeout;
 
+    double inner_white_pixel_ratio;
+    nh.param<double>("inner_white_pixel_ratio", inner_white_pixel_ratio, 0.5);
+    Environment::instance().inner_white_pixel_ratio = inner_white_pixel_ratio;
+
 }
 
 void release() {

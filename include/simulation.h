@@ -113,6 +113,8 @@ public:
     int pre_elevator_in_error_retry_timeout{30000};
     int post_elevator_in_error_retry_timeout{30000};
 
+    double inner_white_pixel_ratio{0.5};
+
     static bool will() {
         return (rand() % 10) > 5;
     }

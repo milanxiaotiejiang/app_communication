@@ -62,6 +62,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <costmap_2d/costmap_2d_ros.h>
 #include <sensor_msgs/LaserScan.h>
+#include <tf/transform_listener.h>
 
 const unsigned char CMD_LIGHT_UP_TARGET_FLOOR = 0x60;//MessageIdEnum::LIGHTING_UP_THE_ELEVATOR
 const unsigned char CMD_QUERY_FLOOR_WHERE_LOCATED = 0x61;
@@ -444,6 +445,7 @@ private:
 
     std::unique_ptr<tf2_ros::Buffer> tfBuffer;
     std::unique_ptr<tf2_ros::TransformListener> tfListener;
+    std::shared_ptr<tf::TransformListener> listener_;
 
     AStarPlanner path_planner_;
 
@@ -562,6 +564,9 @@ private:
     double averageIntensityForElevatorWay(const cv::Mat &image, cv::Point &midpoint);
 
     double calculateDistance(const geometry_msgs::Pose &pose1, const geometry_msgs::Pose &pose2);
+
+    cv::Point
+    calculateExtendedLineEndPoint(const cv::Point &center, const cv::Point &target, const cv::Size &imageSize);
 
     bool elevatorInternalInspection();
 

@@ -64,3 +64,5 @@ post_elevator_in_error_retry_count_max: 2
 
 pre_elevator_in_error_retry_timeout: 10000
 post_elevator_in_error_retry_timeout: 10000
+
+inner_white_pixel_ratio: 0.5

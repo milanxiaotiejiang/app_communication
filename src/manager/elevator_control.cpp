@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <costmap_2d/costmap_2d_ros.h>
 #include <tf2_ros/transform_listener.h>
+#include <sensor_msgs/PointCloud2.h>
 
 /**
   - 进电梯外点位（呼梯点被占用，参考“摆渡点不可达异常”）
@@ -1891,6 +1892,56 @@ double ElevatorControlManager::calculateDistance(const geometry_msgs::Pose &pose
     return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
 
+cv::Point ElevatorControlManager::calculateExtendedLineEndPoint(const cv::Point &center, const cv::Point &target,
+                                                                const cv::Size &imageSize) {
+    // 检查是否为垂直线段
+    if (center.x == target.x) {
+        // 垂直线段，根据目标点在中心点上方还是下方决定延伸方向
+        if (target.y > center.y) {
+            return cv::Point(center.x, imageSize.height); // 向下延伸至底部边界
+        } else {
+            return cv::Point(center.x, 0); // 向上延伸至顶部边界
+        }
+    } else {
+        // 非垂直线段，计算斜率和截距
+        float slope = float(target.y - center.y) / (target.x - center.x);
+        float intercept = center.y - slope * center.x;
+
+        // 计算与图像左右边界的交点
+        int yAtLeft = slope * 0 + intercept;
+        int yAtRight = slope * imageSize.width + intercept;
+
+        // 根据目标点在中心点左侧还是右侧决定延伸方向
+        if (target.x > center.x) {
+            // 延伸至右侧边界
+            if (yAtRight >= 0 && yAtRight <= imageSize.height) {
+                return cv::Point(imageSize.width, yAtRight);
+            }
+        } else {
+            // 延伸至左侧边界
+            if (yAtLeft >= 0 && yAtLeft <= imageSize.height) {
+                return cv::Point(0, yAtLeft);
+            }
+        }
+
+        // 对于斜率接近垂直的线段，计算与上下边界的交点
+        if (slope != 0) {
+            int xAtTop = (0 - intercept) / slope;
+            int xAtBottom = (imageSize.height - intercept) / slope;
+            if (target.y > center.y) {
+                // 延伸至底部边界
+                return cv::Point(xAtBottom, imageSize.height);
+            } else {
+                // 延伸至顶部边界
+                return cv::Point(xAtTop, 0);
+            }
+        }
+    }
+
+    // 如果所有条件都不满足（理论上不应该发生），则默认返回目标点
+    return target;
+}
+
 bool ElevatorControlManager::elevatorInternalInspection() {
     auto normalMap = occupancyGridToCvMat(normalOccupancyGrid);
     showMap("normalMap", normalMap);
@@ -1950,124 +2001,91 @@ bool ElevatorControlManager::elevatorInternalInspection2() {
     auto normalMap = occupancyGridToCvMat(normalOccupancyGrid);
 //    showMap("normalMap", normalMap);
 
-    double MAP_ORIGIN_X = normalOccupancyGrid.info.origin.position.x;
-    double MAP_ORIGIN_Y = normalOccupancyGrid.info.origin.position.y;
-    float MAP_RESOLUTION = normalOccupancyGrid.info.resolution;
-    int MAP_WIDTH = normalOccupancyGrid.info.width;
-    int MAP_HEIGHT = normalOccupancyGrid.info.height;
-
-
-    auto robot_position = MapAttributeSingleton::instance().getRobotPositionPose();
-    // 首先，转换机器人的位置到地图坐标系中的像素位置
-    int robot_map_x = static_cast<int>((robot_position.x - MAP_ORIGIN_X) / MAP_RESOLUTION);
-    int robot_map_y = static_cast<int>((robot_position.y - MAP_ORIGIN_Y) / MAP_RESOLUTION);
-    cv::Point robot_map_position(robot_map_x, robot_map_y);
-
-    auto map_copy = normalMap.clone();
-
-    for (size_t i = 0; i < laserScan.ranges.size(); ++i) {
-        float range = laserScan.ranges[i];
-        if (range > laserScan.range_min && range < laserScan.range_max) {
-            // 有效范围内的雷达点
-            float angle = laserScan.angle_min + i * laserScan.angle_increment;
-
-            // 雷达点的世界坐标
-            float radar_world_x = robot_position.x + range * cos(angle);
-            float radar_world_y = robot_position.y + range * sin(angle);
-
-            // 转换雷达点到地图坐标系中的像素位置
-            int radar_map_x = static_cast<int>((radar_world_x - MAP_ORIGIN_X) / MAP_RESOLUTION);
-            int radar_map_y = static_cast<int>((radar_world_y - MAP_ORIGIN_Y) / MAP_RESOLUTION);
-
-            // 绘制机器人到雷达点的白色线段
-            cv::line(map_copy, robot_map_position, cv::Point(radar_map_x, radar_map_y), cv::Scalar(255, 255, 255), 1);
-
-            // 绘制雷达点（使用绿色标记雷达点）
-            cv::circle(map_copy, cv::Point(radar_map_x, radar_map_y), 2, cv::Scalar(0, 255, 0), -1);
-
-            // 雷达最远观测范围的点在世界坐标系中的位置（用于绘制延长线）
-            float far_world_x = robot_position.x + laserScan.range_max * cos(angle);
-            float far_world_y = robot_position.y + laserScan.range_max * sin(angle);
-
-            // 转换到地图坐标系中的像素位置
-            int far_map_x = static_cast<int>((far_world_x - MAP_ORIGIN_X) / MAP_RESOLUTION);
-            int far_map_y = static_cast<int>((far_world_y - MAP_ORIGIN_Y) / MAP_RESOLUTION);
-
-            // 绘制雷达点到边界的黑色延长线
-            cv::line(map_copy, cv::Point(radar_map_x, radar_map_y), cv::Point(far_map_x, far_map_y),
-                     cv::Scalar(0, 0, 0), 1);
-        }
-    }
-
-
-    // 显示图像
-    showMap("map_copy", map_copy);
-
+    auto baseMap = normalMap.clone();
     // 将图像顺时针旋转90度
-    cv::rotate(map_copy, map_copy, cv::ROTATE_90_CLOCKWISE);
+    cv::rotate(baseMap, baseMap, cv::ROTATE_90_CLOCKWISE);
     // 翻转图像，0表示沿x轴翻转（垂直翻转）
-    cv::flip(map_copy, map_copy, 0);
+    cv::flip(baseMap, baseMap, 0);
+
+    auto robot_point = MapAttributeSingleton::instance().getRobotPositionPoint(baseMap);
+
+    try {
+        for (unsigned int i = 0; i < laserScan.ranges.size(); ++i) {
+            // 计算每个点的角度
+            double angle = laserScan.angle_min + i * laserScan.angle_increment;
+            double dist = laserScan.ranges[i];
+
+            // 忽略无效测量值
+            if (dist < laserScan.range_min || dist > laserScan.range_max) continue;
+
+            // 在雷达坐标系中计算点的位置
+            geometry_msgs::PointStamped laser_point;
+            laser_point.header.frame_id = laserScan.header.frame_id;
+            laser_point.header.stamp = laserScan.header.stamp;
+            laser_point.point.x = dist * cos(angle);
+            laser_point.point.y = dist * sin(angle);
+            laser_point.point.z = 0;
+
+            // 转换点到地图坐标系
+            geometry_msgs::PointStamped map_point;
+            listener_->transformPoint("map", laser_point, map_point);
+
+            auto radar_point = MapAttributeSingleton::instance()
+                    .rosPoint2MapPoint(baseMap, Point(map_point.point.x, map_point.point.y));
+            cv::circle(baseMap, cv::Point(radar_point), 2, cv::Scalar(128), -1);
+
+            cv::Point boundaryPoint = calculateExtendedLineEndPoint(robot_point, radar_point, baseMap.size());
+            cv::line(baseMap, radar_point, boundaryPoint, cv::Scalar(0), 1);
+
+        }
+
+        cv::imshow("baseMap", baseMap);
+        cv::waitKey();
 
 
-    auto mapPo = SegmentationDataBase::instance().getDbMap();
+        auto mapPo = SegmentationDataBase::instance().getDbMap();
 
-    // 定义源四边形的四个顶点(按照左上，右上，右下，左下的顺序)
-    std::vector<cv::Point> srcPoints;
-    srcPoints.emplace_back(mapPo.p1x, mapPo.p1y); // 第一个点的坐标
-    srcPoints.emplace_back(mapPo.p2x, mapPo.p2y); // 第二个点的坐标
-    srcPoints.emplace_back(mapPo.p3x, mapPo.p3y); // 第三个点的坐标
-    srcPoints.emplace_back(mapPo.p4x, mapPo.p4y); // 第四个点的坐标
+        // 定义源四边形的四个顶点(按照左上，右上，右下，左下的顺序)
+        std::vector<cv::Point> srcPoints;
+        srcPoints.emplace_back(mapPo.p1x, mapPo.p1y); // 第一个点的坐标
+        srcPoints.emplace_back(mapPo.p2x, mapPo.p2y); // 第二个点的坐标
+        srcPoints.emplace_back(mapPo.p3x, mapPo.p3y); // 第三个点的坐标
+        srcPoints.emplace_back(mapPo.p4x, mapPo.p4y); // 第四个点的坐标
 
-    // 创建与原图相同大小的空掩模
-    cv::Mat mask = cv::Mat::zeros(map_copy.size(), CV_8UC1);
+        // 创建与原图相同大小的空掩模
+        cv::Mat mask = cv::Mat::zeros(baseMap.size(), CV_8UC1);
 
-    // 在掩模上绘制填充的多边形，内部为255
-    const cv::Point *ppt[1] = {&srcPoints[0]};
-    int npt[] = {static_cast<int>(srcPoints.size())};
-    cv::fillPoly(mask, ppt, npt, 1, cv::Scalar(255));
+        // 在掩模上绘制填充的多边形，内部为255
+        const cv::Point *ppt[1] = {&srcPoints[0]};
+        int npt[] = {static_cast<int>(srcPoints.size())};
+        cv::fillPoly(mask, ppt, npt, 1, cv::Scalar(255));
 
-    // 使用掩模保留多边形区域内的像素，其他部分设置为0
-    cv::Mat elevatorMap;
-    map_copy.copyTo(elevatorMap, mask);
+        // 使用掩模保留多边形区域内的像素，其他部分设置为0
+        cv::Mat elevatorMap;
+        baseMap.copyTo(elevatorMap, mask);
 
-    cv::imshow("elevatorMap", elevatorMap);
-    cv::waitKey();
+        cv::imshow("elevatorMap", elevatorMap);
+        cv::waitKey();
 
-    // 计算多边形区域的面积
-    double area = cv::contourArea(srcPoints);
+        // 计算多边形区域的面积
+        double area = cv::contourArea(srcPoints);
 
-    // 使用掩模统计多边形区域内的白色像素数量
-    cv::Mat whitePixels;
-    cv::inRange(elevatorMap, cv::Scalar(255), cv::Scalar(255), whitePixels); // 适用于单通道图像
-    int whiteCount = cv::countNonZero(whitePixels);
+        // 使用掩模统计多边形区域内的白色像素数量
+        cv::Mat whitePixels;
+        cv::inRange(elevatorMap, cv::Scalar(255), cv::Scalar(255), whitePixels); // 适用于单通道图像
+        int whiteCount = cv::countNonZero(whitePixels);
 
-    // 计算白色像素占多边形区域的比例
-    double whiteRatio = static_cast<double>(whiteCount) / area;
+        // 计算白色像素占多边形区域的比例
+        double whiteRatio = static_cast<double>(whiteCount) / area;
 
-    // 输出比例
-    LOG_IF(INFO, DEBUG_ELEVATOR) << "White pixel ratio: " << whiteRatio;
+        // 输出比例
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "White pixel ratio: " << whiteRatio;
 
-//    auto centerPoint = midpointElevator();
-////    cv::circle(globalMap, centerPoint, 3, cv::Scalar(150), CV_FILLED);
-////    cv::circle(globalMap, build_robot_position, 3, cv::Scalar(150), CV_FILLED);
-//
-//    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
-//
-//    auto original_map = globalMap.clone();
-//    cv::Mat downsampled_map;
-//    path_planner_.downsampleMap(original_map, downsampled_map, 1.0, plan.robot_radius,
-//                                map_resolution_from_subscription);
-//
-//    std::vector<cv::Point> current_path;
-//    double length = path_planner_.planPath(original_map, downsampled_map,
-//                                           build_robot_position, centerPoint, 1.0, plan.robot_radius,
-//                                           map_resolution_from_subscription, 0, nullptr, &current_path);
-//
-//    LOG_IF(INFO, DEBUG_ELEVATOR) << "astar * length : " << length;
-//    if (length > 1e90) {
-//        return false;
-//    }
-    return true;
+        return whiteRatio > Environment::instance().inner_white_pixel_ratio;
+    } catch (tf::TransformException &ex) {
+        ROS_WARN("Transformation error: %s", ex.what());
+        return false;
+    }
 }
 
 void ElevatorControlManager::initialize(ros::NodeHandle handle) {
@@ -2075,6 +2093,7 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
     // 确保ROS节点已经初始化
     tfBuffer = std::make_unique<tf2_ros::Buffer>();
     tfListener = std::make_unique<tf2_ros::TransformListener>(*tfBuffer);
+    listener_ = std::make_shared<tf::TransformListener>();
 
     interruptAccessElevators();
     pool_.setNumOfThreads(4);
