@@ -61,6 +61,7 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 #include <costmap_2d/costmap_2d_ros.h>
+#include <sensor_msgs/LaserScan.h>
 
 const unsigned char CMD_LIGHT_UP_TARGET_FLOOR = 0x60;//MessageIdEnum::LIGHTING_UP_THE_ELEVATOR
 const unsigned char CMD_QUERY_FLOOR_WHERE_LOCATED = 0x61;
@@ -321,6 +322,7 @@ private:
 
     ros::Subscriber subscriberRawMap;
     ros::Subscriber subscriberLocalMap;
+    ros::Subscriber subscriberScan;
     ros::Subscriber subscriberOdom;
     ros::Subscriber subscriberImu;
     ros::Publisher publisherCmdVel;
@@ -436,6 +438,7 @@ private:
 
     nav_msgs::OccupancyGrid normalOccupancyGrid;
     nav_msgs::OccupancyGrid localOccupancyGrid;
+    sensor_msgs::LaserScan laserScan;
 
     bool suspendLightUp;
 
@@ -459,6 +462,8 @@ private:
     void subscribeRawMapCallback(const nav_msgs::OccupancyGrid &msg);
 
     void subscribeLocalMapCallback(const nav_msgs::OccupancyGrid &msg);
+
+    void subscribeScanCallback(const sensor_msgs::LaserScan &msg);
 
     void subscribeOdomCallback(const nav_msgs::Odometry &msg);
 
@@ -550,7 +555,7 @@ private:
 
     void showMap(const cv::String &winname, cv::Mat mat);
 
-    cv::Point midpointElevator(const cv::Mat &image);
+    cv::Point midpointElevator();
 
     double averageIntensityForElevatorInside(const cv::Mat &image);
 
@@ -559,6 +564,8 @@ private:
     double calculateDistance(const geometry_msgs::Pose &pose1, const geometry_msgs::Pose &pose2);
 
     bool elevatorInternalInspection();
+
+    bool elevatorInternalInspection2();
 
 public:
     void initialize(ros::NodeHandle handle);

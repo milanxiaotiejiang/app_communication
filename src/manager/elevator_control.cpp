@@ -98,6 +98,10 @@ void ElevatorControlManager::subscribeLocalMapCallback(const nav_msgs::Occupancy
     localOccupancyGrid = msg;
 }
 
+void ElevatorControlManager::subscribeScanCallback(const sensor_msgs::LaserScan &msg) {
+    laserScan = msg;
+}
+
 void ElevatorControlManager::subscribeOdomCallback(const nav_msgs::Odometry &odometry) {
     elevatorSensor.odom_x = odometry.pose.pose.position.x;
     elevatorSensor.odom_y = odometry.pose.pose.position.y;
@@ -138,7 +142,8 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
             }
         } else if (flag.data == 1000) {
 
-            elevatorInternalInspection();
+//            elevatorInternalInspection();
+            elevatorInternalInspection2();
 
         }
 
@@ -715,17 +720,29 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         if (isArrived) {
 
 //            bool result = elevatorInternalInspection();
+            bool result = elevatorInternalInspection2();
+
+            if (result) {
+                closeLightUp();
+                sendDelayedDoorClosing();
+//                waitDelayClosingDoor();
+                recentlyDataLengthSize = 0;
+                unseal = false;
+                mElevatorArrived = true;
+                wait_from_cv.notify_one();
+                wait_to_cv.notify_one();
+            } else {
+                if (internalSpatialAnalysisCount > 5) {
+                    recentlyDataLengthSize = 0;
+                    unseal = false;
+                    mElevatorArrived = false;
+                    wait_from_cv.notify_one();
+                    wait_to_cv.notify_one();
+                }
+            }
 
             internalSpatialAnalysisCount++;
 
-            closeLightUp();
-            sendDelayedDoorClosing();
-            waitDelayClosingDoor();
-            recentlyDataLengthSize = 0;
-            unseal = false;
-            mElevatorArrived = true;
-            wait_from_cv.notify_one();
-            wait_to_cv.notify_one();
 
         }
     }
@@ -778,8 +795,22 @@ void ElevatorControlManager::arrive_floor_thread_func() {
                 }
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PreElevatorInError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控前期-进入电梯错误 ... ";
-                mElevatorMovementCallback(false);
-                callbackElevatorPre(elevatorError);
+                if (errorRetryMechanism.preElevatorInErrorRetryCount <
+                    Environment::instance().pre_elevator_in_error_retry_count_max) {
+                    errorRetryMechanism.preElevatorInErrorRetryCount++;
+
+                    std::this_thread::sleep_for(
+                            std::chrono::milliseconds(Environment::instance().pre_elevator_in_error_retry_timeout));
+                    elevatorError = NoElevatorError;
+                    conventionRetryMechanism.reset();
+
+                    preState = ElevatorPreState::PRE_ELEVATOR_IN;
+                    reprocess = true;
+                    pre_condition_variable_.notify_one();
+                } else {
+                    mElevatorMovementCallback(false);
+                    callbackElevatorPre(elevatorError);
+                }
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PreSwitchMapError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控前期-到电梯外点位错误 ... ";
                 mElevatorMovementCallback(false);
@@ -845,8 +876,22 @@ void ElevatorControlManager::arrive_floor_thread_func() {
                 }
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PostElevatorInError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控后期-进入电梯错误 ... ";
-                mElevatorMovementCallback(false);
-                callbackElevatorPost(elevatorError);
+                if (errorRetryMechanism.postElevatorInErrorRetryCount <
+                    Environment::instance().post_elevator_in_error_retry_count_max) {
+                    errorRetryMechanism.postElevatorInErrorRetryCount++;
+
+                    std::this_thread::sleep_for(
+                            std::chrono::milliseconds(Environment::instance().post_elevator_in_error_retry_timeout));
+                    elevatorError = NoElevatorError;
+                    conventionRetryMechanism.reset();
+
+                    postState = ElevatorPostState::POST_ELEVATOR_IN;
+                    reprocess = true;
+                    post_condition_variable_.notify_one();
+                } else {
+                    mElevatorMovementCallback(false);
+                    callbackElevatorPost(elevatorError);
+                }
             } else if (elevatorError == ElevatorControlManager::ElevatorError::PostSwitchMapError) {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 梯控后期-切换地图错误 ... ";
                 mElevatorMovementCallback(false);
@@ -1750,10 +1795,7 @@ void ElevatorControlManager::showMap(const cv::String &winname, cv::Mat mat) {
     cv::waitKey();
 }
 
-cv::Point ElevatorControlManager::midpointElevator(const cv::Mat &image) {
-    // 定义两个点
-    auto build_robot_position = MapAttributeSingleton::instance().getRobotPositionPoint(image);
-
+cv::Point ElevatorControlManager::midpointElevator() {
     auto mapPo = SegmentationDataBase::instance().getDbMap();
 
     // 定义源四边形的四个顶点(按照左上，右上，右下，左下的顺序)
@@ -1870,7 +1912,7 @@ bool ElevatorControlManager::elevatorInternalInspection() {
 
     double box = averageIntensityForElevatorInside(globalMap);
     LOG_IF(INFO, DEBUG_ELEVATOR) << "电梯 Average intensity: " << box;
-    auto centerPoint = midpointElevator(globalMap);
+    auto centerPoint = midpointElevator();
     double way = averageIntensityForElevatorWay(globalMap, centerPoint);
     LOG_IF(INFO, DEBUG_ELEVATOR) << "通道 Average intensity: " << way;
 
@@ -1904,6 +1946,130 @@ bool ElevatorControlManager::elevatorInternalInspection() {
     return true;
 }
 
+bool ElevatorControlManager::elevatorInternalInspection2() {
+    auto normalMap = occupancyGridToCvMat(normalOccupancyGrid);
+//    showMap("normalMap", normalMap);
+
+    double MAP_ORIGIN_X = normalOccupancyGrid.info.origin.position.x;
+    double MAP_ORIGIN_Y = normalOccupancyGrid.info.origin.position.y;
+    float MAP_RESOLUTION = normalOccupancyGrid.info.resolution;
+    int MAP_WIDTH = normalOccupancyGrid.info.width;
+    int MAP_HEIGHT = normalOccupancyGrid.info.height;
+
+
+    auto robot_position = MapAttributeSingleton::instance().getRobotPositionPose();
+    // 首先，转换机器人的位置到地图坐标系中的像素位置
+    int robot_map_x = static_cast<int>((robot_position.x - MAP_ORIGIN_X) / MAP_RESOLUTION);
+    int robot_map_y = static_cast<int>((robot_position.y - MAP_ORIGIN_Y) / MAP_RESOLUTION);
+    cv::Point robot_map_position(robot_map_x, robot_map_y);
+
+    auto map_copy = normalMap.clone();
+
+    for (size_t i = 0; i < laserScan.ranges.size(); ++i) {
+        float range = laserScan.ranges[i];
+        if (range > laserScan.range_min && range < laserScan.range_max) {
+            // 有效范围内的雷达点
+            float angle = laserScan.angle_min + i * laserScan.angle_increment;
+
+            // 雷达点的世界坐标
+            float radar_world_x = robot_position.x + range * cos(angle);
+            float radar_world_y = robot_position.y + range * sin(angle);
+
+            // 转换雷达点到地图坐标系中的像素位置
+            int radar_map_x = static_cast<int>((radar_world_x - MAP_ORIGIN_X) / MAP_RESOLUTION);
+            int radar_map_y = static_cast<int>((radar_world_y - MAP_ORIGIN_Y) / MAP_RESOLUTION);
+
+            // 绘制机器人到雷达点的白色线段
+            cv::line(map_copy, robot_map_position, cv::Point(radar_map_x, radar_map_y), cv::Scalar(255, 255, 255), 1);
+
+            // 绘制雷达点（使用绿色标记雷达点）
+            cv::circle(map_copy, cv::Point(radar_map_x, radar_map_y), 2, cv::Scalar(0, 255, 0), -1);
+
+            // 雷达最远观测范围的点在世界坐标系中的位置（用于绘制延长线）
+            float far_world_x = robot_position.x + laserScan.range_max * cos(angle);
+            float far_world_y = robot_position.y + laserScan.range_max * sin(angle);
+
+            // 转换到地图坐标系中的像素位置
+            int far_map_x = static_cast<int>((far_world_x - MAP_ORIGIN_X) / MAP_RESOLUTION);
+            int far_map_y = static_cast<int>((far_world_y - MAP_ORIGIN_Y) / MAP_RESOLUTION);
+
+            // 绘制雷达点到边界的黑色延长线
+            cv::line(map_copy, cv::Point(radar_map_x, radar_map_y), cv::Point(far_map_x, far_map_y),
+                     cv::Scalar(0, 0, 0), 1);
+        }
+    }
+
+
+    // 显示图像
+    showMap("map_copy", map_copy);
+
+    // 将图像顺时针旋转90度
+    cv::rotate(map_copy, map_copy, cv::ROTATE_90_CLOCKWISE);
+    // 翻转图像，0表示沿x轴翻转（垂直翻转）
+    cv::flip(map_copy, map_copy, 0);
+
+
+    auto mapPo = SegmentationDataBase::instance().getDbMap();
+
+    // 定义源四边形的四个顶点(按照左上，右上，右下，左下的顺序)
+    std::vector<cv::Point> srcPoints;
+    srcPoints.emplace_back(mapPo.p1x, mapPo.p1y); // 第一个点的坐标
+    srcPoints.emplace_back(mapPo.p2x, mapPo.p2y); // 第二个点的坐标
+    srcPoints.emplace_back(mapPo.p3x, mapPo.p3y); // 第三个点的坐标
+    srcPoints.emplace_back(mapPo.p4x, mapPo.p4y); // 第四个点的坐标
+
+    // 创建与原图相同大小的空掩模
+    cv::Mat mask = cv::Mat::zeros(map_copy.size(), CV_8UC1);
+
+    // 在掩模上绘制填充的多边形，内部为255
+    const cv::Point *ppt[1] = {&srcPoints[0]};
+    int npt[] = {static_cast<int>(srcPoints.size())};
+    cv::fillPoly(mask, ppt, npt, 1, cv::Scalar(255));
+
+    // 使用掩模保留多边形区域内的像素，其他部分设置为0
+    cv::Mat elevatorMap;
+    map_copy.copyTo(elevatorMap, mask);
+
+    cv::imshow("elevatorMap", elevatorMap);
+    cv::waitKey();
+
+    // 计算多边形区域的面积
+    double area = cv::contourArea(srcPoints);
+
+    // 使用掩模统计多边形区域内的白色像素数量
+    cv::Mat whitePixels;
+    cv::inRange(elevatorMap, cv::Scalar(255), cv::Scalar(255), whitePixels); // 适用于单通道图像
+    int whiteCount = cv::countNonZero(whitePixels);
+
+    // 计算白色像素占多边形区域的比例
+    double whiteRatio = static_cast<double>(whiteCount) / area;
+
+    // 输出比例
+    LOG_IF(INFO, DEBUG_ELEVATOR) << "White pixel ratio: " << whiteRatio;
+
+//    auto centerPoint = midpointElevator();
+////    cv::circle(globalMap, centerPoint, 3, cv::Scalar(150), CV_FILLED);
+////    cv::circle(globalMap, build_robot_position, 3, cv::Scalar(150), CV_FILLED);
+//
+//    auto plan = SegmentationDataBase::instance().getDbPlan(SegmentationDataBase::instance().getDbMap().id);
+//
+//    auto original_map = globalMap.clone();
+//    cv::Mat downsampled_map;
+//    path_planner_.downsampleMap(original_map, downsampled_map, 1.0, plan.robot_radius,
+//                                map_resolution_from_subscription);
+//
+//    std::vector<cv::Point> current_path;
+//    double length = path_planner_.planPath(original_map, downsampled_map,
+//                                           build_robot_position, centerPoint, 1.0, plan.robot_radius,
+//                                           map_resolution_from_subscription, 0, nullptr, &current_path);
+//
+//    LOG_IF(INFO, DEBUG_ELEVATOR) << "astar * length : " << length;
+//    if (length > 1e90) {
+//        return false;
+//    }
+    return true;
+}
+
 void ElevatorControlManager::initialize(ros::NodeHandle handle) {
 
     // 确保ROS节点已经初始化
@@ -1920,6 +2086,7 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
                                         &ElevatorControlManager::subscribeRawMapCallback, this);
     subscriberLocalMap = handle.subscribe("/move_base/local_costmap/costmap", 10,
                                           &ElevatorControlManager::subscribeLocalMapCallback, this);
+    subscriberScan = handle.subscribe("/scan", 10, &ElevatorControlManager::subscribeScanCallback, this);
 
     subscriberOdom = handle.subscribe("/odom", 10, &ElevatorControlManager::subscribeOdomCallback, this);
     subscriberImu = handle.subscribe(Environment::instance().isRealEnvironment ? "/imu/data" : "/imu",

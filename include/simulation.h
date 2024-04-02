@@ -107,6 +107,12 @@ public:
 
     int outside_from_target_distance{10};
 
+    int pre_elevator_in_error_retry_count_max{2};
+    int post_elevator_in_error_retry_count_max{2};
+
+    int pre_elevator_in_error_retry_timeout{30000};
+    int post_elevator_in_error_retry_timeout{30000};
+
     static bool will() {
         return (rand() % 10) > 5;
     }

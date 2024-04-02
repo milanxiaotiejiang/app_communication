@@ -58,3 +58,9 @@ pre_circulation_error_retry_timeout: 10000
 post_circulation_error_retry_timeout: 10000
 
 outside_from_target_distance: 10
+
+pre_elevator_in_error_retry_count_max: 2
+post_elevator_in_error_retry_count_max: 2
+
+pre_elevator_in_error_retry_timeout: 10000
+post_elevator_in_error_retry_timeout: 10000

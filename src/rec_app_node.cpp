@@ -470,6 +470,20 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<int>("outside_from_target_distance", outside_from_target_distance, 70);
     Environment::instance().outside_from_target_distance = outside_from_target_distance;
 
+    int pre_elevator_in_error_retry_count_max;
+    nh.param<int>("pre_elevator_in_error_retry_count_max", pre_elevator_in_error_retry_count_max, 2);
+    Environment::instance().pre_elevator_in_error_retry_count_max = pre_elevator_in_error_retry_count_max;
+    int post_elevator_in_error_retry_count_max;
+    nh.param<int>("post_elevator_in_error_retry_count_max", post_elevator_in_error_retry_count_max, 2);
+    Environment::instance().post_elevator_in_error_retry_count_max = post_elevator_in_error_retry_count_max;
+
+    int pre_elevator_in_error_retry_timeout;
+    nh.param<int>("pre_elevator_in_error_retry_timeout", pre_elevator_in_error_retry_timeout, 30 * 1000);
+    Environment::instance().pre_elevator_in_error_retry_timeout = pre_elevator_in_error_retry_timeout;
+    int post_elevator_in_error_retry_timeout;
+    nh.param<int>("post_elevator_in_error_retry_timeout", post_elevator_in_error_retry_timeout, 30 * 1000);
+    Environment::instance().post_elevator_in_error_retry_timeout = post_elevator_in_error_retry_timeout;
+
 }
 
 void release() {
