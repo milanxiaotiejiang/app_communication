@@ -680,15 +680,15 @@ void ElevatorControlManager::arrive_floor_thread_func() {
 
         int cFloor = EleStatus::floorRule(recentlyFloor);
         auto status = EleStatus::parseElevatorStatus(recentlyElevatorStatus);
-//        LOG_IF(INFO, DEBUG_ELEVATOR)
-//                        << "ElevatorControlManager 电梯状态"
-//                        << "  dataSize : " << recentlyDataLengthSize
-//                        << "  floor : " << cFloor
-//                        //                        << "  doorState : " << ElevatorStatus::printDoorState(status.doorState)
-//                        //                        << "  lastDirection : " << ElevatorStatus::printLastDirection(status.lastDirection)
-//                        //                        << "  availability : " << ElevatorStatus::printAvailability(status.availability)
-//                        //                        << "  nextDirection : " << ElevatorStatus::printNextDirection(status.nextDirection)
-//                        << " ... ";
+        LOG_IF(INFO, DEBUG_ELEVATOR)
+                        << "ElevatorControlManager 电梯状态"
+                        << "  dataSize : " << recentlyDataLengthSize
+                        << "  floor : " << cFloor
+                        //                        << "  doorState : " << ElevatorStatus::printDoorState(status.doorState)
+                        //                        << "  lastDirection : " << ElevatorStatus::printLastDirection(status.lastDirection)
+                        //                        << "  availability : " << ElevatorStatus::printAvailability(status.availability)
+                        //                        << "  nextDirection : " << ElevatorStatus::printNextDirection(status.nextDirection)
+                        << " ... ";
 
         if (mElevatorCallback != nullptr)
             mElevatorCallback(cFloor, static_cast<int>(status.doorState), static_cast<int>(status.lastDirection),
@@ -720,32 +720,46 @@ void ElevatorControlManager::arrive_floor_thread_func() {
 
         if (isArrived) {
 
-//            bool result = elevatorInternalInspection();
-            bool result = elevatorInternalInspection2();
+            if (mTakeIn) {
+//                bool result = elevatorInternalInspection();
+                bool result = elevatorInternalInspection2();
 
-            if (result) {
+                LOG_IF(INFO, DEBUG_ELEVATOR)
+                                << "ElevatorControlManager elevatorInternalInspection2 " << result
+                                << " internalSpatialAnalysisCount " << internalSpatialAnalysisCount << " ... ";
+
+                if (result) {
+                    closeLightUp();
+                    sendDelayedDoorClosing();
+                    recentlyDataLengthSize = 0;
+                    unseal = false;
+                    mElevatorArrived = true;
+                    wait_from_cv.notify_one();
+                    wait_to_cv.notify_one();
+                } else {
+                    if (internalSpatialAnalysisCount > Environment::instance().internal_spatial_analysis_count) {
+                        recentlyDataLengthSize = 0;
+                        unseal = false;
+                        mElevatorArrived = false;
+                        wait_from_cv.notify_one();
+                        wait_to_cv.notify_one();
+                    }
+                }
+
+                internalSpatialAnalysisCount++;
+            } else {
                 closeLightUp();
                 sendDelayedDoorClosing();
-//                waitDelayClosingDoor();
+                waitDelayClosingDoor();
                 recentlyDataLengthSize = 0;
                 unseal = false;
                 mElevatorArrived = true;
                 wait_from_cv.notify_one();
                 wait_to_cv.notify_one();
-            } else {
-                if (internalSpatialAnalysisCount > 5) {
-                    recentlyDataLengthSize = 0;
-                    unseal = false;
-                    mElevatorArrived = false;
-                    wait_from_cv.notify_one();
-                    wait_to_cv.notify_one();
-                }
             }
 
-            internalSpatialAnalysisCount++;
-
-
         }
+
     }
 }
 
@@ -799,6 +813,10 @@ void ElevatorControlManager::arrive_floor_thread_func() {
                 if (errorRetryMechanism.preElevatorInErrorRetryCount <
                     Environment::instance().pre_elevator_in_error_retry_count_max) {
                     errorRetryMechanism.preElevatorInErrorRetryCount++;
+
+                    closeLightUp();
+                    closeQueryFloor();
+                    closeWaitingArrive();
 
                     std::this_thread::sleep_for(
                             std::chrono::milliseconds(Environment::instance().pre_elevator_in_error_retry_timeout));
@@ -1240,7 +1258,7 @@ void ElevatorControlManager::takeElevatorIn(int fromFloor, int toFloor, const Re
     // 1
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 开启楼层点亮功能 " << fromFloor << " ... ";
     openLightUp(fromFloor);
-    openWaitingArrive(fromFloor);
+    openWaitingArrive(fromFloor, true);
 
     // 2
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 开启楼层查询功能 ... ";
@@ -1297,7 +1315,7 @@ void ElevatorControlManager::takeElevatorIn(int fromFloor, int toFloor, const Re
 
 void ElevatorControlManager::takeElevatorOut(int fromFloor, int toFloor, const RealPoint &toOutPoint,
                                              const RealPoint &toInPoint, const RealPoint &relocationPoint) {
-    openWaitingArrive(toFloor);
+    openWaitingArrive(toFloor, false);
 
     // 6
     std::unique_lock<std::mutex> to_lock(wait_to_mutex);
@@ -1517,15 +1535,14 @@ void ElevatorControlManager::closeQueryFloor() {
     query_cond.notify_one();
 }
 
-void ElevatorControlManager::openWaitingArrive(int targetFloor) {
-    async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::milliseconds(500), [this, &targetFloor]() {
-        recentlyDataLengthSize = 0;
-        mTargetFloor = targetFloor;
-        mElevatorArrived = false;
-        imitateArrivedCount = 0;
-        unseal = true;
-        arrive_cond.notify_one();
-    });
+void ElevatorControlManager::openWaitingArrive(int targetFloor, bool isTakeIn) {
+    recentlyDataLengthSize = 0;
+    mTargetFloor = targetFloor;
+    mTakeIn = isTakeIn;
+    mElevatorArrived = false;
+    imitateArrivedCount = 0;
+    unseal = true;
+    arrive_cond.notify_one();
 }
 
 void ElevatorControlManager::closeWaitingArrive() {
@@ -2039,8 +2056,8 @@ bool ElevatorControlManager::elevatorInternalInspection2() {
 
         }
 
-        cv::imshow("baseMap", baseMap);
-        cv::waitKey();
+//        cv::imshow("baseMap", baseMap);
+//        cv::waitKey();
 
 
         auto mapPo = SegmentationDataBase::instance().getDbMap();
@@ -2064,8 +2081,8 @@ bool ElevatorControlManager::elevatorInternalInspection2() {
         cv::Mat elevatorMap;
         baseMap.copyTo(elevatorMap, mask);
 
-        cv::imshow("elevatorMap", elevatorMap);
-        cv::waitKey();
+//        cv::imshow("elevatorMap", elevatorMap);
+//        cv::waitKey();
 
         // 计算多边形区域的面积
         double area = cv::contourArea(srcPoints);

@@ -485,8 +485,11 @@ void initNodeParams(const ros::NodeHandle &nh) {
     Environment::instance().post_elevator_in_error_retry_timeout = post_elevator_in_error_retry_timeout;
 
     double inner_white_pixel_ratio;
-    nh.param<double>("inner_white_pixel_ratio", inner_white_pixel_ratio, 0.5);
+    nh.param<double>("inner_white_pixel_ratio", inner_white_pixel_ratio, 0.6);
     Environment::instance().inner_white_pixel_ratio = inner_white_pixel_ratio;
+    int internal_spatial_analysis_count;
+    nh.param<int>("internal_spatial_analysis_count", internal_spatial_analysis_count, 10);
+    Environment::instance().internal_spatial_analysis_count = internal_spatial_analysis_count;
 
 }
 

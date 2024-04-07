@@ -391,6 +391,7 @@ private:
     int mTargetFloor;
     bool mElevatorArrived;
     int imitateArrivedCount;
+    bool mTakeIn;
 
     ElevatorSensor elevatorSensor;
     ElevatorLastSensor elevatorLastSensor;
@@ -555,7 +556,7 @@ private:
 
     void closeQueryFloor();
 
-    void openWaitingArrive(int targetFloor);
+    void openWaitingArrive(int targetFloor, bool isTakeIn);
 
     void closeWaitingArrive();
 
