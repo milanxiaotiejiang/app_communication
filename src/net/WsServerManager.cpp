@@ -232,6 +232,7 @@ void on_open(server *s, const websocketpp::connection_hdl &hdl) {
     ask.subMap[SENSOR_CHECK] = false;
     ask.subMap[ELEVATOR_STATUS] = false;
     ask.subMap[TASK_STATUS] = false;
+    ask.subMap[ELEVATOR_VOICE] = false;
     ask.subMap[APP_MRROBOT_UL_SENSOR1] = false;
     ask.subMap[APP_MRROBOT_UL_SENSOR2] = false;
     ask.subMap[APP_MRROBOT_UL_SENSOR3] = false;
@@ -363,6 +364,7 @@ public:
         dataMap[SENSOR_CHECK] = "";
         dataMap[ELEVATOR_STATUS] = "";
         dataMap[TASK_STATUS] = "";
+        dataMap[ELEVATOR_VOICE] = "";
         dataMap[APP_MRROBOT_UL_SENSOR1] = "";
         dataMap[APP_MRROBOT_UL_SENSOR2] = "";
         dataMap[APP_MRROBOT_UL_SENSOR3] = "";
@@ -423,7 +425,7 @@ public:
                                 isSend = sendMap(ask, key);
                             } else if (key == NOTICE_APP || key == ALARM_EVENT || key == TASK_POINT ||
                                        key == SENSOR_CHECK || key == ELEVATOR_STATUS || key == TASK_STATUS ||
-                                       key == APP_SCAN_RAW) {
+                                       key == ELEVATOR_VOICE || key == APP_SCAN_RAW) {
                                 isSend = sendData(ask, key);
                             } else {
                                 isSend = sendData(ask, key, false);

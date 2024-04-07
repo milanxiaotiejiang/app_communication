@@ -20,6 +20,7 @@
 #include "net/ros/SensorSelfModel.h"
 #include "alignment/rrmap2.h"
 #include "model/ElevatorStatus.h"
+#include "elevator_control.h"
 
 class PublishOutManager {
 private:
@@ -47,6 +48,7 @@ private:
     ros::Publisher pubCloud;
     ros::Publisher pubElevatorManager;
     ros::Publisher pubElevatorStatus;
+    ros::Publisher pubElevatorVoice;
     ros::Publisher pubTaskStatus;
 public:
     static auto &instance() {
@@ -83,6 +85,8 @@ public:
     void publishElevatorStatus(ElevatorModel elevatorModel) const;
 
     void publishTaskStatus(TaskVo task) const;
+
+    void publishElevatorVoice(Voice voice) const;
 };
 
 

@@ -64,6 +64,25 @@
 #include <sensor_msgs/LaserScan.h>
 #include <tf/transform_listener.h>
 
+class Voice {
+private:
+    int order{};
+public:
+    Voice() {}
+
+    explicit Voice(int order) : order(order) {}
+
+    friend void to_json(json &j, const Voice &vo) {
+        j = json{
+                {"order", vo.order},
+        };
+    }
+
+    friend void from_json(const json &j, Voice &vo) {
+        j.at("order").get_to(vo.order);
+    }
+};
+
 const unsigned char CMD_LIGHT_UP_TARGET_FLOOR = 0x60;//MessageIdEnum::LIGHTING_UP_THE_ELEVATOR
 const unsigned char CMD_QUERY_FLOOR_WHERE_LOCATED = 0x61;
 const unsigned char CMD_DELAYED_DOOR_CLOSING = 0x62;//MessageIdEnum::DELAYED_DOOR_CLOSING

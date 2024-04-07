@@ -30,6 +30,7 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
 
     pubElevatorStatus = handle.advertise<std_msgs::String>(ELEVATOR_STATUS, 1);
     pubTaskStatus = handle.advertise<std_msgs::String>(TASK_STATUS, 1);
+    pubElevatorVoice = handle.advertise<std_msgs::String>(ELEVATOR_VOICE, 1);
 }
 
 void PublishOutManager::publishJson(const std::string &message) const {
@@ -165,4 +166,19 @@ void PublishOutManager::publishTaskStatus(TaskVo task) const {
     std_msgs::String result;
     result.data.append(jsonResult.dump());
     pubTaskStatus.publish(result);
+}
+
+void PublishOutManager::publishElevatorVoice(Voice voice) const {
+    RequestModel<Voice> requestModel;
+    requestModel.setOp("publish");
+    requestModel.setTopic(ELEVATOR_VOICE);
+    requestModel.setMsg(voice);
+
+    json jsonResult = requestModel;
+
+    WsServerManager::instance().sendRequestData(ELEVATOR_VOICE, jsonResult.dump());
+
+    std_msgs::String result;
+    result.data.append(jsonResult.dump());
+    pubElevatorVoice.publish(result);
 }
