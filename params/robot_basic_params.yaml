@@ -62,8 +62,8 @@ outside_from_target_distance: 10
 pre_elevator_in_error_retry_count_max: 2
 post_elevator_in_error_retry_count_max: 2
 
-pre_elevator_in_error_retry_timeout: 10000
-post_elevator_in_error_retry_timeout: 10000
+pre_elevator_in_error_retry_timeout: 30000
+post_elevator_in_error_retry_timeout: 30000
 
-inner_white_pixel_ratio: 0.6
+inner_white_pixel_ratio: 0.5
 internal_spatial_analysis_count: 10

@@ -136,7 +136,6 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
         } else if (flag.data == 5) {
             ttCloseQueryFloor();
         } else if (flag.data == 10) {
-            imitateArrivedCount = 100;
         } else if (flag.data == 100) {
             if (!NodeWorkModeManager::instance().enterWorkMode(2)) {
                 throw app::exception(make_error_code(error::mode_switching_is_not_supported));
@@ -711,16 +710,10 @@ void ElevatorControlManager::arrive_floor_thread_func() {
             }
         }
 
-        if (imitateArrivedCount > 10) {
-            LOG_IF(INFO, DEBUG_ELEVATOR)
-                            << "ElevatorControlManager pre 模拟已经到达 " << mTargetFloor << " 层 ... ";
-            isArrived = true;
-            internalSpatialAnalysisCount = 0;
-        }
-
         if (isArrived) {
 
             if (mTakeIn) {
+                // In
 //                bool result = elevatorInternalInspection();
                 bool result = elevatorInternalInspection2();
 
@@ -729,38 +722,39 @@ void ElevatorControlManager::arrive_floor_thread_func() {
                                 << " internalSpatialAnalysisCount " << internalSpatialAnalysisCount << " ... ";
 
                 if (result) {
-                    closeLightUp();
-                    sendDelayedDoorClosing();
-                    recentlyDataLengthSize = 0;
-                    unseal = false;
-                    mElevatorArrived = true;
-                    wait_from_cv.notify_one();
-                    wait_to_cv.notify_one();
+                    notifyArrived(true, true);
                 } else {
                     if (internalSpatialAnalysisCount > Environment::instance().internal_spatial_analysis_count) {
-                        recentlyDataLengthSize = 0;
-                        unseal = false;
-                        mElevatorArrived = false;
-                        wait_from_cv.notify_one();
-                        wait_to_cv.notify_one();
+                        notifyArrived(true, false);
                     }
                 }
 
                 internalSpatialAnalysisCount++;
             } else {
-                closeLightUp();
-                sendDelayedDoorClosing();
-                waitDelayClosingDoor();
-                recentlyDataLengthSize = 0;
-                unseal = false;
-                mElevatorArrived = true;
-                wait_from_cv.notify_one();
-                wait_to_cv.notify_one();
+                // Out
+                notifyArrived(false, true);
             }
 
         }
 
     }
+}
+
+void ElevatorControlManager::notifyArrived(bool in, bool result) {
+
+    closeLightUp();
+    sendDelayedDoorClosing();
+    if (!in) {
+        waitDelayClosingDoor();
+    }
+    recentlyDataLengthSize = 0;
+    unseal = false;
+
+    mArrivedResult = result;
+
+    mElevatorArrived = true;
+    wait_from_cv.notify_one();
+    wait_to_cv.notify_one();
 }
 
 [[noreturn]] void ElevatorControlManager::elevator_pre_thread_func() {
@@ -1270,6 +1264,8 @@ void ElevatorControlManager::takeElevatorIn(int fromFloor, int toFloor, const Re
                                std::chrono::milliseconds(Environment::instance().maximum_waiting_time_for_elevator),
                                [this] { return mElevatorArrived; }))
         throw std::runtime_error("takeElevatorIn wait_from_mutex timeout ...");
+    if (!mArrivedResult)
+        throw std::runtime_error("takeElevatorOut wait_from_mutex error ...");
     closeWaitingArrive();
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << fromFloor << " 层 ... ";
 
@@ -1323,6 +1319,8 @@ void ElevatorControlManager::takeElevatorOut(int fromFloor, int toFloor, const R
                              std::chrono::milliseconds(Environment::instance().maximum_waiting_time_for_elevator),
                              [this] { return mElevatorArrived; }))
         throw std::runtime_error("takeElevatorOut wait_to_mutex timeout ...");
+    if (!mArrivedResult)
+        throw std::runtime_error("takeElevatorOut wait_to_mutex error ...");
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 电梯已经到达 " << toFloor << " 层 ... ";
 
     sendDelayedDoorClosing();
@@ -1539,15 +1537,26 @@ void ElevatorControlManager::openWaitingArrive(int targetFloor, bool isTakeIn) {
     recentlyDataLengthSize = 0;
     mTargetFloor = targetFloor;
     mTakeIn = isTakeIn;
+
+    internalSpatialAnalysisCount = 0;
+
+    mArrivedResult = false;
+
     mElevatorArrived = false;
-    imitateArrivedCount = 0;
+
     unseal = true;
     arrive_cond.notify_one();
 }
 
 void ElevatorControlManager::closeWaitingArrive() {
+    recentlyDataLengthSize = 0;
+
+    mArrivedResult = false;
+
+    internalSpatialAnalysisCount = 0;
+
     mElevatorArrived = false;
-    imitateArrivedCount = 0;
+
     unseal = false;
     arrive_cond.notify_one();
 }

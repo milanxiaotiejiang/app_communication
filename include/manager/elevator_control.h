@@ -390,7 +390,7 @@ private:
     bool unseal;
     int mTargetFloor;
     bool mElevatorArrived;
-    int imitateArrivedCount;
+    bool mArrivedResult;
     bool mTakeIn;
 
     ElevatorSensor elevatorSensor;
@@ -506,6 +506,8 @@ private:
     [[noreturn]] void query_floor_thread_func();
 
     [[noreturn]] void arrive_floor_thread_func();
+
+    void notifyArrived(bool in, bool result);
 
     [[noreturn]] void elevator_pre_thread_func();
 

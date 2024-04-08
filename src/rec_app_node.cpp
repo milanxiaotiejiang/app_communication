@@ -488,7 +488,7 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<double>("inner_white_pixel_ratio", inner_white_pixel_ratio, 0.6);
     Environment::instance().inner_white_pixel_ratio = inner_white_pixel_ratio;
     int internal_spatial_analysis_count;
-    nh.param<int>("internal_spatial_analysis_count", internal_spatial_analysis_count, 10);
+    nh.param<int>("internal_spatial_analysis_count", internal_spatial_analysis_count, 30);
     Environment::instance().internal_spatial_analysis_count = internal_spatial_analysis_count;
 
 }
