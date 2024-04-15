@@ -25,6 +25,7 @@
 #include <costmap_2d/costmap_2d_ros.h>
 #include <tf2_ros/transform_listener.h>
 #include <sensor_msgs/PointCloud2.h>
+#include "manager/PublishOutManager.h"
 
 /**
   - 进电梯外点位（呼梯点被占用，参考“摆渡点不可达异常”）
@@ -740,6 +741,13 @@ void ElevatorControlManager::arrive_floor_thread_func() {
     }
 }
 
+void ElevatorControlManager::elevator_voice_thread_func() {
+    while (true) {
+        PublishOutManager::instance().publishElevatorVoice(Voice(take_in_voice));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+}
+
 void ElevatorControlManager::notifyArrived(bool in, bool result) {
 
     closeLightUp();
@@ -1291,6 +1299,7 @@ void ElevatorControlManager::takeElevatorIn(int fromFloor, int toFloor, const Re
 
     // 4
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 执行进入电梯逻辑 ... ";
+    openTakeInVoice();
     isConfirmEntry = false;
     enterElevator(fromInPoint);
     std::unique_lock<std::mutex> entry_lock(wait_entry_mutex);
@@ -1301,6 +1310,7 @@ void ElevatorControlManager::takeElevatorIn(int fromFloor, int toFloor, const Re
         throw std::runtime_error("takeElevatorIn wait_entry_mutex timeout ...");
     if (!isElevatorEntryResult)
         throw std::runtime_error("takeElevatorIn wait_entry_mutex error ...");
+    closeTakeInVoice();
     closeWaitingArrive();
     LOG_IF(INFO, DEBUG_ELEVATOR) << "ElevatorControlManager 已进入电梯 ... ";
 
@@ -2114,6 +2124,14 @@ bool ElevatorControlManager::elevatorInternalInspection2() {
     }
 }
 
+void ElevatorControlManager::openTakeInVoice() {
+    take_in_voice = 1;
+}
+
+void ElevatorControlManager::closeTakeInVoice() {
+    take_in_voice = 0;
+}
+
 void ElevatorControlManager::initialize(ros::NodeHandle handle) {
 
     // 确保ROS节点已经初始化
@@ -2202,11 +2220,14 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
         std::thread query_floor_thread(&ElevatorControlManager::query_floor_thread_func, this);
         std::thread arrive_floor_thread(&ElevatorControlManager::arrive_floor_thread_func, this);
 
+        std::thread elevator_voice_thread(&ElevatorControlManager::elevator_voice_thread_func, this);
+
         serial_sender_thread.detach();
         serial_receiver_thread.detach();
         light_up_thread.detach();
         query_floor_thread.detach();
         arrive_floor_thread.detach();
+        elevator_voice_thread.detach();
     } catch (const std::exception &e) {
         LOG_IF(ERROR, DEBUG_ELEVATOR) << e.what();
     } catch (...) {

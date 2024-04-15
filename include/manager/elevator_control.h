@@ -471,6 +471,8 @@ private:
 
     int internalSpatialAnalysisCount;
 
+    int take_in_voice{0};
+
 private:
 
     bool hasSerialPortAccess(const std::string &portName);
@@ -506,6 +508,8 @@ private:
     [[noreturn]] void query_floor_thread_func();
 
     [[noreturn]] void arrive_floor_thread_func();
+
+    [[noreturn]] void elevator_voice_thread_func();
 
     void notifyArrived(bool in, bool result);
 
@@ -593,6 +597,10 @@ private:
     bool elevatorInternalInspection();
 
     bool elevatorInternalInspection2();
+
+    void openTakeInVoice();
+
+    void closeTakeInVoice();
 
 public:
     void initialize(ros::NodeHandle handle);
