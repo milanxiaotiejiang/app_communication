@@ -144,7 +144,7 @@ void ElevatorControlManager::elevatorManagerSubscribeCallback(const std_msgs::In
         } else if (flag.data == 1000) {
 
 //            elevatorInternalInspection();
-            elevatorInternalInspection2();
+            elevatorInternalInspection2(true);
 
         }
 
@@ -716,7 +716,7 @@ void ElevatorControlManager::arrive_floor_thread_func() {
             if (mTakeIn) {
                 // In
 //                bool result = elevatorInternalInspection();
-                bool result = elevatorInternalInspection2();
+                bool result = elevatorInternalInspection2(false);
 
                 LOG_IF(INFO, DEBUG_ELEVATOR)
                                 << "ElevatorControlManager elevatorInternalInspection2 " << result
@@ -2033,9 +2033,10 @@ bool ElevatorControlManager::elevatorInternalInspection() {
     return true;
 }
 
-bool ElevatorControlManager::elevatorInternalInspection2() {
+bool ElevatorControlManager::elevatorInternalInspection2(bool show) {
     auto normalMap = occupancyGridToCvMat(normalOccupancyGrid);
-//    showMap("normalMap", normalMap);
+    if (show)
+        showMap("normalMap", normalMap);
 
     auto baseMap = normalMap.clone();
     // 将图像顺时针旋转90度
@@ -2075,8 +2076,10 @@ bool ElevatorControlManager::elevatorInternalInspection2() {
 
         }
 
-//        cv::imshow("baseMap", baseMap);
-//        cv::waitKey();
+        if (show) {
+            cv::imshow("baseMap", baseMap);
+            cv::waitKey();
+        }
 
 
         auto mapPo = SegmentationDataBase::instance().getDbMap();
@@ -2100,9 +2103,10 @@ bool ElevatorControlManager::elevatorInternalInspection2() {
         cv::Mat elevatorMap;
         baseMap.copyTo(elevatorMap, mask);
 
-//        cv::imshow("elevatorMap", elevatorMap);
-//        cv::waitKey();
-
+        if (show) {
+            cv::imshow("elevatorMap", elevatorMap);
+            cv::waitKey();
+        }
         // 计算多边形区域的面积
         double area = cv::contourArea(srcPoints);
 
@@ -2149,7 +2153,7 @@ void ElevatorControlManager::initialize(ros::NodeHandle handle) {
                                         &ElevatorControlManager::subscribeRawMapCallback, this);
     subscriberLocalMap = handle.subscribe("/move_base/local_costmap/costmap", 10,
                                           &ElevatorControlManager::subscribeLocalMapCallback, this);
-    subscriberScan = handle.subscribe("/scan", 10, &ElevatorControlManager::subscribeScanCallback, this);
+    subscriberScan = handle.subscribe("/scan_raw", 10, &ElevatorControlManager::subscribeScanCallback, this);
 
     subscriberOdom = handle.subscribe("/odom", 10, &ElevatorControlManager::subscribeOdomCallback, this);
     subscriberImu = handle.subscribe(Environment::instance().isRealEnvironment ? "/imu/data" : "/imu",

@@ -596,7 +596,7 @@ private:
 
     bool elevatorInternalInspection();
 
-    bool elevatorInternalInspection2();
+    bool elevatorInternalInspection2(bool show);
 
     void openTakeInVoice();
 

@@ -1,4 +1,4 @@
-ros_version: 2.0.14.7_630
+ros_version: 2.0.14.8_630
 machine_version: 630
 base_exist: true
 face_recognition: false
@@ -65,5 +65,5 @@ post_elevator_in_error_retry_count_max: 2
 pre_elevator_in_error_retry_timeout: 30000
 post_elevator_in_error_retry_timeout: 30000
 
-inner_white_pixel_ratio: 0.5
+inner_white_pixel_ratio: 0.6
 internal_spatial_analysis_count: 10
