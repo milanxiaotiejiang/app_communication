@@ -265,7 +265,7 @@ MapPo SegmentationDataBase::removeMapElevator(const std::string &map_id) {
 
 MapPo SegmentationDataBase::updateFloor(const std::string &map_id, int floor) {
     // todo 写到前面
-    if (floor <= -2 || floor > 100 || floor == 0)
+    if (floor <= -2 || floor > 300 || floor == 0)
         throw app::exception(make_error_code(error::beyond_the_floor_range));
 
     auto buildMaps = SegmentationDataBase::instance().findBuildMapsForMap(map_id);

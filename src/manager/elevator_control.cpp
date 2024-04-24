@@ -971,8 +971,8 @@ void ElevatorControlManager::doPreElevatorIn() {
                 throw std::runtime_error("preElevatorInBlock plannerPoints is empty ...");
             auto point = preElevatorInBlock.plannerPoints[0];
             std::pair<int, int> &floorPair = point.targetFloorPair;
-            auto fromFloor = floorPair.first;
-            auto toFloor = floorPair.second;
+            auto fromFloor = EleStatus::floorRule((uint8_t)floorPair.first);
+            auto toFloor = EleStatus::floorRule((uint8_t)floorPair.second);
 
             auto outPoint = preElevatorInBlock.plannerPoints[1];
             auto inPoint = preElevatorInBlock.plannerPoints[2];
