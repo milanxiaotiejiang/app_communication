@@ -1,4 +1,4 @@
-ros_version: 2.0.14.10_630
+ros_version: 2.0.14.11_630
 machine_version: 630
 base_exist: true
 face_recognition: false
@@ -27,7 +27,7 @@ the_interval_between_two_messages: 300
 #移动到电梯点重试次数
 maximum_number_of_retry_attempts_for_errors_to_the_elevator: 2
 #进出电梯错误重试次数
-maximum_number_of_retries_for_elevator_logic_errors: 4
+maximum_number_of_retries_for_elevator_logic_errors: 6
 #进入电梯前的调整频率，2即等待2秒
 maximum_number_of_entering_the_elevator: 2
 #点亮楼层的指令发送时间间隔，单位毫秒

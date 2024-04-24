@@ -678,7 +678,8 @@ void ElevatorControlManager::arrive_floor_thread_func() {
         std::this_thread::sleep_for(std::chrono::milliseconds(
                 Environment::instance().the_time_interval_for_continuous_floor_determination));
 
-        int cFloor = EleStatus::floorRule(recentlyFloor);
+//        int cFloor = EleStatus::floorRule(recentlyFloor);
+        int cFloor = (int)recentlyFloor;
         auto status = EleStatus::parseElevatorStatus(recentlyElevatorStatus);
         LOG_IF(INFO, DEBUG_ELEVATOR)
                         << "ElevatorControlManager 电梯状态"
@@ -971,8 +972,8 @@ void ElevatorControlManager::doPreElevatorIn() {
                 throw std::runtime_error("preElevatorInBlock plannerPoints is empty ...");
             auto point = preElevatorInBlock.plannerPoints[0];
             std::pair<int, int> &floorPair = point.targetFloorPair;
-            auto fromFloor = EleStatus::floorRule((uint8_t)floorPair.first);
-            auto toFloor = EleStatus::floorRule((uint8_t)floorPair.second);
+            auto fromFloor = floorPair.first;
+            auto toFloor = floorPair.second;
 
             auto outPoint = preElevatorInBlock.plannerPoints[1];
             auto inPoint = preElevatorInBlock.plannerPoints[2];
