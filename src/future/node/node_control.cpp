@@ -28,32 +28,32 @@ void NodeControl::initialize(ros::NodeHandle handle) {
     nodeSubject->attach(nodeObserver);
 
 //    onSleep();
-    asyncOn([&handle]() {
-        int p_OR_percent_1 = 6;
-        if (ros::param::has("/OR_percent_1")) {
-            ros::param::get("/OR_percent_1", p_OR_percent_1);
-        }
-
-        int p_OR_percent_2 = 3;
-        if (ros::param::has("/OR_percent_2")) {
-            ros::param::get("/OR_percent_2", p_OR_percent_2);
-        }
-
-        bool end_loop = false;
-        while (!end_loop) {
-            bool start_finish = false;
-            ros::param::get("/node_controller/start_finish", start_finish);
-            if (start_finish)
-                end_loop = true;
-            sleep(1);
-        }
-        sleep(3);
-        DR OR_percent_1 = DR("/1/inudev_ros_nodelet1", "OR_percent");
-        OR_percent_1.i(p_OR_percent_1);
-        DR OR_percent_2 = DR("/2/inudev_ros_nodelet2", "OR_percent");
-        OR_percent_2.i(p_OR_percent_2);
-        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable OR_percent 设置成功 ... ";
-    });
+//    asyncOn([&handle]() {
+//        int p_OR_percent_1 = 6;
+//        if (ros::param::has("/OR_percent_1")) {
+//            ros::param::get("/OR_percent_1", p_OR_percent_1);
+//        }
+//
+//        int p_OR_percent_2 = 3;
+//        if (ros::param::has("/OR_percent_2")) {
+//            ros::param::get("/OR_percent_2", p_OR_percent_2);
+//        }
+//
+//        bool end_loop = false;
+//        while (!end_loop) {
+//            bool start_finish = false;
+//            ros::param::get("/node_controller/start_finish", start_finish);
+//            if (start_finish)
+//                end_loop = true;
+//            sleep(1);
+//        }
+//        sleep(3);
+//        DR OR_percent_1 = DR("/1/inudev_ros_nodelet1", "OR_percent");
+//        OR_percent_1.i(p_OR_percent_1);
+//        DR OR_percent_2 = DR("/2/inudev_ros_nodelet2", "OR_percent");
+//        OR_percent_2.i(p_OR_percent_2);
+//        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable OR_percent 设置成功 ... ";
+//    });
 
     int work_mode = -1;
     ros::param::get(NODE_CONTROLLER_WORK_MODE, work_mode);
@@ -65,70 +65,72 @@ void NodeControl::initialize(ros::NodeHandle handle) {
     handle.param<int>("/node_controller/available/inu", availableInu, 0);
     NodeControl::instance().cameraFiringAvailable = availableInu;
 
-    if (!Environment::instance().isRealEnvironment || Environment::instance().isRealEnvironmentTest) {
-        setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
-        return;
-    }
+    setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
 
-    if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::SUCCESS) {
-        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 已经启动,无需再次启动 ... ";
-        setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
-    } else if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::UNKNOWN ||
-               NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::FAIL) {
-
-        if (!Environment::instance().isRealEnvironment) {
-            setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
-            return;
-        }
-        if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::UNKNOWN)
-            LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 未启动(状态未知),需要重新启动 ... ";
-        else if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::FAIL)
-            LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动失败,需要重新启动 ... ";
-
-        asyncOn([&handle, this]() {
-            std::this_thread::sleep_for(std::chrono::seconds(
-                    Environment::instance().inu_firing_launch_interval));
-
-            LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动开始 ... ";
-            auto inu_dev1_thread = std::thread([this] {
-                std::string inu1Log = Environment::instance().glog_info_time_pid + "_inu_dev1.log";
-                std::string systemStr = "roslaunch launch_center inu_dev1.launch > " + inu1Log + " 2>&1";
-                LOG_IF(INFO, DEBUG_FIRING) << systemStr;
-                int error = std::system(systemStr.data());
-                if (error != 0) {
-                    LOG_IF(INFO, DEBUG_FIRING) << "roslaunch launch_center inu_dev1.launch fail " << error << " ... ";
-                    setCameraFiringAvailable(Firing::INUStatus::FAIL);
-                }
-                LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable inu_dev1_thread finish ... ";
-            });
-            inu_dev1_thread.detach();
-
-            std::this_thread::sleep_for(std::chrono::seconds(Environment::instance().inu_launch_middle_interval));
-            auto inu_dev2_thread = std::thread([this] {
-                std::string inu2Log = Environment::instance().glog_info_time_pid + "_inu_dev2.log";
-                std::string systemStr = "roslaunch launch_center inu_dev2.launch > " + inu2Log + " 2>&1";
-                LOG_IF(INFO, DEBUG_FIRING) << systemStr;
-                int error = std::system(systemStr.data());
-                if (error != 0) {
-                    LOG_IF(INFO, DEBUG_FIRING) << "roslaunch launch_center inu_dev2.launch fail " << error << " ... ";
-                    setCameraFiringAvailable(Firing::INUStatus::FAIL);
-                    return;
-                }
-                LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable inu_dev2_thread finish ... ";
-            });
-            inu_dev2_thread.detach();
-
-            setCameraFiringAvailable(Firing::INUStatus::LAUNCH);
-
-            finalConfirmation();
-        });
-    } else if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::LAUNCH) {
-        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动中一些原因导致rec进程中断,此处为启动了launch ... ";
-
-        asyncOn([&handle, this]() {
-            finalConfirmation();
-        });
-    }
+//    if (!Environment::instance().isRealEnvironment || Environment::instance().isRealEnvironmentTest) {
+//        setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
+//        return;
+//    }
+//
+//    if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::SUCCESS) {
+//        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 已经启动,无需再次启动 ... ";
+//        setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
+//    } else if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::UNKNOWN ||
+//               NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::FAIL) {
+//
+//        if (!Environment::instance().isRealEnvironment) {
+//            setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
+//            return;
+//        }
+//        if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::UNKNOWN)
+//            LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 未启动(状态未知),需要重新启动 ... ";
+//        else if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::FAIL)
+//            LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动失败,需要重新启动 ... ";
+//
+//        asyncOn([&handle, this]() {
+//            std::this_thread::sleep_for(std::chrono::seconds(
+//                    Environment::instance().inu_firing_launch_interval));
+//
+//            LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动开始 ... ";
+//            auto inu_dev1_thread = std::thread([this] {
+//                std::string inu1Log = Environment::instance().glog_info_time_pid + "_inu_dev1.log";
+//                std::string systemStr = "roslaunch launch_center inu_dev1.launch > " + inu1Log + " 2>&1";
+//                LOG_IF(INFO, DEBUG_FIRING) << systemStr;
+//                int error = std::system(systemStr.data());
+//                if (error != 0) {
+//                    LOG_IF(INFO, DEBUG_FIRING) << "roslaunch launch_center inu_dev1.launch fail " << error << " ... ";
+//                    setCameraFiringAvailable(Firing::INUStatus::FAIL);
+//                }
+//                LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable inu_dev1_thread finish ... ";
+//            });
+//            inu_dev1_thread.detach();
+//
+//            std::this_thread::sleep_for(std::chrono::seconds(Environment::instance().inu_launch_middle_interval));
+//            auto inu_dev2_thread = std::thread([this] {
+//                std::string inu2Log = Environment::instance().glog_info_time_pid + "_inu_dev2.log";
+//                std::string systemStr = "roslaunch launch_center inu_dev2.launch > " + inu2Log + " 2>&1";
+//                LOG_IF(INFO, DEBUG_FIRING) << systemStr;
+//                int error = std::system(systemStr.data());
+//                if (error != 0) {
+//                    LOG_IF(INFO, DEBUG_FIRING) << "roslaunch launch_center inu_dev2.launch fail " << error << " ... ";
+//                    setCameraFiringAvailable(Firing::INUStatus::FAIL);
+//                    return;
+//                }
+//                LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable inu_dev2_thread finish ... ";
+//            });
+//            inu_dev2_thread.detach();
+//
+//            setCameraFiringAvailable(Firing::INUStatus::LAUNCH);
+//
+//            finalConfirmation();
+//        });
+//    } else if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::LAUNCH) {
+//        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动中一些原因导致rec进程中断,此处为启动了launch ... ";
+//
+//        asyncOn([&handle, this]() {
+//            finalConfirmation();
+//        });
+//    }
 }
 
 void NodeControl::finalConfirmation() {
