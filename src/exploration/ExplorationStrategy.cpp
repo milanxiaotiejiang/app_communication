@@ -30,6 +30,7 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
     int explorerMode = params.getExplorerMode();
 
     const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
+    const cv::Point2d &mapOrigin = MapAttributeSingleton::instance().getMapOrigin();
 
     std::vector<geometry_msgs::Pose2D> exploration_path;
     std::vector<cv::Point> point_path;
@@ -44,19 +45,24 @@ RoomCoverage ExplorationRoomStrategy::handler(RoomExplorationTarget params) {
 
         if (targetId == -1) {
             if (rooms.empty()) {
-                explorationCenter.generatePlanningPathFull(baseMap, explorerMode, true,
+                explorationCenter.generatePlanningPathFull(SegmentationDataBase::instance().getDbMap().id,
+                                                           explorerMode, true,
                                                            exploration_path, point_path, complex_path);
             } else {
-                explorationCenter.generatePlanningSegmentationPath(baseMap, segmented_map, rooms, explorerMode, true,
+                explorationCenter.generatePlanningSegmentationPath(SegmentationDataBase::instance().getDbMap().id,
+                                                                   segmented_map, rooms,
+                                                                   explorerMode, true,
                                                                    exploration_path, point_path, complex_path);
             }
         } else {
             const cv::Mat &oneMap = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, targetId);
-            explorationCenter.generatePlanningPathSub(oneMap, explorerMode, true,
+            explorationCenter.generatePlanningPathSub(SegmentationDataBase::instance().getDbMap().id, oneMap,
+                                                      explorerMode, true,
                                                       exploration_path, point_path, complex_path);
         }
     } else {
-        explorationCenter.generatePlanningPathFull(baseMap, explorerMode, true,
+        explorationCenter.generatePlanningPathFull(SegmentationDataBase::instance().getDbMap().id,
+                                                   explorerMode, true,
                                                    exploration_path, point_path, complex_path);
     }
 

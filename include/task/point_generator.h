@@ -40,6 +40,8 @@ protected:
 public:
     virtual std::vector<RealBlock> taskGeneratePointList(RealTask &task) = 0;
 
+    virtual void elevatorPointList(RealTask &task) = 0;
+
     static bool generateRecPointListForViewPart(std::vector<Point> zoned,
                                                 std::vector<PoseVo> &pointList);
 
@@ -54,7 +56,26 @@ class ExplorationGenerator : public PointGenerator {
 public:
     std::vector<RealBlock> taskGeneratePointList(RealTask &task) override;
 
+    void elevatorPointList(RealTask &task) override;
+
     bool cleanMechanismControlMode(const ZoneVo &currentZone, const ZoneVo &nextZone, int rows, int cols);
+
+    RealBlock createPreCirculationBlock(RealTask &task);
+
+    RealBlock createPreElevatorBlock(RealTask &task);
+
+    RealBlock createPreSwitchMapBlock(RealTask &task);
+
+    RealBlock createPreElevator2Block(RealTask &task);
+
+    RealBlock createPostCirculationBlock(RealTask &task);
+
+    RealBlock createPostElevatorBlock(RealTask &task);
+
+    RealBlock createPostSwitchMapBlock(RealTask &task);
+
+    RealBlock createPostElevator2Block(RealTask &task);
+
 };
 
 #endif //APP_COMMUNICATION_POINT_GENERATOR_H

@@ -199,6 +199,8 @@ public:
 
     void restore();
 
+    void abnormal();
+
     TaskEventNotifier getNotifier() {
         return notifier;
     }

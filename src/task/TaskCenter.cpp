@@ -114,9 +114,10 @@ std::string TaskCenter::proTask(const RealTask &task) {
                 make_error_code(error::in_the_setting_of_gate_the_task_cannot_be_started));
     }
 
-    //没有传感器数据的情况下，不能够分发任务
-    //todo /imu /scan /odom without any data reject
-    //todo /knob
+    if (NodeControl::instance().cameraFiringAvailable != 3) {
+        throw app::exception(
+                make_error_code(error::camera_starting_or_failed_to_start));
+    }
 
     if (!asyncTaskCall->canIssuedTask(task)) {
         throw app::exception(make_error_code(error::the_current_task_is_not_completed));
@@ -145,7 +146,7 @@ std::string TaskCenter::realTask(RealTask task) {
     return task.getId();
 }
 
-void TaskCenter::initialize(ros::NodeHandle handle) {
+void TaskCenter::initialize(const ros::NodeHandle &handle) {
 
     asyncTaskCall = std::make_shared<ReservedCall>();
 
@@ -258,5 +259,138 @@ std::string TaskCenter::performTask(const long taskId, TaskSource on_source, int
     realTask.setRate(task.getRate() * on_rate);
     realTask.setOnSource(SqliteDataBase::SourceToString(on_source));
     TaskExploration::task2RealTask(task, realTask);
+
+    bool needLadderControl = false;
+    const std::string &oMapId = task.getOMapId();
+    if (oMapId != SegmentationDataBase::instance().getDbMap().id) {
+
+        if (!SegmentationDataBase::instance().getDbMap().elevator)
+            throw app::exception(make_error_code(error::the_current_map_does_not_have_ladder_control_points_set));
+
+        auto taskMap = SegmentationDataBase::instance().selectMapById(oMapId);
+        if (!taskMap.elevator)
+            throw app::exception(make_error_code(error::no_ladder_control_points_have_been_set_on_the_task_map));
+
+        //多地图任务，进行任务类型判断
+        TaskMode mode = SqliteDataBase::TaskModeFromInt(realTask.getMode());
+        if (mode == TaskMode::Subregion || mode == TaskMode::Line)
+            throw app::exception(make_error_code(error::cross_floor_tasks_currently_only_support_full_coverage_tasks));
+
+        if (Environment::instance().isRealEnvironment)
+            if (mode == TaskMode::Zoned)
+                throw app::exception(
+                        make_error_code(error::cross_floor_tasks_currently_only_support_full_coverage_tasks));
+
+        needLadderControl = true;
+
+    } else {
+        bool hasBaseStation = SegmentationDataBase::instance().getDbMap().base_station;
+        if (!hasBaseStation) {
+
+            if (!SegmentationDataBase::instance().getDbMap().elevator)
+                throw app::exception(make_error_code(error::the_current_map_does_not_have_ladder_control_points_set));
+
+            needLadderControl = true;
+        }
+    }
+
+    if (needLadderControl) {
+//        throw app::exception(make_error_code(error::cross_floor_tasks_are_currently_not_supported));
+
+        //多地图任务，进行楼宇判断
+        auto buildMaps = SegmentationDataBase::instance().findBuildMapsForMap(oMapId);
+        if (buildMaps.empty()) {
+            throw app::exception(make_error_code(error::no_multi_map_buildings_have_been_set_up));
+        } else if (buildMaps.size() == 1) {
+
+            auto taskMap = SegmentationDataBase::instance().selectMapById(oMapId);
+
+            std::pair<BuildPo, MapPo> buildMap = buildMaps[0];
+            BuildPo &buildPo = buildMap.first;
+
+            realTask.setAsyncMap(true);
+            realTask.setBuildId(buildPo.id);
+            realTask.setBuildElevatorAddress(buildPo.elevator_address);
+
+            // 设置任务地图的梯控信息
+            RealPoint taskOutPoint;
+            TaskExploration::mapElevatorOutside2RealPoint(taskMap, taskOutPoint);
+            RealPoint taskInPoint;
+            TaskExploration::mapElevatorInside2RealPoint(taskMap, taskInPoint);
+            realTask.setDoMapId(taskMap.id);
+            realTask.setDoFloor(taskMap.floor);
+            realTask.setDoOutPoint(taskOutPoint);
+            realTask.setDoInPoint(taskInPoint);
+
+            // 设置当前地图的梯控信息
+            auto preMap = SegmentationDataBase::instance().getDbMap();
+            RealPoint preOutPoint;
+            TaskExploration::mapElevatorOutside2RealPoint(preMap, preOutPoint);
+            RealPoint preInPoint;
+            TaskExploration::mapElevatorInside2RealPoint(preMap, preInPoint);
+            realTask.setPreMapId(preMap.id);
+            realTask.setPreFloor(preMap.floor);
+            realTask.setPreOutPoint(preOutPoint);
+            realTask.setPreInPoint(preInPoint);
+
+            // 设置基站地图的梯控信息
+            // 此处正在清洁的地图有基站则用之，正在清洁的没有找上一张地图，上一张没有，找最低层的基站（1、-1、2、-2）
+            if (taskMap.base_station) {
+                realTask.setPostMapId(taskMap.id);
+                realTask.setPostFloor(taskMap.floor);
+                realTask.setPostOutPoint(taskOutPoint);
+                realTask.setPostInPoint(taskInPoint);
+            } else if (preMap.base_station) {
+                realTask.setPostMapId(preMap.id);
+                realTask.setPostFloor(preMap.floor);
+                realTask.setPostOutPoint(preOutPoint);
+                realTask.setPostInPoint(preInPoint);
+            } else {
+
+                auto buildAllMaps = SegmentationDataBase::instance().findBuildMapsForBuild(buildPo.id);
+                if (buildAllMaps.empty()) {
+                    throw app::exception(make_error_code(error::multiple_map_building_data_error));
+                } else {
+                    int postMapIndex = -1;
+                    int optimumFloor = 0;
+                    for (int i = 0; i < buildAllMaps.size(); i++) {
+                        auto curBuildMap = buildAllMaps[i];
+                        auto curMap = curBuildMap.second;
+                        if (curMap.elevator) {
+                            if (optimumFloor == 0) {
+                                optimumFloor = curMap.floor;
+                                postMapIndex = i;
+                            } else {
+                                if (abs(curMap.floor) < optimumFloor) {
+                                    optimumFloor = abs(curMap.floor);
+                                } else if (abs(curMap.floor) == optimumFloor) {
+                                    optimumFloor = curMap.floor > 0 ? optimumFloor : curMap.floor;
+                                    postMapIndex = curMap.floor > 0 ? postMapIndex : i;
+                                }
+                            }
+                        }
+                    }
+                    if (postMapIndex == -1)
+                        throw app::exception(make_error_code(error::multiple_map_building_data_error));
+
+                    auto postBuildMap = buildAllMaps[postMapIndex];
+                    auto postMap = postBuildMap.second;
+                    RealPoint postOutPoint;
+                    TaskExploration::mapElevatorOutside2RealPoint(postMap, postOutPoint);
+                    RealPoint postInPoint;
+                    TaskExploration::mapElevatorInside2RealPoint(postMap, postInPoint);
+                    realTask.setPostMapId(postMap.id);
+                    realTask.setPostFloor(postMap.floor);
+                    realTask.setPostOutPoint(postOutPoint);
+                    realTask.setPostInPoint(postInPoint);
+                }
+
+            }
+
+        } else {
+            throw app::exception(make_error_code(error::multiple_map_building_data_error));
+        }
+    }
+
     return preTask(realTask);
 }

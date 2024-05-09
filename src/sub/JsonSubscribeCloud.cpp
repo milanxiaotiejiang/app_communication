@@ -24,6 +24,7 @@
 #include "manager/cloud_robot_control.h"
 #include "sub/json/DBTaskStrategy.h"
 #include "exploration/ExplorationStrategy.h"
+#include "sub/json/GateStrategy.h"
 
 
 JsonSubscribeCloud::JsonSubscribeCloud(ros::NodeHandle handle) : handle(handle) {
@@ -63,6 +64,12 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case GET_EDIT_MAP_:
             messageStrategy = new GetEditMapStrategy();
             break;
+        case MULTIPLE_EDIT_MAP:
+            messageStrategy = new MultipleEditMapStrategy();
+            break;
+        case MULTIPLE_GET_EDIT_MAP:
+            messageStrategy = new MultipleGetEditMapStrategy();
+            break;
 
         case APP_SPOT_:
             messageStrategy = new StatusResumeStrategy();
@@ -96,14 +103,26 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case ADD_TASK:
             messageStrategy = new AddTaskStrategy();
             break;
+        case MULTIPLE_ADD_TASK:
+            messageStrategy = new MultipleAddTaskStrategy();
+            break;
         case DELETE_TASK:
             messageStrategy = new DeleteTaskStrategy();
             break;
         case DELETE_MULTIPLE_TASK:
             messageStrategy = new DeleteMultipleTaskStrategy();
             break;
+        case MULTIPLE_DELETE_TASK:
+            messageStrategy = new MultipleDeleteTaskStrategy();
+            break;
         case LIST_TASK:
             messageStrategy = new ListTaskStrategy();
+            break;
+        case MULTIPLE_LIST_TASK:
+            messageStrategy = new MultipleListTaskStrategy();
+            break;
+        case MULTIPLE_WHOLE_LIST_TASK:
+            messageStrategy = new MultipleWholeListTaskStrategy();
             break;
         case QUERY_ID_TASK:
             messageStrategy = new QueryIdTaskStrategy();
@@ -118,12 +137,21 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case PRINCIPAL_TASK:
             messageStrategy = new PrincipalTaskStrategy();
             break;
+        case MULTIPLE_PRINCIPAL_TASK:
+            messageStrategy = new MultiplePrincipalTaskStrategy();
+            break;
 
         case BUILD_RAIN_SNOW_TASK:
             messageStrategy = new BuildRainSnowTaskStrategy();
             break;
         case CANCEL_RAIN_SNOW_TASK:
             messageStrategy = new CancelRainSnowTaskStrategy();
+            break;
+        case RAIN_SNOW_TASK:
+            messageStrategy = new RainSnowTaskStrategy();
+            break;
+        case MULTIPLE_RAIN_SNOW_TASK:
+            messageStrategy = new MultipleRainSnowTaskStrategy();
             break;
 
         case CLEAR_CURRENT_LIST_TASK:
@@ -173,14 +201,29 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case DELETE_MULTIPLE_TIMER_TASK:
             messageStrategy = new DeleteMultipleTimerTaskStrategy();
             break;
+        case MULTIPLE_DELETE_TIMER_TASK:
+            messageStrategy = new MultipleDeleteTimerTaskStrategy();
+            break;
         case LIST_TIMER_TASK:
             messageStrategy = new ListTimerTaskStrategy();
+            break;
+        case MULTIPLE_LIST_TIMER_TASK:
+            messageStrategy = new MultipleListTimerTaskStrategy();
+            break;
+        case MULTIPLE_WHOLE_LIST_TIMER_TASK:
+            messageStrategy = new MultipleWholeListTimerTaskStrategy();
             break;
         case MODIFY_TIMER_TASK:
             messageStrategy = new ModifyTimerTaskStrategy();
             break;
+        case MULTIPLE_MODIFY_TIMER_TASK:
+            messageStrategy = new MultipleModifyTimerTaskStrategy();
+            break;
         case MODIFY_TIMER_NAME:
             messageStrategy = new ModifyTimerNameStrategy();
+            break;
+        case LIST_TIMER_TASK_BUILD:
+            messageStrategy = new ListTimerTaskBuildStrategy();
             break;
 
         case EXPLORATION_TASK:
@@ -203,9 +246,7 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case END_MAP:
             messageStrategy = new EndMapStrategy();
             break;
-        case MAP_FEASIBLE_ZONE:
-            messageStrategy = new MapFeasibleZoneStrategy();
-            break;
+
         case MANUAL_PUSH_START:
             messageStrategy = new ManualPushStartStrategy();
             break;
@@ -224,6 +265,55 @@ bool JsonSubscribeCloud::function(clean_msgs::robot_control::Request &req, clean
         case WORK_TO_MAP_APP_:
             messageStrategy = new MapPreparetoWorkStrategy();
             break;
+
+        case ADD_GATE:
+            messageStrategy = new AddGateStrategy();
+            break;
+        case DELETE_GATE:
+            messageStrategy = new DeleteGateStrategy();
+            break;
+        case PURGE_GATE:
+            messageStrategy = new PurgeGateStrategy();
+            break;
+        case MODIFY_GATE:
+            messageStrategy = new ModifyGateStrategy();
+            break;
+        case LIST_GATE:
+            messageStrategy = new ListGateStrategy();
+            break;
+        case ADD_GATE_V2:
+            messageStrategy = new AddGateV2Strategy();
+            break;
+        case MODIFY_GATE_V2:
+            messageStrategy = new ModifyGateV2Strategy();
+            break;
+        case QUERY_ID_GATE:
+            messageStrategy = new QueryIdGateStrategy();
+            break;
+
+        case MULTIPLE_MODIFY_GATE:
+            messageStrategy = new MultipleModifyGateStrategy();
+            break;
+        case MULTIPLE_LIST_GATE:
+            messageStrategy = new MultipleListGateStrategy();
+            break;
+        case MULTIPLE_PURGE_GATE:
+            messageStrategy = new MultiplePurgeGateStrategy();
+            break;
+
+        case MAP_OBSTACLES:
+            messageStrategy = new MapObstaclesStrategy();
+            break;
+        case MAP_FEASIBLE_ZONE:
+            messageStrategy = new MapFeasibleZoneStrategy();
+            break;
+        case MULTIPLE_MAP_OBSTACLES:
+            messageStrategy = new MultipleMapObstaclesStrategy();
+            break;
+        case MULTIPLE_MAP_FEASIBLE_ZONE:
+            messageStrategy = new MultipleMapFeasibleZoneStrategy();
+            break;
+
     }
     if (messageStrategy != nullptr) {
 

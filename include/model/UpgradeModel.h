@@ -113,6 +113,8 @@ private:
     std::string old_task_id;
     long new_task_id;
 
+    std::string o_map_id;
+
 public:
     CleanHistoryUpgrade();
 
@@ -128,7 +130,7 @@ public:
                         int urgencyStop, int pauseNum, int manualBack, int lowPowerBack, int forceBack, int outStation,
                         int endSleep, int backBaseRetries, int backBasePointArrived, int stationArrived,
                         int rechargeRetries, int closeMechanism, int openMechanism,
-                        bool renew, const std::string &old_task_id, long new_task_id);
+                        bool renew, const std::string &old_task_id, long new_task_id, const std::string &o_map_id);
 
     bool isBaseComplete() const;
 
@@ -227,7 +229,8 @@ public:
 
                 {"renew",                   b.renew},
                 {"old_task_id",             b.old_task_id},
-                {"new_task_id",             b.new_task_id}
+                {"new_task_id",             b.new_task_id},
+                {"o_map_id",                b.o_map_id}
         };
     }
 
@@ -281,6 +284,7 @@ public:
         j.at("renew").get_to(b.renew);
         j.at("old_task_id").get_to(b.old_task_id);
         j.at("new_task_id").get_to(b.new_task_id);
+        j.at("o_map_id").get_to(b.o_map_id);
     }
 };
 

@@ -2,6 +2,7 @@
 // Created by Looper on 2023/4/11.
 //
 
+#include <future>
 #include "future/node/mode_validate.h"
 #include "simulation.h"
 #include "future/node/node_control.h"
@@ -9,6 +10,7 @@
 #include "task/point_planner.h"
 #include "leave/cartographer_node.h"
 #include "future/node/motor_server.h"
+#include "future/node/hardware_subscriber.h"
 
 int ModeValidate::getMoveBaseMode() {
     int move_base_mode = -1;
@@ -55,6 +57,7 @@ bool ModeValidate::validateCartographer(node::State state) {
         case node::State::map:
             return NodeControl::instance().cartoMode() == 1 && NodeControl::instance().heart_beat > 30;
     }
+    return true;
 }
 
 bool ModeValidate::validateMoveBase(int open) {
@@ -142,21 +145,77 @@ bool ModeValidate::validateCoreMoveAvailable() {
     return coreMoveServer;
 }
 
-bool ModeValidate::validateMotorServer() {
-    bool firingResult = MotorServerSingleton::instance().start();
-    if (!firingResult) {
-        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer 雷达启动失败 ------------------------------ ";
-        return false;
+const int numberOfTasks = 3;
+
+bool ModeValidate::validateHardwareServer() {
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
     }
 
-    sleep(4);
+    auto recordStart = std::chrono::steady_clock::now();
 
-    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer 服务可用校验 ------------------------------ ";
+    InuSubscriberSingleton::instance().recount();
+
+    if (!MotorServerSingleton::instance().startInu())
+        return false;
+
+//    std::vector<std::thread> threads;
+    std::vector<std::promise<bool>> promises(numberOfTasks);
+    std::vector<std::future<bool>> futures;
+    std::vector<std::atomic<bool>> stopFlags(numberOfTasks);
+
+    for (int i = 0; i < numberOfTasks; ++i) {
+        futures.push_back(promises[i].get_future());
+
+        switch (i) {
+            case 0:
+                NodeControl::instance().asyncOn(validateMotorServer, i, std::ref(stopFlags[i]), std::ref(promises[i]));
+                break;
+            case 1:
+                NodeControl::instance().asyncOn(validateInuServer1, i, std::ref(stopFlags[i]), std::ref(promises[i]));
+                break;
+            case 2:
+                NodeControl::instance().asyncOn(validateInuServer2, i, std::ref(stopFlags[i]), std::ref(promises[i]));
+                break;
+        }
+
+    }
+
+    // 设置总超时时间
+    std::chrono::seconds timeout(30);
+    auto endTime = std::chrono::steady_clock::now() + timeout;
+
+    bool allTasksCompleted = true;
+
+    for (auto &future: futures) {
+        if (future.wait_until(endTime) != std::future_status::ready) {
+            allTasksCompleted = false;
+            break;
+        }
+    }
+
+    auto recordEnd = std::chrono::steady_clock::now();
+    auto elapsed = recordEnd - recordStart;
+
+    if (allTasksCompleted) {
+        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateHardwareServer 所有步骤已完成，主线程继续执行！";
+    } else {
+        LOG_IF(INFO, DEBUG_NODE)
+                        << "ModeValidate  validateHardwareServer 超时！未能完成所有步骤，后续继续再次确认(原确认逻辑)";
+    }
+
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateHardwareServer elapsed : " << elapsed.count();
+
+    for (auto &stopFlag: stopFlags) {
+        stopFlag = true;
+    }
+
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateHardwareServer 服务可用校验 ------------------------------ ";
 
     bool callReadyCheckFirst = CartographerServiceClient::instance().callReadyCheck();
 
     LOG_IF(INFO, DEBUG_NODE)
-                    << "ModeValidate  MotorServer 首次校验结果 " << callReadyCheckFirst
+                    << "ModeValidate  validateHardwareServer 首次校验结果 " << callReadyCheckFirst
                     << " ------------------------------ ";
 
     if (callReadyCheckFirst) {
@@ -168,12 +227,74 @@ bool ModeValidate::validateMotorServer() {
     bool callReadyCheckAgain = CartographerServiceClient::instance().callReadyCheck();
 
     LOG_IF(INFO, DEBUG_NODE)
-                    << "ModeValidate  MotorServer 再次校验结果 " << callReadyCheckAgain
+                    << "ModeValidate  validateHardwareServer 再次校验结果 " << callReadyCheckAgain
                     << " ------------------------------ ";
 
     if (callReadyCheckAgain) {
         return true;
     }
 
-    return false;
+    return allTasksCompleted;
+}
+
+void ModeValidate::validateMotorServer(int stepId, std::atomic<bool> &stopFlag, std::promise<bool> &promise) {
+
+    bool firingResult = MotorServerSingleton::instance().start();
+    if (!firingResult) {
+        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer 雷达启动失败 ------------------------------ ";
+        promise.set_value(false);
+        return;
+    }
+
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
+    while (!stopFlag) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        int beatScan = InuSubscriberSingleton::instance().heartBeatScan();
+        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateMotorServer count : " << beatScan;
+
+        if (beatScan > SSDF) {
+            promise.set_value(true);
+            stopFlag = true;
+        }
+    }
+
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MotorServer stop " << stepId;
+}
+
+void ModeValidate::validateInuServer1(int stepId, std::atomic<bool> &stopFlag, std::promise<bool> &promise) {
+    std::this_thread::sleep_for(std::chrono::seconds(7));
+
+    while (!stopFlag) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        int beatInu1 = InuSubscriberSingleton::instance().heartBeatInu1();
+        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateInuServer1 count : " << beatInu1;
+
+        if (beatInu1 > SSDF) {
+            promise.set_value(true);
+            stopFlag = true;
+        }
+    }
+
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateInuServer1 stop " << stepId;
+}
+
+void ModeValidate::validateInuServer2(int stepId, std::atomic<bool> &stopFlag, std::promise<bool> &promise) {
+    std::this_thread::sleep_for(std::chrono::seconds(7));
+
+    while (!stopFlag) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        int beatInu2 = InuSubscriberSingleton::instance().heartBeatInu2();
+        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateInuServer2 count : " << beatInu2;
+
+        if (beatInu2 > SSDF) {
+            promise.set_value(true);
+            stopFlag = true;
+        }
+    }
+
+    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  validateInuServer2 stop " << stepId;
 }

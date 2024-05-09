@@ -84,7 +84,6 @@ int main(int argc, char **argv) {
     DSVersionSubscribe dsVersionSubscribe(handle);
 
     SelfCheckSubscribe selfCheckSubscribe(handle);
-    MoveBaseRecoveryFailureSubscribe moveBaseRecoveryFailureSubscribe(handle);
 
     WsServerManager::instance().startWebSocket();
     AiServerManager::instance().startWebSocket();
@@ -92,6 +91,8 @@ int main(int argc, char **argv) {
     ScheduleManagerSingleton::instance().start(handle);
 
     ManualManager::instance().restore();
+
+    ElevatorControlManager::instance().initialize(handle);
 
     ros::MultiThreadedSpinner spinner;
     spinner.spin();
@@ -174,6 +175,7 @@ void initLog(char *const *argv) {
     //    LOG(ERROR) << "This is my first glog ERROR 1";
 
     LOG_IF(INFO, DEBUG_FIRING) << "glog file is " << glog_info_time_pid_string;
+    Environment::instance().glog_info_time_pid = logDirStr + "/"/* + time_pid_string*/;
 }
 
 /**
@@ -236,6 +238,10 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
         if (access((clion_dump_upload_dir + rec_app_node).c_str(), F_OK) == 0) {
             real_dump_upload_dir = clion_dump_upload_dir;
         }
+    }
+
+    if (!Environment::instance().isRealEnvironment) {
+        return succeeded;
     }
 
     if (!real_parse_crash_dir.empty() && !real_program_installation_dir.empty()) {
@@ -342,7 +348,7 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<bool>("rectangular_ambulatory_plane", rectangular_ambulatory_plane, true);
     Environment::instance().rectangular_ambulatory_plane = rectangular_ambulatory_plane;
     bool gzip_map;
-    nh.param<bool>("gzip_map", gzip_map, false);
+    nh.param<bool>("gzip_map", gzip_map, true);
     Environment::instance().gzip_map = gzip_map;
 
     LOG(INFO) << "core version : " << ros_version;
@@ -352,16 +358,16 @@ void initNodeParams(const ros::NodeHandle &nh) {
     Environment::instance().rec_app_node_crash = crash;
     nh.setParam("/rec_app_node_crash", false);
 
-    std::string nebula_base_url;
-    nh.param<std::string>("nebula_base_url", nebula_base_url, "http://192.168.2.53:8080/nebula");
+    std::string nebula_base_url = "https://api.maxrockrobot.com/nebula";
+    std::string nebula_account = "robot";
+    std::string nebula_secret = "robot1@nebula";
+    if (ParamManager::instance().getCloudInteractiveEnvironment()) {
+        nebula_base_url = "https://testapi.maxrockrobot.com/nebula";
+        nebula_account = "robot";
+        nebula_secret = "robot1@test";
+    }
     Environment::instance().nebula_base_url = nebula_base_url;
-
-    std::string nebula_account;
-    nh.param<std::string>("nebula_account", nebula_account, "robot");
     Environment::instance().nebula_account = nebula_account;
-
-    std::string nebula_secret;
-    nh.param<std::string>("nebula_secret", nebula_secret, "robot1");
     Environment::instance().nebula_secret = nebula_secret;
 
     std::string path;
@@ -375,6 +381,116 @@ void initNodeParams(const ros::NodeHandle &nh) {
             Environment::instance().device_name = deviceName;
         }
     }
+
+
+    int inu_firing_launch_interval;
+    nh.param<int>("inu_firing_launch_interval", inu_firing_launch_interval, 20);
+    Environment::instance().inu_firing_launch_interval = inu_firing_launch_interval;
+    int inu_launch_middle_interval;
+    nh.param<int>("inu_launch_middle_interval", inu_launch_middle_interval, 2);
+    Environment::instance().inu_launch_middle_interval = inu_launch_middle_interval;
+    int inu_final_confirmation_interval;
+    nh.param<int>("inu_final_confirmation_interval", inu_final_confirmation_interval, 10);
+    Environment::instance().inu_final_confirmation_interval = inu_final_confirmation_interval;
+    int inu_start_last_stop_server_interval;
+    nh.param<int>("inu_start_last_stop_server_interval", inu_start_last_stop_server_interval, 10);
+    Environment::instance().inu_start_last_stop_server_interval = inu_start_last_stop_server_interval;
+
+    bool no_station_mapping_mode;
+    nh.param<bool>("no_station_mapping_mode", no_station_mapping_mode, false);
+    if (no_station_mapping_mode)
+        Environment::instance().no_station_mapping_mode = no_station_mapping_mode;
+
+
+    int the_interval_between_two_messages;
+    nh.param<int>("the_interval_between_two_messages", the_interval_between_two_messages, 300);
+    Environment::instance().the_interval_between_two_messages = the_interval_between_two_messages;
+    int maximum_number_of_retry_attempts_for_errors_to_the_elevator;
+    nh.param<int>("maximum_number_of_retry_attempts_for_errors_to_the_elevator",
+                  maximum_number_of_retry_attempts_for_errors_to_the_elevator, 2);
+    Environment::instance().maximum_number_of_retry_attempts_for_errors_to_the_elevator = maximum_number_of_retry_attempts_for_errors_to_the_elevator;
+    int maximum_number_of_retries_for_elevator_logic_errors;
+    nh.param<int>("maximum_number_of_retries_for_elevator_logic_errors",
+                  maximum_number_of_retries_for_elevator_logic_errors, 4);
+    Environment::instance().maximum_number_of_retries_for_elevator_logic_errors = maximum_number_of_retries_for_elevator_logic_errors;
+    int maximum_number_of_entering_the_elevator;
+    nh.param<int>("maximum_number_of_entering_the_elevator", maximum_number_of_entering_the_elevator, 1);
+    Environment::instance().maximum_number_of_entering_the_elevator = maximum_number_of_entering_the_elevator;
+    int the_time_interval_for_continuously_lighting_up_floors;
+    nh.param<int>("the_time_interval_for_continuously_lighting_up_floors",
+                  the_time_interval_for_continuously_lighting_up_floors, 3000);
+    Environment::instance().the_time_interval_for_continuously_lighting_up_floors = the_time_interval_for_continuously_lighting_up_floors;
+    int the_time_interval_for_continuous_floor_queries;
+    nh.param<int>("the_time_interval_for_continuous_floor_queries", the_time_interval_for_continuous_floor_queries,
+                  1000);
+    Environment::instance().the_time_interval_for_continuous_floor_queries = the_time_interval_for_continuous_floor_queries;
+    int the_time_interval_for_continuous_floor_determination;
+    nh.param<int>("the_time_interval_for_continuous_floor_determination",
+                  the_time_interval_for_continuous_floor_determination, 1000);
+    Environment::instance().the_time_interval_for_continuous_floor_determination = the_time_interval_for_continuous_floor_determination;
+    int maximum_waiting_time_for_elevator;
+    nh.param<int>("maximum_waiting_time_for_elevator", maximum_waiting_time_for_elevator, 60 * 10 * 1000);
+    Environment::instance().maximum_waiting_time_for_elevator = maximum_waiting_time_for_elevator;
+    int maximum_time_for_entering_and_exiting_the_elevator;
+    nh.param<int>("maximum_time_for_entering_and_exiting_the_elevator",
+                  maximum_time_for_entering_and_exiting_the_elevator, 60 * 2 * 1000);
+    Environment::instance().maximum_time_for_entering_and_exiting_the_elevator = maximum_time_for_entering_and_exiting_the_elevator;
+    double entering_inner_steering_speed;
+    nh.param<double>("entering_inner_steering_speed", entering_inner_steering_speed, 0.4);
+    Environment::instance().entering_inner_steering_speed = entering_inner_steering_speed;
+    bool serial_port_send_print;
+    nh.param<bool>("serial_port_send_print", serial_port_send_print, false);
+    Environment::instance().serial_port_send_print = serial_port_send_print;
+    bool serial_port_accept_print;
+    nh.param<bool>("serial_port_accept_print", serial_port_accept_print, false);
+    Environment::instance().serial_port_accept_print = serial_port_accept_print;
+    bool jump_elevator_status_door_state;
+    nh.param<bool>("jump_elevator_status_door_state", jump_elevator_status_door_state, true);
+    Environment::instance().jump_elevator_status_door_state = jump_elevator_status_door_state;
+    int maximum_delay_time;
+    nh.param<int>("maximum_delay_time", maximum_delay_time, 9);
+    Environment::instance().maximum_delay_time = maximum_delay_time;
+
+
+    int pre_circulation_error_retry_count_max;
+    nh.param<int>("pre_circulation_error_retry_count_max", pre_circulation_error_retry_count_max, 2);
+    Environment::instance().pre_circulation_error_retry_count_max = pre_circulation_error_retry_count_max;
+    int post_circulation_error_retry_count_max;
+    nh.param<int>("post_circulation_error_retry_count_max", post_circulation_error_retry_count_max, 2);
+    Environment::instance().post_circulation_error_retry_count_max = post_circulation_error_retry_count_max;
+
+    int pre_circulation_error_retry_timeout;
+    nh.param<int>("pre_circulation_error_retry_timeout", pre_circulation_error_retry_timeout, 30 * 1000);
+    Environment::instance().pre_circulation_error_retry_timeout = pre_circulation_error_retry_timeout;
+    int post_circulation_error_retry_timeout;
+    nh.param<int>("post_circulation_error_retry_timeout", post_circulation_error_retry_timeout, 30 * 1000);
+    Environment::instance().post_circulation_error_retry_timeout = post_circulation_error_retry_timeout;
+
+    int outside_from_target_distance;
+    nh.param<int>("outside_from_target_distance", outside_from_target_distance, 70);
+    Environment::instance().outside_from_target_distance = outside_from_target_distance;
+
+    int pre_elevator_in_error_retry_count_max;
+    nh.param<int>("pre_elevator_in_error_retry_count_max", pre_elevator_in_error_retry_count_max, 2);
+    Environment::instance().pre_elevator_in_error_retry_count_max = pre_elevator_in_error_retry_count_max;
+    int post_elevator_in_error_retry_count_max;
+    nh.param<int>("post_elevator_in_error_retry_count_max", post_elevator_in_error_retry_count_max, 2);
+    Environment::instance().post_elevator_in_error_retry_count_max = post_elevator_in_error_retry_count_max;
+
+    int pre_elevator_in_error_retry_timeout;
+    nh.param<int>("pre_elevator_in_error_retry_timeout", pre_elevator_in_error_retry_timeout, 30 * 1000);
+    Environment::instance().pre_elevator_in_error_retry_timeout = pre_elevator_in_error_retry_timeout;
+    int post_elevator_in_error_retry_timeout;
+    nh.param<int>("post_elevator_in_error_retry_timeout", post_elevator_in_error_retry_timeout, 30 * 1000);
+    Environment::instance().post_elevator_in_error_retry_timeout = post_elevator_in_error_retry_timeout;
+
+    double inner_white_pixel_ratio;
+    nh.param<double>("inner_white_pixel_ratio", inner_white_pixel_ratio, 0.6);
+    Environment::instance().inner_white_pixel_ratio = inner_white_pixel_ratio;
+    int internal_spatial_analysis_count;
+    nh.param<int>("internal_spatial_analysis_count", internal_spatial_analysis_count, 30);
+    Environment::instance().internal_spatial_analysis_count = internal_spatial_analysis_count;
+
 }
 
 void release() {

@@ -110,6 +110,9 @@ loop::execute_handle AsyncTaskFramework::function_manual_epoll() {
         case loop::manual_epoll::manual_task_over:
             epoll_manual = loop::manual_epoll::manual_task_over;
             break;
+        case loop::manual_epoll::manual_abnormal:
+            epoll_manual = loop::manual_epoll::manual_abnormal;
+            break;
         default:
             epoll_manual = loop::manual_epoll::manual_unknown;
             break;

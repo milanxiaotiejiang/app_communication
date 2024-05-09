@@ -38,7 +38,6 @@
 #include <sub/JsonSubscribe.h>
 #include <sub/JsonSubscribeCloud.h>
 #include <sub/MapInnerSubscribe.h>
-#include <sub/MoveBaseRecoveryFailureSubscribe.h>
 #include <tool/Variable.h>
 
 #include "manager/InternalEventPubManager.h"
@@ -64,6 +63,7 @@
 #include "task/TaskCenter.h"
 #include "future/timer_call.h"
 #include "task/manager/NodeWorkModeManager.h"
+#include "manager/elevator_control.h"
 #include "clean_history/CleanHistoryCenter.h"
 #include "sys/wait.h"
 #include "leave/map_control.h"

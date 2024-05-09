@@ -7,8 +7,14 @@
 
 #include "sub/json/MessageStrategy.h"
 #include "model/task.h"
+#include "model/MapInfo.h"
 
 class AddTaskStrategy : public MessageStrategy<TaskVo, long> {
+public:
+    long handler(TaskVo params) override;
+};
+
+class MultipleAddTaskStrategy : public MessageStrategy<TaskVo, long> {
 public:
     long handler(TaskVo params) override;
 };
@@ -23,7 +29,22 @@ public:
     std::string handler(std::vector<long> params) override;
 };
 
+class MultipleDeleteTaskStrategy : public MessageStrategy<long, std::string> {
+public:
+    std::string handler(long params) override;
+};
+
 class ListTaskStrategy : public MessageStrategy<std::string, std::vector<TaskVo>> {
+public:
+    std::vector<TaskVo> handler(std::string params) override;
+};
+
+class MultipleListTaskStrategy : public MessageStrategy<std::string, std::vector<TaskVo>> {
+public:
+    std::vector<TaskVo> handler(std::string params) override;
+};
+
+class MultipleWholeListTaskStrategy : public MessageStrategy<std::string, std::vector<TaskVo>> {
 public:
     std::vector<TaskVo> handler(std::string params) override;
 };
@@ -43,6 +64,11 @@ public:
     long handler(TimerVo params) override;
 };
 
+class MultipleAddTimerTaskStrategy : public MessageStrategy<TimerVo, long> {
+public:
+    long handler(TimerVo params) override;
+};
+
 class DeleteTimerTaskStrategy : public MessageStrategy<long, std::string> {
 public:
     std::string handler(long params) override;
@@ -53,12 +79,32 @@ public:
     std::string handler(std::vector<long> params) override;
 };
 
+class MultipleDeleteTimerTaskStrategy : public MessageStrategy<long, std::string> {
+public:
+    std::string handler(long params) override;
+};
+
 class ListTimerTaskStrategy : public MessageStrategy<std::string, std::vector<TimerVo>> {
 public:
     std::vector<TimerVo> handler(std::string params) override;
 };
 
+class MultipleListTimerTaskStrategy : public MessageStrategy<std::string, std::vector<TimerVo>> {
+public:
+    std::vector<TimerVo> handler(std::string params) override;
+};
+
+class MultipleWholeListTimerTaskStrategy : public MessageStrategy<std::string, std::vector<TimerVo>> {
+public:
+    std::vector<TimerVo> handler(std::string params) override;
+};
+
 class ModifyTimerTaskStrategy : public MessageStrategy<TimerVo, std::string> {
+public:
+    std::string handler(TimerVo params) override;
+};
+
+class MultipleModifyTimerTaskStrategy : public MessageStrategy<TimerVo, std::string> {
 public:
     std::string handler(TimerVo params) override;
 };
@@ -78,6 +124,11 @@ public:
     TaskVo handler(std::string params) override;
 };
 
+class MultiplePrincipalTaskStrategy : public MessageStrategy<std::string, TaskVo> {
+public:
+    TaskVo handler(std::string params) override;
+};
+
 class BuildRainSnowTaskStrategy : public MessageStrategy<long, TaskVo> {
 public:
     TaskVo handler(long params) override;
@@ -89,6 +140,11 @@ public:
 };
 
 class RainSnowTaskStrategy : public MessageStrategy<std::string, TaskVo> {
+public:
+    TaskVo handler(std::string params) override;
+};
+
+class MultipleRainSnowTaskStrategy : public MessageStrategy<std::string, TaskVo> {
 public:
     TaskVo handler(std::string params) override;
 };
@@ -151,6 +207,11 @@ public:
 class ModifyTimerNameStrategy : public MessageStrategy<ModifyTimerName, std::string> {
 public:
     std::string handler(ModifyTimerName params) override;
+};
+
+class ListTimerTaskBuildStrategy : public MessageStrategy<std::string, std::vector<BuildTimer>> {
+public:
+    std::vector<BuildTimer> handler(std::string params) override;
 };
 
 #endif //APP_COMMUNICATION_DBTASKSTRATEGY_H

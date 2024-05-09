@@ -223,6 +223,7 @@ private:
     int end_year;//截止日期年
     int end_month;//截止日期月
     int end_day;//截止日期日
+    std::string o_map_id;
 
 public:
     TimerVo();
@@ -279,20 +280,25 @@ public:
 
     void setEndDay(int endDay);
 
+    const std::string &getOMapId() const;
+
+    void setOMapId(const std::string &oMapId);
+
     friend void to_json(json &j, const TimerVo &vo) {
         j = json{
-                {"timer_id",   vo.timer_id},
+                {"timer_id", vo.timer_id},
                 {"timer_rule", vo.timer_rule},
-                {"task_id",    vo.task_id},
+                {"task_id", vo.task_id},
                 {"timer_name", vo.timer_name},
-                {"task_name",  vo.task_name},
+                {"task_name", vo.task_name},
                 {"is_execute", vo.is_execute},
-                {"rate",       vo.rate},
-                {"is_never",   vo.is_never},
-                {"is_skip",    vo.is_skip},
-                {"end_year",   vo.end_year},
-                {"end_month",  vo.end_month},
-                {"end_day",    vo.end_day}
+                {"rate", vo.rate},
+                {"is_never", vo.is_never},
+                {"is_skip", vo.is_skip},
+                {"end_year", vo.end_year},
+                {"end_month", vo.end_month},
+                {"end_day", vo.end_day},
+                {"o_map_id", vo.o_map_id}
         };
     }
 
@@ -309,6 +315,7 @@ public:
         j.at("end_year").get_to(vo.end_year);
         j.at("end_month").get_to(vo.end_month);
         j.at("end_day").get_to(vo.end_day);
+        j.at("o_map_id").get_to(vo.o_map_id);
     }
 };
 

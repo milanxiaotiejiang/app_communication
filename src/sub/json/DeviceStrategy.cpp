@@ -189,3 +189,19 @@ std::string SetMaintenanceStartTimeStrategy::handler(long params) {
 long GetMaintenanceStartTimeStrategy::handler(std::string params) {
     return ParamManager::instance().getMaintenanceStartTime();
 }
+
+std::string SetTcienvStrategy::handler(bool params) {
+    ParamManager::instance().setCloudInteractiveEnvironment(params);
+    return "";
+}
+
+bool GetTcienvStrategy::handler(std::string params) {
+    return ParamManager::instance().getCloudInteractiveEnvironment();
+}
+
+void AbnormalStrategy::handler() {
+    std_msgs::Int32 map_start;
+    map_start.data = 2;
+    PublishInnerManager::instance().publishManualPush(map_start);
+    ManualManager::instance().abnormal();
+}

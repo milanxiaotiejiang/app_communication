@@ -25,12 +25,34 @@ void MapModification::forceModifyMap(const std::vector<std::vector<cv::Point>> &
     cv::imwrite(path::map_pgm_path(), unchanged);
 }
 
+void
+MapModification::forceModifyMap(const std::string &mapId, const std::vector<std::vector<cv::Point>> &points, int fill) {
+    auto mapPath = path::robot_slam_map_dir() + mapId + path::separator() + path::mymap_pgm;
+    cv::Mat unchanged = cv::imread(mapPath, cv::ImreadModes::IMREAD_UNCHANGED);
+    cv::rotate(unchanged, unchanged, cv::RotateFlags::ROTATE_90_COUNTERCLOCKWISE);
+    for (const auto &v: points) {
+        std::vector<std::vector<cv::Point>> polygon_array;
+        polygon_array.push_back(v);
+        cv::fillPoly(unchanged, polygon_array, cv::Scalar(fill));
+    }
+    cv::rotate(unchanged, unchanged, cv::RotateFlags::ROTATE_90_CLOCKWISE);
+    cv::imwrite(mapId, unchanged);
+}
+
 void MapModification::addObstacles(const std::vector<std::vector<cv::Point>> &points) {
     forceModifyMap(points, 128);
 }
 
 void MapModification::addFeasibleZone(const std::vector<std::vector<cv::Point>> &points) {
     forceModifyMap(points, 255);
+}
+
+void MapModification::addObstacles(const std::string &mapId, const std::vector<std::vector<cv::Point>> &points) {
+    forceModifyMap(mapId, points, 128);
+}
+
+void MapModification::addFeasibleZone(const std::string &mapId, const std::vector<std::vector<cv::Point>> &points) {
+    forceModifyMap(mapId, points, 255);
 }
 
 void MapModification::applyIncreaseArea(const std::vector<int> &daubs) {

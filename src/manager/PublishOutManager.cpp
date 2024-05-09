@@ -3,6 +3,8 @@
 //
 
 #include "manager/PublishOutManager.h"
+
+#include <utility>
 #include "net/WsServerManager.h"
 #include "net/base/RequestModel.h"
 #include "simulation.h"
@@ -20,6 +22,15 @@ void PublishOutManager::initialize(ros::NodeHandle handle) {
     acceptAppJsonV1 = handle.advertise<std_msgs::String>(APP_JSON, 1);
 
     acceptAppCommunication = handle.advertise<std_msgs::String>(APP_COMMUNICATION, 1);
+
+    pubPad = handle.advertise<std_msgs::Int32>(RESOURCES_UPDATE_FOR_PAD, 1);
+    pubCloud = handle.advertise<std_msgs::Int32>(RESOURCES_UPDATE_FOR_CLOUD, 1);
+
+    pubElevatorManager = handle.advertise<std_msgs::Int32>("/elevator_manager", 1);
+
+    pubElevatorStatus = handle.advertise<std_msgs::String>(ELEVATOR_STATUS, 1);
+    pubTaskStatus = handle.advertise<std_msgs::String>(TASK_STATUS, 1);
+    pubElevatorVoice = handle.advertise<std_msgs::String>(ELEVATOR_VOICE, 1);
 }
 
 void PublishOutManager::publishJson(const std::string &message) const {
@@ -111,4 +122,63 @@ void PublishOutManager::publishAppCommunication(const std_msgs::String &message)
 
 void PublishOutManager::publishInternalEvent(const std_msgs::String &message) const {
     pub_internal_event_.publish(message);
+}
+
+void PublishOutManager::publishResourcesUpdateForPad(const std_msgs::Int32 &message) const {
+    pubPad.publish(message);
+}
+
+void PublishOutManager::publishResourcesUpdateForCloud(const std_msgs::Int32 &message) const {
+    pubCloud.publish(message);
+}
+
+void PublishOutManager::publishElevatorManager() const {
+    std_msgs::Int32 data;
+    data.data = 10;
+    pubElevatorManager.publish(data);
+}
+
+void PublishOutManager::publishElevatorStatus(ElevatorModel elevatorModel) const {
+    RequestModel<ElevatorModel> requestModel;
+    requestModel.setOp("publish");
+    requestModel.setTopic(ELEVATOR_STATUS);
+    requestModel.setMsg(elevatorModel);
+
+    json jsonResult = requestModel;
+
+    WsServerManager::instance().sendRequestData(ELEVATOR_STATUS, jsonResult.dump());
+
+    std_msgs::String result;
+    result.data.append(jsonResult.dump());
+    pubElevatorStatus.publish(result);
+}
+
+void PublishOutManager::publishTaskStatus(TaskVo task) const {
+    RequestModel<TaskVo> requestModel;
+    requestModel.setOp("publish");
+    requestModel.setTopic(TASK_STATUS);
+    requestModel.setMsg(std::move(task));
+
+    json jsonResult = requestModel;
+
+    WsServerManager::instance().sendRequestData(TASK_STATUS, jsonResult.dump());
+
+    std_msgs::String result;
+    result.data.append(jsonResult.dump());
+    pubTaskStatus.publish(result);
+}
+
+void PublishOutManager::publishElevatorVoice(Voice voice) const {
+    RequestModel<Voice> requestModel;
+    requestModel.setOp("publish");
+    requestModel.setTopic(ELEVATOR_VOICE);
+    requestModel.setMsg(voice);
+
+    json jsonResult = requestModel;
+
+    WsServerManager::instance().sendRequestData(ELEVATOR_VOICE, jsonResult.dump());
+
+    std_msgs::String result;
+    result.data.append(jsonResult.dump());
+    pubElevatorVoice.publish(result);
 }

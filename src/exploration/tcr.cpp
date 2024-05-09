@@ -16,7 +16,7 @@ double tcr::coverageProportion() {
         double grid_spacing_in_meter = plan.robot_radius * std::sqrt(2);//网格正方形的边长
         double grid_spacing_in_pixel = grid_spacing_in_meter / map_resolution_from_subscription;
         LOG_IF(INFO, DEBUG_EXPLORATION)
-        << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
+                        << "grid size: " << grid_spacing_in_meter << " m   (" << grid_spacing_in_pixel << " px)";
         int spacing_half = (int) std::floor(0.5 * grid_spacing_in_pixel);
 
         const cv::Mat &baseMap = SegmentationCenter::instance().generateMat();
@@ -27,7 +27,8 @@ double tcr::coverageProportion() {
 
 
         auto planMat = baseMap.clone();
-        ExplorationCenter::instance().generatePlanningPathFull(planMat, ENERGY_FUNCTIONAL_EXPLORER_MODE, false,
+        ExplorationCenter::instance().generatePlanningPathFull(SegmentationDataBase::instance().getDbMap().id,
+                                                               ENERGY_FUNCTIONAL_EXPLORER_MODE, false,
                                                                exploration_path, point_path, complex_path);
 
         if (exploration_path.empty() || point_path.empty()) {

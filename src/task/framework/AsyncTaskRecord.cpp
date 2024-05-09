@@ -34,7 +34,8 @@ bool AsyncTaskRecord::isFlowingWater(event::flow flow) {
 }
 
 bool AsyncTaskRecord::isReturningBase(event::flow flow) {
-    return flow == event::flow::arrive_base_point_success ||
+    return flow == event::flow::formally_return_to_the_base_station ||
+           flow == event::flow::arrive_base_point_success ||
            flow == event::flow::flowing_water_execution_completed ||
            flow == event::flow::arrive_base_station_success ||
            flow == event::flow::try_recharging_again ||
@@ -88,7 +89,16 @@ bool AsyncTaskRecord::isRechargeFLow(event::flow flow) {
 }
 
 bool AsyncTaskRecord::isPlannerEmpty(event::flow flow) {
-    return flow == event::flow::flowing_water_production && plannerQueue.empty();
+    return flow == event::flow::flowing_water_production && plannerQueue.empty()
+           || flow == event::flow::formally_return_to_the_base_station;
+}
+
+bool AsyncTaskRecord::isPreConditions(event::flow flow) {
+    return flow == event::flow::trigger_special_pre_conditions;
+}
+
+bool AsyncTaskRecord::isPostConditions(event::flow flow) {
+    return flow == event::flow::trigger_special_post_conditions;
 }
 
 void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealBlock &realBlock) {

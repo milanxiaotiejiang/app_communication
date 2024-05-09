@@ -85,7 +85,7 @@ public:
 
     void goToPath(const RealBlock &block);
 
-    void goToPoint(const RealPoint &point);
+    void goToPoint(const RealPoint &point, bool mustArrive = false);
 
     void cancelPath();
 

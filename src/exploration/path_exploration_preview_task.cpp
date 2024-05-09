@@ -40,6 +40,22 @@ void TaskExploration::task2RealTask(const TaskVo &task, RealTask &realTask) {
     realTask.setLaunchTime(std::time(nullptr));
 }
 
+void TaskExploration::mapElevatorOutside2RealPoint(const MapPo &map, RealPoint &realPoint) {
+    RealPosition realPosition(map.elevator_position_x, map.elevator_position_y, map.elevator_position_z);
+    RealOrientation realOrientation(map.elevator_orientation_x, map.elevator_orientation_y,
+                                    map.elevator_orientation_z, map.elevator_orientation_w);
+    realPoint.realPosition = std::move(realPosition);
+    realPoint.realOrientation = std::move(realOrientation);
+}
+
+void TaskExploration::mapElevatorInside2RealPoint(const MapPo &map, RealPoint &realPoint) {
+    RealPosition realPosition(map.elevator_inside_position_x, map.elevator_inside_position_y, map.elevator_inside_position_z);
+    RealOrientation realOrientation(map.elevator_inside_orientation_x, map.elevator_inside_orientation_y,
+                                    map.elevator_inside_orientation_z, map.elevator_inside_orientation_w);
+    realPoint.realPosition = std::move(realPosition);
+    realPoint.realOrientation = std::move(realOrientation);
+}
+
 RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
     TaskMode mode = SqliteDataBase::TaskModeFromInt(task.getMode());
 
@@ -47,6 +63,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
     SegmentationCenter &segmentationCenter = SegmentationCenter::instance();
 
     const cv::Mat &baseMap = segmentationCenter.generateMat();
+    const cv::Point2d &mapOrigin = MapAttributeSingleton::instance().getMapOrigin();
 
     std::vector<geometry_msgs::Pose2D> exploration_path;
     std::vector<cv::Point> point_path;
@@ -74,7 +91,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             std::vector<cv::Point> sub_point_path;
             std::vector<std::vector<geometry_msgs::Pose2D>> sub_complex_path;
             try {
-                explorationCenter.generatePlanningPathRect(zoned_image,
+                explorationCenter.generatePlanningPathRect(task.getMapId(), zoned_image,
                                                            task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
                                                                                : Environment::instance().explorer_mode,
                                                            !task.isVerifyMode(),
@@ -151,13 +168,23 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
             coverage.setPointList(obtainSubregion.getPointList());
             coverage.setComplexList(obtainSubregion.getComplexList());
         } else {
-//            explorationCenter.generatePlanningPathFull(baseMap, BOUSTROPHEDON_EXPLORER_MODE,
-//                                                       exploration_path, point_path);
-            preLoaded = true;
-            auto obtainCoverage = explorationCenter.obtainCoveragePath();
-            coverage.setPoseList(obtainCoverage.getPoseList());
-            coverage.setPointList(obtainCoverage.getPointList());
-            coverage.setComplexList(obtainCoverage.getComplexList());
+            if (task.isAsyncMap()) {
+
+                explorationCenter
+                        .generatePlanningPathFull(
+                                task.getMapId(),
+                                task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
+                                                    : Environment::instance().explorer_mode,
+                                true,
+                                exploration_path, point_path, complex_path);
+            } else {
+                preLoaded = true;
+                auto obtainCoverage = explorationCenter.obtainCoveragePath();
+                coverage.setPoseList(obtainCoverage.getPoseList());
+                coverage.setPointList(obtainCoverage.getPointList());
+                coverage.setComplexList(obtainCoverage.getComplexList());
+            }
+
         }
 
     } else if (mode == TaskMode::Subregion) {
@@ -173,7 +200,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
 
             const cv::Mat &oneMap = segmentationCenter.choiceOneRoom(segmented_map, rooms,
                                                                      subregion.getSubregionValue());
-            explorationCenter.generatePlanningPathSub(oneMap,
+            explorationCenter.generatePlanningPathSub(task.getMapId(), oneMap,
                                                       task.isVerifyMode() ? ENERGY_FUNCTIONAL_EXPLORER_MODE
                                                                           : Environment::instance().explorer_mode,
                                                       !task.isVerifyMode(),
@@ -191,7 +218,7 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
         }
 
     } else if (mode == TaskMode::Line) {
-        explorationCenter.infinitelyNearBoundary(baseMap, true, exploration_path, point_path, complex_path);
+        explorationCenter.infinitelyNearBoundary(task.getMapId(), exploration_path, point_path, complex_path);
     }
 
     boost::uuids::uuid uuid = boost::uuids::random_generator()();
@@ -207,8 +234,9 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
         TaskExploration::planningPath2RoomCoverage(coverage, exploration_path, point_path, complex_path);
     }
 
-    explorationCenter.cacheRoomCoverage(coverage);
-
+    if (!task.isAsyncMap()) {
+        explorationCenter.cacheRoomCoverage(coverage);
+    }
     return coverage;
 }
 

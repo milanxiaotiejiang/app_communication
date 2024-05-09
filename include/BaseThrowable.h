@@ -156,7 +156,21 @@ namespace error {
         please_ensure_that_the_gate_setting_is_turned_on_off_at_the_base_station,
         the_base_station_is_no_longer_able_to_switch_maps,
         cannot_switch_maps_in_non_sleep_mode,
-        cannot_delete_to_the_current_map
+        cannot_delete_to_the_current_map,
+        camera_starting_or_failed_to_start,
+        multiple_map_building_data_error,
+        no_multi_map_buildings_have_been_set_up,
+        cross_floor_tasks_currently_only_support_full_coverage_tasks,
+        cross_floor_tasks_are_currently_not_supported,
+        unassociated_building_cannot_be_set_up,
+        beyond_the_floor_range,
+        current_floor_exists,
+        the_current_map_does_not_have_ladder_control_points_set,
+        no_ladder_control_points_have_been_set_on_the_task_map,
+        no_ladder_control_points_have_been_set_on_the_base_station_map,
+        map_switching_failed,
+        elevator_pre_flow_error,
+        elevator_post_flow_error
     };// enum value
 
     class category : public std::error_category {
@@ -449,6 +463,34 @@ namespace error {
                     return "未退出睡眠模式，清重新启动";
                 case error::cannot_delete_to_the_current_map:
                     return "不能删除当前地图";
+                case error::camera_starting_or_failed_to_start:
+                    return "银牛相机正在启动或启动失败";
+                case error::multiple_map_building_data_error:
+                    return "多地图楼宇数据出错";
+                case error::no_multi_map_buildings_have_been_set_up:
+                    return "未设置多地图楼宇";
+                case error::cross_floor_tasks_currently_only_support_full_coverage_tasks:
+                    return "跨楼层任务目前只支持全覆盖任务";
+                case error::cross_floor_tasks_are_currently_not_supported:
+                    return "暂不支持跨楼层任务";
+                case error::unassociated_building_cannot_be_set_up:
+                    return "未关联楼宇，不能设置";
+                case error::beyond_the_floor_range:
+                    return "超出楼层范围";
+                case error::current_floor_exists:
+                    return "存在当前楼层";
+                case error::the_current_map_does_not_have_ladder_control_points_set:
+                    return "当前地图未设置梯控点位";
+                case error::no_ladder_control_points_have_been_set_on_the_task_map:
+                    return "任务地图未设置梯控点位";
+                case error::no_ladder_control_points_have_been_set_on_the_base_station_map:
+                    return "基站地图未设置梯控点位";
+                case error::map_switching_failed:
+                    return "地图切换失败";
+                case error::elevator_pre_flow_error:
+                    return "梯控预流程错误";
+                case error::elevator_post_flow_error:
+                    return "梯控后流程错误";
                 default:
                     return "Unknown";
             }

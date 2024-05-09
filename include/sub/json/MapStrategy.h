@@ -15,12 +15,13 @@
 
 #include "prohibition.h"
 #include "model/RoomVo.h"
+#include "net/base/CompositeList.h"
 
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
-class FactoryResetStrategy: public MessageStrategy<std::string, std::string> {
+class FactoryResetStrategy : public MessageStrategy<std::string, std::string> {
 public:
     std::string handler(std::string params) override;
 };
@@ -65,6 +66,16 @@ public:
     std::vector<std::vector<float>> handler(std::string params) override;
 };
 
+class MultipleEditMapStrategy : public MessageStrategy<CompositeFloatList, std::string> {
+public:
+    std::string handler(CompositeFloatList params) override;
+};
+
+class MultipleGetEditMapStrategy : public MessageStrategy<std::string, CompositeFloatList> {
+public:
+    CompositeFloatList handler(std::string params) override;
+};
+
 class ManualPushStartStrategy : public MessageStrategy<std::string, int> {
 public:
     int handler(std::string params) override;
@@ -89,5 +100,86 @@ class MapApplyIncreaseArea : public MessageStrategy<std::vector<int>, std::strin
 public:
     std::string handler(std::vector<int> params) override;
 };
+
+class MultipleMapObstaclesStrategy : public MessageStrategy<CompositePointList, std::string> {
+public:
+    std::string handler(CompositePointList params) override;
+};
+
+class MultipleMapFeasibleZoneStrategy : public MessageStrategy<CompositePointList, std::string> {
+public:
+    std::string handler(CompositePointList params) override;
+};
+
+class AddBuildStrategy : public MessageStrategy<BuildVo, long> {
+public:
+    long handler(BuildVo params) override;
+};
+
+class DeleteBuildStrategy : public MessageStrategy<long, std::string> {
+public:
+    std::string handler(long params) override;
+};
+
+class ModifyBuildNameStrategy : public MessageStrategy<BuildVo, std::string> {
+public:
+    std::string handler(BuildVo params) override;
+};
+
+class ModifyBuildElevatorAddressStrategy : public MessageStrategy<BuildVo, std::string> {
+public:
+    std::string handler(BuildVo params) override;
+};
+
+class ListBuildStrategy : public MessageStrategy<std::string, std::vector<BuildVo>> {
+public:
+    std::vector<BuildVo> handler(std::string params) override;
+};
+
+class ModifyMapBaseStationStrategy : public MessageStrategy<MapBaseStation, std::string> {
+public:
+    std::string handler(MapBaseStation params) override;
+};
+
+class ModifyMapFloorStrategy : public MessageStrategy<MapFloor, std::string> {
+public:
+    std::string handler(MapFloor params) override;
+};
+
+class ModifyMapElevatorStrategy : public MessageStrategy<MapElevator, std::string> {
+public:
+    std::string handler(MapElevator params) override;
+};
+
+class ModifyMapElevatorPointStrategy : public MessageStrategy<MapElevatorPoint, MultiMapInfo> {
+public:
+    MultiMapInfo handler(MapElevatorPoint params) override;
+};
+
+class ModifyMapElevatorRectStrategy : public MessageStrategy<MapElevatorRect, MultiMapInfo> {
+public:
+    MultiMapInfo handler(MapElevatorRect params) override;
+};
+
+class ListMapForBuildStrategy : public MessageStrategy<long, std::vector<MultiMapInfo>> {
+public:
+    std::vector<MultiMapInfo> handler(long params) override;
+};
+
+class AttachBuildMapStrategy : public MessageStrategy<AttachBuildMap, std::string> {
+public:
+    std::string handler(AttachBuildMap params) override;
+};
+
+class MapForIdStrategy : public MessageStrategy<std::string, MultiMapInfo> {
+public:
+    MultiMapInfo handler(std::string params) override;
+};
+
+class TTElevatorStrategy : public MessageStrategy<std::string, std::string> {
+public:
+    std::string handler(std::string params) override;
+};
+
 
 #endif //APP_COMMUNICATION_MAPSTRATEGY_H

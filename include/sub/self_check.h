@@ -98,6 +98,7 @@ public:
         // 使能时间作为计算是否超时的起点
         last_image_ = ros::Time::now();
         last_pointcloud_ = ros::Time::now();
+        return true;
     }
 
 private:
@@ -281,6 +282,7 @@ public:
 
     bool resetBiasDetectValid() {
         bias_detect_valid = true;
+        return true;
     }
 
     bool isTrackedPoseValid() {
@@ -641,6 +643,7 @@ public:
 
     bool set_enabled(bool enabled) {
         enabled_ = enabled;
+        return true;
     }
 
 private:

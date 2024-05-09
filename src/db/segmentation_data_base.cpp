@@ -14,6 +14,43 @@
 #include "db/task_data_base.h"
 #include "segmentation/map_attribute.h"
 
+void SegmentationDataBase::resetMap(const MapPo &map) {
+    mapPo.id = map.id;
+    mapPo.name = map.name;
+    mapPo.path = map.path;
+    mapPo.main = map.main;
+
+    mapPo.elevator = map.elevator;
+
+    mapPo.elevator_position_x = map.elevator_position_x;
+    mapPo.elevator_position_y = map.elevator_position_y;
+    mapPo.elevator_position_z = map.elevator_position_z;
+    mapPo.elevator_orientation_x = map.elevator_orientation_x;
+    mapPo.elevator_orientation_y = map.elevator_orientation_y;
+    mapPo.elevator_orientation_z = map.elevator_orientation_z;
+    mapPo.elevator_orientation_w = map.elevator_orientation_w;
+
+    mapPo.elevator_inside_position_x = map.elevator_inside_position_x;
+    mapPo.elevator_inside_position_y = map.elevator_inside_position_y;
+    mapPo.elevator_inside_position_z = map.elevator_inside_position_z;
+    mapPo.elevator_inside_orientation_x = map.elevator_inside_orientation_x;
+    mapPo.elevator_inside_orientation_y = map.elevator_inside_orientation_y;
+    mapPo.elevator_inside_orientation_z = map.elevator_inside_orientation_z;
+    mapPo.elevator_inside_orientation_w = map.elevator_inside_orientation_w;
+
+    mapPo.p1x = map.p1x;
+    mapPo.p1y = map.p1y;
+    mapPo.p2x = map.p2x;
+    mapPo.p2y = map.p2y;
+    mapPo.p3x = map.p3x;
+    mapPo.p3y = map.p3y;
+    mapPo.p4x = map.p4x;
+    mapPo.p4y = map.p4y;
+
+    mapPo.floor = map.floor;
+    mapPo.base_station = map.base_station;
+}
+
 GateInfo SegmentationDataBase::gate2Info(const Gate &gate) {
     return GateInfo(
             gate.id, gate.o_map_id, gate.start_x, gate.start_y, gate.end_x, gate.end_y,
@@ -54,10 +91,7 @@ bool SegmentationDataBase::loadMainMap() {
 
         for (const auto &map: mainMaps) {
             if (map.main) {
-                mapPo.id = map.id;
-                mapPo.name = map.name;
-                mapPo.path = map.path;
-                mapPo.main = map.main;
+                resetMap(map);
                 break;
             }
         }
@@ -68,11 +102,22 @@ bool SegmentationDataBase::loadMainMap() {
     }
 }
 
+bool SegmentationDataBase::existMap(const std::string &map_id) {
+    try {
+        segmentationStorage.get<MapPo>(map_id);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
 MapPo &SegmentationDataBase::getDbMap() {
     return mapPo;
 }
 
-MapPo SegmentationDataBase::installMap(std::string name) {
+MapPo SegmentationDataBase::installMap(long buildId, std::string name, int floor, bool base_station) {
+    auto build = segmentationStorage.get<BuildPo>(buildId);
+
     segmentationStorage.update_all(sqlite_orm::set(c(&MapPo::main) = false));
 
     MapPo map;
@@ -80,7 +125,12 @@ MapPo SegmentationDataBase::installMap(std::string name) {
     map.name = std::move(name);
     map.path = "";
     map.main = true;
+    map.elevator = false;
+    map.floor = floor;
+    map.base_station = base_station;
     segmentationStorage.replace(map);
+
+    attachBuildMap(buildId, map.id);
     return map;
 }
 
@@ -92,6 +142,14 @@ void SegmentationDataBase::changeMap(const std::string &map_id) {
 }
 
 MapPo SegmentationDataBase::installDefaultMap() {
+    auto builds = SegmentationDataBase::instance().loadAllBuild();
+    if (builds.empty()) {
+        throw std::runtime_error("builds is empty ...");
+    }
+    SegmentationDataBase::instance().removeBuild();
+
+    long buildId = SegmentationDataBase::instance().saveBuild("default_build", 0);
+
     auto mapList = segmentationStorage.get_all<MapPo>();
     for (const auto &item: mapList) {
         removeAllRoom(item.id);
@@ -104,7 +162,12 @@ MapPo SegmentationDataBase::installDefaultMap() {
     map.name = "default";
     map.path = "";
     map.main = true;
+    map.elevator = false;
+    map.floor = 0;
+    map.base_station = true;
     segmentationStorage.replace(map);
+
+    SegmentationDataBase::instance().attachBuildMap(buildId, map.id);
     return map;
 }
 
@@ -112,17 +175,162 @@ std::vector<MapPo> SegmentationDataBase::loadAllMap() {
     return segmentationStorage.get_all<MapPo>();
 }
 
+MapPo SegmentationDataBase::loadMapForId(std::string mapId) {
+    return segmentationStorage.get<MapPo>(std::move(mapId));
+}
+
 void SegmentationDataBase::updateMapName(const std::string &map_id, const std::string &map_name) {
     MapPo map = segmentationStorage.get<MapPo>(map_id);
     map.name = map_name;
     segmentationStorage.update(map);
+
     if (map.id == mapPo.id) {
-        mapPo.name = map_name;
+        resetMap(selectMapById(map_id));
     }
+}
+
+MapPo SegmentationDataBase::updateMapElevatorStatus(const std::string &map_id) {
+    MapPo map = segmentationStorage.get<MapPo>(map_id);
+    map.elevator = true;
+
+    segmentationStorage.update(map);
+
+    if (map.id == mapPo.id) {
+        resetMap(selectMapById(map_id));
+    }
+    return map;
+}
+
+MapPo SegmentationDataBase::updateMapElevatorPoint(const std::string &map_id, bool inside) {
+    auto pose = MapAttributeSingleton::instance().getRobotCompletePosition();
+    MapPo map = segmentationStorage.get<MapPo>(map_id);
+
+    map.elevator = true;
+    if (inside) {
+        map.elevator_inside_position_x = pose.position.x;
+        map.elevator_inside_position_y = pose.position.y;
+        map.elevator_inside_position_z = pose.position.z;
+        map.elevator_inside_orientation_x = pose.orientation.x;
+        map.elevator_inside_orientation_y = pose.orientation.y;
+        map.elevator_inside_orientation_z = pose.orientation.z;
+        map.elevator_inside_orientation_w = pose.orientation.w;
+    } else {
+        map.elevator_position_x = pose.position.x;
+        map.elevator_position_y = pose.position.y;
+        map.elevator_position_z = pose.position.z;
+        map.elevator_orientation_x = pose.orientation.x;
+        map.elevator_orientation_y = pose.orientation.y;
+        map.elevator_orientation_z = pose.orientation.z;
+        map.elevator_orientation_w = pose.orientation.w;
+    }
+
+    segmentationStorage.update(map);
+
+    if (map.id == mapPo.id) {
+        resetMap(selectMapById(map_id));
+    }
+    return map;
+}
+
+MapPo SegmentationDataBase::updateMapElevatorRect(const std::string &map_id, std::vector<int> points) {
+    MapPo map = segmentationStorage.get<MapPo>(map_id);
+
+    map.p1x = points[0];
+    map.p1y = points[1];
+    map.p2x = points[2];
+    map.p2y = points[3];
+    map.p3x = points[4];
+    map.p3y = points[5];
+    map.p4x = points[6];
+    map.p4y = points[7];
+
+    segmentationStorage.update(map);
+
+    if (map.id == mapPo.id) {
+        resetMap(selectMapById(map_id));
+    }
+    return map;
+}
+
+MapPo SegmentationDataBase::removeMapElevator(const std::string &map_id) {
+    MapPo map = segmentationStorage.get<MapPo>(map_id);
+    map.elevator = false;
+    segmentationStorage.update(map);
+
+    if (map.id == mapPo.id) {
+        resetMap(selectMapById(map_id));
+    }
+    return map;
+}
+
+MapPo SegmentationDataBase::updateFloor(const std::string &map_id, int floor) {
+    // todo 写到前面
+    if (floor <= -2 || floor > 300 || floor == 0)
+        throw app::exception(make_error_code(error::beyond_the_floor_range));
+
+    auto buildMaps = SegmentationDataBase::instance().findBuildMapsForMap(map_id);
+    if (buildMaps.empty())
+        throw app::exception(make_error_code(error::unassociated_building_cannot_be_set_up));
+    if (buildMaps.size() != 1)
+        throw app::exception(make_error_code(error::multiple_map_building_data_error));
+
+    auto buildMap = buildMaps[0];
+    auto build = buildMap.first;
+    auto buildId = build.id;
+
+    auto floorBuildMaps = SegmentationDataBase::instance().findBuildMapsForBuild(buildId);
+    bool exist = false;
+    for (const auto &floorBuildMap: floorBuildMaps) {
+        if (floorBuildMap.second.floor == floor) {
+            if (floorBuildMap.second.id != map_id) {
+                exist = true;
+            }
+        }
+    }
+    if (exist)
+        throw app::exception(make_error_code(error::current_floor_exists));
+
+    MapPo map = segmentationStorage.get<MapPo>(map_id);
+    map.floor = floor;
+    segmentationStorage.update(map);
+
+    if (map.id == mapPo.id) {
+        resetMap(selectMapById(map_id));
+    }
+    return map;
+}
+
+MapPo SegmentationDataBase::removeFloor(const std::string &map_id) {
+    MapPo map = segmentationStorage.get<MapPo>(map_id);
+    map.floor = 0;
+    segmentationStorage.update(map);
+
+    if (map.id == mapPo.id) {
+        resetMap(selectMapById(map_id));
+    }
+    return map;
+}
+
+MapPo SegmentationDataBase::changeBaseStation(const std::string &map_id, bool hasBaseStation) {
+    MapPo map = segmentationStorage.get<MapPo>(map_id);
+    map.base_station = hasBaseStation;
+    segmentationStorage.update(map);
+
+    if (map.id == mapPo.id) {
+        resetMap(selectMapById(map_id));
+    }
+    return map;
+}
+
+MapPo SegmentationDataBase::selectMapById(const std::string &map_id) {
+    return segmentationStorage.get<MapPo>(map_id);
 }
 
 void SegmentationDataBase::removeMap(const std::string &map_id) {
     segmentationStorage.remove<MapPo>(map_id);
+    segmentationStorage.remove_all<BuildMapMapping>(
+            where(c(&BuildMapMapping::o_map_id) == map_id)
+    );
 }
 
 RoomPo SegmentationDataBase::selectRoomById(long roomId) {
@@ -330,6 +538,7 @@ void SegmentationDataBase::deleteGateForId(long id) {
 
 long SegmentationDataBase::modifyGateInfo(const GateInfo &gateInfo) {
     segmentationStorage.update(info2Gate(gateInfo));
+    return gateInfo.getId();
 }
 
 void SegmentationDataBase::modifyGateLine(long id, double start_x, double start_y, double end_x, double end_y) {
@@ -355,3 +564,285 @@ GateInfo SegmentationDataBase::queryGateForId(long id) {
     return gate2Info(originalGate);
 }
 
+long SegmentationDataBase::saveBuild(const std::string &name, int elevator_address) {
+    BuildPo buildPo;
+    buildPo.name = std::move(name);
+    buildPo.elevator_address = elevator_address;
+    return segmentationStorage.insert(buildPo);
+}
+
+void SegmentationDataBase::removeBuild(long id) {
+    segmentationStorage.remove<BuildPo>(id);
+    segmentationStorage.remove_all<BuildMapMapping>(
+            where(c(&BuildMapMapping::o_build_id) == id)
+    );
+}
+
+void SegmentationDataBase::removeBuild() {
+    segmentationStorage.remove_all<BuildPo>();
+    segmentationStorage.remove_all<BuildMapMapping>();
+}
+
+std::vector<BuildPo> SegmentationDataBase::loadAllBuild() {
+    return segmentationStorage.get_all<BuildPo>();
+}
+
+BuildPo SegmentationDataBase::queryBuildForId(long id) {
+    return segmentationStorage.get<BuildPo>(id);
+}
+
+void SegmentationDataBase::modifyBuildName(long id, const std::string &name) {
+    auto buildPo = segmentationStorage.get<BuildPo>(id);
+    buildPo.name = name;
+    segmentationStorage.update(buildPo);
+}
+
+void SegmentationDataBase::modifyBuildElevatorAddress(long id, int elevator_address) {
+    auto buildPo = segmentationStorage.get<BuildPo>(id);
+    buildPo.elevator_address = elevator_address;
+    segmentationStorage.update(buildPo);
+}
+
+void SegmentationDataBase::attachBuildMap(long buildId, const std::string &mapId) {
+    auto list = segmentationStorage.get_all<BuildMapMapping>(
+            where(
+                    c(&BuildMapMapping::o_build_id) == buildId
+                    and
+                    c(&BuildMapMapping::o_map_id) == mapId
+            )
+    );
+    if (list.empty()) {
+        BuildMapMapping mapping(buildId, mapId);
+        segmentationStorage.insert(mapping);
+    }
+}
+
+void SegmentationDataBase::detachBuildMap(long buildId, const std::string &mapId) {
+    segmentationStorage.remove_all<BuildMapMapping>(
+            where(
+                    c(&BuildMapMapping::o_build_id) == buildId
+                    and
+                    c(&BuildMapMapping::o_map_id) == mapId
+            )
+    );
+}
+
+std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForBuild(long buildId) {
+    auto results = segmentationStorage.select(
+            distinct(columns(
+                    &MapPo::id,
+                    &MapPo::name,
+                    &MapPo::path,
+                    &MapPo::main,
+                    &BuildPo::id,
+                    &BuildPo::name,
+                    &BuildPo::elevator_address,
+                    &MapPo::elevator,
+
+                    &MapPo::elevator_position_x,
+                    &MapPo::elevator_position_y,
+                    &MapPo::elevator_position_z,
+                    &MapPo::elevator_orientation_x,
+                    &MapPo::elevator_orientation_y,
+                    &MapPo::elevator_orientation_z,
+                    &MapPo::elevator_orientation_w,
+
+                    &MapPo::elevator_inside_position_x,
+                    &MapPo::elevator_inside_position_y,
+                    &MapPo::elevator_inside_position_z,
+                    &MapPo::elevator_inside_orientation_x,
+                    &MapPo::elevator_inside_orientation_y,
+                    &MapPo::elevator_inside_orientation_z,
+                    &MapPo::elevator_inside_orientation_w,
+
+                    &MapPo::p1x,
+                    &MapPo::p1y,
+                    &MapPo::p2x,
+                    &MapPo::p2y,
+                    &MapPo::p3x,
+                    &MapPo::p3y,
+                    &MapPo::p4x,
+                    &MapPo::p4y,
+
+                    &MapPo::floor,
+                    &MapPo::base_station
+            )),
+            inner_join<MapPo>(on(c(&MapPo::id) == &BuildMapMapping::o_map_id)),
+            inner_join<BuildPo>(on(c(&BuildPo::id) == &BuildMapMapping::o_build_id)),
+            where(c(&BuildMapMapping::o_build_id) == buildId)
+    );
+
+    std::vector<std::pair<BuildPo, MapPo>> vos;
+    for (const auto &row: results) {
+        BuildPo b(
+                std::get<4>(row),//id
+                std::get<5>(row),//name
+                std::get<6>(row)//elevator_address
+        );
+        MapPo m(
+                std::get<0>(row),//id
+                std::get<1>(row),//name
+                std::get<2>(row),//path
+                std::get<3>(row),//main
+                std::get<7>(row),//elevator
+
+                std::get<8>(row),//elevator_position_x
+                std::get<9>(row),//elevator_position_y
+                std::get<10>(row),//elevator_position_z
+                std::get<11>(row),//elevator_orientation_x
+                std::get<12>(row),//elevator_orientation_y
+                std::get<13>(row),//elevator_orientation_z
+                std::get<14>(row),//elevator_orientation_w
+
+                std::get<15>(row),//elevator_inside_position_x
+                std::get<16>(row),//elevator_inside_position_y
+                std::get<17>(row),//elevator_inside_position_z
+                std::get<18>(row),//elevator_inside_orientation_x
+                std::get<19>(row),//elevator_inside_orientation_y
+                std::get<20>(row),//elevator_inside_orientation_z
+                std::get<21>(row),//elevator_inside_orientation_w
+
+                std::get<22>(row),//p1x
+                std::get<23>(row),//p1y
+                std::get<24>(row),//p2x
+                std::get<25>(row),//p2y
+                std::get<26>(row),//p3x
+                std::get<27>(row),//p3y
+                std::get<28>(row),//p4x
+                std::get<29>(row),//p4y
+
+                std::get<30>(row),//floor
+                std::get<31>(row)//base_station
+        );
+        auto pair = std::make_pair(b, m);
+        vos.push_back(pair);
+    }
+
+    return vos;
+}
+
+std::vector<std::pair<BuildPo, MapPo>> SegmentationDataBase::findBuildMapsForMap(const std::string &mapId) {
+    auto results = segmentationStorage.select(
+            distinct(columns(
+                    &MapPo::id,
+                    &MapPo::name,
+                    &MapPo::path,
+                    &MapPo::main,
+
+                    &BuildPo::id,
+                    &BuildPo::name,
+                    &BuildPo::elevator_address,
+
+                    &MapPo::elevator,
+
+                    &MapPo::elevator_position_x,
+                    &MapPo::elevator_position_y,
+                    &MapPo::elevator_position_z,
+                    &MapPo::elevator_orientation_x,
+                    &MapPo::elevator_orientation_y,
+                    &MapPo::elevator_orientation_z,
+                    &MapPo::elevator_orientation_w,
+
+                    &MapPo::elevator_inside_position_x,
+                    &MapPo::elevator_inside_position_y,
+                    &MapPo::elevator_inside_position_z,
+                    &MapPo::elevator_inside_orientation_x,
+                    &MapPo::elevator_inside_orientation_y,
+                    &MapPo::elevator_inside_orientation_z,
+                    &MapPo::elevator_inside_orientation_w,
+
+                    &MapPo::p1x,
+                    &MapPo::p1y,
+                    &MapPo::p2x,
+                    &MapPo::p2y,
+                    &MapPo::p3x,
+                    &MapPo::p3y,
+                    &MapPo::p4x,
+                    &MapPo::p4y,
+
+                    &MapPo::floor,
+                    &MapPo::base_station
+            )),
+            inner_join<MapPo>(on(c(&MapPo::id) == &BuildMapMapping::o_map_id)),
+            inner_join<BuildPo>(on(c(&BuildPo::id) == &BuildMapMapping::o_build_id)),
+            where(c(&BuildMapMapping::o_map_id) == mapId)
+    );
+
+    std::vector<std::pair<BuildPo, MapPo>> vos;
+    for (const auto &row: results) {
+        BuildPo b(
+                std::get<4>(row),//id
+                std::get<5>(row),//name
+                std::get<6>(row)//elevator_address
+        );
+        MapPo m(
+                std::get<0>(row),//id
+                std::get<1>(row),//name
+                std::get<2>(row),//path
+                std::get<3>(row),//main
+
+                std::get<7>(row),//elevator
+
+                std::get<8>(row),//elevator_position_x
+                std::get<9>(row),//elevator_position_y
+                std::get<10>(row),//elevator_position_z
+                std::get<11>(row),//elevator_orientation_x
+                std::get<12>(row),//elevator_orientation_y
+                std::get<13>(row),//elevator_orientation_z
+                std::get<14>(row),//elevator_orientation_w
+
+                std::get<8>(row),//elevator_inside_position_x
+                std::get<9>(row),//elevator_inside_position_y
+                std::get<10>(row),//elevator_inside_position_z
+                std::get<11>(row),//elevator_inside_orientation_x
+                std::get<12>(row),//elevator_inside_orientation_y
+                std::get<13>(row),//elevator_inside_orientation_z
+                std::get<14>(row),//elevator_inside_orientation_w
+
+                std::get<15>(row),//p1x
+                std::get<16>(row),//p1y
+                std::get<17>(row),//p2x
+                std::get<18>(row),//p2y
+                std::get<19>(row),//p3x
+                std::get<20>(row),//p3y
+                std::get<21>(row),//p4x
+                std::get<21>(row),//p4y
+
+                std::get<30>(row),//floor
+                std::get<31>(row)//base_station
+        );
+        auto pair = std::make_pair(b, m);
+        vos.push_back(pair);
+    }
+
+    return vos;
+}
+
+std::vector<std::string> SegmentationDataBase::findMapIdsForCurrentBuild(const std::string &mapId) {
+
+    auto buildMapList = segmentationStorage.get_all<BuildMapMapping>(
+            where(c(&BuildMapMapping::o_map_id) == mapId)
+    );
+    if (buildMapList.size() != 1) {
+        return {};
+    }
+    auto currentBuildMap = buildMapList[0];
+
+    auto buildId = currentBuildMap.o_build_id;
+
+    auto results = segmentationStorage.select(
+            distinct(columns(
+                    &MapPo::id
+            )),
+            inner_join<MapPo>(on(c(&MapPo::id) == &BuildMapMapping::o_map_id)),
+            inner_join<BuildPo>(on(c(&BuildPo::id) == &BuildMapMapping::o_build_id)),
+            where(c(&BuildMapMapping::o_build_id) == buildId)
+    );
+
+    std::vector<std::string> mapIds;
+    for (const auto &row: results) {
+        mapIds.push_back(std::get<0>(row));
+    }
+
+    return mapIds;
+}

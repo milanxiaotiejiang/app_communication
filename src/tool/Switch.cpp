@@ -48,12 +48,20 @@ int switch_ID(const std::string &str) {
     if (str == "delete_map") {
         return DELETE_MAP;
     }
+
     if (str == "edit_map") {
         return EDIT_MAP_;
     }
     if (str == "get_edit_map") {
         return GET_EDIT_MAP_;
     }
+    if (str == "multiple_edit_map") {
+        return MULTIPLE_EDIT_MAP;
+    }
+    if (str == "multiple_get_edit_map") {
+        return MULTIPLE_GET_EDIT_MAP;
+    }
+
     if (str == "running_task") {
         return RUNNING_TASK;
     }
@@ -211,12 +219,24 @@ int switch_ID(const std::string &str) {
     if (str == "set_maintenance_start_time") {
         return SET_MAINTENANCE_START_TIME;
     }
+    if (str == "get_test_cloud_interactive_environment") {
+        return GET_TEST_CLOUD_INTERACTIVE_ENVIRONMENT;
+    }
+    if (str == "set_test_cloud_interactive_environment") {
+        return SET_TEST_CLOUD_INTERACTIVE_ENVIRONMENT;
+    }
 
     if (str == "map_obstacles") {
         return MAP_OBSTACLES;
     }
     if (str == "map_feasible_zone") {
         return MAP_FEASIBLE_ZONE;
+    }
+    if (str == "multiple_map_obstacles") {
+        return MULTIPLE_MAP_OBSTACLES;
+    }
+    if (str == "multiple_map_feasible_zone") {
+        return MULTIPLE_MAP_FEASIBLE_ZONE;
     }
     if (str == "map_apply_increase_area") {
         return MAP_APPLY_INCREASE_AREA;
@@ -235,14 +255,26 @@ int switch_ID(const std::string &str) {
     if (str == "add_task") {
         return ADD_TASK;
     }
+    if (str == "multiple_add_task") {
+        return MULTIPLE_ADD_TASK;
+    }
     if (str == "delete_task") {
         return DELETE_TASK;
     }
     if (str == "delete_multiple_task") {
         return DELETE_MULTIPLE_TASK;
     }
+    if (str == "multiple_delete_task") {
+        return MULTIPLE_DELETE_TASK;
+    }
     if (str == "list_task") {
         return LIST_TASK;
+    }
+    if (str == "multiple_list_task") {
+        return MULTIPLE_LIST_TASK;
+    }
+    if (str == "multiple_whole_list_task") {
+        return MULTIPLE_WHOLE_LIST_TASK;
     }
     if (str == "query_id_task") {
         return QUERY_ID_TASK;
@@ -256,6 +288,9 @@ int switch_ID(const std::string &str) {
     if (str == "principal_task") {
         return PRINCIPAL_TASK;
     }
+    if (str == "multiple_principal_task") {
+        return MULTIPLE_PRINCIPAL_TASK;
+    }
 
     if (str == "build_rain_snow_task") {
         return BUILD_RAIN_SNOW_TASK;
@@ -265,6 +300,9 @@ int switch_ID(const std::string &str) {
     }
     if (str == "rain_snow_task") {
         return RAIN_SNOW_TASK;
+    }
+    if (str == "multiple_rain_snow_task") {
+        return MULTIPLE_RAIN_SNOW_TASK;
     }
 
     if (str == "clear_current_list_task") {
@@ -308,20 +346,38 @@ int switch_ID(const std::string &str) {
     if (str == "add_timer_task") {
         return ADD_TIMER_TASK;
     }
+    if (str == "multiple_add_timer_task") {
+        return MULTIPLE_ADD_TIMER_TASK;
+    }
     if (str == "delete_timer_task") {
         return DELETE_TIMER_TASK;
     }
     if (str == "delete_multiple_timer_task") {
         return DELETE_MULTIPLE_TIMER_TASK;
     }
+    if (str == "multiple_delete_timer_task") {
+        return MULTIPLE_DELETE_TIMER_TASK;
+    }
     if (str == "list_timer_task") {
         return LIST_TIMER_TASK;
+    }
+    if (str == "multiple_list_timer_task") {
+        return MULTIPLE_LIST_TIMER_TASK;
+    }
+    if (str == "multiple_whole_list_timer_task") {
+        return MULTIPLE_WHOLE_LIST_TIMER_TASK;
     }
     if (str == "modify_timer_task") {
         return MODIFY_TIMER_TASK;
     }
+    if (str == "multiple_modify_timer_task") {
+        return MULTIPLE_MODIFY_TIMER_TASK;
+    }
     if (str == "modify_timer_name") {
         return MODIFY_TIMER_NAME;
+    }
+    if (str == "list_timer_task_build") {
+        return LIST_TIMER_TASK_BUILD;
     }
 
     if (str == "exploration_task") {
@@ -386,12 +442,77 @@ int switch_ID(const std::string &str) {
     if (str == "query_id_gate") {
         return QUERY_ID_GATE;
     }
+    if (str == "multiple_modify_gate") {
+        return MULTIPLE_MODIFY_GATE;
+    }
+    if (str == "multiple_list_gate") {
+        return MULTIPLE_LIST_GATE;
+    }
+    if (str == "multiple_purge_gate") {
+        return MULTIPLE_PURGE_GATE;
+    }
 
     if (str == "open_gate_setting") {
         return OPEN_GATE_SETTING;
     }
     if (str == "close_gate_setting") {
         return CLOSE_GATE_SETTING;
+    }
+
+    if (str == "add_build") {
+        return ADD_BUILD;
+    }
+    if (str == "delete_build") {
+        return DELETE_BUILD;
+    }
+    if (str == "modify_build_name") {
+        return MODIFY_BUILD_NAME;
+    }
+    if (str == "modify_build_elevator_address") {
+        return MODIFY_BUILD_ELEVATOR_ADDRESS;
+    }
+    if (str == "list_build") {
+        return LIST_BUILD;
+    }
+
+    if (str == "modify_map_base_station") {
+        return MODIFY_MAP_BASE_STATION;
+    }
+    if (str == "modify_map_floor") {
+        return MODIFY_MAP_FLOOR;
+    }
+    if (str == "modify_map_elevator") {
+        return MODIFY_MAP_ELEVATOR;
+    }
+    if (str == "modify_map_elevator_point") {
+        return MODIFY_MAP_ELEVATOR_POINT;
+    }
+    if (str == "modify_map_elevator_rect") {
+        return MODIFY_MAP_ELEVATOR_RECT;
+    }
+
+    if (str == "list_map_for_build") {
+        return LIST_MAP_FOR_BUILD;
+    }
+
+    if (str == "attach_build_map") {
+        return ATTACH_BUILD_MAP;
+    }
+
+    if (str == "map_for_id") {
+        return MAP_FOR_ID;
+    }
+
+    if (str == "sewage_pump_switch") {
+        return SEWAGE_PUMP_SWITCH;
+    }
+
+    if ("abnormal") {
+        return ABNORMAL;
+    }
+
+    if (str == "tt_elevator") {
+        return TT_ELEVATOR;
     }
 
     return -1;

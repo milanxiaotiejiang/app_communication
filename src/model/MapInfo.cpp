@@ -105,6 +105,194 @@ std::ostream &operator<<(std::ostream &os, const MultiMapInfo &info) {
     return os;
 }
 
+bool MultiMapInfo::isElevator() const {
+    return elevator;
+}
+
+void MultiMapInfo::setElevator(bool elevator) {
+    MultiMapInfo::elevator = elevator;
+}
+
+double MultiMapInfo::getElevatorPositionX() const {
+    return elevator_position_x;
+}
+
+void MultiMapInfo::setElevatorPositionX(double elevatorPositionX) {
+    elevator_position_x = elevatorPositionX;
+}
+
+double MultiMapInfo::getElevatorPositionY() const {
+    return elevator_position_y;
+}
+
+void MultiMapInfo::setElevatorPositionY(double elevatorPositionY) {
+    elevator_position_y = elevatorPositionY;
+}
+
+double MultiMapInfo::getElevatorPositionZ() const {
+    return elevator_position_z;
+}
+
+void MultiMapInfo::setElevatorPositionZ(double elevatorPositionZ) {
+    elevator_position_z = elevatorPositionZ;
+}
+
+double MultiMapInfo::getElevatorOrientationX() const {
+    return elevator_orientation_x;
+}
+
+void MultiMapInfo::setElevatorOrientationX(double elevatorOrientationX) {
+    elevator_orientation_x = elevatorOrientationX;
+}
+
+double MultiMapInfo::getElevatorOrientationY() const {
+    return elevator_orientation_y;
+}
+
+void MultiMapInfo::setElevatorOrientationY(double elevatorOrientationY) {
+    elevator_orientation_y = elevatorOrientationY;
+}
+
+double MultiMapInfo::getElevatorOrientationZ() const {
+    return elevator_orientation_z;
+}
+
+void MultiMapInfo::setElevatorOrientationZ(double elevatorOrientationZ) {
+    elevator_orientation_z = elevatorOrientationZ;
+}
+
+double MultiMapInfo::getElevatorOrientationW() const {
+    return elevator_orientation_w;
+}
+
+void MultiMapInfo::setElevatorOrientationW(double elevatorOrientationW) {
+    elevator_orientation_w = elevatorOrientationW;
+}
+
+int MultiMapInfo::getFloor() const {
+    return floor;
+}
+
+void MultiMapInfo::setFloor(int floor) {
+    MultiMapInfo::floor = floor;
+}
+
+bool MultiMapInfo::isBaseStation() const {
+    return base_station;
+}
+
+void MultiMapInfo::setBaseStation(bool baseStation) {
+    base_station = baseStation;
+}
+
+
+long MultiMapInfo::getBuildId() const {
+    return buildId;
+}
+
+void MultiMapInfo::setBuildId(long buildId) {
+    MultiMapInfo::buildId = buildId;
+}
+
+const std::string &MultiMapInfo::getBuildName() const {
+    return buildName;
+}
+
+void MultiMapInfo::setBuildName(const std::string &buildName) {
+    MultiMapInfo::buildName = buildName;
+}
+
+double MultiMapInfo::getBaseStationPointX() const {
+    return base_station_point_x;
+}
+
+void MultiMapInfo::setBaseStationPointX(double baseStationPointX) {
+    base_station_point_x = baseStationPointX;
+}
+
+double MultiMapInfo::getBaseStationPointY() const {
+    return base_station_point_y;
+}
+
+void MultiMapInfo::setBaseStationPointY(double baseStationPointY) {
+    base_station_point_y = baseStationPointY;
+}
+
+double MultiMapInfo::getBaseStationPoseX() const {
+    return base_station_pose_x;
+}
+
+void MultiMapInfo::setBaseStationPoseX(double baseStationPoseX) {
+    base_station_pose_x = baseStationPoseX;
+}
+
+double MultiMapInfo::getBaseStationPoseY() const {
+    return base_station_pose_y;
+}
+
+void MultiMapInfo::setBaseStationPoseY(double baseStationPoseY) {
+    base_station_pose_y = baseStationPoseY;
+}
+
+double MultiMapInfo::getBaseStationPoseZ() const {
+    return base_station_pose_z;
+}
+
+void MultiMapInfo::setBaseStationPoseZ(double baseStationPoseZ) {
+    base_station_pose_z = baseStationPoseZ;
+}
+
+int MultiMapInfo::getMapCols() const {
+    return map_cols;
+}
+
+void MultiMapInfo::setMapCols(int mapCols) {
+    map_cols = mapCols;
+}
+
+int MultiMapInfo::getMapRows() const {
+    return map_rows;
+}
+
+void MultiMapInfo::setMapRows(int mapRows) {
+    map_rows = mapRows;
+}
+
+MultiMapInfo::MultiMapInfo(const std::string &id, const std::string &name, bool main, const std::string &path,
+                           bool elevator, double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ,
+                           double elevatorOrientationX, double elevatorOrientationY, double elevatorOrientationZ,
+                           double elevatorOrientationW, double elevatorInsidePositionX, double elevatorInsidePositionY,
+                           double elevatorInsidePositionZ, double elevatorInsideOrientationX,
+                           double elevatorInsideOrientationY, double elevatorInsideOrientationZ,
+                           double elevatorInsideOrientationW, double p1X, double p1Y, double p2X, double p2Y,
+                           double p3X, double p3Y, double p4X, double p4Y, int floor, bool baseStation,
+                           double baseStationPointX, double baseStationPointY, double baseStationPoseX,
+                           double baseStationPoseY, double baseStationPoseZ, int mapCols, int mapRows, long buildId,
+                           const std::string &buildName) : id(id), name(name), main(main), path(path),
+                                                           elevator(elevator), elevator_position_x(elevatorPositionX),
+                                                           elevator_position_y(elevatorPositionY),
+                                                           elevator_position_z(elevatorPositionZ),
+                                                           elevator_orientation_x(elevatorOrientationX),
+                                                           elevator_orientation_y(elevatorOrientationY),
+                                                           elevator_orientation_z(elevatorOrientationZ),
+                                                           elevator_orientation_w(elevatorOrientationW),
+                                                           elevator_inside_position_x(elevatorInsidePositionX),
+                                                           elevator_inside_position_y(elevatorInsidePositionY),
+                                                           elevator_inside_position_z(elevatorInsidePositionZ),
+                                                           elevator_inside_orientation_x(elevatorInsideOrientationX),
+                                                           elevator_inside_orientation_y(elevatorInsideOrientationY),
+                                                           elevator_inside_orientation_z(elevatorInsideOrientationZ),
+                                                           elevator_inside_orientation_w(elevatorInsideOrientationW),
+                                                           p1x(p1X), p1y(p1Y), p2x(p2X), p2y(p2Y), p3x(p3X), p3y(p3Y),
+                                                           p4x(p4X), p4y(p4Y), floor(floor), base_station(baseStation),
+                                                           base_station_point_x(baseStationPointX),
+                                                           base_station_point_y(baseStationPointY),
+                                                           base_station_pose_x(baseStationPoseX),
+                                                           base_station_pose_y(baseStationPoseY),
+                                                           base_station_pose_z(baseStationPoseZ), map_cols(mapCols),
+                                                           map_rows(mapRows), buildId(buildId), buildName(buildName) {}
+
+
 BuildMapParam::BuildMapParam() {}
 
 bool BuildMapParam::isSave() const {
@@ -131,6 +319,18 @@ void BuildMapParam::setReset(bool reset) {
     BuildMapParam::reset = reset;
 }
 
+long BuildMapParam::getBuildId() const {
+    return buildId;
+}
+
+int BuildMapParam::getFloor() const {
+    return floor;
+}
+
+bool BuildMapParam::isBaseStation() const {
+    return base_station;
+}
+
 
 MapScore::MapScore() {}
 
@@ -155,4 +355,59 @@ void MapScore::setScore(double score) {
 std::ostream &operator<<(std::ostream &os, const MapScore &score) {
     os << "id: " << score.id << " score: " << score.score << " map_name: " << score.map_name;
     return os;
+}
+
+BuildVo::BuildVo() {}
+
+long BuildVo::getId() const {
+    return id;
+}
+
+void BuildVo::setId(long id) {
+    BuildVo::id = id;
+}
+
+const std::string &BuildVo::getName() const {
+    return name;
+}
+
+void BuildVo::setName(const std::string &name) {
+    BuildVo::name = name;
+}
+
+bool BuildVo::isMain() const {
+    return main;
+}
+
+void BuildVo::setMain(bool main) {
+    BuildVo::main = main;
+}
+
+BuildVo::BuildVo(long id, const std::string &name, int elevatorAddress) : id(id), name(name),
+                                                                          elevator_address(elevatorAddress) {}
+
+int BuildVo::getElevatorAddress() const {
+    return elevator_address;
+}
+
+void BuildVo::setElevatorAddress(int elevatorAddress) {
+    elevator_address = elevatorAddress;
+}
+
+BuildTimer::BuildTimer() {}
+
+const BuildVo &BuildTimer::getBuild() const {
+    return build;
+}
+
+void BuildTimer::setBuild(const BuildVo &build) {
+    BuildTimer::build = build;
+}
+
+const std::vector<TimerVo> &BuildTimer::getTimers() const {
+    return timers;
+}
+
+void BuildTimer::setTimers(const std::vector<TimerVo> &timers) {
+    BuildTimer::timers = timers;
 }

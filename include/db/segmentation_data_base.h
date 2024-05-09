@@ -40,11 +40,13 @@ private:
     const double min_critical_point_distance_factor_ = 0.5;
     const double max_area_for_merging_ = 12.5;
 
-    const int distance_from_obstacles_ = 5;
+    const int distance_from_obstacles_ = 3;
     const int number_extension_ = 1;
     const int multiple_contour_spacing_ = 0;
     const int random_number_generation_ratio_ = 100;
     const int boundary_min_area_ = 1;
+
+    void resetMap(const MapPo &map);
 
 public:
     static auto &instance() {
@@ -60,9 +62,11 @@ public:
 
     bool loadMainMap();
 
+    bool existMap(const std::string &map_id);
+
     MapPo &getDbMap();
 
-    MapPo installMap(std::string name);
+    MapPo installMap(long buildId, std::string name, int floor, bool base_station);
 
     void changeMap(const std::string &map_id);
 
@@ -70,7 +74,25 @@ public:
 
     std::vector<MapPo> loadAllMap();
 
+    MapPo loadMapForId(std::string mapId);
+
     void updateMapName(const std::string &map_id, const std::string &map_name);
+
+    MapPo updateMapElevatorStatus(const std::string &map_id);
+
+    MapPo updateMapElevatorPoint(const std::string &map_id, bool inside);
+
+    MapPo updateMapElevatorRect(const std::string &map_id, std::vector<int> points);
+
+    MapPo removeMapElevator(const std::string &map_id);
+
+    MapPo updateFloor(const std::string &map_id, int floor);
+
+    MapPo removeFloor(const std::string &map_id);
+
+    MapPo changeBaseStation(const std::string &map_id, bool hasBaseStation);
+
+    MapPo selectMapById(const std::string &map_id);
 
     void removeMap(const std::string &map_id);
 
@@ -133,6 +155,30 @@ public:
     std::vector<GateInfo> loadGateInfo(const std::string &mapId);
 
     GateInfo queryGateForId(long id);
+
+    long saveBuild(const std::string &name, int elevator_address);
+
+    void removeBuild(long id);
+
+    void removeBuild();
+
+    std::vector<BuildPo> loadAllBuild();
+
+    BuildPo queryBuildForId(long id);
+
+    void modifyBuildName(long id, const std::string &name);
+
+    void modifyBuildElevatorAddress(long id, int elevator_address);
+
+    void attachBuildMap(long buildId, const std::string &mapId);
+
+    void detachBuildMap(long buildId, const std::string &mapId);
+
+    std::vector<std::pair<BuildPo, MapPo>> findBuildMapsForBuild(long buildId);
+
+    std::vector<std::pair<BuildPo, MapPo>> findBuildMapsForMap(const std::string &mapId);
+
+    std::vector<std::string> findMapIdsForCurrentBuild(const std::string &mapId);
 };
 
 

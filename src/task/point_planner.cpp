@@ -12,9 +12,9 @@
 
 void PointPlanner::cpToPath(const std::vector<RealPoint> &points, replan_msgs::ReplanGoal &goal_path,
                             int mode, bool border_track) {
-    LOG(WARNING) << "PointPlanner send to replan path size : " << points.size()
-                 << "  , mode : " << mode
-                 << "  , border_track : " << border_track;
+//    LOG(WARNING) << "PointPlanner send to replan path size : " << points.size()
+//                 << "  , mode : " << mode
+//                 << "  , border_track : " << border_track;
     nav_msgs::Path path;
     path.header.frame_id = "map";
     path.header.stamp = ros::Time::now();
@@ -59,7 +59,7 @@ void PointPlanner::coreMoveFeedBackCB(const back_charge_msgs::CoreMoveFeedbackCo
 
 void PointPlanner::coreMoveDoneCB(const actionlib::SimpleClientGoalState &state,
                                   const back_charge_msgs::CoreMoveResultConstPtr &result) {
-    LOG(WARNING) << "PointPlanner coreMove result : " << state.getText();
+//    LOG(WARNING) << "PointPlanner coreMove result : " << state.getText();
     PointRoutine::instance().pointDone(state);
 }
 
@@ -118,27 +118,27 @@ void PointPlanner::goToPath(const RealBlock &block) {
         localInflationRadius.d(default_inflation_radius);
     }
 
-    LOG(WARNING) << "PointPlanner block step --  current_step : " << block.current_step
-                 << "  , goal_step : " << block.goal_step
-                 << "  , current_goal : " << block.current_goal
-                 << "  , plannerPoints.size : " << block.plannerPoints.size();
+//    LOG(WARNING) << "PointPlanner block step --  current_step : " << block.current_step
+//                 << "  , goal_step : " << block.goal_step
+//                 << "  , current_goal : " << block.current_goal
+//                 << "  , plannerPoints.size : " << block.plannerPoints.size();
+
+    int mode = block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE;
+    if (block.mustArrive)
+        mode = replan_msgs::ReplanGoal::POINT_MUST_ARRIVE;
     replan_msgs::ReplanGoal path;
     if (block.goal_step >= block.plannerPoints.size()) {
         cpToPath(std::vector<RealPoint>{block.plannerPoints[block.plannerPoints.size() - 1]},
-                 path,
-                 block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE,
-                 SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
+                 path, mode, SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
     } else {
         cpToPath(std::vector<RealPoint>{block.plannerPoints.begin() + block.goal_step, block.plannerPoints.end()},
-                 path,
-                 block.inClean ? replan_msgs::ReplanGoal::PATH : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE,
-                 SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
+                 path, mode, SqliteDataBase::TaskModeFromInt(block.mode) == TaskMode::Line);
     }
     atomicBlockId.store(block.id);
     share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
 }
 
-void PointPlanner::goToPoint(const RealPoint &point) {
+void PointPlanner::goToPoint(const RealPoint &point, bool mustArrive) {
     if (!initialize_finish) {
         throw app::exception(make_error_code(error::task_planner_failed_to_start));
     }
@@ -150,7 +150,10 @@ void PointPlanner::goToPoint(const RealPoint &point) {
         core_move->sendGoal(goal, &coreMoveDoneCB, &coreMoveActiveCB, &coreMoveFeedBackCB);
     } else {
         replan_msgs::ReplanGoal path;
-        cpToPath(std::vector<RealPoint>{point}, path, replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE, false);
+        cpToPath(std::vector<RealPoint>{point}, path,
+                 mustArrive ? replan_msgs::ReplanGoal::POINT_MUST_ARRIVE
+                            : replan_msgs::ReplanGoal::POINT_NO_NEED_ARRIVE,
+                 false);
         share_replan->sendGoal(path, &doneCB, &activeCB, &feedBackCB);
     }
 }

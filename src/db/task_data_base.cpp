@@ -224,25 +224,29 @@ void TaskDataBase::deleteTimerForMap(std::string mapId) {
     taskStorage.remove_all<TimerPo>(where(c(&TimerPo::o_map_id) == std::move(mapId)));
 }
 
-TaskVo TaskDataBase::modifyPrincipalTask(std::string mapId, long taskId, bool principal) {
+TaskVo TaskDataBase::modifyPrincipalTask(long taskId, bool principal) {
+    auto task = taskStorage.get<TaskPo>(taskId);
+
     if (principal) {
         taskStorage.update_all(sqlite_orm::set(c(&TaskPo::principal) = false),
-                               where(c(&TaskPo::o_map_id) == std::move(mapId))
+                               where(c(&TaskPo::o_map_id) == std::move(task.o_map_id))
         );
     }
-    auto task = taskStorage.get<TaskPo>(taskId);
+
     task.principal = principal;
     taskStorage.update(task);
     return taskPo2Vo(task);
 }
 
-TaskVo TaskDataBase::modifyRainSnowTask(std::string mapId, long taskId, bool rainSnow) {
+TaskVo TaskDataBase::modifyRainSnowTask(long taskId, bool rainSnow) {
+    auto task = taskStorage.get<TaskPo>(taskId);
+
     if (rainSnow) {
         taskStorage.update_all(sqlite_orm::set(c(&TaskPo::rain_snow) = false),
-                               where(c(&TaskPo::o_map_id) == std::move(mapId))
+                               where(c(&TaskPo::o_map_id) == std::move(task.o_map_id))
         );
     }
-    auto task = taskStorage.get<TaskPo>(taskId);
+
     task.rain_snow = rainSnow;
     taskStorage.update(task);
     return taskPo2Vo(task);
@@ -458,6 +462,31 @@ void TaskDataBase::modifyTimer(const std::string &mapId, const TimerVo &timer) {
     taskStorage.update(timerPo);
 }
 
+std::vector<TaskVo> TaskDataBase::loadTask() {
+    std::vector<TaskVo> tasks;
+
+    auto taskPos = taskStorage.get_all<TaskPo>();
+    if (taskPos.empty()) {
+        return tasks;
+    }
+
+    for (auto &t: taskPos) {
+        auto zs = taskStorage.get_all<ZonePo>(where(c(&ZonePo::o_task_id) == t.id));
+        for (const auto &z: zs) {
+            t.zones.push_back(z);
+        }
+        auto ss = taskStorage.get_all<SubregionPo>(where(c(&SubregionPo::o_task_id) == t.id));
+        for (const auto &s: ss) {
+            t.subregions.push_back(s);
+        }
+    }
+
+    for (auto &t: taskPos) {
+        tasks.push_back(taskPo2Vo(t));
+    }
+    return tasks;
+}
+
 std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
     std::vector<TaskVo> tasks;
 
@@ -479,6 +508,16 @@ std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
 
     for (auto &t: taskPos) {
         tasks.push_back(taskPo2Vo(t));
+    }
+    return tasks;
+}
+
+bool TaskDataBase::existTask(long taskId) {
+    try {
+        taskStorage.get<TaskPo>(taskId);
+        return true;
+    } catch (...) {
+        return false;
     }
 }
 
@@ -584,7 +623,53 @@ std::vector<TimerVo> TaskDataBase::loadTimerFoMap(const std::string &mapId) {
     return vos;
 }
 
+std::vector<TimerVo> TaskDataBase::loadTimerList() {
+    auto results = taskStorage.select(
+            distinct(columns(&TimerPo::id,
+                             &TimerPo::o_map_id,
+                             &TimerPo::o_task_id,
+                             &TaskPo::name,
+                             &TimerPo::rule,
+                             &TimerPo::name,
+                             &TimerPo::is_execute,
+                             &TimerPo::rate,
+                             &TimerPo::is_never,
+                             &TimerPo::is_skip,
+                             &TimerPo::end_year,
+                             &TimerPo::end_month,
+                             &TimerPo::end_day
+            )),
+            inner_join<TaskPo>(on(c(&TaskPo::id) == &TimerPo::o_task_id))
+    );
+
+    std::vector<TimerVo> vos;
+    for (const auto &row: results) {
+        TimerPo timerPo(
+                std::get<0>(row),//long id
+                std::get<1>(row),//string &oMapId
+                std::get<2>(row),//long oTaskId
+                std::get<3>(row),//string &oTaskName
+                std::get<4>(row),//string &rule
+                std::get<5>(row),//string &name
+                std::get<6>(row),//bool isExecute
+                std::get<7>(row),//int rate
+                std::get<8>(row),//bool isNever
+                std::get<9>(row),//bool isSkip
+                std::get<10>(row),//int endYear
+                std::get<11>(row),//int endMonth
+                std::get<12>(row)//int endDay
+        );
+        const TimerVo &vo = timerPo2Vo(timerPo);
+        vos.push_back(vo);
+    }
+    return vos;
+}
+
 TimerVo TaskDataBase::loadTimerFoId(long timerId) {
     auto timerPo = taskStorage.get<TimerPo>(timerId);
     return timerPo2Vo(timerPo);
+}
+
+TimerPo TaskDataBase::loadTimerPoFoId(long timerId) {
+    return taskStorage.get<TimerPo>(timerId);
 }

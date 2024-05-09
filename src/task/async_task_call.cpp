@@ -23,6 +23,8 @@
 #include "model/ManualModel.h"
 #include "task/manager/NodeWorkModeManager.h"
 #include "segmentation/GateComprehensive.h"
+#include "manager/elevator_control.h"
+#include "manager/PublishOutManager.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -61,6 +63,69 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
             }
         }
     });
+
+
+    ElevatorControlManager::instance().setElevatorCallback(
+            [](int floor, int doorState, int lastDirection, int availability, int nextDirection) {
+                PublishOutManager::instance().publishElevatorStatus(
+                        ElevatorModel(floor, doorState, lastDirection, availability, nextDirection));
+            });
+
+    ElevatorControlManager::instance().setElevatorMovementCallback([this](bool inside) {
+        mElevatorInside = inside;
+        std_msgs::Int32 message;
+        message.data = inside ? 0 : 1;
+        PublishInnerManager::instance().pubMetalDetectionSwitch(message);
+    });
+
+    ElevatorControlManager::instance().setCallbackElevatorPre([this](ElevatorControlManager::ElevatorError result) {
+        notify_one([this, &result]() {
+
+            if (!Environment::instance().isRealEnvironment) {
+                async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(10), [this]() {
+                    try {
+                        manualBackToBase(true);
+                    } catch (...) {
+                        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : notify pre elevator error ...";
+                    }
+                });
+            }
+
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : notify pre elevator finish ...";
+            callOpenMechanism(baseWorkStatus(), isKnife(), []() {});
+            if (result == ElevatorControlManager::ElevatorError::NoElevatorError) {
+                preConditions.clear();
+                flowElevatorPrePoint.arrive = true;
+                pushBlock(flowElevatorPrePoint);
+            } else if (result == ElevatorControlManager::ElevatorError::PreCirculationError ||
+                       result == ElevatorControlManager::ElevatorError::PreElevatorInError) {
+                preConditions.clear();
+                postConditions.clear();
+                pushManual(loop::manual_epoll::manual_force_back);
+            } else {
+                preConditions.clear();
+                flowElevatorPrePoint.arrive = false;
+                pushBlock(flowElevatorPrePoint);
+            }
+
+
+        });
+    });
+
+    ElevatorControlManager::instance().setCallbackElevatorPost([this](ElevatorControlManager::ElevatorError result) {
+        notify_one([this, &result]() {
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : notify post elevator finish ...";
+            if (result == ElevatorControlManager::ElevatorError::NoElevatorError) {
+                postConditions.clear();
+                flowElevatorPostPoint.arrive = true;
+                pushBlock(flowElevatorPostPoint);
+            } else {
+                postConditions.clear();
+                flowElevatorPostPoint.arrive = false;
+                pushBlock(flowElevatorPostPoint);
+            }
+        });
+    });
 }
 
 void AsyncTaskCall::handleManualOperation() {
@@ -86,6 +151,12 @@ void AsyncTaskCall::handleManualOperation() {
             mGateDistribution->cancelDistribution();
             cancelAny();
             goodGame(event::GG::gg_task_over);
+            break;
+        case loop::manual_epoll::manual_abnormal:
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 手动异常，进入异常模式 ...";
+            mGateDistribution->cancelDistribution();
+            cancelAny();
+            garbage(event::SB::sb_unrecoverable);
             break;
         default:
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall handleManualOperation : " << epoll_manual << " ...";
@@ -263,9 +334,17 @@ void AsyncTaskCall::handleExecuteTask(const RealTask &task) {
     initTaskBlock(runTask);
 
     //清扫队列中的正常点全部加入
+    preConditions.clear();
+    for (const auto &block: preBlocks()) {
+        preConditions.push_back(block);
+    }
     plannerQueue.clear();
     for (const auto &block: planBlocks()) {
         plannerQueue.push_back(block);
+    }
+    postConditions.clear();
+    for (const auto &block: postBlocks()) {
+        postConditions.push_back(block);
     }
 
     firstRetryCount = 0;
@@ -295,6 +374,9 @@ void AsyncTaskCall::handleAutoBlock(const RealBlock &block) {
         case FLOW_CLOSE_MECHANISM:
         case FLOW_OPEN_MECHANISM:
         case FLOW_SEIZE_SEAT:
+        case FLOW_ELEVATOR_PRE:
+        case FLOW_ELEVATOR_POST:
+        case FLOW_READY_BACK:
             handleFlowBlock(block); //随后进行处理
             break;
             //正常规划出的点位
@@ -311,6 +393,9 @@ void AsyncTaskCall::handleBlockManualControl(const RealBlock &block) {
         case FLOW_IN_BASE_POINT:
         case FLOW_CLOSE_MECHANISM:
         case FLOW_IN_STATION:
+        case FLOW_ELEVATOR_PRE:
+        case FLOW_ELEVATOR_POST:
+        case FLOW_READY_BACK:
             handleFlowBlock(block);
             processControl(block);
             break;
@@ -327,6 +412,9 @@ void AsyncTaskCall::handleBlockSpecialDevice(const RealBlock &block) {
         case FLOW_IN_BASE_POINT:
         case FLOW_CLOSE_MECHANISM:
         case FLOW_IN_STATION:
+        case FLOW_ELEVATOR_PRE:
+        case FLOW_ELEVATOR_POST:
+        case FLOW_READY_BACK:
             handleFlowBlock(block);
             processControl(block);
             break;
@@ -348,12 +436,19 @@ void AsyncTaskCall::initTaskBlock(const RealTask &realTask) {
     realTask.assignmentPoint(flowEndSleepPoint, FLOW_END_SLEEP);
     realTask.assignmentPoint(flowInBasePoint, FLOW_IN_BASE_POINT);
     realTask.assignmentPoint(flowInStationPoint, FLOW_IN_STATION);
+    //梯控前后
+    realTask.assignmentPoint(flowElevatorPrePoint, FLOW_ELEVATOR_PRE);
+    realTask.assignmentPoint(flowElevatorPostPoint, FLOW_ELEVATOR_POST);
+
+    realTask.assignmentPoint(flowReadyBackPoint, FLOW_READY_BACK);
 }
 
 
 void AsyncTaskCall::goodGame(event::GG gg) {
     LOG(WARNING) << "AsyncTaskCall : goodGame " << gg;
     finishedPoints;
+
+    PublishOutManager::instance().publishTaskStatus(TaskDataBase::instance().loadTaskFoId(runTaskId()));
 
     double cleanedRatio = 0.0;
     if (!finishedPoints.empty()) {
@@ -399,6 +494,7 @@ void AsyncTaskCall::garbage(event::SB sb) {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 程序出现严重错误，不可恢复，以下是现场可保存的信息 " << sb;
     LOG_IF(INFO, DEBUG_TASK) << " start ————————————————————————————————————————————————————";
 
+    ElevatorControlManager::instance().setGarbage(true);
     CartographerServiceClient::instance().callSensorStatus();
 
     for (const auto &item: stopStack) {
@@ -423,7 +519,10 @@ void AsyncTaskCall::garbage(event::SB sb) {
                              << " , OutStation : " << flowOutStationPoint.arrive
                              << " , EndSleep : " << flowEndSleepPoint.arrive
                              << " , InBase : " << flowInBasePoint.arrive
-                             << " , InStation : " << flowInStationPoint.arrive;
+                             << " , InStation : " << flowInStationPoint.arrive
+                             << " , ElevatorPre : " << flowElevatorPrePoint.arrive
+                             << " , ElevatorPost : " << flowElevatorPostPoint.arrive
+                             << " , ReadyBack : " << flowReadyBackPoint.arrive;
 
     MechanismManager::instance().resetWorkStatus();
 
@@ -453,6 +552,9 @@ void AsyncTaskCall::reset() {
     flowEndSleepPoint.arrive = false;
     flowInBasePoint.arrive = false;
     flowInStationPoint.arrive = false;
+    flowElevatorPrePoint.arrive = false;
+    flowElevatorPostPoint.arrive = false;
+    flowReadyBackPoint.arrive = false;
 
     isCarpetAndPack = false;
 
@@ -489,7 +591,7 @@ void AsyncTaskCall::handlePlannerBlock(const RealBlock &block) {
             point.currentStep, block.totalStep,
             block.currentFrequency, block.totalFrequency,
             block.work_status, block.mode, block.inClean,
-            runTaskId(), block.newTaskId,
+            runId(), block.newTaskId,
             (double((double) point.id / block.totalStep))
     );
 
@@ -541,28 +643,37 @@ bool AsyncTaskCall::isBasePointReached(float disAccuracy, float angleAccuracy) {
 
 void AsyncTaskCall::callBackBasePoint() {
 
-    auto backBasePoint = PointPlanner::createBackBasePoint();
+    if (postConditions.empty()) {
+        auto backBasePoint = PointPlanner::createBackBasePoint();
 
-    bool use_re_plan = true;
-    std::vector<RealPoint> points;
+        bool use_re_plan = true;
+        std::vector<RealPoint> points;
 
-    std::vector<int> stacks;
-    mGateComprehensive->AStarPlannerPoint(backBasePoint, stacks);
+        std::vector<int> stacks;
+        mGateComprehensive->AStarPlannerPoint(backBasePoint, stacks);
 
-    if (!stacks.empty()) {
-        if (stacks.size() > 1) {
+        if (!stacks.empty()) {
+            if (stacks.size() > 1) {
 
-            mGateComprehensive->generateGatePointList(stacks, backBasePoint, points);
-            if (!points.empty()) {
-                use_re_plan = false;
+                mGateComprehensive->generateGatePointList(stacks, backBasePoint, points);
+                if (!points.empty()) {
+                    use_re_plan = false;
+                }
             }
         }
-    }
-    if (use_re_plan) {
-        AsyncTaskFramework::callBackBasePoint();
+        if (use_re_plan) {
+            AsyncTaskFramework::callBackBasePoint();
+        } else {
+            mGateDistribution->onDistributionStart(points);
+        }
     } else {
-        mGateDistribution->onDistributionStart(points);
+        LOG_IF(INFO, DEBUG_ELEVATOR) << "HeadTailPointCall : 梯控后期逻辑开始 ...";
+        setFlow(event::flow::trigger_special_post_conditions);
+        MechanismManager::instance().resetWorkStatus();
+        ElevatorControlManager::instance().setBuildElevatorAddress(getBuildElevatorAddress());
+        ElevatorControlManager::instance().handlePostFlow(postBlocks());
     }
+
 }
 
 void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock, bool first) {
@@ -623,7 +734,7 @@ void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock, bool first) {
 }
 
 void AsyncTaskCall::callBlockComplete(const std::function<void()> &f) {
-    plannerQueue.pop_front();
+    plannerQueue.clear();
     f();
 }
 
@@ -721,7 +832,7 @@ void AsyncTaskCall::callUrgencyStop() {
                                 << "AsyncTaskCall : 回充中触发急停，为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
                 callCancelBackStation();
                 rechargeRetryCount = 0;
-                recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
+                recordEmergencyStop(event::flow::formally_return_to_the_base_station, flowReadyBackPoint);
             }
             if (isMechanismReady(currentFlow())) {
                 recordEmergencyStop(event::flow::cleaning_mechanism_ready, flowOpenMechanismPoint);
@@ -749,7 +860,7 @@ void AsyncTaskCall::callManualPause() {
                                 << "AsyncTaskCall : 回充中触发手动模式为保证清洁机构确保收起，将回充重试次数设置为 0 ...";
                 callCancelBackStation();
                 rechargeRetryCount = 0;
-                recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
+                recordEmergencyStop(event::flow::formally_return_to_the_base_station, flowReadyBackPoint);
             }
             if (isMechanismReady(currentFlow())) {
                 recordEmergencyStop(event::flow::cleaning_mechanism_ready, flowOpenMechanismPoint);
@@ -787,7 +898,7 @@ void AsyncTaskCall::callResume() {
 
         if (isPlannerEmpty(lastStack.flow)) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 流水点的最后，点位规划队列为空，需要直接返回基站 ...";
-            callBackBasePoint();
+            pushBlock(flowReadyBackPoint);
         } else {
             notify_one([this, &lastStack]() {
                 setFlow(lastStack.flow);
@@ -821,22 +932,14 @@ void AsyncTaskCall::cancelTaskAndBack(bool force) {
         if (isRegularTask(currentFlow())) {
             cancelAny();
             setEpollManual(loop::manual_epoll::manual_normal);
-            waitTaskQueue.clear();
-            plannerQueue.clear();
-            setFlow(event::flow::flowing_water_production);
-            recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
         }
-        callBackBasePoint();
+        pushBlock(flowReadyBackPoint);
     } else {
         if (force) {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 强制返回 force ...";
             cancelAny();
             setEpollManual(loop::manual_epoll::manual_normal);
-            waitTaskQueue.clear();
-            plannerQueue.clear();
-            setFlow(event::flow::flowing_water_production);
-            recordEmergencyStop(event::flow::flowing_water_production, flowInBasePoint);
-            callBackBasePoint();
+            pushBlock(flowReadyBackPoint);
         } else
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 已经触发返回基站的动作了 ...";
     }
@@ -910,6 +1013,7 @@ void AsyncTaskCall::executeOnPointDone(event::error error) {
     if (error != event::error::TIMEOUT) {
         async::TimerCall::instance().baseLoop()->cancelAny();
     }
+
     if (mGateDistribution->isImplement()) {
         mGateDistribution->executeOnPointDone(error);
     } else
@@ -956,7 +1060,7 @@ void AsyncTaskCall::executeOnPathDone(int blockId, event::error error, const std
         mGateDistribution->executeOnPathDone(error);
     } else
         notify_one([this, &blockId, &error, &message]() {
-            LOG(WARNING) << "PointPlanner moveBase  blockId : " << blockId << " , result : " << message;
+//            LOG(WARNING) << "PointPlanner moveBase  blockId : " << blockId << " , result : " << message;
             if (!plannerQueue.empty()) {
                 if (error == event::error::LOST) {
                     auto currentPoint = findFrontBlock();
@@ -1164,7 +1268,7 @@ ManualModel AsyncTaskCall::quitManual() {//退出手动模式接口
         manualModel.setIsContinueWork(isContinueWork(currentFlow(), true, true));
 
         bool isWorkMode = false;
-        int work_mode = 0;
+        int work_mode = 1;
         ros::param::get(NODE_CONTROLLER_WORK_MODE, work_mode);
         int carto_mode = 0;
         ros::param::get(CARTOGRAPHER_WORK_MODE, carto_mode);
@@ -1351,6 +1455,9 @@ void AsyncTaskCall::executeLift(bool lift) {
     if (!isRegularTask(currentFlow())) {
         return;
     }
+    if (mElevatorInside) {
+        return;
+    }
     if (lift) {
         notify_one([this]() {
             pushError(loop::error_epoll::error_lift);
@@ -1451,6 +1558,14 @@ void AsyncTaskCall::restore() {
         LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "任务的前期准备工作，如工作模式切换、出站等，无法处理返回基站";
         return;
     }
+    if (isPreConditions(restore_flow)) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "梯控前期流程，无法处理返回基站";
+        return;
+    }
+    if (isPostConditions(restore_flow)) {
+        LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "梯控后期流程，无法处理返回基站";
+        return;
+    }
     if (!Environment::instance().direct_start_move_base) {
         LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "direct_start_move_base 为 false, move_base 暂不支持";
     }
@@ -1462,8 +1577,17 @@ void AsyncTaskCall::restore() {
     if (!coreMoveAvailable) {
         LOG_IF(INFO, DEBUG_RESTORE) << "restore " << "core_move 服务不可可用, 无法处理返回基站";
     }
+    auto gateList = SegmentationDataBase::instance().loadGate(SegmentationDataBase::instance().getDbMap().id);
+    mGateComprehensive = std::make_shared<GateComprehensive>(gateList);
     notify_one([this]() {
         setFlow(event::flow::ensure_move_to_start_point);
         pushManual(loop::manual_epoll::manual_force_back);
+    });
+}
+
+void AsyncTaskCall::abnormal() {
+    notify_one([this]() {
+        setFlow(event::flow::software_interrupt_task);
+        pushManual(loop::manual_epoll::manual_abnormal);
     });
 }

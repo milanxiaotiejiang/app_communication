@@ -61,9 +61,9 @@ public:
     void deleteTimerForMap(std::string mapId);
 
     //改
-    TaskVo modifyPrincipalTask(std::string mapId, long taskId, bool principal);
+    TaskVo modifyPrincipalTask(long taskId, bool principal);
 
-    TaskVo modifyRainSnowTask(std::string mapId, long taskId, bool rainSnow);
+    TaskVo modifyRainSnowTask(long taskId, bool rainSnow);
 
     void modifyName(long taskId, std::string name);
 
@@ -92,7 +92,11 @@ public:
     void modifyTimer(const std::string &mapId, const TimerVo &timer);
 
     //查
+    std::vector<TaskVo> loadTask();
+
     std::vector<TaskVo> loadTaskFoMap(std::string mapId);
+
+    bool existTask(long taskId);
 
     TaskVo loadTaskFoId(long taskId);
 
@@ -102,7 +106,11 @@ public:
 
     std::vector<TimerVo> loadTimerFoMap(const std::string &mapId);
 
+    std::vector<TimerVo> loadTimerList();
+
     TimerVo loadTimerFoId(long timerId);
+
+    TimerPo loadTimerPoFoId(long timerId);
 
 };
 

@@ -1,11 +1,11 @@
-ros_version: 2.0.11.0_630
+ros_version: 2.0.14.11_630
 machine_version: 630
 base_exist: true
 face_recognition: false
 has_knob: false
 has_voice: false
 self_check_version: 1
-update_map: true
+update_map: false
 OR_percent_1: 20
 OR_percent_2: 4
 direct_start_move_base: true
@@ -14,6 +14,56 @@ dry_accumulation: 0
 complex_path_num_splits: 1000
 rectangular_ambulatory_plane: true
 gzip_map: true
-nebula_base_url: https://testapi.maxrockrobot.com/nebula
-nebula_account: robot
-nebula_secret: robot1@test
+inu_firing_launch_interval: 20
+inu_launch_middle_interval: 5
+inu_final_confirmation_interval: 7
+inu_start_last_stop_server_interval: 10
+
+#无基站建图
+no_station_mapping_mode: true
+
+#两消息之间的间隔
+the_interval_between_two_messages: 300
+#移动到电梯点重试次数
+maximum_number_of_retry_attempts_for_errors_to_the_elevator: 2
+#进出电梯错误重试次数
+maximum_number_of_retries_for_elevator_logic_errors: 6
+#进入电梯前的调整频率，2即等待2秒
+maximum_number_of_entering_the_elevator: 2
+#点亮楼层的指令发送时间间隔，单位毫秒
+the_time_interval_for_continuously_lighting_up_floors: 5000
+#查询楼层的指令发送时间间隔，单位毫秒
+the_time_interval_for_continuous_floor_queries: 1000
+#判断楼层的指令发送时间间隔，单位毫秒
+the_time_interval_for_continuous_floor_determination: 1000
+#等待电梯的最长等待时间，单位毫秒
+maximum_waiting_time_for_elevator: 600000
+#进出电梯最大等待时间，单位毫秒
+maximum_time_for_entering_and_exiting_the_elevator: 120000
+#电梯内转向180的速度
+entering_inner_steering_speed: 0.4
+#是否打印发送给梯控模块的日志
+serial_port_send_print: false
+#是否打印接收到的梯控模块的日志
+serial_port_accept_print: false
+#是否跳过电梯门是否开启的判断，true为跳过，即不判断电梯门状态
+jump_elevator_status_door_state: true
+#延迟关闭电梯门的时间间隔，单位秒
+maximum_delay_time: 10
+
+pre_circulation_error_retry_count_max: 2
+post_circulation_error_retry_count_max: 2
+
+pre_circulation_error_retry_timeout: 10000
+post_circulation_error_retry_timeout: 10000
+
+outside_from_target_distance: 10
+
+pre_elevator_in_error_retry_count_max: 2
+post_elevator_in_error_retry_count_max: 2
+
+pre_elevator_in_error_retry_timeout: 30000
+post_elevator_in_error_retry_timeout: 30000
+
+inner_white_pixel_ratio: 0.6
+internal_spatial_analysis_count: 10

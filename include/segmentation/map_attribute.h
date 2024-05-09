@@ -65,6 +65,7 @@ private:
     MapAttribute currentMapAttribute;
 
     geometry_msgs::Pose2D starting_position_pose;
+    geometry_msgs::Pose current_pose;
 
     std::vector<std::vector<Point>> virtualWallList;
     std::vector<std::vector<Point>> penaltyZoneList;
@@ -85,12 +86,12 @@ public:
         return {currentMapAttribute.originPose.position.x, currentMapAttribute.originPose.position.y};
     }
 
-    const std::vector<std::vector<Point>> &getVirtualWallList() const {
-        return virtualWallList;
-    }
-
     const MapAttribute &getCurrentMapAttribute() const {
         return currentMapAttribute;
+    }
+
+    const std::vector<std::vector<Point>> &getVirtualWallList() const {
+        return virtualWallList;
     }
 
     const std::vector<std::vector<Point>> &getPenaltyZoneList() const {
@@ -101,7 +102,13 @@ public:
         return starting_position_pose;
     }
 
+    const geometry_msgs::Pose &getRobotCompletePosition() const {
+        return current_pose;
+    }
+
     void setRobotPositionPose(geometry_msgs::Pose2D positionPose);
+
+    void setCurrentPoseStamped(const geometry_msgs::Pose &currentPose);
 
     cv::Point getRobotPositionPoint(const cv::Mat &room_map) const;
 
@@ -122,11 +129,37 @@ public:
     void handleProhibition(std::vector<std::vector<Point>> &list,
                            const YAML::Node &node, int dusCount) const;
 
+    /**
+     * ros坐标转地图坐标
+     */
+    cv::Point rosPoint2MapPointAny(const cv::Mat &room_map, const cv::Point2d &map_origin, const Point &point) const;
+
+    /**
+     * ros坐标转地图坐标
+     */
     cv::Point rosPoint2MapPoint(const cv::Mat &room_map, const Point &point) const;
 
+    /**
+     * ros坐标转地图坐标
+     */
     cv::Point rosPoint2MapPoint(int rows, int cols, const Point &point) const;
 
+    /**
+     * ros坐标转地图坐标
+     * 地图原点需要传入，可用于非当前地图
+     */
+    cv::Point rosPoint2MapPoint(const cv::Point2d &map_origin, int rows, int cols, const Point &point) const;
+
+    /**
+     * 地图坐标转ros坐标
+     */
     Point mapPoint2RosPoint(int rows, int cols, const cv::Point &point) const;
+
+    /**
+     * 地图坐标转ros坐标
+     * 地图原点需要传入，可用于非当前地图
+     */
+    Point mapPoint2RosPoint(const cv::Point2d &map_origin, int rows, int cols, const cv::Point &point) const;
 
     bool saveMap();
 

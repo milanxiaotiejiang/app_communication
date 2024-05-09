@@ -77,12 +77,14 @@ namespace clean_history_db {
         std::string old_task_id;//旧任务id
         long new_task_id;//关联的新任务id
 
+        std::string o_map_id;//地图id
+
     public:
         CleanHistory() = default;
 
         CleanHistory(const std::string &taskId, int mode, int rate, const std::string &launchPeople,
                      const std::string &timeMode, long launchTime, bool renew, const std::string &old_task_id,
-                     long new_task_id);
+                     long new_task_id, const std::string &o_map_id);
 
 
         CleanHistory(const std::string &taskId, int mode, int rate, int sweepStatus, int mopStatus, int vacuumStatus,
@@ -92,7 +94,7 @@ namespace clean_history_db {
                      int historyState, int currentFlow, int urgencyStop, int pauseNum, int manualBack, int lowPowerBack,
                      int forceBack, int outStation, int endSleep, int backBaseRetries, int backBasePointArrived,
                      int stationArrived, int rechargeRetries, int closeMechanism, int openMechanism, int errorCode,
-                     const std::string &errorMsg, bool renew, const std::string &old_task_id, long new_task_id);
+                     const std::string &errorMsg, bool renew, const std::string &old_task_id, long new_task_id, const std::string &o_map_id);
     };
 }
 

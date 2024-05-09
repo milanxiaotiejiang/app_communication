@@ -64,7 +64,8 @@ namespace clean_history_db {
                                        task.getTimeMode(), launch_time,
                                        true,
                                        oldTaskId,
-                                       task.getTaskId());
+                                       task.getTaskId(),
+                                       task.getMapId());
         CleanHistoryDataBase::instance().addCleanHistory(new_clean_history);
 
         return true;
@@ -81,6 +82,7 @@ namespace clean_history_db {
         history.history_state_ = history_state::error;
 
         CleanHistoryDataBase::instance().updateHistory(history);
+        return true;
     }
 
     std::tuple<int, std::string, std::string>
@@ -256,6 +258,8 @@ namespace clean_history_db {
                 return std::make_tuple(3183, "自动维护时段内，任务无法启动", "CCR_183");
             case error::during_self_check_the_task_cannot_be_started:
                 return std::make_tuple(3184, "自检中，任务无法启动", "CCR_184");
+            case error::camera_starting_or_failed_to_start:
+                return std::make_tuple(3185, "银牛启动中或启动失败，任务无法启动", "CCR_185");
             default:
                 std::string base_string = "CCR_";
                 std::string ex_string = std::to_string(100 + e.code().value());
@@ -799,6 +803,10 @@ namespace clean_history_db {
                 return std::make_tuple(3330, "硬件出错后被关机", "CCR_330");
             case event::flow::software_interrupt_task:
                 return std::make_tuple(3331, "程序错误后被关机", "CCR_331");
+            case event::flow::trigger_special_pre_conditions:
+                return std::make_tuple(3341, "梯控前期逻辑被关机", "CCR_341");
+            case event::flow::trigger_special_post_conditions:
+                return std::make_tuple(3342, "梯控后续逻辑被关机", "CCR_342");
             default:
                 std::string base_string = "CCR_";
                 std::string flow_string = std::to_string(300 + flow);

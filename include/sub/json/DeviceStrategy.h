@@ -104,4 +104,19 @@ public:
     long handler(std::string params) override;
 };
 
+class SetTcienvStrategy : public MessageStrategy<bool, std::string> {
+public:
+    std::string handler(bool params) override;
+};
+
+class GetTcienvStrategy : public MessageStrategy<std::string, bool> {
+public:
+    bool handler(std::string params) override;
+};
+
+class AbnormalStrategy : public MessageStringStrategy {
+public:
+    void handler() override;
+};
+
 #endif//APP_COMMUNICATION_DEVICESTRATEGY_H

@@ -48,6 +48,7 @@
 #include "net/base/BaseResult.h"
 #include "net/http_handler.h"
 #include "model/MapInfo.h"
+#include "BaseThrowable.h"
 
 //#include "tool/ZLibString.hpp"
 
@@ -133,18 +134,37 @@ void on_http(server *s, websocketpp::connection_hdl hdl) {
     std::string version = request.get_version();
     auto headers = request.get_headers();
 
-    if (WsServerManager::startsWith(uri, "/map_image")) {
-        json jDecode = json::parse(body);
-        auto entrance = jDecode.get<MapImageRequest>();
-        auto result = HttpHandler::imageProgressing(entrance.map_id);
-        json jsonResult = result;
+    try {
+        if (WsServerManager::startsWith(uri, "/v1/map_image")) {
+            json jDecode = json::parse(body);
+            auto entrance = jDecode.get<MapImageRequest>();
+            auto result = HttpHandler::imageProgressing(entrance.map_id);
+            json jsonResult = result;
+            con->set_body(jsonResult.dump());
+        } else {
+            BaseResult<std::string> templateResult(0, "");
+            json jsonResult = templateResult;
+            con->set_body(jsonResult.dump());
+        }
+
+    } catch (app::exception const &e) {
+        BaseResult<std::string> templateResult(0, e.code().value(), e.what());
+        json jsonResult = templateResult;
         con->set_body(jsonResult.dump());
-    } else {
-        BaseResult<std::string> templateResult(0, "");
+    } catch (std::exception const &e) {
+        LOG(ERROR) << e.what();
+        BaseResult<std::string> templateResult(0, error::general, e.what());
+        json jsonResult = templateResult;
+        con->set_body(jsonResult.dump());
+    } catch (...) {
+        LOG(ERROR) << "MessageStrategy other start exception";
+        BaseResult<std::string> templateResult(0, -1, "未知");
         json jsonResult = templateResult;
         con->set_body(jsonResult.dump());
     }
+
     con->set_status(websocketpp::http::status_code::ok);
+
 }
 
 void on_fail(server *s, websocketpp::connection_hdl hdl) {
@@ -210,6 +230,9 @@ void on_open(server *s, const websocketpp::connection_hdl &hdl) {
     ask.subMap[RESPONSE_JSON] = false;
 
     ask.subMap[SENSOR_CHECK] = false;
+    ask.subMap[ELEVATOR_STATUS] = false;
+    ask.subMap[TASK_STATUS] = false;
+    ask.subMap[ELEVATOR_VOICE] = false;
     ask.subMap[APP_MRROBOT_UL_SENSOR1] = false;
     ask.subMap[APP_MRROBOT_UL_SENSOR2] = false;
     ask.subMap[APP_MRROBOT_UL_SENSOR3] = false;
@@ -318,6 +341,7 @@ public:
                 }
             }
         }
+        return nullptr;
     }
 };
 
@@ -332,13 +356,15 @@ public:
         dataMap[ODOM_APP] = "";
         dataMap[ROBOT_STATUS] = "";
         dataMap[NOTICE_APP] = "";
-        dataMap[SENSOR_CHECK] = "";
         dataMap[TASK_POINT] = "";
         dataMap[ALARM_EVENT] = "";
         dataMap[RESPONSE] = "";
         dataMap[RESPONSE_JSON] = "";
 
         dataMap[SENSOR_CHECK] = "";
+        dataMap[ELEVATOR_STATUS] = "";
+        dataMap[TASK_STATUS] = "";
+        dataMap[ELEVATOR_VOICE] = "";
         dataMap[APP_MRROBOT_UL_SENSOR1] = "";
         dataMap[APP_MRROBOT_UL_SENSOR2] = "";
         dataMap[APP_MRROBOT_UL_SENSOR3] = "";
@@ -398,7 +424,8 @@ public:
                             if (key == MAP_APP || key == GZIP_MAP_APP) {
                                 isSend = sendMap(ask, key);
                             } else if (key == NOTICE_APP || key == ALARM_EVENT || key == TASK_POINT ||
-                                       key == SENSOR_CHECK || key == APP_SCAN_RAW) {
+                                       key == SENSOR_CHECK || key == ELEVATOR_STATUS || key == TASK_STATUS ||
+                                       key == ELEVATOR_VOICE || key == APP_SCAN_RAW) {
                                 isSend = sendData(ask, key);
                             } else {
                                 isSend = sendData(ask, key, false);
@@ -410,6 +437,7 @@ public:
                 }
             }
         }
+        return nullptr;
     }
 
     bool sendMap(const std::pair<void *const, Ask> &ask, std::string &key) {
@@ -454,6 +482,7 @@ public:
                 }
             }
         }
+        return nullptr;
     }
 };
 
@@ -542,6 +571,7 @@ public:
         } catch (...) {
             LOG(ERROR) << "other start exception";
         }
+        return nullptr;
     }
 
     WsServerDataThread *getWsServerDataThread() const {

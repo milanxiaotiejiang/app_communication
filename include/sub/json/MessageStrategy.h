@@ -27,6 +27,8 @@
 #include "tool/write_file.hpp"
 #include "yaml-cpp/yaml.h"
 #include "manager/cloud_robot_control.h"
+#include "manager/NoticeManager.h"
+#include "model/MapInfo.h"
 
 using json = nlohmann::json;
 
@@ -44,17 +46,19 @@ public:
     virtual ~MessageBaseStrategy() = default;
 
     virtual void dateProgressing(int source, json &jdecode) = 0;
-
 };
 
 template<class Model, class Result>
 class MessageStrategy : public MessageBaseStrategy {
+protected:
+    int source_ = -1;
 public:
     MessageStrategy<Model, Result>() = default;
 
     ~MessageStrategy<Model, Result>() override = default;
 
     void dateProgressing(int source, json &jdecode) override {
+        source_ = source;
         RequestModel<BaseMethod<Model>> requestModel = jdecode.get<RequestModel<BaseMethod<Model>>>();
         auto message = requestModel.getMsg();
         auto id = message.getId();
@@ -110,6 +114,71 @@ public:
 
     }
 
+    MultiMapInfo loadMapForId(const std::string &map_id) {
+        auto map = SegmentationDataBase::instance().loadMapForId(map_id);
+
+        auto buildMaps = SegmentationDataBase::instance().findBuildMapsForMap(map_id);
+
+        MapAttribute mapAttribute;
+        mapAttribute.attrPath = path::robot_slam_map_dir() + map.id + path::separator() + path::mymap_yaml;
+        if (!MapAttributeSingleton::readAnyMapInfo(mapAttribute))
+            throw app::exception(make_error_code(error::map_id_does_not_exist));
+
+        long buildId = -1;
+        std::string buildName = "";
+
+        if (buildMaps.empty()) {
+        } else if (buildMaps.size() == 1) {
+
+            buildId = buildMaps[0].first.id;
+            buildName = buildMaps[0].first.name;
+        } else {
+            throw app::exception(make_error_code(error::multiple_map_building_data_error));
+        }
+
+        return MultiMapInfo(map.id, map.name, map.main, map.path,
+
+                            map.elevator,
+
+                            map.elevator_position_x,
+                            map.elevator_position_y,
+                            map.elevator_position_z,
+                            map.elevator_orientation_x,
+                            map.elevator_orientation_y,
+                            map.elevator_orientation_z,
+                            map.elevator_orientation_w,
+
+                            map.elevator_inside_position_x,
+                            map.elevator_inside_position_y,
+                            map.elevator_inside_position_z,
+                            map.elevator_inside_orientation_x,
+                            map.elevator_inside_orientation_y,
+                            map.elevator_inside_orientation_z,
+                            map.elevator_inside_orientation_w,
+
+                            map.p1x,
+                            map.p1y,
+                            map.p2x,
+                            map.p2y,
+                            map.p3x,
+                            map.p3y,
+                            map.p4x,
+                            map.p4y,
+
+                            map.floor,
+                            map.base_station,
+
+                            mapAttribute.originPoint.x,
+                            mapAttribute.originPoint.y,
+                            mapAttribute.originPose.position.x,
+                            mapAttribute.originPose.position.y,
+                            mapAttribute.originPoint.y,
+
+                            mapAttribute.mapCols,
+                            mapAttribute.mapRows,
+
+                            buildId, buildName);
+    }
 };
 
 class MessageStringStrategy : public MessageStrategy<std::string, std::string> {

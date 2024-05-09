@@ -25,6 +25,9 @@ const std::string RESPONSE = "/response";
 const std::string RESPONSE_JSON = "/response_json";
 
 const std::string SENSOR_CHECK = "/sensor_check";
+const std::string ELEVATOR_STATUS = "/elevator_status";
+const std::string TASK_STATUS = "/task_status";
+const std::string ELEVATOR_VOICE = "/elevator_voice";
 const std::string APP_MRROBOT_UL_SENSOR1 = "/app/mrrobot/ul_sensor1";
 const std::string APP_MRROBOT_UL_SENSOR2 = "/app/mrrobot/ul_sensor2";
 const std::string APP_MRROBOT_UL_SENSOR3 = "/app/mrrobot/ul_sensor3";
@@ -40,6 +43,8 @@ const std::string APP_HANDSFREE_IMU = "/app/handsfree/imu";
 const std::string APP_MRROBOT_BUMP_SENSOR = "/app/mrrobot/bump_sensor";
 const std::string APP_MRROBOT_CARPET_DETECT = "/app/mrrobot/carpet_detect";
 
+const std::string RESOURCES_UPDATE_FOR_PAD = "/resources_update_for_pad";
+const std::string RESOURCES_UPDATE_FOR_CLOUD = "/resources_update_for_cloud";
 
 const std::string MESSAGE_BUS_TOPIC = "message_bus_topic";
 

@@ -65,6 +65,10 @@ public:
     long getMaintenanceStartTime();
 
     void setMaintenanceStartTime(long maintenance_start_time);
+
+    bool getCloudInteractiveEnvironment();
+
+    void setCloudInteractiveEnvironment(bool cloud_interactive_environment);
 };
 
 

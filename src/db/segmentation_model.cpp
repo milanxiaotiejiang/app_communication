@@ -22,12 +22,41 @@ std::ostream &operator<<(std::ostream &os, const RoomPo &room) {
 
 RoomPo::RoomPo() = default;
 
-MapPo::MapPo(std::string id, std::string name, std::string path) : id(std::move(id)), name(std::move(name)),
-                                                                   path(std::move(path)) {}
+std::ostream &operator<<(std::ostream &os, const MapPo &po) {
+    os << "id: " << po.id << " name: " << po.name << " path: " << po.path << " main: " << po.main;
+    return os;
+}
 
-MapPo::MapPo(const std::string &id, const std::string &name, const std::string &path, bool main) : id(id), name(name),
-                                                                                                   path(path),
-                                                                                                   main(main) {}
+MapPo::MapPo(const std::string &id, const std::string &name, const std::string &path, bool main, bool elevator,
+             double elevatorPositionX, double elevatorPositionY, double elevatorPositionZ, double elevatorOrientationX,
+             double elevatorOrientationY, double elevatorOrientationZ, double elevatorOrientationW,
+             double elevatorInsidePositionX, double elevatorInsidePositionY, double elevatorInsidePositionZ,
+             double elevatorInsideOrientationX, double elevatorInsideOrientationY, double elevatorInsideOrientationZ,
+             double elevatorInsideOrientationW, double p1X, double p1Y, double p2X, double p2Y, double p3X, double p3Y,
+             double p4X, double p4Y, int floor, bool baseStation) : id(id), name(name), path(path), main(main),
+                                                                    elevator(elevator),
+                                                                    elevator_position_x(elevatorPositionX),
+                                                                    elevator_position_y(elevatorPositionY),
+                                                                    elevator_position_z(elevatorPositionZ),
+                                                                    elevator_orientation_x(elevatorOrientationX),
+                                                                    elevator_orientation_y(elevatorOrientationY),
+                                                                    elevator_orientation_z(elevatorOrientationZ),
+                                                                    elevator_orientation_w(elevatorOrientationW),
+                                                                    elevator_inside_position_x(elevatorInsidePositionX),
+                                                                    elevator_inside_position_y(elevatorInsidePositionY),
+                                                                    elevator_inside_position_z(elevatorInsidePositionZ),
+                                                                    elevator_inside_orientation_x(
+                                                                            elevatorInsideOrientationX),
+                                                                    elevator_inside_orientation_y(
+                                                                            elevatorInsideOrientationY),
+                                                                    elevator_inside_orientation_z(
+                                                                            elevatorInsideOrientationZ),
+                                                                    elevator_inside_orientation_w(
+                                                                            elevatorInsideOrientationW), p1x(p1X),
+                                                                    p1y(p1Y), p2x(p2X), p2y(p2Y), p3x(p3X), p3y(p3Y),
+                                                                    p4x(p4X), p4y(p4Y), floor(floor),
+                                                                    base_station(baseStation) {}
+
 
 MapPo::MapPo() = default;
 
@@ -38,38 +67,27 @@ PlanPo::PlanPo(const std::string &mapId, double robotRadius, int mapCorrectionCl
                int rangeNearBaseStation, double roomAreaFactorLowerLimit, double roomAreaFactorUpperLimit,
                int neighborhoodIndex, int maxIterations, double minCriticalPointDistanceFactor,
                double maxAreaForMerging, int distanceFromObstacles, int numberExtension, int multipleContourSpacing,
-               int randomNumberGenerationRatio, int boundaryMinArea, int version) : map_id(mapId),
-                                                                                    robot_radius(robotRadius),
-                                                                                    map_correction_closing_neighborhood_size(
-                                                                                            mapCorrectionClosingNeighborhoodSize),
-                                                                                    grid_obstacle_offset(
-                                                                                            gridObstacleOffset),
-                                                                                    path_eps(pathEps),
-                                                                                    min_cell_area(minCellArea),
-                                                                                    max_deviation_from_track(
-                                                                                            maxDeviationFromTrack),
-                                                                                    range_near_base_station(
-                                                                                            rangeNearBaseStation),
-                                                                                    room_area_factor_lower_limit(
-                                                                                            roomAreaFactorLowerLimit),
-                                                                                    room_area_factor_upper_limit(
-                                                                                            roomAreaFactorUpperLimit),
-                                                                                    neighborhood_index(
-                                                                                            neighborhoodIndex),
-                                                                                    max_iterations(maxIterations),
-                                                                                    min_critical_point_distance_factor(
-                                                                                            minCriticalPointDistanceFactor),
-                                                                                    max_area_for_merging(
-                                                                                            maxAreaForMerging),
-                                                                                    distance_from_obstacles(
-                                                                                            distanceFromObstacles),
-                                                                                    number_extension(numberExtension),
-                                                                                    multiple_contour_spacing(
-                                                                                            multipleContourSpacing),
-                                                                                    random_number_generation_ratio(
-                                                                                            randomNumberGenerationRatio),
-                                                                                    boundary_min_area(boundaryMinArea),
-                                                                                    version(version) {}
+               int randomNumberGenerationRatio, int boundaryMinArea, int version)
+        : map_id(mapId),
+          robot_radius(robotRadius),
+          map_correction_closing_neighborhood_size(mapCorrectionClosingNeighborhoodSize),
+          grid_obstacle_offset(gridObstacleOffset),
+          path_eps(pathEps),
+          min_cell_area(minCellArea),
+          max_deviation_from_track(maxDeviationFromTrack),
+          range_near_base_station(rangeNearBaseStation),
+          room_area_factor_lower_limit(roomAreaFactorLowerLimit),
+          room_area_factor_upper_limit(roomAreaFactorUpperLimit),
+          neighborhood_index(neighborhoodIndex),
+          max_iterations(maxIterations),
+          min_critical_point_distance_factor(minCriticalPointDistanceFactor),
+          max_area_for_merging(maxAreaForMerging),
+          distance_from_obstacles(distanceFromObstacles),
+          number_extension(numberExtension),
+          multiple_contour_spacing(multipleContourSpacing),
+          random_number_generation_ratio(randomNumberGenerationRatio),
+          boundary_min_area(boundaryMinArea),
+          version(version) {}
 
 Gate::Gate() {}
 
@@ -112,3 +130,22 @@ Gate::Gate(const std::string &oMapId, double startX, double startY, double endX,
                                        right_orientation_x(rightOrientationX), right_orientation_y(rightOrientationY),
                                        right_orientation_z(rightOrientationZ), right_orientation_w(rightOrientationW) {}
 
+std::ostream &operator<<(std::ostream &os, const Gate &gate) {
+    os << "id: " << gate.id << " o_map_id: " << gate.o_map_id << " start_x: " << gate.start_x << " start_y: "
+       << gate.start_y << " end_x: " << gate.end_x << " end_y: " << gate.end_y;
+    return os;
+}
+
+BuildPo::BuildPo() {}
+
+std::ostream &operator<<(std::ostream &os, const BuildPo &build) {
+    os << "id: " << build.id << " name: " << build.name;
+    return os;
+}
+
+BuildPo::BuildPo(long id, const std::string &name, int elevatorAddress) : id(id), name(name),
+                                                                          elevator_address(elevatorAddress) {}
+
+BuildMapMapping::BuildMapMapping() {}
+
+BuildMapMapping::BuildMapMapping(long oBuildId, const std::string &oMapId) : o_build_id(oBuildId), o_map_id(oMapId) {}

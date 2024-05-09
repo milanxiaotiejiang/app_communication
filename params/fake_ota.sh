@@ -169,9 +169,9 @@ echo $version
 #major=${version:0:5}
 major=$(echo $version | awk -F'.' '{print $1"."$2"."$3}')
 echo $major
-old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9" "1.0.0" "1.0.1" "1.0.2" "2.0.0" "2.0.2" "2.0.3" "2.0.4" "2.0.5" "2.0.6" "2.0.7" "2.0.8" "2.0.9" "2.0.10" "2.0.11")
+old_version=("0.9.4" "0.9.5" "0.9.6" "0.9.7" "0.9.8" "0.9.9" "1.0.0" "1.0.1" "1.0.2" "2.0.0" "2.0.2" "2.0.3" "2.0.4" "2.0.5" "2.0.6" "2.0.7" "2.0.8" "2.0.9" "2.0.10" "2.0.11" "2.0.12" "2.0.13" "2.0.14")
 version_index=0
-for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
 do
   echo "${old_version[$i]}"
   if [[ $major = ${old_version[$i]} ]]
@@ -324,4 +324,19 @@ fi
 if [ $version_index -lt 19 ]
 then
   echo "Updating 2.0.11"
+fi
+
+if [ $version_index -lt 20 ]
+then
+  echo "Updating 2.0.12"
+fi
+
+if [ $version_index -lt 21 ]
+then
+  echo "Updating 2.0.13"
+fi
+
+if [ $version_index -lt 22 ]
+then
+  echo "Updating 2.0.14"
 fi

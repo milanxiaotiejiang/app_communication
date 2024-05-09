@@ -7,12 +7,17 @@
 
 #include "model/task.h"
 #include "task/RealTask.h"
+#include "db/segmentation_model.h"
 #include <geometry_msgs/Pose2D.h>
 
 class TaskExploration {
 public:
 
     static void task2RealTask(const TaskVo &task, RealTask &realTask);
+
+    static void mapElevatorOutside2RealPoint(const MapPo &map, RealPoint &realPoint);
+
+    static void mapElevatorInside2RealPoint(const MapPo &map, RealPoint &realPoint);
 
     static RoomCoverage explorationPlanningPath(const RealTask &task);
 

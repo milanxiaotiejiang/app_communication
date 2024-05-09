@@ -72,6 +72,12 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case GET_EDIT_MAP_:
             messageStrategy = new GetEditMapStrategy();
             break;
+        case MULTIPLE_EDIT_MAP:
+            messageStrategy = new MultipleEditMapStrategy();
+            break;
+        case MULTIPLE_GET_EDIT_MAP:
+            messageStrategy = new MultipleGetEditMapStrategy();
+            break;
 
         case RUNNING_TASK:
             messageStrategy = new RunningTaskStrategy();
@@ -223,12 +229,24 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case SET_MAINTENANCE_START_TIME:
             messageStrategy = new SetMaintenanceStartTimeStrategy();
             break;
+        case GET_TEST_CLOUD_INTERACTIVE_ENVIRONMENT:
+            messageStrategy = new GetTcienvStrategy();
+            break;
+        case SET_TEST_CLOUD_INTERACTIVE_ENVIRONMENT:
+            messageStrategy = new SetTcienvStrategy();
+            break;
 
         case MAP_OBSTACLES:
             messageStrategy = new MapObstaclesStrategy();
             break;
         case MAP_FEASIBLE_ZONE:
             messageStrategy = new MapFeasibleZoneStrategy();
+            break;
+        case MULTIPLE_MAP_OBSTACLES:
+            messageStrategy = new MultipleMapObstaclesStrategy();
+            break;
+        case MULTIPLE_MAP_FEASIBLE_ZONE:
+            messageStrategy = new MultipleMapFeasibleZoneStrategy();
             break;
         case MAP_APPLY_INCREASE_AREA:
             messageStrategy = new MapApplyIncreaseArea();
@@ -247,14 +265,26 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case ADD_TASK:
             messageStrategy = new AddTaskStrategy();
             break;
+        case MULTIPLE_ADD_TASK:
+            messageStrategy = new MultipleAddTaskStrategy();
+            break;
         case DELETE_TASK:
             messageStrategy = new DeleteTaskStrategy();
             break;
         case DELETE_MULTIPLE_TASK:
             messageStrategy = new DeleteMultipleTaskStrategy();
             break;
+        case MULTIPLE_DELETE_TASK:
+            messageStrategy = new MultipleDeleteTaskStrategy();
+            break;
         case LIST_TASK:
             messageStrategy = new ListTaskStrategy();
+            break;
+        case MULTIPLE_LIST_TASK:
+            messageStrategy = new MultipleListTaskStrategy();
+            break;
+        case MULTIPLE_WHOLE_LIST_TASK:
+            messageStrategy = new MultipleWholeListTaskStrategy();
             break;
         case QUERY_ID_TASK:
             messageStrategy = new QueryIdTaskStrategy();
@@ -269,6 +299,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case PRINCIPAL_TASK:
             messageStrategy = new PrincipalTaskStrategy();
             break;
+        case MULTIPLE_PRINCIPAL_TASK:
+            messageStrategy = new MultiplePrincipalTaskStrategy();
+            break;
 
         case BUILD_RAIN_SNOW_TASK:
             messageStrategy = new BuildRainSnowTaskStrategy();
@@ -278,6 +311,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case RAIN_SNOW_TASK:
             messageStrategy = new RainSnowTaskStrategy();
+            break;
+        case MULTIPLE_RAIN_SNOW_TASK:
+            messageStrategy = new MultipleRainSnowTaskStrategy();
             break;
 
         case CLEAR_CURRENT_LIST_TASK:
@@ -321,20 +357,38 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case ADD_TIMER_TASK:
             messageStrategy = new AddTimerTaskStrategy();
             break;
+        case MULTIPLE_ADD_TIMER_TASK:
+            messageStrategy = new MultipleAddTimerTaskStrategy();
+            break;
         case DELETE_TIMER_TASK:
             messageStrategy = new DeleteTimerTaskStrategy();
             break;
         case DELETE_MULTIPLE_TIMER_TASK:
             messageStrategy = new DeleteMultipleTimerTaskStrategy();
             break;
+        case MULTIPLE_DELETE_TIMER_TASK:
+            messageStrategy = new MultipleDeleteTimerTaskStrategy();
+            break;
         case LIST_TIMER_TASK:
             messageStrategy = new ListTimerTaskStrategy();
+            break;
+        case MULTIPLE_LIST_TIMER_TASK:
+            messageStrategy = new MultipleListTimerTaskStrategy();
+            break;
+        case MULTIPLE_WHOLE_LIST_TIMER_TASK:
+            messageStrategy = new MultipleWholeListTimerTaskStrategy();
             break;
         case MODIFY_TIMER_TASK:
             messageStrategy = new ModifyTimerTaskStrategy();
             break;
+        case MULTIPLE_MODIFY_TIMER_TASK:
+            messageStrategy = new MultipleModifyTimerTaskStrategy();
+            break;
         case MODIFY_TIMER_NAME:
             messageStrategy = new ModifyTimerNameStrategy();
+            break;
+        case LIST_TIMER_TASK_BUILD:
+            messageStrategy = new ListTimerTaskBuildStrategy();
             break;
 
         case EXPLORATION_TASK:
@@ -399,11 +453,73 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new QueryIdGateStrategy();
             break;
 
+        case MULTIPLE_MODIFY_GATE:
+            messageStrategy = new MultipleModifyGateStrategy();
+            break;
+        case MULTIPLE_LIST_GATE:
+            messageStrategy = new MultipleListGateStrategy();
+            break;
+        case MULTIPLE_PURGE_GATE:
+            messageStrategy = new MultiplePurgeGateStrategy();
+            break;
+
         case OPEN_GATE_SETTING:
             messageStrategy = new OpenGateSettingStrategy();
             break;
         case CLOSE_GATE_SETTING:
             messageStrategy = new CloseGateSettingStrategy();
+            break;
+
+        case ADD_BUILD:
+            messageStrategy = new AddBuildStrategy();
+            break;
+        case DELETE_BUILD:
+            messageStrategy = new DeleteBuildStrategy();
+            break;
+        case MODIFY_BUILD_NAME:
+            messageStrategy = new ModifyBuildNameStrategy();
+            break;
+        case MODIFY_BUILD_ELEVATOR_ADDRESS:
+            messageStrategy = new ModifyBuildElevatorAddressStrategy();
+            break;
+        case LIST_BUILD:
+            messageStrategy = new ListBuildStrategy();
+            break;
+
+        case MODIFY_MAP_BASE_STATION:
+            messageStrategy = new ModifyMapBaseStationStrategy();
+            break;
+        case MODIFY_MAP_FLOOR:
+            messageStrategy = new ModifyMapFloorStrategy();
+            break;
+        case MODIFY_MAP_ELEVATOR:
+            messageStrategy = new ModifyMapElevatorStrategy();
+            break;
+        case MODIFY_MAP_ELEVATOR_POINT:
+            messageStrategy = new ModifyMapElevatorPointStrategy();
+            break;
+        case MODIFY_MAP_ELEVATOR_RECT:
+            messageStrategy = new ModifyMapElevatorRectStrategy();
+            break;
+
+        case LIST_MAP_FOR_BUILD:
+            messageStrategy = new ListMapForBuildStrategy();
+            break;
+
+        case ATTACH_BUILD_MAP:
+            messageStrategy = new AttachBuildMapStrategy();
+            break;
+
+        case MAP_FOR_ID:
+            messageStrategy = new MapForIdStrategy();
+            break;
+
+        case SEWAGE_PUMP_SWITCH:
+            messageStrategy = new SewagePumpSwitchStrategy();
+            break;
+
+        case TT_ELEVATOR:
+            messageStrategy = new TTElevatorStrategy();
             break;
 
     }
@@ -414,7 +530,11 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
     }
 
     int end_time = ros::Time::now().sec;
-    LOG_IF(INFO, DEBUG_REQUEST) << "----------------" << "JsonSubscribe end : " << entrance.getMethod() << " "
-                                << end_time - start_time << " s " << "----------------";
+    LOG_IF(INFO, DEBUG_REQUEST)
+                    << "----------------" << "JsonSubscribe end : " << entrance.getMethod()
+                    << " "
+                    << entrance.getId()
+                    << " "
+                    << end_time - start_time << " s " << "----------------";
 
 }

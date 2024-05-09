@@ -122,7 +122,7 @@ std::vector<CleanHistoryUpgrade> GetCloudCleanHistoryStrategy::handler(std::stri
                                              pause_num, manual_back, low_power_back, force_back, out_station, end_sleep,
                                              back_base_retries, back_base_point_arrived, station_arrived,
                                              recharge_retries, close_mechanism, open_mechanism,
-                                             item.renew, item.old_task_id, item.new_task_id);
+                                             item.renew, item.old_task_id, item.new_task_id, item.o_map_id);
 
         result.push_back(clean_history_vo);
     }

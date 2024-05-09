@@ -18,6 +18,9 @@
 #include "model/InternalEvent.h"
 #include "std_msgs/Int32.h"
 #include "net/ros/SensorSelfModel.h"
+#include "alignment/rrmap2.h"
+#include "model/ElevatorStatus.h"
+#include "elevator_control.h"
 
 class PublishOutManager {
 private:
@@ -41,6 +44,12 @@ private:
     ros::Publisher acceptAppJsonV1;
     ros::Publisher acceptAppCommunication;
     ros::Publisher pubCarpet;
+    ros::Publisher pubPad;
+    ros::Publisher pubCloud;
+    ros::Publisher pubElevatorManager;
+    ros::Publisher pubElevatorStatus;
+    ros::Publisher pubElevatorVoice;
+    ros::Publisher pubTaskStatus;
 public:
     static auto &instance() {
         static PublishOutManager obj;
@@ -67,6 +76,17 @@ public:
 
     void publishInternalEvent(const std_msgs::String &message) const;
 
+    void publishResourcesUpdateForPad(const std_msgs::Int32 &message) const;
+
+    void publishResourcesUpdateForCloud(const std_msgs::Int32 &message) const;
+
+    void publishElevatorManager() const;
+
+    void publishElevatorStatus(ElevatorModel elevatorModel) const;
+
+    void publishTaskStatus(TaskVo task) const;
+
+    void publishElevatorVoice(Voice voice) const;
 };
 
 

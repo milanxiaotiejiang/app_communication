@@ -8,16 +8,16 @@
 
 std::string partition_path = path::data_base_config_dir() + "devide_area.yaml";
 
-int set_prohibition(float *point, int num) {
+int set_prohibition(std::string prohibition_areas_path, float *point, int num) {
 
-    YAML::Node config = YAML::LoadFile(path::prohibition_areas_path());
+    YAML::Node config = YAML::LoadFile(prohibition_areas_path);
 
     int prohibition_num;//障碍物个数
     prohibition_num = config["prohibition_areas"].size();
     std::vector<int> point_num;
     std::vector<std::vector<std::vector<float>>> prohibition_position;
-    for (int i = 0; i < prohibition_num; i++)//第i个障碍物包含的点的个数
-    {
+    for (int i = 0; i < prohibition_num; i++) {//第i个障碍物包含的点的个数
+
         point_num.push_back(config["prohibition_areas"][i].size());
     }
     int new_prohibition_num = prohibition_num;//两个new变量用于保存修改后的文件的障碍物个数以及每个障碍中的点数
@@ -26,10 +26,8 @@ int set_prohibition(float *point, int num) {
     //获取yaml文件的所有信息
     for (int i = 0; i < prohibition_num; i++) {
         std::vector<std::vector<float>> temp1;
-        //        cout<<"第"<<i+1<<"个障碍:"<<endl;
         for (int j = 0; j < point_num[i]; j++) {
             std::vector<float> temp2;
-            //            cout<<"     第"<<j+1<<"个点:"<<config["prohibition_areas"][0][0].size()<<endl;
             temp2.push_back(atof(config["prohibition_areas"][i][j][0].as<std::string>().c_str()));
             temp2.push_back(atof(config["prohibition_areas"][i][j][1].as<std::string>().c_str()));
             temp1.push_back(temp2);
@@ -37,7 +35,7 @@ int set_prohibition(float *point, int num) {
         prohibition_position.push_back(temp1);
     }
 
-    std::ofstream fout(path::prohibition_areas_path());
+    std::ofstream fout(prohibition_areas_path);
 
     config.reset();//将yaml文件清空
 
@@ -72,8 +70,8 @@ int reset_prohibition(std::string prohibition_path) {
     return 1;
 }
 
-bool get_prohibition(std::vector<std::vector<float>> &prohibition_position) {
-    YAML::Node config = YAML::LoadFile(path::prohibition_areas_path());
+bool get_prohibition(std::string prohibition_areas_path, std::vector<std::vector<float>> &prohibition_position) {
+    YAML::Node config = YAML::LoadFile(prohibition_areas_path);
     int prohibition_num;//障碍物个数
     prohibition_num = config["prohibition_areas"].size();
     std::vector<int> point_num;

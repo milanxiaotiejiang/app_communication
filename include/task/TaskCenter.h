@@ -55,7 +55,7 @@ public:
         return obj;
     }
 
-    void initialize(ros::NodeHandle handle);
+    void initialize(const ros::NodeHandle& handle);
 
     void uninstall();
 

@@ -46,3 +46,23 @@ bool MotorServerSingleton::stop() {
     LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  callResult " << callResult << " ... ";
     return callResult;
 }
+
+bool MotorServerSingleton::startInu() {
+    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  startInu 启动 inu 服务 ... ";
+    int ret = std::system("echo '123456' | sudo -S systemctl start inuservice.service");
+    if (ret != 0) {
+        LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl start inuservice.service fail : " << ret;
+        return false;
+    }
+    return true;
+}
+
+bool MotorServerSingleton::stopInu() {
+    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  stopInu 关闭 inu 服务 ... ";
+    int ret = std::system("echo '123456' | sudo -S systemctl stop inuservice.service");
+    if (ret != 0) {
+        LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl stop inuservice.service fail : " << ret;
+        return false;
+    }
+    return true;
+}

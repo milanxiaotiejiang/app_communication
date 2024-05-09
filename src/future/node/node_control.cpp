@@ -10,11 +10,14 @@
 #include "future/node/mode_validate.h"
 #include "leave/cartographer_node.h"
 #include "future/node/motor_server.h"
+#include "future/node/hardware_subscriber.h"
+#include "catch2/catch.hpp"
 
 void NodeControl::initialize(ros::NodeHandle handle) {
     nodeHandle = handle;
 
     MotorServerSingleton::instance().init(handle);
+    InuSubscriberSingleton::instance().init(handle);
 
     pool_.setNumOfThreads(THREAD_POOL_MAX_NUM);
 
@@ -49,9 +52,133 @@ void NodeControl::initialize(ros::NodeHandle handle) {
         OR_percent_1.i(p_OR_percent_1);
         DR OR_percent_2 = DR("/2/inudev_ros_nodelet2", "OR_percent");
         OR_percent_2.i(p_OR_percent_2);
+        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable OR_percent 设置成功 ... ";
     });
 
-    setWorkMode(node::State::sleep);
+    int work_mode = -1;
+    ros::param::get(NODE_CONTROLLER_WORK_MODE, work_mode);
+    if (work_mode == 1) {
+        setWorkMode(node::State::sleep);
+    }
+
+    int availableInu;
+    handle.param<int>("/node_controller/available/inu", availableInu, 0);
+    NodeControl::instance().cameraFiringAvailable = availableInu;
+
+    if (!Environment::instance().isRealEnvironment || Environment::instance().isRealEnvironmentTest) {
+        setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
+        return;
+    }
+
+    if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::SUCCESS) {
+        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 已经启动,无需再次启动 ... ";
+        setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
+    } else if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::UNKNOWN ||
+               NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::FAIL) {
+
+        if (!Environment::instance().isRealEnvironment) {
+            setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
+            return;
+        }
+        if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::UNKNOWN)
+            LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 未启动(状态未知),需要重新启动 ... ";
+        else if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::FAIL)
+            LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动失败,需要重新启动 ... ";
+
+        asyncOn([&handle, this]() {
+            std::this_thread::sleep_for(std::chrono::seconds(
+                    Environment::instance().inu_firing_launch_interval));
+
+            LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动开始 ... ";
+            auto inu_dev1_thread = std::thread([this] {
+                std::string inu1Log = Environment::instance().glog_info_time_pid + "_inu_dev1.log";
+                std::string systemStr = "roslaunch launch_center inu_dev1.launch > " + inu1Log + " 2>&1";
+                LOG_IF(INFO, DEBUG_FIRING) << systemStr;
+                int error = std::system(systemStr.data());
+                if (error != 0) {
+                    LOG_IF(INFO, DEBUG_FIRING) << "roslaunch launch_center inu_dev1.launch fail " << error << " ... ";
+                    setCameraFiringAvailable(Firing::INUStatus::FAIL);
+                }
+                LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable inu_dev1_thread finish ... ";
+            });
+            inu_dev1_thread.detach();
+
+            std::this_thread::sleep_for(std::chrono::seconds(Environment::instance().inu_launch_middle_interval));
+            auto inu_dev2_thread = std::thread([this] {
+                std::string inu2Log = Environment::instance().glog_info_time_pid + "_inu_dev2.log";
+                std::string systemStr = "roslaunch launch_center inu_dev2.launch > " + inu2Log + " 2>&1";
+                LOG_IF(INFO, DEBUG_FIRING) << systemStr;
+                int error = std::system(systemStr.data());
+                if (error != 0) {
+                    LOG_IF(INFO, DEBUG_FIRING) << "roslaunch launch_center inu_dev2.launch fail " << error << " ... ";
+                    setCameraFiringAvailable(Firing::INUStatus::FAIL);
+                    return;
+                }
+                LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable inu_dev2_thread finish ... ";
+            });
+            inu_dev2_thread.detach();
+
+            setCameraFiringAvailable(Firing::INUStatus::LAUNCH);
+
+            finalConfirmation();
+        });
+    } else if (NodeControl::instance().cameraFiringAvailable == Firing::INUStatus::LAUNCH) {
+        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动中一些原因导致rec进程中断,此处为启动了launch ... ";
+
+        asyncOn([&handle, this]() {
+            finalConfirmation();
+        });
+    }
+}
+
+void NodeControl::finalConfirmation() {
+
+    InuSubscriberSingleton::instance().recount();
+
+    std::this_thread::sleep_for(std::chrono::seconds(Environment::instance().inu_final_confirmation_interval));
+
+    LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 验收数据 ... ";
+
+    int end_loop_count = 0;
+    while (end_loop_count < 20) {
+        int beatInu1 = InuSubscriberSingleton::instance().heartBeatInu1();
+        int beatInu2 = InuSubscriberSingleton::instance().heartBeatInu2();
+
+        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable count : " << end_loop_count
+                                   << ", beatInu1 : " << beatInu1
+                                   << ", beatInu2 : " << beatInu2 << " ... ";
+
+        if (beatInu1 > SSDF && beatInu2 > SSDF)
+            end_loop_count = 20;
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        end_loop_count++;
+    }
+
+    int beatInu1 = InuSubscriberSingleton::instance().heartBeatInu1();
+    int beatInu2 = InuSubscriberSingleton::instance().heartBeatInu2();
+
+    if (beatInu1 > SSDF && beatInu2 > SSDF) {
+        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动成功 ... ";
+        std::this_thread::sleep_for(std::chrono::seconds(Environment::instance().inu_start_last_stop_server_interval));
+        setCameraFiringAvailable(Firing::INUStatus::SUCCESS);
+        MotorServerSingleton::instance().stopInu();
+    } else {
+        LOG_IF(INFO, DEBUG_FIRING) << "inu cameraFiringAvailable 启动失败 ... ";
+        setCameraFiringAvailable(Firing::INUStatus::FAIL);
+    }
+}
+
+void NodeControl::setCameraFiringAvailable(Firing::INUStatus status) {
+    cameraFiringAvailable = status;
+    ros::param::set("/node_controller/available/inu", status);
+
+    //兼容之前业务
+    if (status == Firing::INUStatus::FAIL) {
+        ros::param::set("/node_controller/start_finish", false);
+    } else if (status == Firing::INUStatus::SUCCESS) {
+        ros::param::set("/node_controller/start_finish", true);
+    }
 }
 
 void NodeControl::release() {
@@ -91,7 +218,7 @@ void NodeControl::onWork() {
 //        delete pFilterManager;
 //    });
     asyncOn([this]() {
-        bool motorServer = ModeValidate::validateMotorServer();
+        bool motorServer = ModeValidate::validateHardwareServer();
         if (motorServer) {
 
 //            CartographerPublisher::instance().publishStartCartoLocalization();
@@ -176,7 +303,7 @@ void NodeControl::onMap() {
 //    });
     asyncOn([this]() {
 
-        bool motorServer = ModeValidate::validateMotorServer();
+        bool motorServer = ModeValidate::validateHardwareServer();
         if (motorServer) {
             CartographerPublisher::instance().publishStartCartoMapping();
             bool validateCartographer = ModeValidate::validateCartographer(node::State::map);
@@ -251,6 +378,9 @@ void NodeControl::trySleep() {
 //            LOG(ERROR) << "After 5s, it has not entered sleep mode !!!";
 //        }
 //    }
+    if (!Environment::instance().isRealEnvironment) {
+        return;
+    }
     asyncOn([this]() {
         node::WorkState back_work_state_ = work_state_;
         node::MapState back_map_state_ = map_state_;
@@ -351,6 +481,7 @@ void NodeControl::defeatModeStart(node::State state) {
     trySleep();
 }
 
+
 void NodeControl::update() {
     if (isSleep()) {
         LOG_IF(INFO, DEBUG_NODE) << "当前为睡眠模式，应该是主动切换到睡眠模式的，暂时不需要处理（也可能需要处理）";
@@ -422,4 +553,36 @@ void NodeControl::paramPose(const std::string &key, const geometry_msgs::Pose po
     pose_dict["orientation"]["w"] = pose.orientation.w;
     // 将字典存储为 ROS 参数
     ros::param::set(key, pose_dict);
+}
+
+int NodeControl::restoreWork() {
+
+    int step = 0;
+    if (Environment::instance().direct_start_move_base) {
+        if (CartographerServiceClient::instance().callStopLocalization())
+            step++;
+    } else {
+        CartographerPublisher::instance().publishControlMoveBase(false);
+        bool validateMoveBase = ModeValidate::validateMoveBase(0);
+        if (validateMoveBase)
+            if (CartographerServiceClient::instance().callStopLocalization())
+                step++;
+    }
+
+    if (step == 1) {
+        if (CartographerServiceClient::instance().callStartLocalization())
+            if (Environment::instance().direct_start_move_base) {
+                if (ModeValidate::validateMoveBaseAvailable())
+                    if (ModeValidate::validateCoreMoveAvailable())
+                        step++;
+            } else {
+                CartographerPublisher::instance().publishControlMoveBase(true);
+                if (ModeValidate::validateMoveBase(1))
+                    if (ModeValidate::validateMoveBaseAvailable())
+                        if (ModeValidate::validateCoreMoveAvailable())
+                            step++;
+            }
+    }
+
+    return step;
 }

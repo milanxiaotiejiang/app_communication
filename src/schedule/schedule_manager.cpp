@@ -65,7 +65,15 @@ void ScheduleManager::update_task_schedule() {
                               << "  日: " << currentDay
                               << "  地图ID: " << map.id;
 
-    const std::vector<TimerVo> &timerList = TaskDataBase::instance().loadTimerFoMap(map.id);
+//    const std::vector<TimerVo> &timerList = TaskDataBase::instance().loadTimerFoMap(map.id);
+
+    std::vector<TimerVo> timerList;
+
+    auto mapIds = SegmentationDataBase::instance().findMapIdsForCurrentBuild(map.id);
+    for (const auto &mapId: mapIds) {
+        auto childTimerList = TaskDataBase::instance().loadTimerFoMap(mapId);
+        timerList.insert(timerList.end(), childTimerList.begin(), childTimerList.end());
+    }
 
     std::vector<TimerVo> availableTimer;
 
@@ -98,8 +106,9 @@ void ScheduleManager::update_task_schedule() {
                         this->handleTask(task);
                     }
             );
-            LOG_IF(INFO, DEBUG_TIMER) << "定时名称 ： " << timer.getTimerName() << " ， 定时规则 ： " << timer.getTimerRule()
-                                      << "    下次执行时间 ： " << format_time_point(scheduledTask.next_run_time);
+            LOG_IF(INFO, DEBUG_TIMER)
+                            << "定时名称 ： " << timer.getTimerName() << " ， 定时规则 ： " << timer.getTimerRule()
+                            << "    下次执行时间 ： " << format_time_point(scheduledTask.next_run_time);
             tasks.push_back(scheduledTask);
 
         } catch (const cron::bad_cronexpr &ex) {
@@ -150,8 +159,9 @@ void ScheduleManager::task_loop_thread_func() {
                         //更新任务的下次运行时间
                         task.next_run_time = cron::cron_next(task.cron_expression, now);
                         LOG_IF(INFO, DEBUG_TIMER)
-                        << "定时名称 ： " << task.timer.getTimerName() << " ， 定时规则 ： " << task.timer.getTimerRule()
-                        << " ， 下次执行时间 ： " << format_time_point(task.next_run_time);
+                                        << "定时名称 ： " << task.timer.getTimerName() << " ， 定时规则 ： "
+                                        << task.timer.getTimerRule()
+                                        << " ， 下次执行时间 ： " << format_time_point(task.next_run_time);
                         //继续遍历下一个任务
                         ++task_iter;
                     }

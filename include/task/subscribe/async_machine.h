@@ -44,7 +44,7 @@ public:
     void initialize(const ros::NodeHandle &handle) {
         mHandle = handle;
 
-        int node_work_mode = 0;
+        int node_work_mode = 1;
         mHandle.getParam(NODE_CONTROLLER_WORK_MODE, node_work_mode);
         int carto_mode = 0;
         mHandle.getParam(CARTOGRAPHER_WORK_MODE, carto_mode);
@@ -187,6 +187,7 @@ public:
                 return 10001;
             case event::flow::flowing_water_execution_completed:
                 return 10014;
+            case event::flow::formally_return_to_the_base_station:
             case event::flow::arrive_base_point_success:
             case event::flow::try_recharging_again:
             case event::flow::try_move_base_point_again:
@@ -194,7 +195,12 @@ public:
             case event::flow::hardware_interrupt_task:
             case event::flow::software_interrupt_task:
                 return 10010;
+            case event::flow::trigger_special_pre_conditions:
+                return 10020;
+            case event::flow::trigger_special_post_conditions:
+                return 10021;
         }
+        return -1;
     }
 
     std::string getMachineMessage(int code) {
@@ -227,6 +233,10 @@ public:
                 return "建图中";
             case 10016:
                 return "过闸机中";
+            case 10020:
+                return "梯控前";
+            case 10021:
+                return "梯控后";
             default:
                 return "未知";
         }
