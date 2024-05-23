@@ -24,7 +24,7 @@ void VoronoiSegmentation::segmentMap(const cv::Mat &map_to_be_labeled, cv::Mat &
     pruneVoronoiGraph(voronoi_map, node_points);
 
     cv::Mat distance_map;
-    cv::distanceTransform(map_to_be_labeled, distance_map, CV_DIST_L2, 5);
+    cv::distanceTransform(map_to_be_labeled, distance_map, cv::DIST_L2, 5);
 
     cv::convertScaleAbs(distance_map, distance_map);
 

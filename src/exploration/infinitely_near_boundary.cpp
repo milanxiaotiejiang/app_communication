@@ -373,7 +373,7 @@ InfinitelyNearBoundary::boundary_distance(const cv::Mat &original_map, const std
 
     auto display_map = original_map.clone();
     std::vector<std::vector<cv::Point>> borderContours;
-    cv::findContours(display_map, borderContours, CV_RETR_LIST, cv::CHAIN_APPROX_NONE);
+    cv::findContours(display_map, borderContours, cv::RETR_LIST, cv::CHAIN_APPROX_NONE);
     std::vector<std::vector<cv::Point>> maxContours;
     size_t area = 0;
     for (const auto &item: borderContours) {
