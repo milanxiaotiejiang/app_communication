@@ -45,7 +45,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
     cv::Point reachablePoint(starting_position.x, starting_position.y);
 
     if (DISPLAY_TRAJECTORY) {
-        cv::circle(principle_map, reachablePoint, 2, cv::Scalar(180), CV_FILLED);
+        cv::circle(principle_map, reachablePoint, 2, cv::Scalar(180), cv::FILLED);
         cv::imshow("principle_map", principle_map);
         cv::waitKey();
     }
@@ -247,7 +247,7 @@ void InfinitelyNearBoundary::getExplorationPath(const cv::Mat &original_map,
 
             cv::Mat room_mat = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
             cv::drawContours(room_mat, std::vector<std::vector<cv::Point> >(1, borderContour), -1, cv::Scalar(255),
-                             CV_FILLED);
+                             cv::FILLED);
 
             if (DISPLAY_TRAJECTORY) {
                 cv::imshow("m " + std::to_string(r) + " " + std::to_string(scale_in_pixel), room_mat);

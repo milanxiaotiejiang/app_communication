@@ -107,7 +107,7 @@ void AbstractVoronoiSegmentation::createVoronoiGraph(cv::Mat &map_for_voronoi_ge
     cv::Mat temp = map_to_draw_voronoi_in.clone();
     //提取所有轮廓，并且将其组织为双层结构。顶层为连通域的外围边界，次层为孔的内层边界  获取每个轮廓的每个像素，相邻两个点的像素位置相差1
     cv::findContours(temp, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
-    cv::drawContours(map_to_draw_voronoi_in, contours, -1, cv::Scalar(255), CV_FILLED);
+    cv::drawContours(map_to_draw_voronoi_in, contours, -1, cv::Scalar(255), cv::FILLED);
     for (int current_contour = 0; current_contour < contours.size(); current_contour++) {
         for (int current_point = 0; current_point < contours[current_contour].size(); current_point++) {
             cv::Point fp = contours[current_contour][current_point];

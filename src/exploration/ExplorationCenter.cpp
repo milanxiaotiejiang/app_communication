@@ -833,7 +833,7 @@ void ExplorationCenter::generatePlanningSegmentationPath(const std::string &mapI
 //        polygon_centers.emplace_back(room.getCenter().x, room.getCenter().y);
 
         cv::Mat room_mat = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
-        cv::drawContours(room_mat, std::vector<std::vector<cv::Point> >(1, members), -1, cv::Scalar(255), CV_FILLED);
+        cv::drawContours(room_mat, std::vector<std::vector<cv::Point> >(1, members), -1, cv::Scalar(255), cv::FILLED);
 
         if (DISPLAY_TRAJECTORY)
             center_point_display(room_mat, cv::Point(current_cell.getCenter().x, current_cell.getCenter().y), 3,
@@ -1017,16 +1017,16 @@ cv::Mat ExplorationCenter::findClosestPointRoom(cv::Mat &room_map, const cv::Poi
 
     cv::Mat image = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
     if (area_index == distance_index) {
-        cv::drawContours(image, contours, area_index, cv::Scalar(255), CV_FILLED);
+        cv::drawContours(image, contours, area_index, cv::Scalar(255), cv::FILLED);
     } else {
         double sumNum = accumulate(distances.begin(), distances.end(), 0.0);
         double mean = sumNum / distances.size(); //均值
         for (int i = 0; i < distances.size(); i++) {
             if (distances[i] > mean) {
-                cv::drawContours(image, contours, i, cv::Scalar(255), CV_FILLED);
+                cv::drawContours(image, contours, i, cv::Scalar(255), cv::FILLED);
             }
         }
-        cv::drawContours(image, contours, area_index, cv::Scalar(255), CV_FILLED);
+        cv::drawContours(image, contours, area_index, cv::Scalar(255), cv::FILLED);
     }
 
     cv::Mat result;

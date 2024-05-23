@@ -6,8 +6,13 @@
 #include "net/base/VersionSubscribe.h"
 #include "task/manager/MechanismManager.h"
 #include "leave/MaintenanceMode.h"
+#include "module.h"
 
 ConsumableVo GetConsumableStrategy::handler(std::string params) {
+
+    if (!Module::instance().module_property)
+        return ConsumableVo();
+
     const Consumable &consumable = PropertyDataBase::instance().loadConsumable();
     ConsumableVo consumableVo(consumable.sweep_expected,
                               consumable.mop_expected,
@@ -26,6 +31,10 @@ ConsumableVo GetConsumableStrategy::handler(std::string params) {
 }
 
 ConsumableVo ResetConsumableStrategy::handler(ResetConsumableVo params) {
+
+    if (!Module::instance().module_property)
+        return ConsumableVo();
+
     PropertyDataBase::instance().resetConsumable(
             params.isSweep(),
             params.isMop(),

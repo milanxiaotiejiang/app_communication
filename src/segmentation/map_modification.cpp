@@ -59,8 +59,8 @@ void MapModification::applyIncreaseArea(const std::vector<int> &daubs) {
     const cv::Mat &map = SegmentationCenter::instance().generateMat();
     //模拟测试
 //    cv::Mat room_mat = cv::Mat::zeros(map.rows, map.cols, CV_8UC1);
-//    cv::circle(room_mat, cv::Point(map.cols / 2, map.rows / 3), 100, 255, CV_FILLED);
-//    cv::circle(room_mat, cv::Point(map.cols / 2, map.rows / 5 * 4), 50, 255, CV_FILLED);
+//    cv::circle(room_mat, cv::Point(map.cols / 2, map.rows / 3), 100, 255, cv::FILLED);
+//    cv::circle(room_mat, cv::Point(map.cols / 2, map.rows / 5 * 4), 50, 255, cv::FILLED);
 //    std::vector<int> mapDataList = mat2Vector(room_mat);
 //    std::vector<int> imitate = compressValueQuantity(mapDataList);
 
@@ -80,7 +80,7 @@ void MapModification::applyIncreaseArea(const std::vector<int> &daubs) {
         }
     }
     auto mostContour = contours[max_position];
-    cv::drawContours(originalMap, std::vector<std::vector<cv::Point> >(1, mostContour), -1, cv::Scalar(255), CV_FILLED);
+    cv::drawContours(originalMap, std::vector<std::vector<cv::Point> >(1, mostContour), -1, cv::Scalar(255), cv::FILLED);
 
     cv::Mat andMat;
     cv::bitwise_and(daubMap, originalMap, andMat);
@@ -93,7 +93,7 @@ void MapModification::applyIncreaseArea(const std::vector<int> &daubs) {
     for (int y = 0; y < map.rows; y++) {
         for (int x = 0; x < map.cols; x++) {
             if (map.at<unsigned char>(y, x) == 255) {
-                cv::circle(unchanged, cv::Point(x, y), 1, cv::Scalar(255), CV_FILLED);
+                cv::circle(unchanged, cv::Point(x, y), 1, cv::Scalar(255), cv::FILLED);
             }
         }
     }

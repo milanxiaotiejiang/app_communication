@@ -11,6 +11,7 @@
 #include "leave/cartographer_node.h"
 #include "future/node/motor_server.h"
 #include "future/node/hardware_subscriber.h"
+#include "module.h"
 
 int ModeValidate::getMoveBaseMode() {
     int move_base_mode = -1;
@@ -145,11 +146,15 @@ bool ModeValidate::validateCoreMoveAvailable() {
     return coreMoveServer;
 }
 
-const int numberOfTasks = 3;
 
 bool ModeValidate::validateHardwareServer() {
     if (!Environment::instance().isRealEnvironment) {
         return true;
+    }
+    if (Module::instance().dependence_imu) {
+        Module::instance().number_of_tasks = 3;
+    } else {
+        Module::instance().number_of_tasks = 1;
     }
 
     auto recordStart = std::chrono::steady_clock::now();
@@ -160,11 +165,11 @@ bool ModeValidate::validateHardwareServer() {
         return false;
 
 //    std::vector<std::thread> threads;
-    std::vector<std::promise<bool>> promises(numberOfTasks);
+    std::vector<std::promise<bool>> promises(Module::instance().number_of_tasks);
     std::vector<std::future<bool>> futures;
-    std::vector<std::atomic<bool>> stopFlags(numberOfTasks);
+    std::vector<std::atomic<bool>> stopFlags(Module::instance().number_of_tasks);
 
-    for (int i = 0; i < numberOfTasks; ++i) {
+    for (int i = 0; i < Module::instance().number_of_tasks; ++i) {
         futures.push_back(promises[i].get_future());
 
         switch (i) {

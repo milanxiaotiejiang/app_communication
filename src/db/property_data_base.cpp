@@ -3,8 +3,12 @@
 //
 
 #include "db/property_data_base.h"
+#include "module.h"
 
 void PropertyDataBase::initProperty() {
+    if (!Module::instance().module_property)
+        return;
+
     propertyStorage.sync_schema();
     std::vector<Consumable> consumableList = propertyStorage.get_all<Consumable>();
     if (consumableList.size() > 1) {
@@ -40,6 +44,10 @@ Consumable PropertyDataBase::loadConsumable() {
 void
 PropertyDataBase::updateConsumable(long sweep_increment, long mop_increment, long vacuum_increment, long push_increment,
                                    long aromatherapy_increment, long disinfect_increment) {
+
+    if (!Module::instance().module_property)
+        return;
+
     Consumable consumable = propertyStorage.get<Consumable>(consumableId);
     consumable.sweep_use = consumable.sweep_use + sweep_increment;
     consumable.mop_use = consumable.mop_use + mop_increment;
@@ -52,6 +60,10 @@ PropertyDataBase::updateConsumable(long sweep_increment, long mop_increment, lon
 
 void PropertyDataBase::resetConsumable(bool sweep_reset, bool mop_reset, bool vacuum_reset, bool push_reset,
                                        bool aromatherapy_reset, bool disinfect_reset) {
+
+    if (!Module::instance().module_property)
+        return;
+
     Consumable consumable = propertyStorage.get<Consumable>(consumableId);
     consumable.sweep_use = sweep_reset ? 0 : consumable.sweep_use;
     consumable.mop_use = mop_reset ? 0 : consumable.mop_use;

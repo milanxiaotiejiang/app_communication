@@ -44,7 +44,7 @@ public:
 
         MeanShift2D ms;
         cv::Mat room = cv::Mat::zeros(max_y_ + 10, max_x_ + 10, CV_8UC1);
-        cv::drawContours(room, std::vector<std::vector<cv::Point> >(1, vertices), -1, cv::Scalar(255), CV_FILLED);
+        cv::drawContours(room, std::vector<std::vector<cv::Point> >(1, vertices), -1, cv::Scalar(255), cv::FILLED);
 
 //        cv::imshow("room", room);
 //        cv::waitKey();
@@ -92,7 +92,7 @@ public:
     void drawPolygon(cv::Mat &image, const cv::Scalar &color) const {
         // draw polygon in an black image with necessary size
         cv::Mat black_image = cv::Mat(max_y_ + 10, max_x_ + 10, CV_8UC1, cv::Scalar(0));
-        cv::drawContours(black_image, std::vector<std::vector<cv::Point> >(1, vertices_), -1, color, CV_FILLED);
+        cv::drawContours(black_image, std::vector<std::vector<cv::Point> >(1, vertices_), -1, color, cv::FILLED);
 
         image = black_image.clone();
     }

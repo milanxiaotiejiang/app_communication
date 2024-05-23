@@ -8,22 +8,22 @@
 #include "glog/logging.h"
 #include "string"
 
-#define DEBUG_REQUEST false
+#define DEBUG_REQUEST true
 #define DEBUG_FIRING true
-#define DEBUG_EXPLORATION false
-#define DEBUG_EXPLORATION_CACHE false
-#define DEBUG_SEGMENTATION false
+#define DEBUG_EXPLORATION true
+#define DEBUG_EXPLORATION_CACHE true
+#define DEBUG_SEGMENTATION true
 #define DEBUG_NODE true
 #define DEBUG_TASK true
-#define DEBUG_TIMER false
-#define DEBUG_MAINTENANCE false
-#define DEBUG_OTA false
+#define DEBUG_TIMER true
+#define DEBUG_MAINTENANCE true
+#define DEBUG_OTA true
 #define DEBUG_DUMP true
-#define DEBUG_SENSOR false
+#define DEBUG_SENSOR true
 #define DEBUG_RESTORE true
 #define DEBUG_GATE true
-#define DEBUG_CLEAN_MECHANISM false
-#define DEBUG_MULTIPLE_MAP false
+#define DEBUG_CLEAN_MECHANISM true
+#define DEBUG_MULTIPLE_MAP true
 #define DEBUG_ELEVATOR true
 
 

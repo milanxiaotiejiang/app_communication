@@ -1,11 +1,6 @@
-/***
- * @brief: prihibition areas
- * @author: jiang
- * @date: 20210904
-***/
 
-// #ifndef PROHIBITION_H
-// #define CLEANINGPATHPPROHIBITION_HLANNING_H
+#ifndef APP_COMMUNICATION_PROHIBITION_H
+#define APP_COMMUNICATION_PROHIBITION_H
 
 #include <iostream>
 #include "yaml-cpp/yaml.h"
@@ -20,3 +15,6 @@ int set_prohibition(std::string, float *, int);
 int reset_prohibition(std::string prohibition_path);
 
 bool get_prohibition(std::string, std::vector<std::vector<float>> &prohibition_position);
+
+
+#endif //APP_COMMUNICATION_PROHIBITION_H
