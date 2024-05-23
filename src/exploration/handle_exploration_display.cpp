@@ -191,7 +191,7 @@ void planning_point_segmentation_path_display(const cv::Mat &map,
         std::vector<cv::Point> &each_path = each_map[pos];
         cv::circle(show_map, point * resize, 6, cv::Scalar(100), cv::FILLED);
         cv::putText(show_map, std::to_string(i), point * resize, cv::FONT_HERSHEY_TRIPLEX,
-                    0.8, cv::Scalar(128), 1, CV_AA);
+                    0.8, cv::Scalar(128), 1, cv::LINE_AA);
 
         for (int y = 0; y < each_path.size(); ++y) {
             auto currentPoint = each_path[y];
@@ -248,7 +248,7 @@ void save_planning_point_segmentation_path(const cv::Mat &map, cv::Mat segmented
         std::vector<cv::Point> &each_path = each_map[pos];
         cv::circle(segmented_map, point, 3, cv::Scalar(30000), cv::FILLED);
         cv::putText(segmented_map, std::to_string(i), point, cv::FONT_HERSHEY_TRIPLEX,
-                    0.8, cv::Scalar(0), 1, CV_AA);
+                    0.8, cv::Scalar(0), 1, cv::LINE_AA);
         cv::circle(segmented_map, start_point, 3, cv::Scalar(50000), cv::FILLED);
 
         for (int y = 0; y < each_path.size(); ++y) {

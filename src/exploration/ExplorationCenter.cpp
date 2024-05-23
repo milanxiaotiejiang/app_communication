@@ -863,7 +863,7 @@ void ExplorationCenter::generatePlanningSegmentationPath(const std::string &mapI
         auto one_map = SegmentationCenter::instance().choiceOneRoom(segmented_map, rooms, room.getDbId());
 
         std::vector<std::vector<cv::Point>> contours;
-        cv::findContours(one_map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+        cv::findContours(one_map, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
         each_contour_map.insert(std::make_pair(pos, contours));
 
         std::vector<geometry_msgs::Pose2D> child_exploration_path;
@@ -962,7 +962,7 @@ void ExplorationCenter::pathPublish(const std::vector<std::vector<geometry_msgs:
 bool ExplorationCenter::baseStationAvailable(cv::Mat &room_map, const cv::Point &point) {
     bool isAvailable = false;
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(room_map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(room_map, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     for (auto &contour: contours) {
         double d = cv::pointPolygonTest(contour, point, false);
         if (d >= 0) {
@@ -981,7 +981,7 @@ bool ExplorationCenter::baseStationAvailable(cv::Mat &room_map, const cv::Point 
  */
 cv::Mat ExplorationCenter::findClosestPointRoom(cv::Mat &room_map, const cv::Point &point, double min_cell_area) {
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(room_map, contours, CV_RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+    cv::findContours(room_map, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
     std::vector<double> distances;
     std::vector<int> areas;

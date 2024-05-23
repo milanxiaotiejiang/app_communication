@@ -96,7 +96,7 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         for (int i = 0; i < polygon_centers.size(); i++) {
             auto point = polygon_centers[i];
             cv::putText(polygon_centers_map, std::to_string(i), point, cv::FONT_HERSHEY_TRIPLEX,
-                        0.8, cv::Scalar(128), 1, CV_AA);
+                        0.8, cv::Scalar(128), 1, cv::LINE_AA);
             cv::circle(polygon_centers_map, point, 3, cv::Scalar(160), cv::FILLED);
         }
         cv::imshow("polygon_centers_map", polygon_centers_map);
@@ -137,7 +137,7 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
         for (int i = 0; i < optimal_order.size(); i++) {
             auto point = polygon_centers[optimal_order[i]];
             cv::putText(polygon_centers_map2, std::to_string(i), point, cv::FONT_HERSHEY_TRIPLEX,
-                        0.8, cv::Scalar(128), 1, CV_AA);
+                        0.8, cv::Scalar(128), 1, cv::LINE_AA);
             cv::circle(polygon_centers_map2, point, 3, cv::Scalar(160), cv::FILLED);
         }
         cv::imshow("polygon_centers_map2", polygon_centers_map2);
@@ -451,7 +451,7 @@ void BoustrophedonExplorer::computeCellDecomposition(const cv::Mat &room_map, co
         }
         std::vector<std::vector<cv::Point>> cellsi;
         // 只检测最外层轮廓   压缩水平方向、垂直方向和对角线方向的像素，只保留该方向的终点坐标
-        cv::findContours(cell_copy, cellsi, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+        cv::findContours(cell_copy, cellsi, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
         cells.insert(cells.end(), cellsi.begin(), cellsi.end());
     }
 
@@ -853,7 +853,7 @@ void BoustrophedonExplorer::computeRectangularAmbulatoryPlanePath(const cv::Mat 
 //                                                cv::Point(-1, -1));
 //    while (true) {
 //        std::vector<std::vector<cv::Point>> contours;
-//        cv::findContours(occupancyGrid, contours, CV_RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+//        cv::findContours(occupancyGrid, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 //        if (contours.empty()) {
 //            break;  // No more contours found, exit the loop
 //        }
