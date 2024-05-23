@@ -2007,8 +2007,8 @@ bool ElevatorControlManager::elevatorInternalInspection() {
     auto build_robot_position = MapAttributeSingleton::instance().getRobotPositionPoint(globalMap);
 
     auto show_map = globalMap.clone();
-    cv::circle(show_map, centerPoint, 3, cv::Scalar(150), CV_FILLED);
-    cv::circle(show_map, build_robot_position, 3, cv::Scalar(150), CV_FILLED);
+    cv::circle(show_map, centerPoint, 3, cv::Scalar(150), cv::FILLED);
+    cv::circle(show_map, build_robot_position, 3, cv::Scalar(150), cv::FILLED);
     cv::imshow("show_map", show_map);
     cv::waitKey();
 

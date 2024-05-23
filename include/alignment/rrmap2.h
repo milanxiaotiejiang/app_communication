@@ -816,12 +816,12 @@ public:
                 point_path.push_back(cover.toCvPoint());
             }
 
-            cv::circle(map, point_path[0], 2, cv::Scalar(200), CV_FILLED);
+            cv::circle(map, point_path[0], 2, cv::Scalar(200), cv::FILLED);
 
             for (size_t step = 1; step < point_path.size(); ++step) {
                 cv::Point p1(point_path[step - 1].x, point_path[step - 1].y);
                 cv::Point p2(point_path[step].x, point_path[step].y);
-                cv::circle(map, p2, 1, cv::Scalar(200), CV_FILLED);
+                cv::circle(map, p2, 1, cv::Scalar(200), cv::FILLED);
                 cv::line(map, p1, p2, cv::Scalar(150), 1);
             }
         }
@@ -832,21 +832,21 @@ public:
                 point_path.push_back(path.toCvPoint());
             }
 
-            cv::circle(map, point_path[0], 2, cv::Scalar(200), CV_FILLED);
+            cv::circle(map, point_path[0], 2, cv::Scalar(200), cv::FILLED);
 
             for (size_t step = 1; step < point_path.size(); ++step) {
                 cv::Point p1(point_path[step - 1].x, point_path[step - 1].y);
                 cv::Point p2(point_path[step].x, point_path[step].y);
-                cv::circle(map, p2, 1, cv::Scalar(200), CV_FILLED);
+                cv::circle(map, p2, 1, cv::Scalar(200), cv::FILLED);
                 cv::line(map, p1, p2, cv::Scalar(150), 1);
             }
         }
 
         cv::Point cvCharger(chargerX / NUMERICAL_EXPANSION, chargerY / NUMERICAL_EXPANSION);
-        cv::circle(map, cvCharger, 3, cv::Scalar(200), CV_FILLED);
+        cv::circle(map, cvCharger, 3, cv::Scalar(200), cv::FILLED);
 
         cv::Point cvRobot(robotX / NUMERICAL_EXPANSION, robotY / NUMERICAL_EXPANSION);
-        cv::circle(map, cvRobot, 3, cv::Scalar(200), CV_FILLED);
+        cv::circle(map, cvRobot, 3, cv::Scalar(200), cv::FILLED);
 
         cv::resize(map, map, cv::Size(), 3, 3, cv::INTER_LINEAR);
         cv::imshow("1", map);

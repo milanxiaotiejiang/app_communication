@@ -1,5 +1,6 @@
 #include "rec_app.h"
 #include "simulation.h"
+#include "module.h"
 
 /**
  * pull requests
@@ -40,16 +41,19 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "rec_app_node");
     LOG_IF(INFO, DEBUG_FIRING) << "启动 rec_app_node " << sys_gettid() << " start to listening ! ";
 
-    //新清洁历史
-    clean_history_db::CleanHistoryCenter::instance().initialize();
-    PropertyDataBase::instance().initProperty();
-
-    async::TimerInitCall::instance().initialize();
-    UdpManager::instance().start();
 
     ros::NodeHandle handle;
 
     initNodeParams(handle);
+
+    //新清洁历史
+    clean_history_db::CleanHistoryCenter::instance().initialize();
+    if (Module::instance().module_property)
+        PropertyDataBase::instance().initProperty();
+
+    async::TimerInitCall::instance().initialize();
+    if (Module::instance().module_udp)
+        UdpManager::instance().start();
 
     AsyncMachine::instance().initialize(handle);
     PublishInnerManager::instance().initialize(handle);
@@ -65,7 +69,8 @@ int main(int argc, char **argv) {
     ros::Time::init();
 
     SensorCenter::instance().initialize(handle);
-    AutoMaintenanceModeManager::instance().run();
+    if (Module::instance().module_auto_maintenance)
+        AutoMaintenanceModeManager::instance().run();
     if (!SegmentationCenter::instance().initialize(handle)) {
         LOG(ERROR) << "data Map File load fail !";
         return 0;
@@ -78,21 +83,25 @@ int main(int argc, char **argv) {
 
     //启动订阅话题的callback
     JsonSubscribe jsonSubscribe(handle);
-    JsonSubscribeCloud jsonSubscribeCloud(handle);
+    if (Module::instance().module_cloud)
+        JsonSubscribeCloud jsonSubscribeCloud(handle);
     BeforeJsonSubscribe beforeJsonSubscribe(handle);
     MapInnerSubscribe mapInnerSubscribe(handle);
-    DSVersionSubscribe dsVersionSubscribe(handle);
-
-    SelfCheckSubscribe selfCheckSubscribe(handle);
+    if (Module::instance().module_version)
+        DSVersionSubscribe dsVersionSubscribe(handle);
+    if (Module::instance().module_old_self_check)
+        SelfCheckSubscribe selfCheckSubscribe(handle);
 
     WsServerManager::instance().startWebSocket();
-    AiServerManager::instance().startWebSocket();
+    if (Module::instance().module_ai)
+        AiServerManager::instance().startWebSocket();
 
     ScheduleManagerSingleton::instance().start(handle);
 
     ManualManager::instance().restore();
 
-    ElevatorControlManager::instance().initialize(handle);
+    if (Module::instance().module_elevator)
+        ElevatorControlManager::instance().initialize(handle);
 
     ros::MultiThreadedSpinner spinner;
     spinner.spin();
@@ -110,7 +119,7 @@ std::string getenv_rec(const std::string &name) {
     if (pAdmin != nullptr) {
         closedir(pAdmin);
     }
-    return isRealEnvironment ? "/home/admin1" : "/home/io";
+    return isRealEnvironment ? "/home/admin1" : "/home/noodles";
 }
 
 void judgeEnvironment() {
@@ -490,6 +499,40 @@ void initNodeParams(const ros::NodeHandle &nh) {
     int internal_spatial_analysis_count;
     nh.param<int>("internal_spatial_analysis_count", internal_spatial_analysis_count, 30);
     Environment::instance().internal_spatial_analysis_count = internal_spatial_analysis_count;
+
+
+    bool module_elevator;
+    nh.param<bool>("module_elevator", module_elevator, false);
+    Module::instance().module_elevator = module_elevator;
+    bool module_ai;
+    nh.param<bool>("module_ai", module_ai, false);
+    Module::instance().module_ai = module_ai;
+    bool module_property;
+    nh.param<bool>("module_property", module_property, false);
+    Module::instance().module_property = module_property;
+    bool module_udp;
+    nh.param<bool>("module_udp", module_udp, false);
+    Module::instance().module_udp = module_udp;
+    bool module_auto_maintenance;
+    nh.param<bool>("module_auto_maintenance", module_auto_maintenance, false);
+    Module::instance().module_auto_maintenance = module_auto_maintenance;
+    bool module_cloud;
+    nh.param<bool>("module_cloud", module_cloud, false);
+    Module::instance().module_cloud = module_cloud;
+    bool module_version;
+    nh.param<bool>("module_version", module_version, false);
+    Module::instance().module_version = module_version;
+    bool module_old_self_check;
+    nh.param<bool>("module_old_self_check", module_old_self_check, false);
+    Module::instance().module_old_self_check = module_old_self_check;
+    bool module_mechanism;
+    nh.param<bool>("module_mechanism", module_mechanism, false);
+    Module::instance().module_mechanism = module_mechanism;
+
+
+    bool dependence_imu;
+    nh.param<bool>("dependence_imu", dependence_imu, false);
+    Module::instance().dependence_imu = dependence_imu;
 
 }
 

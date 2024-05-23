@@ -97,7 +97,7 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
             auto point = polygon_centers[i];
             cv::putText(polygon_centers_map, std::to_string(i), point, cv::FONT_HERSHEY_TRIPLEX,
                         0.8, cv::Scalar(128), 1, CV_AA);
-            cv::circle(polygon_centers_map, point, 3, cv::Scalar(160), CV_FILLED);
+            cv::circle(polygon_centers_map, point, 3, cv::Scalar(160), cv::FILLED);
         }
         cv::imshow("polygon_centers_map", polygon_centers_map);
         cv::waitKey();
@@ -138,7 +138,7 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
             auto point = polygon_centers[optimal_order[i]];
             cv::putText(polygon_centers_map2, std::to_string(i), point, cv::FONT_HERSHEY_TRIPLEX,
                         0.8, cv::Scalar(128), 1, CV_AA);
-            cv::circle(polygon_centers_map2, point, 3, cv::Scalar(160), CV_FILLED);
+            cv::circle(polygon_centers_map2, point, 3, cv::Scalar(160), cv::FILLED);
         }
         cv::imshow("polygon_centers_map2", polygon_centers_map2);
         cv::waitKey();
@@ -190,31 +190,31 @@ void BoustrophedonExplorer::getExplorationPath(const cv::Mat &room_map, std::vec
 
     if (DISPLAY_TRAJECTORY_RESULT) {
         cv::Mat room_map_path = room_map.clone();
-        cv::circle(room_map_path, starting_position, 3, cv::Scalar(160), CV_FILLED);
+        cv::circle(room_map_path, starting_position, 3, cv::Scalar(160), cv::FILLED);
         for (size_t i = 0; i < fov_poses.size() - 1; ++i) {
             cv::circle(room_map_path, cv::Point(cvRound(fov_poses[i].x), cvRound(fov_poses[i].y)), 1, cv::Scalar(200),
-                       CV_FILLED);
+                       cv::FILLED);
             cv::line(room_map_path, cv::Point(cvRound(fov_poses[i].x), cvRound(fov_poses[i].y)),
                      cv::Point(cvRound(fov_poses[i + 1].x), cvRound(fov_poses[i + 1].y)), cv::Scalar(100), 1);
         }
         cv::circle(room_map_path, cv::Point(cvRound(fov_poses.back().x), cvRound(fov_poses.back().y)), 1,
-                   cv::Scalar(200), CV_FILLED);
+                   cv::Scalar(200), cv::FILLED);
         cv::imshow("room_map_path_intermediate", room_map_path);
         cv::waitKey();
     }
 
     if (DISPLAY_TRAJECTORY_RESULT) {
         cv::Mat room_map_path = room_map.clone();
-        cv::circle(room_map_path, starting_position, 3, cv::Scalar(160), CV_FILLED);
+        cv::circle(room_map_path, starting_position, 3, cv::Scalar(160), cv::FILLED);
         for (const auto &complex: complex_path) {
             for (size_t i = 0; i < complex.size() - 1; ++i) {
                 cv::circle(room_map_path, cv::Point(cvRound(complex[i].x), cvRound(complex[i].y)), 1, cv::Scalar(200),
-                           CV_FILLED);
+                           cv::FILLED);
                 cv::line(room_map_path, cv::Point(cvRound(complex[i].x), cvRound(complex[i].y)),
                          cv::Point(cvRound(complex[i + 1].x), cvRound(complex[i + 1].y)), cv::Scalar(100), 1);
             }
             cv::circle(room_map_path, cv::Point(cvRound(complex.back().x), cvRound(complex.back().y)), 1,
-                       cv::Scalar(200), CV_FILLED);
+                       cv::Scalar(200), cv::FILLED);
             cv::imshow("room_map_path_intermediate", room_map_path);
             cv::waitKey();
         }
@@ -518,12 +518,12 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
         cv::Mat rotated_cell_map_disp = rotated_cell_map.clone();
         for (size_t i = 0; i < grid_lines.size(); ++i) {
             for (size_t j = 0; j + 1 < grid_lines[i].upper_line.size(); ++j) {
-                cv::circle(rotated_cell_map_disp, grid_lines[i].upper_line[j], 1, cv::Scalar(64), CV_FILLED);
+                cv::circle(rotated_cell_map_disp, grid_lines[i].upper_line[j], 1, cv::Scalar(64), cv::FILLED);
                 cv::line(rotated_cell_map_disp, grid_lines[i].upper_line[j], grid_lines[i].upper_line[j + 1],
                          cv::Scalar(128), 1);
             }
             for (size_t j = 0; j + 1 < grid_lines[i].lower_line.size(); ++j) {
-                cv::circle(rotated_cell_map_disp, grid_lines[i].lower_line[j], 1, cv::Scalar(64), CV_FILLED);
+                cv::circle(rotated_cell_map_disp, grid_lines[i].lower_line[j], 1, cv::Scalar(64), cv::FILLED);
                 cv::line(rotated_cell_map_disp, grid_lines[i].lower_line[j], grid_lines[i].lower_line[j + 1],
                          cv::Scalar(196), 1);
             }
@@ -560,17 +560,17 @@ void BoustrophedonExplorer::computeBoustrophedonPath(const cv::Mat &room_map, co
         cv::Mat room_map_disp = room_map.clone();
         for (size_t i = 0; i < outer_corners.size(); i += 2)
             cv::line(room_map_disp, outer_corners[i], outer_corners[i + 1], cv::Scalar(128), 1);
-        cv::circle(room_map_disp, robot_pos, 3, cv::Scalar(160), CV_FILLED);
+        cv::circle(room_map_disp, robot_pos, 3, cv::Scalar(160), cv::FILLED);
         if (start_from_upper_path) {
             if (start_from_left)
-                cv::circle(room_map_disp, outer_corners[0], 3, cv::Scalar(64), CV_FILLED);
+                cv::circle(room_map_disp, outer_corners[0], 3, cv::Scalar(64), cv::FILLED);
             else
-                cv::circle(room_map_disp, outer_corners[1], 3, cv::Scalar(64), CV_FILLED);
+                cv::circle(room_map_disp, outer_corners[1], 3, cv::Scalar(64), cv::FILLED);
         } else {
             if (start_from_left)
-                cv::circle(room_map_disp, outer_corners[2], 3, cv::Scalar(64), CV_FILLED);
+                cv::circle(room_map_disp, outer_corners[2], 3, cv::Scalar(64), cv::FILLED);
             else
-                cv::circle(room_map_disp, outer_corners[3], 3, cv::Scalar(64), CV_FILLED);
+                cv::circle(room_map_disp, outer_corners[3], 3, cv::Scalar(64), cv::FILLED);
         }
         cv::imshow("rotated_room_map", room_map_disp);
         cv::waitKey();

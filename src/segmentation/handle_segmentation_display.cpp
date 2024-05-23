@@ -55,7 +55,7 @@ void calculation_center_point(cv::Mat &segmented_map, std::vector<Room> &rooms,
 //		{
 //			room_centers_x_values[idx] = (min_x_value_of_the_room[idx] + max_x_value_of_the_room[idx]) / 2;
 //			room_centers_y_values[idx] = (min_y_value_of_the_room[idx] + max_y_value_of_the_room[idx]) / 2;
-//			cv::circle(segmented_map, cv::Point(room_centers_x_values[idx], room_centers_y_values[idx]), 2, cv::Scalar(200*256), CV_FILLED);
+//			cv::circle(segmented_map, cv::Point(room_centers_x_values[idx], room_centers_y_values[idx]), 2, cv::Scalar(200*256), cv::FILLED);
 //		}
 //	}
     // use distance transform and mean shift to find good room centers that are reachable by the robot
@@ -180,7 +180,7 @@ void calculation_center_point(cv::Mat &segmented_map, std::vector<Room> &rooms,
 //		cv::Mat disp = segmented_map.clone();
     for (size_t index = 0; index < room_centers_x_values.size(); ++index)
         cv::circle(color_segmented_map, cv::Point(room_centers_x_values[index], room_centers_y_values[index]), 2,
-                   cv::Scalar(256), CV_FILLED);
+                   cv::Scalar(256), cv::FILLED);
 
 
 //    room_information[i].room_center.x = room_centers_x_values[i];
@@ -229,7 +229,7 @@ void ordinary_display(const cv::Mat &segmented_map, const std::vector<Room> &roo
         auto room = rooms[i];
         cv::Point current_center(room.getCenter().x,
                                  room.getCenter().y);
-        cv::circle(colour_segmented_map, current_center, 2, CV_RGB(0, 0, 255), CV_FILLED);
+        cv::circle(colour_segmented_map, current_center, 2, CV_RGB(0, 0, 255), cv::FILLED);
     }
 
     cv::imshow(winname, colour_segmented_map);
@@ -324,8 +324,8 @@ void whole_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms,
                     cv::Scalar(255, 200, 200), 1, CV_AA);
     }
 
-    cv::circle(roomMat, pl, 5, cv::Scalar(0, 200, 0), CV_FILLED);
-    cv::circle(roomMat, pr, 5, cv::Scalar(200, 0, 0), CV_FILLED);
+    cv::circle(roomMat, pl, 5, cv::Scalar(0, 200, 0), cv::FILLED);
+    cv::circle(roomMat, pr, 5, cv::Scalar(200, 0, 0), cv::FILLED);
 
     cv::imshow(winname, roomMat);
     cv::waitKey();
@@ -362,7 +362,7 @@ void whole_display(const cv::Mat &segmented_map, std::vector<Room> &rooms, const
         cv::putText(roomMat, "   " + std::to_string(room.getID()), center * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
                     cv::Scalar(255, 200, 200), 1, CV_AA);
 
-        cv::circle(roomMat, center * resize, 4, cv::Scalar(255, 200, 200), CV_FILLED);
+        cv::circle(roomMat, center * resize, 4, cv::Scalar(255, 200, 200), cv::FILLED);
     }
 
     for (const auto &gate: gateList) {
@@ -387,11 +387,11 @@ void whole_display(const cv::Mat &segmented_map, std::vector<Room> &rooms, const
                                                                                     segmented_map.cols,
                                                                                     gateRightPoint);
 
-        cv::circle(roomMat, cvGateLeftPoint * resize, 4, scalar, CV_FILLED);
+        cv::circle(roomMat, cvGateLeftPoint * resize, 4, scalar, cv::FILLED);
         cv::putText(roomMat, " L", cvGateLeftPoint * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
                     cv::Scalar(255, 200, 200), 1, CV_AA);
 
-        cv::circle(roomMat, cvGateRightPoint * resize, 2, scalar, CV_FILLED);
+        cv::circle(roomMat, cvGateRightPoint * resize, 2, scalar, cv::FILLED);
         cv::putText(roomMat, " R", cvGateRightPoint * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
                     cv::Scalar(255, 200, 200), 1, CV_AA);
 

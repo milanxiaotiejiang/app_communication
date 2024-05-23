@@ -5,6 +5,7 @@
 #include "future/node/motor_server.h"
 #include "simulation.h"
 #include "simulation.h"
+#include "module.h"
 
 void MotorServerSingleton::init(ros::NodeHandle handle) {
     if (!Environment::instance().isRealEnvironment) {
@@ -48,21 +49,25 @@ bool MotorServerSingleton::stop() {
 }
 
 bool MotorServerSingleton::startInu() {
-    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  startInu 启动 inu 服务 ... ";
-    int ret = std::system("echo '123456' | sudo -S systemctl start inuservice.service");
-    if (ret != 0) {
-        LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl start inuservice.service fail : " << ret;
-        return false;
+    if (Module::instance().dependence_imu) {
+        LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  startInu 启动 inu 服务 ... ";
+        int ret = std::system("echo '123456' | sudo -S systemctl start inuservice.service");
+        if (ret != 0) {
+            LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl start inuservice.service fail : " << ret;
+            return false;
+        }
     }
     return true;
 }
 
 bool MotorServerSingleton::stopInu() {
-    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  stopInu 关闭 inu 服务 ... ";
-    int ret = std::system("echo '123456' | sudo -S systemctl stop inuservice.service");
-    if (ret != 0) {
-        LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl stop inuservice.service fail : " << ret;
-        return false;
+    if (Module::instance().dependence_imu) {
+        LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  stopInu 关闭 inu 服务 ... ";
+        int ret = std::system("echo '123456' | sudo -S systemctl stop inuservice.service");
+        if (ret != 0) {
+            LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl stop inuservice.service fail : " << ret;
+            return false;
+        }
     }
     return true;
 }

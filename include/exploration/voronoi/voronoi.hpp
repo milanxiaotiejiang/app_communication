@@ -611,7 +611,7 @@ public:
         }
 
         for (const auto &item: pts) {
-            cv::circle(room_map, cv::Point(item.x_, item.y_), 1, cv::Scalar(200), CV_FILLED);
+            cv::circle(room_map, cv::Point(item.x_, item.y_), 1, cv::Scalar(200), cv::FILLED);
         }
 
         if (DISPLAY_VORONOI_TRAJECTORY) {

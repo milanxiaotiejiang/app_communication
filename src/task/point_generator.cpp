@@ -204,7 +204,7 @@ void PointGenerator::complexPathToRealBlock(RealTask &realTask,
 //            auto cvPoint = MapAttributeSingleton::instance().rosPoint2MapPoint(generateMat.rows, generateMat.cols,
 //                                                                               Point(point.realPosition.x,
 //                                                                                     point.realPosition.y));
-//            cv::circle(generateMat, cvPoint, 3, cv::Scalar(200), CV_FILLED);
+//            cv::circle(generateMat, cvPoint, 3, cv::Scalar(200), cv::FILLED);
 //        }
 //
 //        LOG(ERROR) << "timeout : " << block.timeout;

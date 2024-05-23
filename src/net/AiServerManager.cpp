@@ -78,17 +78,42 @@ struct AiData {
     }
 };
 
+struct VoiceData {
+    std::string timestamp;
+    std::string duration;
+    std::string message;
+
+    friend void to_json(json &j, const VoiceData &b) {
+        j = json{
+                {"timestamp", b.timestamp},
+                {"duration",  b.duration},
+                {"message",   b.message},
+        };
+    }
+
+    friend void from_json(const json &j, VoiceData &b) {
+        j.at("timestamp").get_to(b.timestamp);
+        j.at("duration").get_to(b.duration);
+        j.at("message").get_to(b.message);
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const VoiceData &data) {
+        os << "timestamp: " << data.timestamp << " duration: " << data.duration << " message: " << data.message;
+        return os;
+    }
+};
+
 
 void ai_fail(server *s, websocketpp::connection_hdl hdl) {
     server::connection_ptr con = s->get_con_from_hdl(std::move(hdl));
     LOG(WARNING) << "Fail handler: " << con->get_ec() << " " << con->get_ec().message();
 }
 
-void ai_close(const websocketpp::connection_hdl& hdl) {
+void ai_close(const websocketpp::connection_hdl &hdl) {
     LOG(WARNING) << "Close handler";
 }
 
-void ai_open(server *s, const websocketpp::connection_hdl& hdl) {
+void ai_open(server *s, const websocketpp::connection_hdl &hdl) {
     LOG(WARNING) << "Open handler" << std::endl;
 
 }
@@ -101,22 +126,41 @@ void ai_message(server *s, const websocketpp::connection_hdl &hdl, const server:
               << std::endl;
     try {
         json jDecode = json::parse(msg->get_payload());
-        AiData aiData = jDecode.get<AiData>();
 
-        ai_msgs::MultiRectangles detect_results;
-        for (int i = 0; i < aiData.num_results; i++) {
-            AiResult aiResult = aiData.results[i];
-            ai_msgs::Rectangle rect;
-            rect.x = aiResult.x_min;
-            rect.y = aiResult.y_min;
-            rect.width = aiResult.x_max - aiResult.x_min;
-            rect.height = aiResult.y_max - aiResult.y_min;
-            detect_results.rectangles.push_back(rect);
+//        AiData aiData = jDecode.get<AiData>();
+//
+//        ai_msgs::MultiRectangles detect_results;
+//        for (int i = 0; i < aiData.num_results; i++) {
+//            AiResult aiResult = aiData.results[i];
+//            ai_msgs::Rectangle rect;
+//            rect.x = aiResult.x_min;
+//            rect.y = aiResult.y_min;
+//            rect.width = aiResult.x_max - aiResult.x_min;
+//            rect.height = aiResult.y_max - aiResult.y_min;
+//            detect_results.rectangles.push_back(rect);
+//        }
+//        PublishInnerManager::instance().pubDetection(detect_results);
+
+
+        VoiceData voiceData = jDecode.get<VoiceData>();
+
+        LOG(ERROR) << voiceData;
+
+        if (voiceData.message == "启动") {
+            std::system("rostopic pub -1 /segmentation_task std_msgs/Int32 \"data: 6\"");
+        } else if (voiceData.message == "暂停") {
+            std::system("rostopic pub -1 /segmentation_order std_msgs/Int32 \"data: 0\"");
+        } else if (voiceData.message == "继续") {
+            std::system("rostopic pub -1 /segmentation_order std_msgs/Int32 \"data: 1\"");
+        } else if (voiceData.message == "返回") {
+            std::system("rostopic pub -1 /segmentation_order std_msgs/Int32 \"data: 100\"");
         }
-        PublishInnerManager::instance().pubDetection(detect_results);
+
     } catch (const std::exception &e) {
         std::cout << "Error parsing JSON message: " << e.what() << std::endl;
     }
+
+
 }
 
 class AiServerThread : public CThread {

@@ -198,7 +198,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
         for (size_t i = 0; i < nodes.size(); ++i)
             for (size_t j = 0; j < nodes[i].size(); ++j)
                 if (nodes[i][j].obstacle_ == false)
-                    cv::circle(test_map, nodes[i][j].center_, 2, cv::Scalar(127), CV_FILLED);
+                    cv::circle(test_map, nodes[i][j].center_, 2, cv::Scalar(127), cv::FILLED);
         cv::imshow("grid", test_map);
         cv::waitKey();
 //        for (size_t i = 0; i < nodes.size(); ++i) {
@@ -207,7 +207,7 @@ EnergyFunctionalExplorator::getExplorationPath(const cv::Mat &room_map, std::vec
 //
 //                std::vector<EnergyExploratorNode *> neighbors = nodes[i][j].neighbors_;
 //                for (std::vector<EnergyExploratorNode *>::iterator n = neighbors.begin(); n != neighbors.end(); ++n)
-//                    cv::circle(test_map, (*n)->center_, 2, cv::Scalar(127), CV_FILLED);
+//                    cv::circle(test_map, (*n)->center_, 2, cv::Scalar(127), cv::FILLED);
 //
 //                cv::imshow("neighbors", test_map);
 //                cv::waitKey();

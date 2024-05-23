@@ -75,8 +75,9 @@ else ()
 endif ()
 
 find_package(OpenCV REQUIRED)
-find_package(eventpp)
+find_package(eventpp REQUIRED)
 find_package(SqliteOrm REQUIRED)
+find_package(cppfs REQUIRED)
 find_package(Boost COMPONENTS iostreams)
 
 file(GLOB GLOG_LIBRARIES /usr/lib/x86_64-linux-gnu/libglog.so)
@@ -119,11 +120,11 @@ file(GLOB HEADER_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/include/*/*/*/*.h")
 file(GLOB SOURCE_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*/*/*.cpp")
 
 
-find_library(CPPFS_LIB head/cppfs
-        NAMES cppfs
-        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
-message("CPPFS_LIB=${CPPFS_LIB}")
-include_directories(include "${CMAKE_CURRENT_SOURCE_DIR}/head")
+#find_library(CPPFS_LIB head/cppfs
+#        NAMES cppfs
+#        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
+#message("CPPFS_LIB=${CPPFS_LIB}")
+#include_directories(include "${CMAKE_CURRENT_SOURCE_DIR}/head")
 
 add_executable(rec_app_node
         ${HEADER_FILES_LEVEL_1}
@@ -152,9 +153,10 @@ target_link_libraries(rec_app_node
         #        python2.7
         eventpp::eventpp
         sqlite_orm::sqlite_orm sqlite3
+        cppfs::cppfs
         ${BREAK_PAD_LIBRARIES}
         ${Boost_LIBRARIES}
-        ${CPPFS_LIB}
+        #        ${CPPFS_LIB}
         #        CURL::CURL curl
         ${CURL_LIBRARIES}
 )
@@ -185,7 +187,7 @@ install(DIRECTORY include/
 
 install(FILES ${CPPFS_LIB}
         DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        )
+)
 
 
 set(other_dir

@@ -57,5 +57,5 @@ void explorationErode(const cv::Mat &src, cv::Mat &dst, int shape, int pixel) {
 void drawBaseStation(cv::Mat &img, const cv::Point &stationPoint, int radius, const cv::Scalar &color) {
     cv::rectangle(img, cv::Point(stationPoint.x - radius, stationPoint.y - radius),
                   cv::Point(stationPoint.x + radius, stationPoint.y + radius),
-                  color, CV_FILLED);
+                  color, cv::FILLED);
 }

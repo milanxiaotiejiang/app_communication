@@ -6,8 +6,12 @@
 #include "manager/PublishInnerManager.h"
 #include "task/subscribe/zoo_inner_status.h"
 #include "simulation.h"
+#include "module.h"
 
 void MechanismManager::resetWorkStatus() {
+    if (!Module::instance().module_mechanism)
+        return;
+
     LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 收起清洁机构 . ";
     opening = false;
 
@@ -47,6 +51,9 @@ void MechanismManager::resetWorkStatus() {
 }
 
 void MechanismManager::resetBelowWorkStatus() {
+    if (!Module::instance().module_mechanism)
+        return;
+
     LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 收起下方清洁机构.";
 //    std_msgs::Int32 sweep_status;
 //    sweep_status.data = 0;
@@ -68,6 +75,9 @@ void MechanismManager::resetBelowWorkStatus() {
 }
 
 void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knife) {
+    if (!Module::instance().module_mechanism)
+        return;
+
     LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
     opening = true;
 
@@ -126,6 +136,9 @@ void MechanismManager::controlWorkStatus(const WorkStatus &workStatus, bool knif
 }
 
 void MechanismManager::forceControlWorkStatus(const WorkStatus &workStatus, bool knife) {
+    if (!Module::instance().module_mechanism)
+        return;
+
     LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 打开清洁机构 " << workStatus << " 风 " << knife << " . ";
     opening = true;
 
@@ -175,6 +188,9 @@ void MechanismManager::quitManualControl() {
 }
 
 void MechanismManager::openKnife() {
+    if (!Module::instance().module_mechanism)
+        return;
+
     LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 开启风刀.";
     std_msgs::Int32 msg;
     msg.data = 1;
@@ -182,6 +198,9 @@ void MechanismManager::openKnife() {
 }
 
 void MechanismManager::closeKnife() {
+    if (!Module::instance().module_mechanism)
+        return;
+
     LOG_IF(INFO, DEBUG_CLEAN_MECHANISM) << "MechanismManager : 关闭风刀.";
     std_msgs::Int32 msg;
     msg.data = 0;
@@ -189,5 +208,8 @@ void MechanismManager::closeKnife() {
 }
 
 bool MechanismManager::isOpening() const {
+    if (!Module::instance().module_mechanism)
+        return true;
+
     return opening;
 }

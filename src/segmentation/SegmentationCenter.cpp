@@ -21,7 +21,7 @@ bool SegmentationCenter::detectionTooSmallRoom(const cv::Mat &segmented_map, Roo
     auto room_map = segmented_map.clone();
     cv::Mat zero_map = cv::Mat::zeros(room_map.rows, room_map.cols, CV_8UC1);
     cv::drawContours(zero_map, std::vector<std::vector<cv::Point> >(1, room.getMembers()),
-                     -1, cv::Scalar(255), CV_FILLED);
+                     -1, cv::Scalar(255), cv::FILLED);
     cv::Mat temp, compute_map;
     cv::erode(zero_map, temp, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
     cv::dilate(temp, zero_map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
@@ -62,7 +62,7 @@ bool SegmentationCenter::detectionTooSmallRoom(const cv::Mat &segmented_map, Roo
 bool SegmentationCenter::pointInRoom(const cv::Mat &segmented_map, Room room, const cv::Point &point) const {
     cv::Mat zero_map = cv::Mat::zeros(segmented_map.rows, segmented_map.cols, CV_8UC1);
     cv::drawContours(zero_map, std::vector<std::vector<cv::Point> >(1, room.getMembers()),
-                     -1, cv::Scalar(255), CV_FILLED);
+                     -1, cv::Scalar(255), cv::FILLED);
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(zero_map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     for (auto &contour: contours) {
@@ -78,7 +78,7 @@ bool SegmentationCenter::lineThroughRoom(const cv::Mat &segmented_map, Room room
                                          const cv::Point &pe) const {
     cv::Mat zero_map = cv::Mat::zeros(segmented_map.rows, segmented_map.cols, CV_8UC1);
     cv::drawContours(zero_map, std::vector<std::vector<cv::Point> >(1, room.getMembers()),
-                     -1, cv::Scalar(255), CV_FILLED);
+                     -1, cv::Scalar(255), cv::FILLED);
     cv::Mat line_map = cv::Mat::zeros(segmented_map.rows, segmented_map.cols, CV_8UC1);
     cv::line(line_map, ps, pe, cv::Scalar(255), 1);
     cv::Mat and_map;
@@ -922,7 +922,7 @@ void SegmentationCenter::gateManySegmentation(cv::Mat &segmented_map, std::vecto
         auto &room = rooms[i];
         cv::Mat zero_map = cv::Mat::zeros(map.rows, map.cols, CV_8UC1);
         cv::drawContours(zero_map, std::vector<std::vector<cv::Point> >(1, room.getMembers()),
-                         -1, cv::Scalar(255), CV_FILLED);
+                         -1, cv::Scalar(255), cv::FILLED);
 
         int pixelCount = 0;
         cv::LineIterator it(zero_map, ps, pe, 8);
