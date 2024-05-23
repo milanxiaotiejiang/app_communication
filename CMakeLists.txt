@@ -120,12 +120,6 @@ file(GLOB HEADER_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/include/*/*/*/*.h")
 file(GLOB SOURCE_FILES_LEVEL_4 "${CMAKE_CURRENT_SOURCE_DIR}/src/*/*/*/*.cpp")
 
 
-#find_library(CPPFS_LIB head/cppfs
-#        NAMES cppfs
-#        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/lib/")
-#message("CPPFS_LIB=${CPPFS_LIB}")
-#include_directories(include "${CMAKE_CURRENT_SOURCE_DIR}/head")
-
 add_executable(rec_app_node
         ${HEADER_FILES_LEVEL_1}
         ${SOURCE_FILES_LEVEL_1}
@@ -156,14 +150,13 @@ target_link_libraries(rec_app_node
         cppfs::cppfs
         ${BREAK_PAD_LIBRARIES}
         ${Boost_LIBRARIES}
-        #        ${CPPFS_LIB}
         #        CURL::CURL curl
         ${CURL_LIBRARIES}
 )
 
 target_link_libraries(dump_upload
         ${catkin_LIBRARIES}
-        ${CPPFS_LIB}
+        cppfs::cppfs
 )
 
 
