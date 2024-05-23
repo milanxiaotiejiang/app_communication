@@ -981,7 +981,7 @@ bool ExplorationCenter::baseStationAvailable(cv::Mat &room_map, const cv::Point 
  */
 cv::Mat ExplorationCenter::findClosestPointRoom(cv::Mat &room_map, const cv::Point &point, double min_cell_area) {
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(room_map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+    cv::findContours(room_map, contours, CV_RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
     std::vector<double> distances;
     std::vector<int> areas;

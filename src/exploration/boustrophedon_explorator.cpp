@@ -853,7 +853,7 @@ void BoustrophedonExplorer::computeRectangularAmbulatoryPlanePath(const cv::Mat 
 //                                                cv::Point(-1, -1));
 //    while (true) {
 //        std::vector<std::vector<cv::Point>> contours;
-//        cv::findContours(occupancyGrid, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+//        cv::findContours(occupancyGrid, contours, CV_RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 //        if (contours.empty()) {
 //            break;  // No more contours found, exit the loop
 //        }
