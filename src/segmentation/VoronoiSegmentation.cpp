@@ -88,7 +88,7 @@ void VoronoiSegmentation::segmentMap(const cv::Mat &map_to_be_labeled, cv::Mat &
     //the map will be different from the original one
     cv::Mat temporary_map_to_extract_the_contours = segmented_map.clone();
     std::vector<std::vector<cv::Point> > contours;
-    cv::findContours(temporary_map_to_extract_the_contours, contours, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
+    cv::findContours(temporary_map_to_extract_the_contours, contours, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
 
     // 2. Get the basis-points for each critical-point
     std::vector<cv::Point> basis_points_1, basis_points_2;
@@ -199,7 +199,7 @@ void VoronoiSegmentation::segmentMap(const cv::Mat &map_to_be_labeled, cv::Mat &
     std::vector<cv::Vec4i> hierarchy;
 
     //1. Erode map one time, so small gaps are closed
-    cv::findContours(voronoi_map, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(voronoi_map, contours, hierarchy, cv::RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
     for (int current_contour = 0; current_contour < contours.size(); current_contour++) {
         if (hierarchy[current_contour][3] == -1) {
             double room_area = map_resolution_from_subscription * map_resolution_from_subscription *
