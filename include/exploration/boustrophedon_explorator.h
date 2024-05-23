@@ -52,7 +52,7 @@ public:
         //返回灰度值不为0的像素数
         area_ = cv::countNonZero(room);
         cv::Mat distance_map;// 欧式距离 因此 type 为 CV_32FC1
-        cv::distanceTransform(room, distance_map, CV_DIST_L2, 5);
+        cv::distanceTransform(room, distance_map, cv::DIST_L2, 5);
 
 //        cv::imshow("distance_map", distance_map);
 //        cv::waitKey();

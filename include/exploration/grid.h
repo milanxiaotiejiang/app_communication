@@ -96,7 +96,7 @@ public:
 
             if (accessible_pixels > 0) {
                 cv::Mat distances;
-                cv::distanceTransform(cell_pixels, distances, CV_DIST_L2, 5);
+                cv::distanceTransform(cell_pixels, distances, cv::DIST_L2, 5);
                 double max_distance = 0.;
                 cv::minMaxLoc(distances, 0, &max_distance, 0, &cell_center);
                 cell_center.x += x - half_cell_size;
