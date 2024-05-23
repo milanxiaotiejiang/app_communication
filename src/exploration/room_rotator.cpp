@@ -20,7 +20,7 @@ void RoomRotator::rotateRoom(const cv::Mat &room_map, cv::Mat &rotated_room_map,
 //    cv::GaussianBlur(dst, dst, cv::Size(3, 3), 0, 0);
 //    cv::resize(dst, rotated_room_map, rotated_room_map.size(), 2.0, 2.0, CV_INTER_LINEAR);
 
-    cv::threshold(rotated_room_map, rotated_room_map, 127, 255, CV_THRESH_BINARY);
+    cv::threshold(rotated_room_map, rotated_room_map, 127, 255, cv::THRESH_BINARY);
 }
 
 double RoomRotator::computeRoomRotationMatrix(const cv::Mat &room_map, cv::Mat &R, cv::Rect &bounding_rect,

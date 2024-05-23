@@ -64,7 +64,7 @@ bool SegmentationCenter::pointInRoom(const cv::Mat &segmented_map, Room room, co
     cv::drawContours(zero_map, std::vector<std::vector<cv::Point> >(1, room.getMembers()),
                      -1, cv::Scalar(255), cv::FILLED);
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(zero_map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(zero_map, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     for (auto &contour: contours) {
         double d = cv::pointPolygonTest(contour, point, false);
         if (d >= 0) {
@@ -683,7 +683,7 @@ bool SegmentationCenter::pointInArea(const cv::Mat &area_map, const cv::Point &s
     bool inArea = false;
     auto map = area_map.clone();
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(map, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(map, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
     std::vector<TempPolygon> records;
 

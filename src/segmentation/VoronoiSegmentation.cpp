@@ -199,7 +199,7 @@ void VoronoiSegmentation::segmentMap(const cv::Mat &map_to_be_labeled, cv::Mat &
     std::vector<cv::Vec4i> hierarchy;
 
     //1. Erode map one time, so small gaps are closed
-    cv::findContours(voronoi_map, contours, hierarchy, cv::RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(voronoi_map, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
     for (int current_contour = 0; current_contour < contours.size(); current_contour++) {
         if (hierarchy[current_contour][3] == -1) {
             double room_area = map_resolution_from_subscription * map_resolution_from_subscription *

@@ -69,7 +69,7 @@ void MapModification::applyIncreaseArea(const std::vector<int> &daubs) {
 
     auto originalMap = map.clone();
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(originalMap, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    cv::findContours(originalMap, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     int max_size = 0;
     int max_position = 0;
     for (int i = 0; i < contours.size(); i++) {

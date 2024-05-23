@@ -267,13 +267,13 @@ void whole_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms,
 
         idStr.append(std::to_string(i) + "." + std::to_string(id));
         cv::putText(roomMat, idStr, point1, cv::FONT_HERSHEY_TRIPLEX, 0.4,
-                    cv::Scalar(255, 200, 200), 1, CV_AA);
+                    cv::Scalar(255, 200, 200), 1, cv::LINE_AA);
 
         for (const auto &item: neighborIDs) {
             neighborStr.append(std::to_string(item) + ",");
         }
         cv::putText(roomMat, neighborStr, point2, cv::FONT_HERSHEY_TRIPLEX, 0.3,
-                    cv::Scalar(255, 200, 200), 1, CV_AA);
+                    cv::Scalar(255, 200, 200), 1, cv::LINE_AA);
     }
     cv::imshow(winname, roomMat);
     cv::waitKey();
@@ -315,13 +315,13 @@ void whole_display(const cv::Mat &segmented_map, const std::vector<Room> &rooms,
 
         idStr.append(std::to_string(i) + "." + std::to_string(id));
         cv::putText(roomMat, idStr, point1, cv::FONT_HERSHEY_TRIPLEX, 0.4,
-                    cv::Scalar(255, 200, 200), 1, CV_AA);
+                    cv::Scalar(255, 200, 200), 1, cv::LINE_AA);
 
         for (const auto &item: neighborIDs) {
             neighborStr.append(std::to_string(item) + ",");
         }
         cv::putText(roomMat, neighborStr, point2, cv::FONT_HERSHEY_TRIPLEX, 0.3,
-                    cv::Scalar(255, 200, 200), 1, CV_AA);
+                    cv::Scalar(255, 200, 200), 1, cv::LINE_AA);
     }
 
     cv::circle(roomMat, pl, 5, cv::Scalar(0, 200, 0), cv::FILLED);
@@ -360,7 +360,7 @@ void whole_display(const cv::Mat &segmented_map, std::vector<Room> &rooms, const
     for (auto &room: rooms) {
         auto center = room.getCenter();
         cv::putText(roomMat, "   " + std::to_string(room.getID()), center * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
-                    cv::Scalar(255, 200, 200), 1, CV_AA);
+                    cv::Scalar(255, 200, 200), 1, cv::LINE_AA);
 
         cv::circle(roomMat, center * resize, 4, cv::Scalar(255, 200, 200), cv::FILLED);
     }
@@ -389,15 +389,15 @@ void whole_display(const cv::Mat &segmented_map, std::vector<Room> &rooms, const
 
         cv::circle(roomMat, cvGateLeftPoint * resize, 4, scalar, cv::FILLED);
         cv::putText(roomMat, " L", cvGateLeftPoint * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
-                    cv::Scalar(255, 200, 200), 1, CV_AA);
+                    cv::Scalar(255, 200, 200), 1, cv::LINE_AA);
 
         cv::circle(roomMat, cvGateRightPoint * resize, 2, scalar, cv::FILLED);
         cv::putText(roomMat, " R", cvGateRightPoint * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
-                    cv::Scalar(255, 200, 200), 1, CV_AA);
+                    cv::Scalar(255, 200, 200), 1, cv::LINE_AA);
 
         cv::Point midPoint((ps.x + pe.x) / 2, (ps.y + pe.y) / 2);
         cv::putText(roomMat, std::to_string(gate.id), midPoint * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
-                    cv::Scalar(255, 200, 200), 1, CV_AA);
+                    cv::Scalar(255, 200, 200), 1, cv::LINE_AA);
 
     }
     cv::imshow(winname, roomMat);
@@ -432,7 +432,7 @@ void whole_display(const cv::Mat &segmented_map, std::vector<Room> &rooms, const
         bool direction = gatePoint.second;
 
         cv::putText(directionMat, std::to_string(originRegionId) + " -> " + std::to_string(finishRegionId),
-                    cv::Point(0, 50), cv::FONT_HERSHEY_TRIPLEX, 0.4, cv::Scalar(255, 200, 200), 1, CV_AA);
+                    cv::Point(0, 50), cv::FONT_HERSHEY_TRIPLEX, 0.4, cv::Scalar(255, 200, 200), 1, cv::LINE_AA);
 
         Point gateLeftPoint(gate.left_position_x, gate.left_position_y);
         Point gateRightPoint(gate.right_position_x, gate.right_position_y);
@@ -463,10 +463,10 @@ void whole_display(const cv::Mat &segmented_map, std::vector<Room> &rooms, const
 
         cv::putText(directionMat, " S",
                     roomStart.getCenter() * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
-                    cv::Scalar(255, 200, 200), 1, CV_AA);
+                    cv::Scalar(255, 200, 200), 1, cv::LINE_AA);
         cv::putText(directionMat, " E",
                     roomEnd.getCenter() * resize, cv::FONT_HERSHEY_TRIPLEX, 0.4,
-                    cv::Scalar(255, 200, 200), 1, CV_AA);
+                    cv::Scalar(255, 200, 200), 1, cv::LINE_AA);
 
         cv::imshow(std::to_string(originRegionId) + " -> " + std::to_string(finishRegionId), directionMat);
         cv::waitKey();
