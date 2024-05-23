@@ -364,9 +364,9 @@ ExplorationCenter::generatePlanningPath(const std::string &mapId, const cv::Mat 
         cv::dilate(map, map, cv::Mat(), cv::Point(-1, -1), plan.map_correction_closing_neighborhood_size);
 
         cv::Mat dst;
-        cv::resize(map, dst, cv::Size(), 2.0, 2.0, CV_INTER_LINEAR);
+        cv::resize(map, dst, cv::Size(), 2.0, 2.0, cv::INTER_LINEAR);
         cv::GaussianBlur(dst, dst, cv::Size(5, 5), 0, 0);
-        cv::resize(dst, map, map.size(), 0, 0, CV_INTER_LINEAR);
+        cv::resize(dst, map, map.size(), 0, 0, cv::INTER_LINEAR);
     }
     morphologicalEdging(map, plan.map_correction_closing_neighborhood_size);
 

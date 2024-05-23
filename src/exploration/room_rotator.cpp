@@ -16,9 +16,9 @@ void RoomRotator::rotateRoom(const cv::Mat &room_map, cv::Mat &rotated_room_map,
 //    cv::Mat dst;
 //    cv::pyrDown(rotated_room_map, dst, cv::Size(rotated_room_map.cols / 2, rotated_room_map.rows / 2));
 //    cv::pyrUp(dst, rotated_room_map, rotated_room_map.size());
-//    cv::resize(rotated_room_map, dst, cv::Size(), 2.0, 2.0, CV_INTER_LINEAR);
+//    cv::resize(rotated_room_map, dst, cv::Size(), 2.0, 2.0, cv::INTER_LINEAR);
 //    cv::GaussianBlur(dst, dst, cv::Size(3, 3), 0, 0);
-//    cv::resize(dst, rotated_room_map, rotated_room_map.size(), 2.0, 2.0, CV_INTER_LINEAR);
+//    cv::resize(dst, rotated_room_map, rotated_room_map.size(), 2.0, 2.0, cv::INTER_LINEAR);
 
     cv::threshold(rotated_room_map, rotated_room_map, 127, 255, cv::THRESH_BINARY);
 }

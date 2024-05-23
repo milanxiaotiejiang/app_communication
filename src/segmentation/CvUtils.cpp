@@ -85,7 +85,7 @@ namespace CvUtils {
 
     bool savePng(const std::string &fileName, const cv::Mat &src) {
         std::vector<int> compression_params;  //无损压缩参数
-        compression_params.push_back(CV_IMWRITE_PNG_COMPRESSION);
+        compression_params.push_back(cv::IMWRITE_PNG_COMPRESSION);
         compression_params.push_back(0);// 无压缩png.
         compression_params.push_back(cv::IMWRITE_PNG_STRATEGY);
         compression_params.push_back(cv::IMWRITE_PNG_STRATEGY_DEFAULT);
