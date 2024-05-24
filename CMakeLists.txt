@@ -81,7 +81,6 @@ find_package(cppfs REQUIRED)
 find_package(Boost COMPONENTS iostreams)
 
 #file(GLOB GLOG_LIBRARIES /usr/lib/x86_64-linux-gnu/libglog.so)
-# 使用变量来定义glog库的路径
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
     file(GLOB GLOG_LIBRARIES "/usr/lib/x86_64-linux-gnu/libglog.so")
 elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
@@ -89,30 +88,29 @@ elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
 else ()
     message(FATAL_ERROR "Unsupported architecture")
 endif ()
-set(GLOG_INCLUDE_DIRS /usr/include)
+set(GLOG_INCLUDE_DIRS /usr/include/glog)
 message("glog_include_dirs=${GLOG_INCLUDE_DIRS}")
 message("glog_libraries=${GLOG_LIBRARIES}")
 
 set(PYTHON_INCLUDE_DIRS "/usr/include/python2.7")
 set(BREAK_PAD_LIBRARIES /usr/local/lib/libbreakpad_client.a)
 set(BOOST_IOSTREAMS_DIRS ${Boost_INCLUDE_DIRS}/boost/iostreams)
+
 #file(GLOB CURL_LIBRARIES /usr/lib/x86_64-linux-gnu/libcurl.so)
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
-    file(GLOB GLOG_LIBRARIES "/usr/lib/x86_64-linux-gnu/libcurl.so")
+    file(GLOB CURL_LIBRARIES "/usr/lib/x86_64-linux-gnu/libcurl.so")
 elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
-    file(GLOB GLOG_LIBRARIES "/usr/lib/aarch64-linux-gnu/libcurl.so")
+    file(GLOB CURL_LIBRARIES "/usr/lib/aarch64-linux-gnu/libcurl.so")
 else ()
     message(FATAL_ERROR "Unsupported architecture")
 endif ()
+message("curl_libraries=${CURL_LIBRARIES}")
 
 link_directories(/usr/local/lib)
 
-message("glog_include_dirs=${GLOG_INCLUDE_DIRS}")
-message("glog_libraries=${GLOG_LIBRARIES}")
 message("break_pad_libraries=${BREAK_PAD_LIBRARIES}")
 message("boost_iostreams_dirs=${BOOST_IOSTREAMS_DIRS}")
 message("opencv_include_dirs=${OpenCV_INCLUDE_DIRS}")
-message("curl_libraries=${CURL_LIBRARIES}")
 
 include_directories(include /usr/local/include/yaml-cpp)
 include_directories(${GLOG_INCLUDE_DIRS})
@@ -161,7 +159,6 @@ target_link_libraries(rec_app_node
         yaml-cpp
         ${catkin_LIBRARIES}
         ${OpenCV_LIBRARIES}
-        ${GLOG_LIBRARIES}
         #        python2.7
         eventpp::eventpp
         sqlite_orm::sqlite_orm sqlite3
