@@ -170,6 +170,7 @@ target_link_libraries(rec_app_node
         ${Boost_LIBRARIES}
         #        CURL::CURL curl
         ${CURL_LIBRARIES}
+        ${GLOG_LIBRARIES}
 )
 
 target_link_libraries(dump_upload
