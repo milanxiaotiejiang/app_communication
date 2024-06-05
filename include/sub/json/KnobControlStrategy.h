@@ -11,11 +11,6 @@
 
 using json = nlohmann::json;
 
-class KnobControlStrategy : public MessageStrategy<bool, std::string> {
-public:
-    std::string handler(bool method) override;
-};
-
 class CollectDustStrategy : public MessageStrategy<std::string, std::string> {
 public:
     std::string handler(std::string method) override;

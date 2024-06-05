@@ -31,21 +31,21 @@ public:
 public:
     bool isOpening() const;
 
-    void resetWorkStatus();
+//    void resetWorkStatus();
 
-    void resetBelowWorkStatus();
+//    void resetBelowWorkStatus();
 
-    void controlWorkStatus(const WorkStatus &workStatus, bool knife);
+//    void controlWorkStatus(const WorkStatus &workStatus, bool knife);
 
-    void forceControlWorkStatus(const WorkStatus &workStatus, bool knife);
+//    void forceControlWorkStatus(const WorkStatus &workStatus, bool knife);
 
     void enterManualControl();
 
     void quitManualControl();
 
-    void openKnife();
+//    void openKnife();
 
-    void closeKnife();
+//    void closeKnife();
 };
 
 

@@ -13,6 +13,7 @@
 #include "BaseThrowable.h"
 #include "db/task_data_base.h"
 #include "segmentation/map_attribute.h"
+#include "leave/map_control.h"
 
 void SegmentationDataBase::resetMap(const MapPo &map) {
     mapPo.id = map.id;
@@ -385,7 +386,11 @@ void SegmentationDataBase::memory2Storage(cv::Mat &mat, std::vector<Room> &rooms
 //        auto depth = mat.clone();
 //        CvUtils::savePng(randomPngPath, depth);
 
-        return CvUtils::write(path::map_segmentation_path(), mat);
+        bool result = CvUtils::write(path::map_segmentation_path(), mat);
+
+        MapControl::instance().backupMap(SegmentationDataBase::instance().getDbMap().id, false);
+
+        return result;
     });
 }
 

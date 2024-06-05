@@ -93,7 +93,7 @@ void AutoMaintenanceModeManager::autoMaintenance() {
                 ->scheduleLater(std::chrono::seconds(1), []() {
                     LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil status " << ParamManager::instance().getAutoOil();
                     if (ParamManager::instance().getAutoOil()) {
-                        PublishInnerManager::instance().publishOil();
+//                        PublishInnerManager::instance().publishOil();
                         LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil publish ";
                     }
                 });
@@ -103,7 +103,7 @@ void AutoMaintenanceModeManager::autoMaintenance() {
                     LOG_IF(INFO, DEBUG_MAINTENANCE)
                                     << "collectDust status " << ParamManager::instance().getCollectDust();
                     if (ParamManager::instance().getCollectDust()) {
-                        PublishInnerManager::instance().publishCollectDust();
+//                        PublishInnerManager::instance().publishCollectDust();
                         LOG_IF(INFO, DEBUG_MAINTENANCE) << "collectDust publish ";
                     }
                 });
@@ -113,7 +113,7 @@ void AutoMaintenanceModeManager::autoMaintenance() {
                 ->scheduleLater(std::chrono::seconds(1), []() {
                     LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil status " << ParamManager::instance().getAutoOil();
                     if (ParamManager::instance().getAutoOil()) {
-                        PublishInnerManager::instance().publishOil();
+//                        PublishInnerManager::instance().publishOil();
                         LOG_IF(INFO, DEBUG_MAINTENANCE) << "autoOil publish ";
                     }
                 });
@@ -124,7 +124,7 @@ void AutoMaintenanceModeManager::autoMaintenance() {
                     LOG_IF(INFO, DEBUG_MAINTENANCE)
                                     << "collectDust status " << ParamManager::instance().getCollectDust();
                     if (ParamManager::instance().getCollectDust()) {
-                        PublishInnerManager::instance().publishCollectDust();
+//                        PublishInnerManager::instance().publishCollectDust();
                         LOG_IF(INFO, DEBUG_MAINTENANCE) << "collectDust publish ";
                     }
                 });
@@ -134,7 +134,7 @@ void AutoMaintenanceModeManager::autoMaintenance() {
             ->scheduleLater(std::chrono::minutes(30), []() {
                 LOG_IF(INFO, DEBUG_MAINTENANCE) << " 1s 后硬重启 ... ";
                 sleep(1);
-                PublishInnerManager::instance().pubHardwareReset();
+//                PublishInnerManager::instance().pubHardwareReset();
             });
 
 }

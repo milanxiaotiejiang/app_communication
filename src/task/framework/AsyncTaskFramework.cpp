@@ -277,7 +277,7 @@ void AsyncTaskFramework::callSwitchWorkMode(const std::function<void(bool work)>
 
 void AsyncTaskFramework::callOpenMechanism(const WorkStatus &status, bool knife, std::function<void()> f) {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备打开相应的清洁机构 " << status << " ...";
-    MechanismManager::instance().controlWorkStatus(status, knife);
+//    MechanismManager::instance().controlWorkStatus(status, knife);
     auto fun = std::move(f);
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this, fun]() {
@@ -297,7 +297,7 @@ void AsyncTaskFramework::callOpenMechanism(const WorkStatus &status, bool knife,
 void AsyncTaskFramework::callCloseMechanism(std::function<void()> f) {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备关闭相应的清洁机构 ...";
     //这个函数里面关闭所有清洁机构
-    MechanismManager::instance().resetWorkStatus();
+//    MechanismManager::instance().resetWorkStatus();
     auto fun = std::move(f);
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()

@@ -75,7 +75,7 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
         mElevatorInside = inside;
         std_msgs::Int32 message;
         message.data = inside ? 0 : 1;
-        PublishInnerManager::instance().pubMetalDetectionSwitch(message);
+//        PublishInnerManager::instance().pubMetalDetectionSwitch(message);
     });
 
     ElevatorControlManager::instance().setCallbackElevatorPre([this](ElevatorControlManager::ElevatorError result) {
@@ -172,7 +172,7 @@ void AsyncTaskCall::handleSpecialOperation() {
         }
         case loop::special_epoll::special_branch_water: {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 清水箱空，清水箱空导致需要强制返回基站点 ...";
-            MechanismManager::instance().resetWorkStatus();
+//            MechanismManager::instance().resetWorkStatus();
             break;
         }
         case loop::special_epoll::special_sewage_water: {
@@ -473,7 +473,7 @@ void AsyncTaskCall::goodGame(event::GG gg) {
     setFlow(event::flow::waiting_for_task);
     reset();
 
-    MechanismManager::instance().resetWorkStatus();
+//    MechanismManager::instance().resetWorkStatus();
 
     if (!waitTaskQueue.empty()) {
         notify_one([this]() {
@@ -524,7 +524,7 @@ void AsyncTaskCall::garbage(event::SB sb) {
                              << " , ElevatorPost : " << flowElevatorPostPoint.arrive
                              << " , ReadyBack : " << flowReadyBackPoint.arrive;
 
-    MechanismManager::instance().resetWorkStatus();
+//    MechanismManager::instance().resetWorkStatus();
 
     reset();
 
@@ -669,7 +669,7 @@ void AsyncTaskCall::callBackBasePoint() {
     } else {
         LOG_IF(INFO, DEBUG_ELEVATOR) << "HeadTailPointCall : 梯控后期逻辑开始 ...";
         setFlow(event::flow::trigger_special_post_conditions);
-        MechanismManager::instance().resetWorkStatus();
+//        MechanismManager::instance().resetWorkStatus();
         ElevatorControlManager::instance().setBuildElevatorAddress(getBuildElevatorAddress());
         ElevatorControlManager::instance().handlePostFlow(postBlocks());
     }
@@ -710,7 +710,7 @@ void AsyncTaskCall::callGoNextBlock(const RealBlock &nextBlock, bool first) {
                             << "DEBUG_CLEAN_MECHANISM 取未执行的点列队首，清洁机构操控 mode 为 "
                             << static_cast<int>(cmcMode) << " ... ";
             if (cmcMode == CmcMode::Open) {
-                MechanismManager::instance().controlWorkStatus(nextBlock.work_status, nextBlock.knife);
+//                MechanismManager::instance().controlWorkStatus(nextBlock.work_status, nextBlock.knife);
             } else if (cmcMode == CmcMode::Close) {
                 //
             }
@@ -875,7 +875,7 @@ void AsyncTaskCall::callReleaseStop() {
         if (isPause()) {
             if (recoverableSuspend()) {
                 LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 急停可恢复暂停状态 ... ";
-                MechanismManager::instance().forceControlWorkStatus(baseWorkStatus(), isKnife());
+//                MechanismManager::instance().forceControlWorkStatus(baseWorkStatus(), isKnife());
             }
         }
     }
@@ -883,7 +883,7 @@ void AsyncTaskCall::callReleaseStop() {
 
 void AsyncTaskCall::callRecoveryStop() {
     setEpollManual(loop::manual_epoll::manual_normal);
-    MechanismManager::instance().resetWorkStatus();
+//    MechanismManager::instance().resetWorkStatus();
     cancelTask();
     goodGame(event::GG::gg_urgency_stop);
 }
@@ -892,7 +892,7 @@ void AsyncTaskCall::callResume() {
     setEpollManual(loop::manual_epoll::manual_normal);
     if (recoverableSuspend()) {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 可继续执行任务 ...";
-        MechanismManager::instance().forceControlWorkStatus(baseWorkStatus(), isKnife());
+//        MechanismManager::instance().forceControlWorkStatus(baseWorkStatus(), isKnife());
         auto lastStack = lastEmergencyStop();
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : 继续 lastStack : " << lastStack << " ...";
 
@@ -909,7 +909,7 @@ void AsyncTaskCall::callResume() {
 }
 
 void AsyncTaskCall::callPause(bool skipManual) {
-    MechanismManager::instance().resetWorkStatus();
+//    MechanismManager::instance().resetWorkStatus();
     if (isContinueWork(currentFlow(), true, skipManual)) {
         makeSurePause(currentFlow());
         cancelAny();
@@ -1400,7 +1400,7 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
             if (carpet) {
                 if (!isCarpetAndPack) {
                     isCarpetAndPack = true;
-                    MechanismManager::instance().resetBelowWorkStatus();
+//                    MechanismManager::instance().resetBelowWorkStatus();
                     LOG_IF(INFO, DEBUG_TASK) << "NativeSystemManager : executeCarpet "
                                              << "  检测到地毯并且已经收起清洁机构"
                                              << " ...";
@@ -1415,7 +1415,7 @@ void AsyncTaskCall::executeCarpet(bool carpet) {
                     LOG_IF(INFO, DEBUG_TASK) << "NativeSystemManager : executeCarpet "
                                              << "  离开地毯，且机构已收起，执行再次放下清洁机构"
                                              << " ...";
-                    MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus(), runTask.isKnife());
+//                    MechanismManager::instance().forceControlWorkStatus(runTask.getWorkStatus(), runTask.isKnife());
                 }
             }
         }

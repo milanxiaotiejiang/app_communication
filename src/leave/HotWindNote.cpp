@@ -30,7 +30,7 @@ void HotWindNote::hot_wind_handle_thread_func() {
                 LOG_IF(INFO, DEBUG_MAINTENANCE) << "开启热风烘干 ... ";
                 std_msgs::Int32 msg;
                 msg.data = 1;
-                PublishInnerManager::instance().publishSelfClean(msg);
+//                PublishInnerManager::instance().publishSelfClean(msg);
             }
 
 
@@ -41,7 +41,7 @@ void HotWindNote::hot_wind_handle_thread_func() {
                 LOG_IF(INFO, DEBUG_MAINTENANCE) << "关闭热风烘干 ... ";
                 std_msgs::Int32 msg;
                 msg.data = 0;
-                PublishInnerManager::instance().publishSelfClean(msg);
+//                PublishInnerManager::instance().publishSelfClean(msg);
             }
         }
 

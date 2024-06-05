@@ -511,7 +511,7 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<bool>("module_property", module_property, false);
     Module::instance().module_property = module_property;
     bool module_udp;
-    nh.param<bool>("module_udp", module_udp, false);
+    nh.param<bool>("module_udp", module_udp, true);
     Module::instance().module_udp = module_udp;
     bool module_auto_maintenance;
     nh.param<bool>("module_auto_maintenance", module_auto_maintenance, false);

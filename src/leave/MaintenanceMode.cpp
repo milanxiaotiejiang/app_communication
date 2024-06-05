@@ -16,14 +16,14 @@ void MaintenanceModeSingleton::operateMaintenanceMode(bool open) {
 
         std_msgs::Int32 data;
         data.data = 1;
-        PublishInnerManager::instance().publishMaintenanceMode(data);
+//        PublishInnerManager::instance().publishMaintenanceMode(data);
     } else {
 
         maintenanceMode = false;
 
         std_msgs::Int32 data;
         data.data = 0;
-        PublishInnerManager::instance().publishMaintenanceMode(data);
+//        PublishInnerManager::instance().publishMaintenanceMode(data);
     }
 }
 

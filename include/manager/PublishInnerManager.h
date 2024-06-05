@@ -29,34 +29,12 @@ public:
 
 private:
     ros::Publisher//
-    pub_push_mode_, //尘推
-    pub_self_clean_, //基站自清洁
-    pub_vacuum_mode_, //吸
-    pub_sweep_mode_, //sao
-    pub_mop_mode_,//tuo
-    pub_darwer_cmd_, //开抽屉
-    pub_arom_status_, //香薰机
-    pub_light_mode_,  //
-    pub_velocity_,       //速度
-    pub_passed_path_,    //走过的路径
-    pub_music,           //播放音乐
-    pub_otalow,           //下位机ota
-    pub_ds_version,     //下位机版本
-    pub_reset_prohibition,//禁行区
-    pub_knob_available,  //
-    pub_manual_push,//
-    pub_shutdown,//
-    pub_reboot,//
-    pub_oil,//
-    pub_knife,//
-    acceptAppSchedule,//
-    pub_collect_dust,//
-    pub_maintenance_mode,//
-    pub_detection,//
-    pub_open_gate,//
-    pub_hardware_reset,//
-    pub_metal_detection_switch,//
-    pub_sewage_pump_switch;
+    pub_velocity_,              //速度
+    pub_passed_path_,           //走过的路径
+    pub_ds_version,             //下位机版本
+    pub_reset_prohibition,      //禁行区
+    pub_manual_push,            //手动模式
+    pub_move_base_simple_goal;  //导航目标
 
 public:
     static auto &instance() {
@@ -66,61 +44,63 @@ public:
 
     void initialize(ros::NodeHandle handle);
 
-    void publishPushMode(const std_msgs::Int32 &message) const;
+//    void publishPushMode(const std_msgs::Int32 &message) const;
 
-    void publishSelfClean(const std_msgs::Int32 &message) const;
+//    void publishSelfClean(const std_msgs::Int32 &message) const;
 
-    void publishVacuumMode(const std_msgs::Int32 &message) const;
+//    void publishVacuumMode(const std_msgs::Int32 &message) const;
 
-    void publishMopMode(const std_msgs::Int32 &message) const;
+//    void publishMopMode(const std_msgs::Int32 &message) const;
 
-    void publishSweepMode(const std_msgs::Int32 &message) const;
+//    void publishSweepMode(const std_msgs::Int32 &message) const;
 
-    void publishDrawerCmd(const std_msgs::Int32 &message) const;
+//    void publishDrawerCmd(const std_msgs::Int32 &message) const;
 
-    void publishLightCmd(const std_msgs::Int32 &message) const;
+//    void publishLightCmd(const std_msgs::Int32 &message) const;
 
-    void publishAromStatus(const std_msgs::Int32 &message) const;
+//    void publishAromStatus(const std_msgs::Int32 &message) const;
 
     void publishVelocity(const geometry_msgs::Twist &message) const;
 
     void publishPassedPath(const nav_msgs::Path &message) const;
 
-    void publishMusic(const std_msgs::Int32 &message) const;
+//    void publishMusic(const std_msgs::Int32 &message) const;
 
-    void publishOtaLow(const std_msgs::String &message) const;
+//    void publishOtaLow(const std_msgs::String &message) const;
 
     void publishDSVersion(const std_msgs::Int32 &message) const;
 
     void publishResetProhibition();
 
-    void publishKnobAvailable(const std_msgs::Bool &message) const;
+//    void publishKnobAvailable(const std_msgs::Bool &message) const;
 
     void publishManualPush(const std_msgs::Int32 &message) const;
 
-    void publishShutDown(const std_msgs::Int32 &message) const;
+//    void publishShutDown(const std_msgs::Int32 &message) const;
 
-    void publishReboot(const std_msgs::Int32 &message) const;
+//    void publishReboot(const std_msgs::Int32 &message) const;
 
-    void publishOil() const;
+//    void publishOil() const;
 
-    void pubKnife(const std_msgs::Int32 &message) const;
+//    void pubKnife(const std_msgs::Int32 &message) const;
 
-    void publishAppSchedule(const std_msgs::String &message) const;
+//    void publishAppSchedule(const std_msgs::String &message) const;
 
-    void publishCollectDust() const;
+//    void publishCollectDust() const;
 
-    void publishMaintenanceMode(const std_msgs::Int32 &message) const;
+//    void publishMaintenanceMode(const std_msgs::Int32 &message) const;
 
-    void pubDetection(const ai_msgs::MultiRectangles &message);
+//    void pubDetection(const ai_msgs::MultiRectangles &message);
 
-    void pubOpenGate();
+//    void pubOpenGate();
 
-    void pubHardwareReset();
+//    void pubHardwareReset();
 
-    void pubMetalDetectionSwitch(const std_msgs::Int32 &message) const;
+//    void pubMetalDetectionSwitch(const std_msgs::Int32 &message) const;
 
-    void pubSewagePumpSwitch(const std_msgs::Int32 &message) const;
+//    void pubSewagePumpSwitch(const std_msgs::Int32 &message) const;
+
+    void pubNavGoal(const geometry_msgs::PoseStamped &message) const;
 };
 
 #endif //APP_COMMUNICATION_PUBLISHINNERMANAGER_H

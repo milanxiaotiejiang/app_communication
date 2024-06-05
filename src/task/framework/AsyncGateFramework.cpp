@@ -133,7 +133,7 @@ bool AsyncGateImplement::openGate(const std::string &gate_factory_id, const std:
         LOG_IF(INFO, DEBUG_GATE) << "AsyncGateImplement  发送打开闸机的命令 "
                                  << " gate_factory_id : " << gate_factory_id
                                  << " , gate_uuid : " << gate_uuid << " ... ";
-        PublishInnerManager::instance().pubOpenGate();
+//        PublishInnerManager::instance().pubOpenGate();
 
         if (!Environment::instance().isRealEnvironment) {
             return true;

@@ -140,7 +140,7 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             } else {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "HeadTailPointCall : 梯控前期逻辑开始 ...";
                 setFlow(event::flow::trigger_special_pre_conditions);
-                MechanismManager::instance().resetWorkStatus();
+//                MechanismManager::instance().resetWorkStatus();
                 ElevatorControlManager::instance().setBuildElevatorAddress(getBuildElevatorAddress());
                 ElevatorControlManager::instance().handlePreFlow(preBlocks());
             }
@@ -183,10 +183,10 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
                     LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 清扫结束，准备回基站点 ...";
                     if (baseTaskMode() == static_cast<int>(TaskMode::Zoned)) {
                         LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 矩形任务及时收起清洁机构 ...";
-                        MechanismManager::instance().resetWorkStatus();
+//                        MechanismManager::instance().resetWorkStatus();
                     } else if (asyncMap()) {
                         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 多地图任务及时收起清洁机构 ...";
-                        MechanismManager::instance().resetWorkStatus();
+//                        MechanismManager::instance().resetWorkStatus();
                     }
 
                     callBlockComplete([this]() {
@@ -204,7 +204,7 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
                         if (cmcMode == CmcMode::Open) {
                             //
                         } else if (cmcMode == CmcMode::Close) {
-                            MechanismManager::instance().resetWorkStatus();
+//                            MechanismManager::instance().resetWorkStatus();
                         }
                     }
 
@@ -310,7 +310,7 @@ void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, bool knife, 
 
     flowOpenMechanismPoint.arrive = true;
 
-    MechanismManager::instance().controlWorkStatus(status, knife);
+//    MechanismManager::instance().controlWorkStatus(status, knife);
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this]() {
             LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
@@ -336,7 +336,7 @@ void HeadTailPointCall::callCloseMechanism(std::function<void()> f) {
     flowCloseMechanismPoint.arrive = true;
 
     //这个函数里面关闭所有清洁机构
-    MechanismManager::instance().resetWorkStatus();
+//    MechanismManager::instance().resetWorkStatus();
     if (!Environment::instance().isRealEnvironment) {
         async::TimerCall::instance().baseLoop()
                 ->scheduleLater(std::chrono::seconds(1), [this]() {

@@ -31,17 +31,17 @@ ManualModel ManualManager::quit_manual_mode() {
 void ManualManager::shutdown() {
     std_msgs::Int32 msg;
     msg.data = 1;
-    MechanismManager::instance().resetWorkStatus();
+//    MechanismManager::instance().resetWorkStatus();
     sleep(1);
-    PublishInnerManager::instance().publishShutDown(msg);
+//    PublishInnerManager::instance().publishShutDown(msg);
 }
 
 void ManualManager::reboot() {
     std_msgs::Int32 msg;
     msg.data = 1;
-    MechanismManager::instance().resetWorkStatus();
+//    MechanismManager::instance().resetWorkStatus();
     sleep(1);
-    PublishInnerManager::instance().publishReboot(msg);
+//    PublishInnerManager::instance().publishReboot(msg);
 }
 
 bool ManualManager::taskRunning() {

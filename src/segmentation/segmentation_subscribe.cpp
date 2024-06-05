@@ -29,6 +29,9 @@ SegmentationSubscribe::SegmentationSubscribe(ros::NodeHandle handle) {
     sub_test_control_ = handle.subscribe("/segmentation_test", 1,
                                          &SegmentationSubscribe::segmentationTestSubscribeCallback,
                                          this);
+    sub_room_control_ = handle.subscribe("/segmentation_room", 1,
+                                         &SegmentationSubscribe::segmentationRoomSubscribeCallback,
+                                         this);
     sub_open_gate_ = handle.subscribe("/tt_open_gate", 1,
                                       &SegmentationSubscribe::gateOpenSubscribeCallback,
                                       this);
@@ -160,6 +163,98 @@ void SegmentationSubscribe::segmentationTestSubscribeCallback(const std_msgs::In
         }
     }
 
+}
+
+void SegmentationSubscribe::segmentationRoomSubscribeCallback(const std_msgs::Int32 &flag) {
+    try {
+
+        if (flag.data == 0) {
+            cv::Mat segmented_map;
+            std::vector<Room> rooms;
+            SegmentationCenter::instance().storage2Memory(segmented_map, rooms);
+
+            whole_display(segmented_map, rooms, "storage2Memory");
+
+            std::vector<RoomVo> roomVos;
+            for (auto &item: rooms) {
+                std::vector<PointVo> memberPoints;
+                auto members = item.getMembers();
+                for (const auto &member: members) {
+                    memberPoints.emplace_back(member.x, member.y);
+                }
+
+                std::vector<int> neighborRoomIds;
+                auto neighbors = item.getNeighborIDs();
+                for (const auto &neighbor: neighbors) {
+                    neighborRoomIds.push_back(neighbor);
+                }
+                auto center = item.getCenter();
+                RoomVo roomVo(item.getDbId(), item.getName(),
+                              PointVo(center.x, center.y), memberPoints, neighborRoomIds,
+                              item.getArea(), item.getPerimeter());
+                roomVos.push_back(roomVo);
+            }
+
+            const MapRoomVo &roomVo = MapRoomVo(segmented_map.cols, segmented_map.rows, roomVos);
+            LOG(INFO) << "";
+        } else if (flag.data == 1) {
+            SegmentationCenter::instance().resetSegmentation();
+
+            cv::Mat segmented_map;
+            std::vector<Room> rooms;
+            SegmentationCenter::instance().automaticSegmentation(segmented_map, rooms);
+
+            SegmentationCenter::instance().memory2Storage(segmented_map, rooms);
+
+            const MapRoomVo &roomVo = SegmentationCenter::instance().resultMapRoomVo();
+            LOG(INFO) << "";
+        } else if (flag.data == 2) {
+            SegmentationCenter::instance().resetSegmentation();
+
+            cv::Point ps(-10, -10), pe(1000, 1000);
+
+            cv::Mat segmented_map;
+            std::vector<Room> rooms;
+            SegmentationCenter::instance().originalSegmentation(segmented_map, rooms, ps, pe);
+            SegmentationCenter::instance().memory2Storage(segmented_map, rooms);
+
+            const MapRoomVo &roomVo = SegmentationCenter::instance().resultMapRoomVo();
+            LOG(INFO) << "";
+        } else if (flag.data == 3) {
+            cv::Mat segmented_map;
+            std::vector<Room> rooms;
+            SegmentationCenter::instance().storage2Memory(segmented_map, rooms);
+
+            int cols = segmented_map.cols;
+            int rows = segmented_map.rows;
+
+            cv::Point ps(cols / 2, -10), pe(cols / 2, rows + 10);
+
+            SegmentationCenter::instance().handSegmentation(segmented_map, rooms, 0, ps, pe);
+            SegmentationCenter::instance().memory2Storage(segmented_map, rooms);
+
+            const MapRoomVo &roomVo = SegmentationCenter::instance().resultMapRoomVo();
+            LOG(INFO) << "";
+        } else if (flag.data == 4) {
+            cv::Mat segmented_map;
+            std::vector<Room> rooms;
+            SegmentationCenter::instance().storage2Memory(segmented_map, rooms);
+
+            SegmentationCenter::instance().mergeRoom(segmented_map, rooms, 1, 2);
+
+            SegmentationCenter::instance().memory2Storage(segmented_map, rooms);
+
+            const MapRoomVo &roomVo = SegmentationCenter::instance().resultMapRoomVo();
+            LOG(INFO) << "";
+        }
+
+    } catch (app::exception const &e) {
+        LOG(ERROR) << e.what();
+    } catch (const std::exception &e) {
+        LOG(ERROR) << e.what();
+    } catch (...) {
+        LOG(ERROR) << "MessageStrategy other start exception";
+    }
 }
 
 void SegmentationSubscribe::gateOpenSubscribeCallback(const std_msgs::String &flag) {

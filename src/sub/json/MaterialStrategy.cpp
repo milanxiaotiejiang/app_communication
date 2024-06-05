@@ -85,6 +85,6 @@ bool MaintenanceModeStatusStrategy::handler(std::string params) {
 std::string SewagePumpSwitchStrategy::handler(bool params) {
     std_msgs::Int32 message;
     message.data = params ? 1 : 0;
-    PublishInnerManager::instance().pubSewagePumpSwitch(message);
+//    PublishInnerManager::instance().pubSewagePumpSwitch(message);
     return "";
 }

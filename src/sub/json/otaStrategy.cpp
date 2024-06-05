@@ -212,6 +212,6 @@ int otaStrategy::handleEcu(OtaInfo &params) {
     path.data = ecu_ota_folder + ecu_path.substr(found + 1, ecu_path.length() - found - 5) + ".rbl";
     LOG_IF(INFO, DEBUG_OTA)
     << "Notify driver ecu ota start:" << ecu_path.substr(found + 1, ecu_path.length() - found) << "  ";
-    PublishInnerManager::instance().publishOtaLow(path); //发给下位机
+//    PublishInnerManager::instance().publishOtaLow(path); //发给下位机
     return 0;
 }

@@ -112,14 +112,14 @@ DeviceStatusV2 GetDeviceStatusStrategyV2::handler(std::string params) {
 }
 
 std::string ChangeWorkModeStrategy::handler(WorkStatus params) {
-    MechanismManager::instance().controlWorkStatus(params, false);
+//    MechanismManager::instance().controlWorkStatus(params, false);
     return "";
 }
 
 std::string ChangeAromStatusStrategy::handler(bool params) {
     std_msgs::Int32 arom_status;
     arom_status.data = params;
-    PublishInnerManager::instance().publishAromStatus(arom_status);
+//    PublishInnerManager::instance().publishAromStatus(arom_status);
     return "";
 }
 
@@ -133,7 +133,7 @@ int SetHotWindModeStrategy::handler(int params) {
 }
 
 void AutomaticOilingStrategy::handler() {
-    PublishInnerManager::instance().publishOil();
+//    PublishInnerManager::instance().publishOil();
 }
 
 std::string SetBaseStationStrategy::handler(bool params) {
