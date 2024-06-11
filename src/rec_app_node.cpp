@@ -3,6 +3,9 @@
 #include "module.h"
 
 /**
+ * gdb --args /home/noodles/app_ws/devel/lib/app_communication/rec_app_node __name:=rec_app_node
+ */
+/**
  * pull requests
  */
 /**

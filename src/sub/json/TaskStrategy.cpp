@@ -55,3 +55,15 @@ VersionInfo GetRosVersionStrategy::handler(std::string params) {
 std::vector<PointProgressVo> GetFinishedPointStrategy::handler(std::string params) {
     return ManualManager::instance().runTaskPointList();
 }
+
+std::string RobotMoveStrategy::handler(PoseVo params) {
+    geometry_msgs::PoseStamped poseStamped;
+    poseStamped.header.frame_id = "map";
+    poseStamped.pose.position.x = params.getX();
+    poseStamped.pose.position.y = params.getY();
+    poseStamped.pose.position.z = 0;
+    poseStamped.pose.orientation = tf::createQuaternionMsgFromYaw(params.getTheta());
+    PublishInnerManager::instance().pubNavGoal(poseStamped);
+    return "";
+}
+

@@ -61,4 +61,9 @@ public:
     std::vector<PointProgressVo> handler(std::string params) override;
 };
 
+class RobotMoveStrategy : public MessageStrategy<PoseVo, std::string> {
+public:
+    std::string handler(PoseVo params) override;
+};
+
 #endif// APP_COMMUNICATION_TASKSTRATEGY_H

@@ -522,6 +522,10 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             messageStrategy = new TTElevatorStrategy();
             break;
 
+        case ROBOT_MOVE:
+            messageStrategy = new RobotMoveStrategy();
+            break;
+
     }
     if (messageStrategy != nullptr) {
         MessageContext messageContext = MessageContext(messageStrategy);

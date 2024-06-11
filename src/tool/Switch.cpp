@@ -507,12 +507,16 @@ int switch_ID(const std::string &str) {
         return SEWAGE_PUMP_SWITCH;
     }
 
-    if ("abnormal") {
+    if (str == "abnormal") {
         return ABNORMAL;
     }
 
     if (str == "tt_elevator") {
         return TT_ELEVATOR;
+    }
+
+    if (str == "robot_move") {
+        return ROBOT_MOVE;
     }
 
     return -1;

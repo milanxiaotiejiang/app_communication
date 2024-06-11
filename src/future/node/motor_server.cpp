@@ -21,53 +21,55 @@ void MotorServerSingleton::init(ros::NodeHandle handle) {
 }
 
 bool MotorServerSingleton::start() {
-    if (!Environment::instance().isRealEnvironment) {
-        return true;
-    }
-    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  start_motor 开始 start 雷达 ... ";
-    if (!initialize_start) {
-        return false;
-    }
-    std_srvs::Empty start_cmd;
-    bool callResult = start_motor.call(start_cmd);
-    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  callResult " << callResult << " ... ";
-    return callResult;
+//    if (!Environment::instance().isRealEnvironment) {
+//        return true;
+//    }
+//    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  start_motor 开始 start 雷达 ... ";
+//    if (!initialize_start) {
+//        return false;
+//    }
+//    std_srvs::Empty start_cmd;
+//    bool callResult = start_motor.call(start_cmd);
+//    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  callResult " << callResult << " ... ";
+//    return callResult;
+    return true;
 }
 
 bool MotorServerSingleton::stop() {
-    if (!Environment::instance().isRealEnvironment) {
-        return true;
-    }
-    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  stop_motor 开始 stop 雷达 ... ";
-    if (!initialize_start) {
-        return false;
-    }
-    std_srvs::Empty stop_cmd;
-    bool callResult = stop_motor.call(stop_cmd);
-    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  callResult " << callResult << " ... ";
-    return callResult;
+//    if (!Environment::instance().isRealEnvironment) {
+//        return true;
+//    }
+//    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  stop_motor 开始 stop 雷达 ... ";
+//    if (!initialize_start) {
+//        return false;
+//    }
+//    std_srvs::Empty stop_cmd;
+//    bool callResult = stop_motor.call(stop_cmd);
+//    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  callResult " << callResult << " ... ";
+//    return callResult;
+    return true;
 }
 
 bool MotorServerSingleton::startInu() {
-    if (Module::instance().dependence_imu) {
-        LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  startInu 启动 inu 服务 ... ";
-        int ret = std::system("echo '123456' | sudo -S systemctl start inuservice.service");
-        if (ret != 0) {
-            LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl start inuservice.service fail : " << ret;
-            return false;
-        }
-    }
+//    if (Module::instance().dependence_imu) {
+//        LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  startInu 启动 inu 服务 ... ";
+//        int ret = std::system("echo '123456' | sudo -S systemctl start inuservice.service");
+//        if (ret != 0) {
+//            LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl start inuservice.service fail : " << ret;
+//            return false;
+//        }
+//    }
     return true;
 }
 
 bool MotorServerSingleton::stopInu() {
-    if (Module::instance().dependence_imu) {
-        LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  stopInu 关闭 inu 服务 ... ";
-        int ret = std::system("echo '123456' | sudo -S systemctl stop inuservice.service");
-        if (ret != 0) {
-            LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl stop inuservice.service fail : " << ret;
-            return false;
-        }
-    }
+//    if (Module::instance().dependence_imu) {
+//        LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  stopInu 关闭 inu 服务 ... ";
+//        int ret = std::system("echo '123456' | sudo -S systemctl stop inuservice.service");
+//        if (ret != 0) {
+//            LOG_IF(INFO, DEBUG_NODE) << "sudo -S systemctl stop inuservice.service fail : " << ret;
+//            return false;
+//        }
+//    }
     return true;
 }
