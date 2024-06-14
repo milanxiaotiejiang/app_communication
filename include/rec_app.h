@@ -36,7 +36,6 @@
 #include <actionlib/client/simple_action_client.h>
 #include <sub/BeforeJsonSubscribe.h>
 #include <sub/JsonSubscribe.h>
-#include <sub/JsonSubscribeCloud.h>
 #include <sub/MapInnerSubscribe.h>
 #include <tool/Variable.h>
 

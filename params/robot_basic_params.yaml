@@ -71,7 +71,6 @@ internal_spatial_analysis_count: 10
 module_property: false
 module_udp: false
 module_auto_maintenance: false
-module_cloud: false
 module_version: false
 module_old_self_check: false
 module_ai: false

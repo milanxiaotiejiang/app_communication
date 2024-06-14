@@ -14,7 +14,6 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int8.h>
-#include <ai_msgs/MultiRectangles.h>
 
 class PublishInnerManager {
 private:

@@ -5,3 +5,8 @@
 /.vscode/
 /.fleet/
 /.cache/
+/CMakeFiles/
+/devel/
+/bin/
+/gtest/
+/test_results/

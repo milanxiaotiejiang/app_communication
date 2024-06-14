@@ -9,7 +9,6 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Path.h>
 #include <sensor_msgs/LaserScan.h>
-#include <clean_msgs/cloud_robot_event.h>
 #include <visualization_msgs/Marker.h>
 #include "ros/ros.h"
 #include "model/ShowWorkStatus.h"

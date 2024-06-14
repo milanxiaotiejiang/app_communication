@@ -23,8 +23,6 @@
 #include <utility>
 
 #include "manager/PublishInnerManager.h"
-#include "ai_msgs/MultiRectangles.h"
-#include "ai_msgs/Rectangle.h"
 
 using json = nlohmann::json;
 

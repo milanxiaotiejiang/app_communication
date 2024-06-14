@@ -6,7 +6,6 @@
 #define APP_COMMUNICATION_ZOOROBOTSTATUSSUBSCRIBE_H
 
 #include <ros/ros.h>
-#include "zoo_bringup/robot_status.h"
 #include <model/WorkStatus.h>
 #include <std_msgs/Int32.h>
 #include "std_msgs/String.h"
@@ -15,13 +14,9 @@ class ZooRobotStatusSubscribe {
 private:
     ros::NodeHandle handle;
 
-    ros::Subscriber sub_robot_status_;
-
     ros::Subscriber sub_motor_error_, sub_laser_error_, sub_hls_error_, sub_wet_mop_error;
 
     int last_machine_code_{10006};
-
-    void subscribeCallback(const zoo_bringup::robot_status &robot_status);
 
     //电机堵转
     void motorErrorCallback(const std_msgs::Int32 &motor_error);

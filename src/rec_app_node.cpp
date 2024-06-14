@@ -86,8 +86,6 @@ int main(int argc, char **argv) {
 
     //启动订阅话题的callback
     JsonSubscribe jsonSubscribe(handle);
-    if (Module::instance().module_cloud)
-        JsonSubscribeCloud jsonSubscribeCloud(handle);
     BeforeJsonSubscribe beforeJsonSubscribe(handle);
     MapInnerSubscribe mapInnerSubscribe(handle);
     if (Module::instance().module_version)
@@ -519,9 +517,6 @@ void initNodeParams(const ros::NodeHandle &nh) {
     bool module_auto_maintenance;
     nh.param<bool>("module_auto_maintenance", module_auto_maintenance, false);
     Module::instance().module_auto_maintenance = module_auto_maintenance;
-    bool module_cloud;
-    nh.param<bool>("module_cloud", module_cloud, false);
-    Module::instance().module_cloud = module_cloud;
     bool module_version;
     nh.param<bool>("module_version", module_version, false);
     Module::instance().module_version = module_version;

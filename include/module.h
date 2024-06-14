@@ -26,7 +26,6 @@ public:
     bool module_property{false};
     bool module_udp{true};
     bool module_auto_maintenance{false};
-    bool module_cloud{false};
     bool module_version{false};
     bool module_old_self_check{false};
     bool module_ai{false};

@@ -596,7 +596,7 @@ public:
                 }
             }
         }
-        LOG(ERROR) << "echo_server stop 9090";
+        LOG(ERROR) << "echo_server stop 9099";
         echo_server.stop();
     }
 };
@@ -609,9 +609,9 @@ void messageBusTopic(const std::string &message) {
 
 void WsServerManager::startWebSocket() {
 
-    std::string pid = get_pid_using_port(9090);
+    std::string pid = get_pid_using_port(9099);
     if (!pid.empty()) {
-        LOG_IF(INFO, DEBUG_FIRING) << "进程 pid 为 " << pid << " 占用 9090 端口 ！！";
+        LOG_IF(INFO, DEBUG_FIRING) << "进程 pid 为 " << pid << " 占用 9099 端口 ！！";
         kill_process(pid);
     }
 

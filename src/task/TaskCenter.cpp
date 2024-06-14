@@ -193,43 +193,6 @@ void TaskCenter::initialize(const ros::NodeHandle &handle) {
     liftDetectSubscribe->setAsyncTaskCall(asyncTaskCall);
 
     if (!Environment::instance().isRealEnvironment) {
-        std::thread moveBaseThread([]() {
-            sleep(5);
-            NodeControl::instance().emulate();
-            int last_machine_code = 10006;
-            long ii = 0;
-            while (1) {
-                sleep(1);
-                NativeSystemManager::instance().urgencyStop(ZooInnerStatus::instance().getUrgencyStopStatus());
-                long current_execute_time = clean_history_db::CleanHistoryCenter::instance().getCurrentCleanTime();
-                WorkStatus workStatus(0, 0, 0, 0, 0, 0);
-                int machineCode = AsyncMachine::instance().getMachineCode();
-                if (machineCode != last_machine_code) {
-                    internal_event::InternalEventPubManager::get_instance()->workStatusUpdate(machineCode);
-                }
-                last_machine_code = machineCode;
-                std::string machineMessage = AsyncMachine::instance().getMachineMessage(machineCode);
-                auto status = ShowWorkStatus(ZooInnerStatus::instance().getRsoc(), 28, 72,
-                                             workStatus,
-                                             machineMessage, machineCode,
-                                             ZooInnerStatus::instance().getUrgencyStopStatus(),
-                                             current_execute_time,
-                                             ZooInnerStatus::instance().getIsCharging(),
-                                             ZooInnerStatus::instance().getAromStatus());
-                VersionSubscribe<ShowWorkStatus> statusResponse(1, status);
-                PublishOutManager::instance().publishStatus(statusResponse);
-
-                if (ZooInnerStatus::instance().getNeedSleep() && ZooInnerStatus::instance().getIsCharging()) {
-                    SwitchModePublish::instance().publish();
-                    ZooInnerStatus::instance().setNeedSleep(false);
-                }
-
-            }
-        });
-        moveBaseThread.detach();
-    }
-
-    if (!Environment::instance().isRealEnvironment) {
         ZooInnerStatus::instance().setRsoc(60);
         ZooInnerStatus::instance().setCleanWaterLevel(50);
     }

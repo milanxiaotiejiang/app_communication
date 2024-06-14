@@ -53,19 +53,16 @@ find_package(catkin REQUIRED COMPONENTS
         geometry_msgs
         move_base_msgs
         nav_msgs
-        zoo_bringup
-        clean_msgs
         message_generation
         eigen_conversions
         replan_msgs
         back_charge_msgs
-        ai_msgs
 )
 
 catkin_package(
         INCLUDE_DIRS include
         LIBRARIES app_communication
-        CATKIN_DEPENDS roscpp rospy std_msgs clean_msgs message_runtime
+        CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
         #  DEPENDS system_lib
 )
 
