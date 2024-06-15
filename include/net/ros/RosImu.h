@@ -1,6 +1,3 @@
-//
-// Created by admin1 on 2023/7/17.
-//
 
 #ifndef APP_COMMUNICATION_ROSIMU_H
 #define APP_COMMUNICATION_ROSIMU_H

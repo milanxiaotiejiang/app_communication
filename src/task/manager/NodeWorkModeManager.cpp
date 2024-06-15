@@ -1,6 +1,3 @@
-//
-// Created by admin1 on 22-11-25.
-//
 
 #include "task/manager/NodeWorkModeManager.h"
 #include "future/node/node_control.h"

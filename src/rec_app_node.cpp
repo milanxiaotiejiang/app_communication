@@ -115,12 +115,12 @@ std::string getenv_rec(const std::string &name) {
     if (name != "HOME") {
         return nullptr;
     }
-    DIR *pAdmin = opendir("/home/admin1");
+    DIR *pAdmin = opendir("/home/cat");
     bool isRealEnvironment = pAdmin != nullptr;
     if (pAdmin != nullptr) {
         closedir(pAdmin);
     }
-    return isRealEnvironment ? "/home/admin1" : "/home/noodles";
+    return isRealEnvironment ? "/home/cat" : "/home/noodles";
 }
 
 void judgeEnvironment() {
