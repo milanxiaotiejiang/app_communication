@@ -125,7 +125,7 @@ std::string getenv_rec(const std::string &name) {
 
 void judgeEnvironment() {
     std::string home = getenv_rec("HOME");
-    Environment::instance().isRealEnvironment = (string(home) == "/home/admin1");
+    Environment::instance().isRealEnvironment = (string(home) == "/home/cat");
 }
 
 void SignalHandle(const char *data, int size) {
