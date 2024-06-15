@@ -63,7 +63,7 @@
     <include file="$(find map_server)/launch/bringup_map_server.launch"/>
 
     <!--启动导航节点-->
-    <include file="$(find move_base)/launch/move_base.launch.launch"/>
+    <include file="$(find move_base)/launch/move_base.launch"/>
 
     <!--启动图传节点-->
     <include file="$(find robot_pose_manager)/launch/navsat_manager.launch"/>
