@@ -26,7 +26,7 @@
     <rosparam file="$(find data_base)/config/param_app.yaml" command="load"/>
 
     <!--轮式里程计与imu融合-->
-    <include file="$(find robot_pose_ekf)/launch/robot_pose_ekf.launch"/>
+    <include file="$(find robot_pose_ekf)/robot_pose_ekf.launch"/>
 
     <!--启动跌落检测节点-->
     <include if="$(arg cliff_detect)" file="$(find dimage_to_pointcloud)/launch/cliff_detect.launch"/>
