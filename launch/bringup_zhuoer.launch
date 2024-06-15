@@ -59,10 +59,6 @@
     <!--启动cartographer管理节点-->
     <include file="$(find cartographer_ros)/launch/bringup_cartographer.launch"/>
 
-
-    <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros" type="cartographer_occupancy_grid_node"
-          output="screen" args="-resolution 0.05"/>
-
     <!--启动建图节点-->
     <include file="$(find map_server)/launch/bringup_map_server.launch.launch"/>
 
