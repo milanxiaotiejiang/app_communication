@@ -9,17 +9,17 @@
     <!-- imu -->
     <include file="$(find handsfree_ros_imu)/launch/zhuoer_imu.launch"/>
 
-    <!--参数配置-->
-    <!--是否为630机型-->
-    <arg name="630" value="true"/>
-    <!--是否启用防跌落传感器-->
-    <arg name="cliff_detect" default="true"/>
-    <!--是否启用扶梯防跌落传感器-->
-    <arg name="blob_detect" default="true"/>
-    <!--是否启用网口雷达，如果启用网口雷达，需要将这个参数改成true，下面的参数改成false-->
-    <arg name="use_s2e" default="false"/>
-    <!--是否启用串口雷达，如果启用串口雷达，需要将这个参数改成true，上面的参数改成false-->
-    <arg name="use_s2" default="true"/>
+    <!--    &lt;!&ndash;参数配置&ndash;&gt;-->
+    <!--    &lt;!&ndash;是否为630机型&ndash;&gt;-->
+    <!--    <arg name="630" value="true"/>-->
+    <!--    &lt;!&ndash;是否启用防跌落传感器&ndash;&gt;-->
+    <!--    <arg name="cliff_detect" default="true"/>-->
+    <!--    &lt;!&ndash;是否启用扶梯防跌落传感器&ndash;&gt;-->
+    <!--    <arg name="blob_detect" default="true"/>-->
+    <!--    &lt;!&ndash;是否启用网口雷达，如果启用网口雷达，需要将这个参数改成true，下面的参数改成false&ndash;&gt;-->
+    <!--    <arg name="use_s2e" default="false"/>-->
+    <!--    &lt;!&ndash;是否启用串口雷达，如果启用串口雷达，需要将这个参数改成true，上面的参数改成false&ndash;&gt;-->
+    <!--    <arg name="use_s2" default="true"/>-->
 
     <rosparam file="$(find app_communication)/params/robot_basic_params.yaml" command="load"/>
 
@@ -29,7 +29,7 @@
     <include file="$(find robot_pose_ekf)/robot_pose_ekf.launch"/>
 
     <!--启动跌落检测节点-->
-    <include if="$(arg cliff_detect)" file="$(find dimage_to_pointcloud)/launch/cliff_detect.launch"/>
+    <!--    <include if="$(arg cliff_detect)" file="$(find dimage_to_pointcloud)/launch/cliff_detect.launch"/>-->
 
     <!--启动配置速度优先级节点-->
     <include file="$(find yocs_cmd_vel_mux)/launch/start_all_cmd_control.launch"/>
@@ -46,15 +46,15 @@
     <!--启动短程导航节点-->
     <include file="$(find back_charge)/launch/core_move.launch"/>
 
-    <!--启动点云合成节点-->
-    <include file="$(find pointcloud_concatenate)/launch/concat.launch">
-        <arg name="target_frame" value="base_link"/>
-        <arg name="clouds" value="2"/>
-        <arg name="cloud_in1" value="/2/depth/depth2pc"/>
-        <arg name="cloud_in2" value="/1/depth/depth2pc"/>
-        <arg name="cloud_out" value="cloud_concatenated"/>
-        <arg name="hz" value="5"/>
-    </include>
+    <!--    &lt;!&ndash;启动点云合成节点&ndash;&gt;-->
+    <!--    <include file="$(find pointcloud_concatenate)/launch/concat.launch">-->
+    <!--        <arg name="target_frame" value="base_link"/>-->
+    <!--        <arg name="clouds" value="2"/>-->
+    <!--        <arg name="cloud_in1" value="/2/depth/depth2pc"/>-->
+    <!--        <arg name="cloud_in2" value="/1/depth/depth2pc"/>-->
+    <!--        <arg name="cloud_out" value="cloud_concatenated"/>-->
+    <!--        <arg name="hz" value="5"/>-->
+    <!--    </include>-->
 
     <param name="use_sim_time" value="false"/>
     <!-- pbstream的地址与名称 -->
@@ -68,9 +68,6 @@
 
     <!--启动导航节点-->
     <include file="$(find move_base)/launch/move_base.launch"/>
-
-    <!--启动图传节点-->
-    <include file="$(find robot_pose_manager)/launch/navsat_manager.launch"/>
 
     <!--启动pad通讯节点-->
     <include file="$(find app_communication)/launch/app_communication.launch"/>
