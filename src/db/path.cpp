@@ -21,10 +21,6 @@ namespace path {
         return ros::package::getPath("robot_slam") + separator();
     }
 
-    std::string zoo_bringup_dir() {
-        return ros::package::getPath("zoo_bringup") + separator();
-    }
-
     std::string app_communication_dir() {
         return ros::package::getPath("app_communication") + separator();
     }
@@ -35,10 +31,6 @@ namespace path {
 
     std::string robot_slam_map_dir() {
         return robot_slam_dir() + "maps" + separator();
-    }
-
-    std::string zoo_bringup_params_dir() {
-        return zoo_bringup_dir() + "params" + separator();
     }
 
     std::string app_communication_params_dir() {

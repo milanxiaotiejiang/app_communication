@@ -15,8 +15,6 @@
 
 const std::string app_param_path = path::data_base_config_dir() + "param_app.yaml";
 
-const std::string zoo_param_imu_path = path::zoo_bringup_params_dir() + "base_params_with_imu.yaml";
-
 const std::string app_communication_param_path = path::app_communication_params_dir() + "robot_basic_params.yaml";
 
 //#include <catch2/catch.hpp>
@@ -81,22 +79,22 @@ void ParamManager::reset() {
 }
 
 int ParamManager::getTof() {
-    if (access(zoo_param_imu_path.c_str(), F_OK) != 0) {
-        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
-    }
-    YAML::Node node = YAML::LoadFile(zoo_param_imu_path);
-    return node["tof"].as<int>();
+//    if (access(zoo_param_imu_path.c_str(), F_OK) != 0) {
+//        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+//    }
+//    YAML::Node node = YAML::LoadFile(zoo_param_imu_path);
+//    return node["tof"].as<int>();
 }
 
 void ParamManager::setTof(int tof) {
-    if (access(zoo_param_imu_path.c_str(), F_OK) != 0) {
-        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
-    }
-    YAML::Node node = YAML::LoadFile(zoo_param_imu_path);
-    node["tof"] = tof;
-    std::ofstream ofstream(zoo_param_imu_path);
-    ofstream << node;
-    ofstream.close();
+//    if (access(zoo_param_imu_path.c_str(), F_OK) != 0) {
+//        throw app::exception(make_error_code(error::failed_to_parse_fall_prevention_related_files));
+//    }
+//    YAML::Node node = YAML::LoadFile(zoo_param_imu_path);
+//    node["tof"] = tof;
+//    std::ofstream ofstream(zoo_param_imu_path);
+//    ofstream << node;
+//    ofstream.close();
 }
 
 bool ParamManager::getSilver() {

@@ -23,15 +23,11 @@ namespace path {
 
     std::string robot_slam_dir();
 
-    std::string zoo_bringup_dir();
-
     std::string app_communication_dir();
 
     std::string data_base_config_dir();
 
     std::string robot_slam_map_dir();
-
-    std::string zoo_bringup_params_dir();
 
     std::string app_communication_params_dir();
 
