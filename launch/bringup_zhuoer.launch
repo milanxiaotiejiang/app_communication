@@ -67,7 +67,7 @@
     <include file="$(find map_server)/launch/bringup_map_server.launch"/>
 
     <!--启动导航节点-->
-    <include file="$(find move_base)/launch/move_base.launch"/>
+<!--    <include file="$(find move_base)/launch/move_base.launch"/>-->
 
     <!--启动pad通讯节点-->
     <include file="$(find app_communication)/launch/app_communication.launch"/>

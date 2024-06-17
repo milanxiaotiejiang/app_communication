@@ -62,52 +62,53 @@ bool ModeValidate::validateCartographer(node::State state) {
 }
 
 bool ModeValidate::validateMoveBase(int open) {
-    if (open) {
-        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 服务启动校验 ------------------------------ ";
-    } else {
-        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 服务关闭校验 ------------------------------ ";
-    }
-
-    if (!Environment::instance().isRealEnvironment) {
-        return true;
-    }
-
-    if (getMoveBaseMode() == open) {
-        return true;
-    }
-
-    std::condition_variable wait_cv;
-    std::mutex wait_mutex;
-
-    NodeControl::instance().asyncOn([open, &wait_cv]() {
-        int count = 0;
-        bool end_loop = false;
-        while (!end_loop) {
-            sleep(1);
-
-            int moveBaseMode = getMoveBaseMode();
-            LOG_IF(INFO, DEBUG_NODE)
-                            << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
-            if (open == moveBaseMode) {
-                wait_cv.notify_one();
-                end_loop = true;
-            }
-
-            count++;
-            if (count > 5) {
-                end_loop = true;
-            }
-        }
-        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 时时获取的线程结束 ...";
-    });
-
-    std::unique_lock<std::mutex> lck(wait_mutex);
-    if (wait_cv.wait_for(lck, std::chrono::seconds(5)) == std::cv_status::timeout) {
-        int moveBaseMode = getMoveBaseMode();
-        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 获取结果超时再次获取 move_base_mode ：" << moveBaseMode;
-        return open == moveBaseMode;
-    }
-    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase Server 启动成功 ... ";
+//    if (open) {
+//        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 服务启动校验 ------------------------------ ";
+//    } else {
+//        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 服务关闭校验 ------------------------------ ";
+//    }
+//
+//    if (!Environment::instance().isRealEnvironment) {
+//        return true;
+//    }
+//
+//    if (getMoveBaseMode() == open) {
+//        return true;
+//    }
+//
+//    std::condition_variable wait_cv;
+//    std::mutex wait_mutex;
+//
+//    NodeControl::instance().asyncOn([open, &wait_cv]() {
+//        int count = 0;
+//        bool end_loop = false;
+//        while (!end_loop) {
+//            sleep(1);
+//
+//            int moveBaseMode = getMoveBaseMode();
+//            LOG_IF(INFO, DEBUG_NODE)
+//                            << "ModeValidate  MoveBase 第 " << count << " 次 获取 move_base_mode ： " << moveBaseMode;
+//            if (open == moveBaseMode) {
+//                wait_cv.notify_one();
+//                end_loop = true;
+//            }
+//
+//            count++;
+//            if (count > 5) {
+//                end_loop = true;
+//            }
+//        }
+//        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 时时获取的线程结束 ...";
+//    });
+//
+//    std::unique_lock<std::mutex> lck(wait_mutex);
+//    if (wait_cv.wait_for(lck, std::chrono::seconds(5)) == std::cv_status::timeout) {
+//        int moveBaseMode = getMoveBaseMode();
+//        LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase 获取结果超时再次获取 move_base_mode ：" << moveBaseMode;
+//        return open == moveBaseMode;
+//    }
+//    LOG_IF(INFO, DEBUG_NODE) << "ModeValidate  MoveBase Server 启动成功 ... ";
+//    return true;
     return true;
 }
 
