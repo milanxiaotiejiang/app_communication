@@ -29,6 +29,7 @@ ZooRobotStatusSubscribe::ZooRobotStatusSubscribe(ros::NodeHandle handle)
             int last_machine_code = 10006;
             long ii = 0;
             while (1) {
+                ZooInnerStatus::instance().setRsoc(90);
                 sleep(1);
                 NativeSystemManager::instance().urgencyStop(ZooInnerStatus::instance().getUrgencyStopStatus());
                 long current_execute_time = clean_history_db::CleanHistoryCenter::instance().getCurrentCleanTime();
