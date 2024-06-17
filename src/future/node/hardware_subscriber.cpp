@@ -7,7 +7,7 @@
 void InuSubscriberSingleton::init(ros::NodeHandle handle) {
     subscriberInu1 = handle.subscribe("/1/depth/depth2pc", 1, &InuSubscriberSingleton::subscribeCallback1, this);
     subscriberInu2 = handle.subscribe("/2/depth/depth2pc", 1, &InuSubscriberSingleton::subscribeCallback2, this);
-    subscriberScan = handle.subscribe("/scan_raw", 1, &InuSubscriberSingleton::subscribeCallbackScan, this);
+    subscriberScan = handle.subscribe("/scan", 1, &InuSubscriberSingleton::subscribeCallbackScan, this);
 }
 
 void InuSubscriberSingleton::subscribeCallback1(const sensor_msgs::PointCloud2 &data) {
