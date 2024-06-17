@@ -96,10 +96,10 @@ std::string TaskCenter::proTask(const RealTask &task) {
     }
 
     //如果当前电量少于10%，那么报错且不执行任务
-//    auto RSOC = ZooInnerStatus::instance().getRsoc();
-//    if (RSOC < LOW_RSOC) {
-//        throw app::exception(make_error_code(error::dispatcher_task_low_rsoc));
-//    }
+    auto RSOC = ZooInnerStatus::instance().getRsoc();
+    if (RSOC < LOW_RSOC) {
+        throw app::exception(make_error_code(error::dispatcher_task_low_rsoc));
+    }
 
     if (AutoMaintenanceModeManager::instance().isMaintenanceMode()) {
         throw app::exception(
