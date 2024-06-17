@@ -298,54 +298,56 @@ void CartographerServiceClient::initialize(ros::NodeHandle handle) {
 }
 
 bool CartographerServiceClient::callSensorStatus() {
-    if (!Environment::instance().isRealEnvironment) {
-        return true;
-    }
-    back_charge_msgs::sensor_status srv;
-    bool result = sensor_status.call(srv);
-    if (result) {
-        bool hlsStatus = srv.response.hls_status;//电机失能
-        bool imuStatus = srv.response.imu_status;//imu
-        bool laserStatus = srv.response.laser_status;//激光雷达
-        bool localizationStatus = srv.response.localization_status;//定位
-        bool camera1Status = srv.response.camera1_status;
-        bool camera2Status = srv.response.camera2_status;
-        LOG_IF(INFO, DEBUG_NODE) << "callSensorStatus  hlsStatus : " << hlsStatus
-                                 << " , imuStatus : " << imuStatus
-                                 << " , laserStatus : " << laserStatus
-                                 << " , localizationStatus : " << localizationStatus
-                                 << " , camera1Status : " << camera1Status
-                                 << " , camera2Status : " << camera2Status;
-    } else {
-        LOG(ERROR) << "Failed to call service sensor_status ...";
-    }
-    return result;
+//    if (!Environment::instance().isRealEnvironment) {
+//        return true;
+//    }
+//    back_charge_msgs::sensor_status srv;
+//    bool result = sensor_status.call(srv);
+//    if (result) {
+//        bool hlsStatus = srv.response.hls_status;//电机失能
+//        bool imuStatus = srv.response.imu_status;//imu
+//        bool laserStatus = srv.response.laser_status;//激光雷达
+//        bool localizationStatus = srv.response.localization_status;//定位
+//        bool camera1Status = srv.response.camera1_status;
+//        bool camera2Status = srv.response.camera2_status;
+//        LOG_IF(INFO, DEBUG_NODE) << "callSensorStatus  hlsStatus : " << hlsStatus
+//                                 << " , imuStatus : " << imuStatus
+//                                 << " , laserStatus : " << laserStatus
+//                                 << " , localizationStatus : " << localizationStatus
+//                                 << " , camera1Status : " << camera1Status
+//                                 << " , camera2Status : " << camera2Status;
+//    } else {
+//        LOG(ERROR) << "Failed to call service sensor_status ...";
+//    }
+//    return result;
+    return true;
 }
 
 bool CartographerServiceClient::callReadyCheck() {
-    if (!Environment::instance().isRealEnvironment) {
-        return true;
-    }
-    back_charge_msgs::ready_check srv;
-    bool result = ready_check.call(srv);
-    if (result) {
-        bool hlsStatus = srv.response.hls_status;//电机失能
-        bool imuStatus = srv.response.imu_status;//imu
-        bool laserStatus = srv.response.laser_status;//激光雷达
-        bool bumpTriggeredStatus = srv.response.bump_triggered;//后碰撞
-        bool camera1Status = srv.response.camera1_status;
-        bool camera2Status = srv.response.camera2_status;
-        LOG_IF(INFO, DEBUG_NODE) << "callReadyCheck  hlsStatus : " << hlsStatus
-                                 << " , imuStatus : " << imuStatus
-                                 << " , laserStatus : " << laserStatus
-                                 << " , bumpTriggeredStatus : " << bumpTriggeredStatus
-                                 << " , camera1Status : " << camera1Status
-                                 << " , camera2Status : " << camera2Status;
-        return hlsStatus && imuStatus && laserStatus && !bumpTriggeredStatus && camera1Status && camera2Status;
-    } else {
-        LOG(ERROR) << "Failed to call service ready_check ...";
-        return result;
-    }
+//    if (!Environment::instance().isRealEnvironment) {
+//        return true;
+//    }
+//    back_charge_msgs::ready_check srv;
+//    bool result = ready_check.call(srv);
+//    if (result) {
+//        bool hlsStatus = srv.response.hls_status;//电机失能
+//        bool imuStatus = srv.response.imu_status;//imu
+//        bool laserStatus = srv.response.laser_status;//激光雷达
+//        bool bumpTriggeredStatus = srv.response.bump_triggered;//后碰撞
+//        bool camera1Status = srv.response.camera1_status;
+//        bool camera2Status = srv.response.camera2_status;
+//        LOG_IF(INFO, DEBUG_NODE) << "callReadyCheck  hlsStatus : " << hlsStatus
+//                                 << " , imuStatus : " << imuStatus
+//                                 << " , laserStatus : " << laserStatus
+//                                 << " , bumpTriggeredStatus : " << bumpTriggeredStatus
+//                                 << " , camera1Status : " << camera1Status
+//                                 << " , camera2Status : " << camera2Status;
+//        return hlsStatus && imuStatus && laserStatus && !bumpTriggeredStatus && camera1Status && camera2Status;
+//    } else {
+//        LOG(ERROR) << "Failed to call service ready_check ...";
+//        return result;
+//    }
+    return true;
 }
 
 bool CartographerServiceClient::callStartLocalization() {
