@@ -3,8 +3,15 @@
     <!-- 底盘 -->
     <include file="$(find xpkg_bringup)/bringup_vehicle/launch/bringup_basic_ctrl.launch"/>
 
+
+    <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser_link" 
+       args="-0.07578 0.0 0.2 0 0 0 base_link laser_link 100" />
+
+    <node pkg="tf" type="static_transform_publisher" name="base_link_to_imu_link"
+        args="0.0 0 0.15 0 0 0 base_link imu_link 100" />
+
     <!-- 雷达 -->
-    <include file="$(find bluesea2)/launch/lidar_e300_zhuoer.launch"/>
+    <include file="$(find bluesea2)/launch/lidar_e200e.launch"/>
 
     <!-- imu -->
     <include file="$(find handsfree_ros_imu)/launch/zhuoer_imu.launch"/>
@@ -67,9 +74,9 @@
     <include file="$(find map_server)/launch/bringup_map_server.launch"/>
 
     <!--启动导航节点-->
-<!--    <include file="$(find move_base)/launch/move_base.launch"/>-->
+   <include file="$(find move_base)/launch/move_base.launch"/>
 
     <!--启动pad通讯节点-->
-<!--    <include file="$(find app_communication)/launch/app_communication.launch"/>-->
+   <include file="$(find app_communication)/launch/app_communication.launch"/>
 
 </launch>
