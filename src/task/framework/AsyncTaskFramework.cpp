@@ -223,15 +223,15 @@ void AsyncTaskFramework::setUrgencyStop(loop::urgency_stop urgency_stop) {
     AsyncMachine::instance().setEpoll(epoll_manual, epoll_special, epoll_error, urgency_stop);
 }
 
-void AsyncTaskFramework::callOutBaseStation() {
-    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备齐全，请求出站啦 ...";
-    StationManager::instance().outStation();
-}
+//void AsyncTaskFramework::callOutBaseStation() {
+//    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 准备齐全，请求出站啦 ...";
+//    StationManager::instance().outStation();
+//}
 
-void AsyncTaskFramework::callBackStation() {
-    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 任务结束，准备返回基站充电啦 ...";
-    StationManager::instance().backStation();
-}
+//void AsyncTaskFramework::callBackStation() {
+//    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 任务结束，准备返回基站充电啦 ...";
+//    StationManager::instance().backStation();
+//}
 
 void AsyncTaskFramework::callCancelBackStation() {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 取消回充动作 ...";

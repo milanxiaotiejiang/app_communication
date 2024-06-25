@@ -176,7 +176,7 @@ public:
                     return 10006;
                 }
 
-            case event::flow::out_base_station:
+//            case event::flow::out_base_station:
             case event::flow::switch_node_work_mode:
                 return 10011;
             case event::flow::preliminary_preparation_completed:

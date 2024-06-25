@@ -741,8 +741,8 @@ namespace clean_history_db {
         switch (flow) {
             case event::flow::waiting_for_task:
                 return std::make_tuple(3300, "等待时被关机", "CCR_300");
-            case event::flow::out_base_station:
-                return std::make_tuple(3301, "出站时被关机", "CCR_301");
+//            case event::flow::out_base_station:
+//                return std::make_tuple(3301, "出站时被关机", "CCR_301");
             case event::flow::switch_node_work_mode:
                 return std::make_tuple(3302, "切换工作模式时被关机", "CCR_302");
             case event::flow::preliminary_preparation_completed:

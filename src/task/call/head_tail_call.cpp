@@ -22,8 +22,8 @@ void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
         }
     } else if (block.id == FLOW_END_SLEEP) {
         if (block.arrive) {
-//            setFlow(event::flow::preliminary_preparation_completed);
-            setFlow(event::flow::out_base_station);
+            setFlow(event::flow::preliminary_preparation_completed);
+//            setFlow(event::flow::out_base_station);
         } else {
             setFlow(event::flow::software_interrupt_task);
         }
@@ -96,10 +96,10 @@ void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
 
 void HeadTailPointCall::processControl(const RealBlock &block) {
     switch (currentFlow()) {
-        case event::flow::out_base_station: {
-            callOutBaseStation();
-            break;
-        }
+//        case event::flow::out_base_station: {
+//            callOutBaseStation();
+//            break;
+//        }
         case event::flow::switch_node_work_mode: {
             callSwitchWorkMode([this](bool work) {
                 flowEndSleepPoint.arrive = work;
@@ -255,7 +255,8 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
         }
         case event::flow::flowing_water_execution_completed: {
             LOG_IF(INFO, DEBUG_TASK) << "HeadTailPointCall : 任务执行完成且返回了基站点，准备回充 ...";
-            callBackStation();
+//            callBackStation();
+            goodGame(event::GG::gg_normal_flow);
             break;
         }
         case event::flow::arrive_base_station_success: {

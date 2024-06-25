@@ -14,7 +14,7 @@ bool AsyncTaskRecord::isPause() {
 }
 
 bool AsyncTaskRecord::isPreparation(event::flow flow) {
-    return flow == event::flow::out_base_station ||
+    return //flow == event::flow::out_base_station ||
            flow == event::flow::switch_node_work_mode ||
            flow == event::flow::preliminary_preparation_completed;
 }

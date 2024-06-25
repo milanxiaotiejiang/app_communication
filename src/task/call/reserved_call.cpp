@@ -149,7 +149,7 @@ void ReservedCall::handleExecuteTask(const RealTask &task) {
 
 void ReservedCall::handleFlowBlock(const RealBlock &block) {
     if (block.id == FLOW_SEIZE_SEAT) {
-        setFlow(event::flow::out_base_station);
+//        setFlow(event::flow::out_base_station);
     } else if (block.id == FLOW_OUT_STATION) {
         CleanHistoryCenter::instance().setOutStation(block.arrive ? SUCCEED : FAIL);
     } else if (block.id == FLOW_END_SLEEP) {

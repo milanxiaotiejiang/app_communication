@@ -12,7 +12,7 @@ namespace event {
 
     enum flow {
         waiting_for_task = 0,
-        out_base_station,//出站
+//        out_base_station,//出站
         switch_node_work_mode,//切换工作模式
         preliminary_preparation_completed,//前期准备工作完成
         cleaning_mechanism_ready,//清洁机构已就绪

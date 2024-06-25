@@ -107,9 +107,9 @@ protected:
 
     void setUrgencyStop(loop::urgency_stop urgency_stop);
 
-    void callOutBaseStation();
+//    void callOutBaseStation();
 
-    void callBackStation();
+//    void callBackStation();
 
     void callCancelBackStation();
 
