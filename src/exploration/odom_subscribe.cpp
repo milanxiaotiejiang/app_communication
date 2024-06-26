@@ -11,11 +11,11 @@
 #include <geometry_msgs/Pose2D.h>
 
 OdomSubscribe::OdomSubscribe(ros::NodeHandle handle) : handle(handle) {
-    if (Environment::instance().isRealEnvironment) {
-        sub_odom_ = handle.subscribe("/odom_app", 10, &OdomSubscribe::subscribeCallback, this);
-    } else {
-        sub_odom_ = handle.subscribe("/odom", 10, &OdomSubscribe::subscribeCallback, this);
-    }
+//    if (Environment::instance().isRealEnvironment) {
+//        sub_odom_ = handle.subscribe("/odom_app", 10, &OdomSubscribe::subscribeCallback, this);
+//    } else {
+    sub_odom_ = handle.subscribe("/odom", 10, &OdomSubscribe::subscribeCallback, this);
+//    }
 }
 
 void OdomSubscribe::subscribeCallback(const nav_msgs::OdometryConstPtr &msg) {
