@@ -14,7 +14,8 @@
 #include <nav_msgs/Path.h>
 #include "std_msgs/Int32.h"
 
-const float RETURN_POINT_X_ = -1.3;
+//const float RETURN_POINT_X_ = -1.3;
+const float RETURN_POINT_X_ = 0;
 
 typedef actionlib::SimpleActionClient<replan_msgs::ReplanAction> ReplanAction;
 typedef actionlib::SimpleActionClient<back_charge_msgs::CoreMoveAction> CoreMoveAction;
