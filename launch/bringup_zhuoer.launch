@@ -4,33 +4,13 @@
     <include file="$(find xpkg_bringup)/bringup_vehicle/launch/bringup_basic_ctrl.launch"/>
 
 
-    <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser_link" 
-       args="-0.07578 0.0 0.2 0 0 0 base_link laser_link 100" />
-
-    <node pkg="tf" type="static_transform_publisher" name="base_link_to_imu_link"
-        args="0.0 0 0.15 0 0 0 base_link imu_link 100" />
+    <include file="$(find app_communication)/launch/bringup_tf_zhuoer.launch"/>
 
     <!-- 雷达 -->
     <include file="$(find bluesea2)/launch/lidar_e200e.launch"/>
 
     <!-- imu -->
     <include file="$(find handsfree_ros_imu)/launch/zhuoer_imu.launch"/>
-
-    <!--    &lt;!&ndash;参数配置&ndash;&gt;-->
-    <!--    &lt;!&ndash;是否为630机型&ndash;&gt;-->
-    <!--    <arg name="630" value="true"/>-->
-    <!--    &lt;!&ndash;是否启用防跌落传感器&ndash;&gt;-->
-    <!--    <arg name="cliff_detect" default="true"/>-->
-    <!--    &lt;!&ndash;是否启用扶梯防跌落传感器&ndash;&gt;-->
-    <!--    <arg name="blob_detect" default="true"/>-->
-    <!--    &lt;!&ndash;是否启用网口雷达，如果启用网口雷达，需要将这个参数改成true，下面的参数改成false&ndash;&gt;-->
-    <!--    <arg name="use_s2e" default="false"/>-->
-    <!--    &lt;!&ndash;是否启用串口雷达，如果启用串口雷达，需要将这个参数改成true，上面的参数改成false&ndash;&gt;-->
-    <!--    <arg name="use_s2" default="true"/>-->
-
-    <rosparam file="$(find app_communication)/params/robot_basic_params.yaml" command="load"/>
-
-    <rosparam file="$(find data_base)/config/param_app.yaml" command="load"/>
 
     <!--轮式里程计与imu融合-->
     <include file="$(find robot_pose_ekf)/robot_pose_ekf.launch"/>
@@ -52,20 +32,6 @@
 
     <!--启动短程导航节点-->
     <include file="$(find back_charge)/launch/core_move.launch"/>
-
-    <!--    &lt;!&ndash;启动点云合成节点&ndash;&gt;-->
-    <!--    <include file="$(find pointcloud_concatenate)/launch/concat.launch">-->
-    <!--        <arg name="target_frame" value="base_link"/>-->
-    <!--        <arg name="clouds" value="2"/>-->
-    <!--        <arg name="cloud_in1" value="/2/depth/depth2pc"/>-->
-    <!--        <arg name="cloud_in2" value="/1/depth/depth2pc"/>-->
-    <!--        <arg name="cloud_out" value="cloud_concatenated"/>-->
-    <!--        <arg name="hz" value="5"/>-->
-    <!--    </include>-->
-
-    <param name="use_sim_time" value="false"/>
-    <!-- pbstream的地址与名称 -->
-    <arg name="load_state_filename" default="$(find robot_slam)/maps/mymap.pbstream"/>
 
     <!--启动cartographer管理节点-->
     <include file="$(find cartographer_ros)/launch/bringup_cartographer.launch"/>

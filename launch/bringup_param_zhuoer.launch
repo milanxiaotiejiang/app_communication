@@ -1,0 +1,7 @@
+<launch>
+
+    <rosparam file="$(find app_communication)/params/robot_basic_params.yaml" command="load"/>
+
+    <rosparam file="$(find data_base)/config/param_app.yaml" command="load"/>
+
+</launch>
