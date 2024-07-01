@@ -56,7 +56,8 @@ public:
         return obj;
     }
 
-    bool isRealEnvironment = true;
+    bool isRealEnvironment = false;
+    std::string userName = "";
     std::string room_coverage_uuid = "";
     bool update_map;
     bool direct_start_move_base;

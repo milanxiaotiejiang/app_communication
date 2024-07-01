@@ -90,9 +90,9 @@ std::string unique_identification = boost::uuids::to_string(boost::uuids::random
 std::string current_program_string = "";
 std::string glog_info_time_pid_string = "";
 
-std::string getenv_rec(const std::string &name);
+std::string userHomePath();
 
-void judgeEnvironment();
+bool judgeEnvironment(const string& execPath);
 
 void initLog(char *const *argv);
 

@@ -42,7 +42,9 @@ int main(int argc, char **argv) {
 
     current_program_string = argv[0];
 
-    judgeEnvironment();
+    if (!judgeEnvironment(current_program_string)) {
+        return 0;
+    }
     initLog(argv);
     initDump();
     initTest(argc, argv);
@@ -118,21 +120,31 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-std::string getenv_rec(const std::string &name) {
-    if (name != "HOME") {
-        return nullptr;
-    }
-    DIR *pAdmin = opendir("/home/cat");
-    bool isRealEnvironment = pAdmin != nullptr;
-    if (pAdmin != nullptr) {
-        closedir(pAdmin);
-    }
-    return isRealEnvironment ? "/home/cat" : "/home/noodles";
+std::string userHomePath() {
+    return "/home/" + Environment::instance().userName;
 }
 
-void judgeEnvironment() {
-    std::string home = getenv_rec("HOME");
-    Environment::instance().isRealEnvironment = (string(home) == "/home/cat");
+bool judgeEnvironment(const string &execPath) {
+
+    // 查找路径中的用户目录部分
+    size_t homePos = execPath.find("/home/");
+    if (homePos != std::string::npos) {
+        size_t userStart = homePos + strlen("/home/");
+        size_t userEnd = execPath.find('/', userStart);
+        if (userEnd != std::string::npos) {
+            std::string userName = execPath.substr(userStart, userEnd - userStart);
+            std::cout << "用户名: " << userName << std::endl;
+
+            Environment::instance().isRealEnvironment = userName != "noodles";
+            Environment::instance().userName = userName;
+            return true;
+        } else {
+            std::cerr << "无法解析用户名。" << std::endl;
+        }
+    } else {
+        std::cerr << "路径中不包含/home/。" << std::endl;
+    }
+    return false;
 }
 
 void SignalHandle(const char *data, int size) {
@@ -142,10 +154,10 @@ void SignalHandle(const char *data, int size) {
 
 void initLog(char *const *argv) {
     // sudo apt-get install libgoogle-glog-dev
-    std::string logDirStr = string(getenv_rec("HOME")) + "/app_log";
+    std::string logDirStr = string(userHomePath()) + "/app_log";
     mkdir(logDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
-    std::string cartoLogDirStr = string(getenv_rec("HOME")) + "/carto_log";
+    std::string cartoLogDirStr = string(userHomePath()) + "/carto_log";
     mkdir(cartoLogDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
     FLAGS_logtostderr = false; //设置日志消息是否转到标准输出而不是日志文件(false)
@@ -215,7 +227,7 @@ static bool dumpCallback(const google_breakpad::MinidumpDescriptor &descriptor, 
     auto crash_file = crash_file_path.substr(start);
     LOG(WARNING) << sys_gettid() << " " << "Dump path : " << crash_file_path << " " << succeeded;
 
-    auto home = string(getenv_rec("HOME"));
+    auto home = string(userHomePath());
 
     std::string parse_crash = "parse_crash.sh";
     std::string rec_app_node = "rec_app_node";
@@ -302,7 +314,7 @@ static bool filterCallback(void *context) {
 }
 
 void initDump() {
-    std::string dumpDirStr = string(getenv_rec("HOME")) + "/app_dump";
+    std::string dumpDirStr = string(userHomePath()) + "/app_dump";
 
     LOG_IF(INFO, DEBUG_FIRING) << "dumpDirStr " << dumpDirStr;
     mkdir(dumpDirStr.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
