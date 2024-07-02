@@ -178,7 +178,10 @@ void PointPlanner::backBasePoint() {
 
 RealPoint PointPlanner::createBackBasePoint() {
     RealPoint realPoint;
-    RealPosition realPosition(RETURN_POINT_X_, 0, 0);
+    float x = RETURN_POINT_X_;
+    if (!Environment::instance().isRealEnvironment)
+        x = RETURN_POINT_X_TEST_;
+    RealPosition realPosition(x, 0, 0);
     RealOrientation realOrientation(0, 0, 0, 1);
     realPoint.realPosition = std::move(realPosition);
     realPoint.realOrientation = std::move(realOrientation);

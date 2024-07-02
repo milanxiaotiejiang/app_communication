@@ -204,6 +204,21 @@ public:
     std::string handler(ModifyTaskSubregion params) override;
 };
 
+class OperateAddDeliveryStrategy : public MessageStrategy<ModifyTaskDelivery, long> {
+public:
+    long handler(ModifyTaskDelivery params) override;
+};
+
+class OperateDeleteDeliveryStrategy : public MessageStrategy<ModifyTaskDelivery, std::string> {
+public:
+    std::string handler(ModifyTaskDelivery params) override;
+};
+
+class OperateModifyDeliveryStrategy : public MessageStrategy<ModifyTaskDelivery, std::string> {
+public:
+    std::string handler(ModifyTaskDelivery params) override;
+};
+
 class ModifyTimerNameStrategy : public MessageStrategy<ModifyTimerName, std::string> {
 public:
     std::string handler(ModifyTimerName params) override;

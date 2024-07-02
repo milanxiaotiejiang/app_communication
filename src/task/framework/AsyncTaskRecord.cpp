@@ -15,8 +15,8 @@ bool AsyncTaskRecord::isPause() {
 
 bool AsyncTaskRecord::isPreparation(event::flow flow) {
     return //flow == event::flow::out_base_station ||
-           flow == event::flow::switch_node_work_mode ||
-           flow == event::flow::preliminary_preparation_completed;
+            flow == event::flow::switch_node_work_mode ||
+            flow == event::flow::preliminary_preparation_completed;
 }
 
 bool AsyncTaskRecord::isPreCompleted(event::flow flow) {
@@ -99,6 +99,10 @@ bool AsyncTaskRecord::isPreConditions(event::flow flow) {
 
 bool AsyncTaskRecord::isPostConditions(event::flow flow) {
     return flow == event::flow::trigger_special_post_conditions;
+}
+
+bool AsyncTaskRecord::isDeliveryLogic(event::flow flow) {
+    return flow == event::flow::trigger_delivery_logic;
 }
 
 void AsyncTaskRecord::recordEmergencyStop(event::flow event_flow, const RealBlock &realBlock) {

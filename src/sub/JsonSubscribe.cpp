@@ -8,7 +8,6 @@
 #include "sub/json/DeviceStrategy.h"
 #include "sub/json/MapStrategy.h"
 #include "sub/json/TaskStrategy.h"
-#include <sub/json/GetCleanHistoryStrategy.h>
 #include <sub/json/ModeStrategy.h>
 #include <sub/json/StatusStrategy.h>
 #include "sub/json/MaterialStrategy.h"
@@ -112,9 +111,6 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case WORK_TO_MAP_APP_:
             messageStrategy = new MapPreparetoWorkStrategy();
-            break;
-        case CLEAN_HISTORY_REQUEST_:
-            messageStrategy = new GetCleanHistoryStrategy();
             break;
         case IS_IN_BASEMENT_:
             messageStrategy = new IsInBasementStrategy();
@@ -352,6 +348,15 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
             break;
         case OPERATE_DELETE_SUBREGION:
             messageStrategy = new OperateDeleteSubregionStrategy();
+            break;
+        case OPERATE_ADD_DELIVERY:
+            messageStrategy = new OperateAddDeliveryStrategy();
+            break;
+        case OPERATE_DELETE_DELIVERY:
+            messageStrategy = new OperateDeleteDeliveryStrategy();
+            break;
+        case OPERATE_MODIFY_DELIVERY:
+            messageStrategy = new OperateModifyDeliveryStrategy();
             break;
 
         case ADD_TIMER_TASK:

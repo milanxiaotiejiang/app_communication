@@ -92,9 +92,6 @@ int switch_ID(const std::string &str) {
     if (str == "work_to_map_app") {
         return WORK_TO_MAP_APP_;
     }
-    if (str == "clean_history_list") {
-        return CLEAN_HISTORY_REQUEST_;
-    }
     if (str == "get_finished_point") {
         return GET_FINISHED_POINT_;
     }
@@ -341,6 +338,15 @@ int switch_ID(const std::string &str) {
     }
     if (str == "operate_delete_subregion") {
         return OPERATE_DELETE_SUBREGION;
+    }
+    if (str == "operate_add_delivery") {
+        return OPERATE_ADD_DELIVERY;
+    }
+    if (str == "operate_delete_delivery") {
+        return OPERATE_DELETE_DELIVERY;
+    }
+    if (str == "operate_modify_delivery") {
+        return OPERATE_MODIFY_DELIVERY;
     }
 
     if (str == "add_timer_task") {

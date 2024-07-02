@@ -73,6 +73,51 @@ public:
     void setSubregionValue(long subregionValue);
 };
 
+class DeliveryVo {
+private:
+    long deliveryId;
+    PoseVo poseVo;
+    int cmd;
+    int tag;
+
+public:
+    DeliveryVo();
+
+    DeliveryVo(long deliveryId, const PoseVo &poseVo, int cmd, int tag);
+
+    friend void to_json(json &j, const DeliveryVo &vo) {
+        j = json{
+                {"deliveryId", vo.deliveryId},
+                {"pose",       vo.poseVo},
+                {"cmd",        vo.cmd},
+                {"tag",        vo.tag}
+        };
+    }
+
+    friend void from_json(const json &j, DeliveryVo &vo) {
+        j.at("deliveryId").get_to(vo.deliveryId);
+        j.at("pose").get_to(vo.poseVo);
+        j.at("cmd").get_to(vo.cmd);
+        j.at("tag").get_to(vo.tag);
+    }
+
+    long getDeliveryId() const;
+
+    void setDeliveryId(long deliveryId);
+
+    const PoseVo &getPoseVo() const;
+
+    void setPoseVo(const PoseVo &poseVo);
+
+    int getCmd() const;
+
+    void setCmd(int cmd);
+
+    int getTag() const;
+
+    void setTag(int tag);
+};
+
 class TaskVo {
 
 private:
@@ -90,6 +135,8 @@ private:
     bool partition;
     std::vector<SubregionVo> subregions;
     bool knife;
+
+    std::vector<DeliveryVo> deliveries;
 
     std::string source;
     std::string launch_people;
@@ -109,8 +156,8 @@ public:
 
     TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode,
            const WorkStatus &workStatus, bool principal, const std::vector<ZoneVo> &zones, bool partition,
-           const std::vector<SubregionVo> &subregions, bool knife, const std::string &source,
-           const std::string &launchPeople,
+           const std::vector<SubregionVo> &subregions, bool knife, const std::vector<DeliveryVo> &deliveries,
+           const std::string &source, const std::string &launchPeople,
            long launchTime, long updateTime, long createTime, bool rain_snow);
 
     void setId(long id);
@@ -120,6 +167,8 @@ public:
     void setZones(const std::vector<ZoneVo> &zones);
 
     void setSubregions(const std::vector<SubregionVo> &subregions);
+
+    void setDeliveries(const std::vector<DeliveryVo> &deliveries);
 
     void setSource(const std::string &source);
 
@@ -144,6 +193,8 @@ public:
     const std::vector<SubregionVo> &getSubregions() const;
 
     bool isKnife() const;
+
+    const std::vector<DeliveryVo> &getDeliveries() const;
 
     const std::string &getSource() const;
 
@@ -174,6 +225,7 @@ public:
                 {"partition",     vo.partition},
                 {"subregions",    vo.subregions},
                 {"knife",         vo.knife},
+                {"deliveries",    vo.deliveries},
                 {"source",        vo.source},
                 {"launch_people", vo.launch_people},
                 {"launch_time",   vo.launch_time},
@@ -196,6 +248,7 @@ public:
         j.at("partition").get_to(vo.partition);
         j.at("subregions").get_to(vo.subregions);
         j.at("knife").get_to(vo.knife);
+        j.at("deliveries").get_to(vo.deliveries);
         j.at("source").get_to(vo.source);
         j.at("launch_people").get_to(vo.launch_people);
         j.at("launch_time").get_to(vo.launch_time);
@@ -286,19 +339,19 @@ public:
 
     friend void to_json(json &j, const TimerVo &vo) {
         j = json{
-                {"timer_id", vo.timer_id},
+                {"timer_id",   vo.timer_id},
                 {"timer_rule", vo.timer_rule},
-                {"task_id", vo.task_id},
+                {"task_id",    vo.task_id},
                 {"timer_name", vo.timer_name},
-                {"task_name", vo.task_name},
+                {"task_name",  vo.task_name},
                 {"is_execute", vo.is_execute},
-                {"rate", vo.rate},
-                {"is_never", vo.is_never},
-                {"is_skip", vo.is_skip},
-                {"end_year", vo.end_year},
-                {"end_month", vo.end_month},
-                {"end_day", vo.end_day},
-                {"o_map_id", vo.o_map_id}
+                {"rate",       vo.rate},
+                {"is_never",   vo.is_never},
+                {"is_skip",    vo.is_skip},
+                {"end_year",   vo.end_year},
+                {"end_month",  vo.end_month},
+                {"end_day",    vo.end_day},
+                {"o_map_id",   vo.o_map_id}
         };
     }
 
@@ -401,6 +454,23 @@ struct ModifyTaskZone {
     friend void from_json(const json &j, ModifyTaskZone &vo) {
         j.at("id").get_to(vo.id);
         j.at("zone").get_to(vo.zone);
+    }
+};
+
+struct ModifyTaskDelivery {
+    long id;
+    DeliveryVo delivery;
+
+    friend void to_json(json &j, const ModifyTaskDelivery &vo) {
+        j = json{
+                {"id",       vo.id},
+                {"delivery", vo.delivery},
+        };
+    }
+
+    friend void from_json(const json &j, ModifyTaskDelivery &vo) {
+        j.at("id").get_to(vo.id);
+        j.at("delivery").get_to(vo.delivery);
     }
 };
 

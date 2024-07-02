@@ -11,12 +11,14 @@
 
 struct ZonePo;
 struct SubregionPo;
+struct DeliveryPo;
 
 enum class TaskMode {
     Zoned,
     Cover,
     Subregion,
     Line,
+    Delivery,
 };
 
 enum class TaskSource {
@@ -32,7 +34,8 @@ struct TaskPo {
     TaskPo(long id, const std::string &oMapId, const std::string &name, int rate, TaskMode mode, int sweep, int mop,
            int vacuum, int push, int aromatherapy, int disinfect, bool principal, const std::vector<ZonePo> &zones,
            bool partition, const std::string &subregionRange, const std::vector<SubregionPo> &subregions,
-           bool knife, TaskSource source, const std::string &launchPeople, long launchTime, time_t updateTime,
+           bool knife, const std::vector<DeliveryPo> &deliveries, TaskSource source,
+           const std::string &launchPeople, long launchTime, time_t updateTime,
            time_t createTime, bool rain_snow);
 
     long id;
@@ -55,6 +58,8 @@ struct TaskPo {
     std::string subregion_range;
     std::vector<SubregionPo> subregions;
     bool knife;
+
+    std::vector<DeliveryPo> deliveries;
 
     TaskSource source;
     std::string launch_people;
@@ -106,6 +111,20 @@ struct TimerPo {
     int end_year;
     int end_month;
     int end_day;
+};
+
+struct DeliveryPo {
+    DeliveryPo();
+
+    DeliveryPo(long id, long oTaskId, float x, float y, float theta, int cmd, int tag);
+
+    long id;
+    decltype(TaskPo::id) o_task_id;
+    float x;
+    float y;
+    float theta;
+    int cmd;
+    int tag;
 };
 
 #endif //APP_COMMUNICATION_TASK_MODEL_H

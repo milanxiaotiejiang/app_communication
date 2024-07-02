@@ -29,6 +29,10 @@ void checkSubregion(const SubregionVo &subregion);
 
 void checkSubregion(const std::vector<SubregionVo> &subregions);
 
+void checkDelivery(const DeliveryVo &delivery);
+
+void checkDelivery(const std::vector<DeliveryVo> &deliveries);
+
 void checkSameTimer(const std::string &map_id, const std::string &timer_rule, int selfTimerId);
 
 //void checkMapId(const std::vector<MapPo> &maps, const std::string &map_id);

@@ -110,6 +110,8 @@ protected:
 
     bool isPostConditions(event::flow flow);
 
+    bool isDeliveryLogic(event::flow flow);
+
     void recordEmergencyStop(event::flow event_flow, const RealBlock &realBlock);
 
     bool recoverableEmergencyStop();

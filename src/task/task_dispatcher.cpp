@@ -3,7 +3,6 @@
 //
 
 #include "task/task_dispatcher.h"
-#include "clean_history/CleanHistoryCenter.h"
 #include "exploration/path_exploration_preview_task.h"
 
 TaskDispatcher::TaskDispatcher() {
@@ -54,8 +53,6 @@ void TaskDispatcher::plan_transfer_thread_func() {
                 }
                 //点列赋值给realTask
                 realTask.setPlanPoints(blockList);
-                //清洁记录更新
-                clean_history_db::CleanHistoryCenter::instance().upDateByRealTask(realTask);
                 //开始执行realTask
                 asyncTaskCall->executeOneTask(realTask);
             } catch (app::exception const &e) {

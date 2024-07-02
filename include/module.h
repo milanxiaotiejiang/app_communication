@@ -27,7 +27,6 @@ public:
     bool module_udp{true};
     bool module_auto_maintenance{false};
     bool module_version{false};
-    bool module_old_self_check{false};
     bool module_ai{false};
     bool module_elevator{false};
     bool module_mechanism{false};

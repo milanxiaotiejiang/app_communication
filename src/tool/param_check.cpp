@@ -44,7 +44,7 @@ void checkRate(int rate) {
 }
 
 void checkMode(int mode) {
-    if (mode < static_cast<int>(TaskMode::Zoned) || mode > static_cast<int>(TaskMode::Line)) {
+    if (mode < static_cast<int>(TaskMode::Zoned) || mode > static_cast<int>(TaskMode::Delivery)) {
         throw app::exception(make_error_code(error::invalid_mode));
     }
 }
@@ -104,6 +104,16 @@ void checkSubregion(const std::vector<SubregionVo> &subregions) {
         if (!sub_pass) {
             throw app::exception(make_error_code(error::invalid_subregions));
         }
+    }
+}
+
+void checkDelivery(const DeliveryVo &delivery) {
+
+}
+
+void checkDelivery(const std::vector<DeliveryVo> &deliveries) {
+    if (deliveries.empty()) {
+        throw app::exception(make_error_code(error::invalid_deliveries));
     }
 }
 

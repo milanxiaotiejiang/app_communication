@@ -29,6 +29,7 @@
     <build_depend>roslib</build_depend>
     <build_depend>replan_msgs</build_depend>
     <build_depend>back_charge_msgs</build_depend>
+    <build_depend>apriltag_ros</build_depend>
 
     <build_export_depend>message_generation</build_export_depend>
     <build_export_depend>roscpp</build_export_depend>
@@ -43,6 +44,7 @@
     <build_export_depend>nav_msgs</build_export_depend>
     <build_export_depend>replan_msgs</build_export_depend>
     <build_export_depend>back_charge_msgs</build_export_depend>
+    <build_export_depend>apriltag_ros</build_export_depend>
 
     <exec_depend>message_runtime</exec_depend>
     <exec_depend>roscpp</exec_depend>
@@ -59,6 +61,7 @@
     <exec_depend>zoo_bringup</exec_depend>
     <exec_depend>replan_msgs</exec_depend>
     <exec_depend>back_charge_msgs</exec_depend>
+    <exec_depend>apriltag_ros</exec_depend>
 
     <!-- The export tag contains other, unspecified, tags -->
     <export>

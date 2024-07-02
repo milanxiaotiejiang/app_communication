@@ -27,6 +27,8 @@ namespace event {
         try_recharging_again,//回充失败时，再次尝试回充
         try_move_base_point_again,//返回基站点位失败后重试
 
+        trigger_delivery_logic,//触发配送
+
         hardware_interrupt_task,//清洁机构出错导致，一般直接返回基站，但任务是否继续也可控制
         software_interrupt_task,//程序出现严重错误，不可恢复
 

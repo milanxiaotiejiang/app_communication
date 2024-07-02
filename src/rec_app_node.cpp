@@ -36,8 +36,6 @@ int Factorial(int number) {
 
 Variable *Variable::m_instance_ptr = nullptr;
 
-internal_event::InternalEventPubManager *internal_event::InternalEventPubManager::instance_ = nullptr;
-
 int main(int argc, char **argv) {
 
     current_program_string = argv[0];
@@ -58,8 +56,6 @@ int main(int argc, char **argv) {
 
     initNodeParams(handle);
 
-    //新清洁历史
-    clean_history_db::CleanHistoryCenter::instance().initialize();
     if (Module::instance().module_property)
         PropertyDataBase::instance().initProperty();
 
@@ -99,8 +95,6 @@ int main(int argc, char **argv) {
     MapInnerSubscribe mapInnerSubscribe(handle);
     if (Module::instance().module_version)
         DSVersionSubscribe dsVersionSubscribe(handle);
-    if (Module::instance().module_old_self_check)
-        SelfCheckSubscribe selfCheckSubscribe(handle);
 
     WsServerManager::instance().startWebSocket();
     if (Module::instance().module_ai)
@@ -112,6 +106,8 @@ int main(int argc, char **argv) {
 
     if (Module::instance().module_elevator)
         ElevatorControlManager::instance().initialize(handle);
+
+    DeliveryControlManager::instance().initialize(handle);
 
     ros::MultiThreadedSpinner spinner;
     spinner.spin();
@@ -539,9 +535,6 @@ void initNodeParams(const ros::NodeHandle &nh) {
     bool module_version;
     nh.param<bool>("module_version", module_version, false);
     Module::instance().module_version = module_version;
-    bool module_old_self_check;
-    nh.param<bool>("module_old_self_check", module_old_self_check, false);
-    Module::instance().module_old_self_check = module_old_self_check;
     bool module_mechanism;
     nh.param<bool>("module_mechanism", module_mechanism, false);
     Module::instance().module_mechanism = module_mechanism;

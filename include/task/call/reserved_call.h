@@ -11,12 +11,6 @@ class ReservedCall : public HeadTailPointCall {
 private:
     bool first_urgency_stop = true;
 
-    bool low_battery_back_charge_escalation = false;
-    bool clean_water_level_check_failed_escalation = false;
-    bool dirty_water_level_check_failed_escalation = false;
-    bool motor_error_recovery_failed_escalation = false;
-    bool mop_error_recovery_success_escalation = false;
-
 protected:
 
     void handleManualOperation() override;
@@ -46,10 +40,6 @@ protected:
     void feedBackPose(const geometry_msgs::Pose &pose) override;
 
     void reset() override;
-
-public:
-
-    std::tuple<int, std::string, std::string> generateErrorByRealPoint(int errorId);
 
 };
 

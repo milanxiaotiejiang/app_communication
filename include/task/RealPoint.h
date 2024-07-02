@@ -8,6 +8,7 @@
 #include <utility>
 #include <ostream>
 #include "model/RoomVo.h"
+#include "model/task.h"
 
 class RealPosition {
 public:
@@ -98,6 +99,8 @@ public:
     int elevatorControl{ELEVATOR_DEFAULT};
     std::pair<int, int> targetFloorPair;
     std::pair<std::string, std::string> targetMapIdPair;
+
+    DeliveryVo deliveryVo;
 
 //    friend std::ostream &operator<<(std::ostream &os, const RealPoint &point) {
 //        os << "id: " << point.id << " blockId: " << point.blockId << " realProgress: " << point.realProgress;

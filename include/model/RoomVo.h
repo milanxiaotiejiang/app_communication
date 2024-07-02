@@ -6,6 +6,7 @@
 #define APP_COMMUNICATION_ROOMVO_H
 
 #include <opencv2/opencv.hpp>
+#include <ostream>
 #include "string"
 #include "vector"
 
@@ -90,6 +91,8 @@ public:
         j.at("y").get_to(poseVo.y);
         j.at("theta").get_to(poseVo.theta);
     }
+
+    friend std::ostream &operator<<(std::ostream &os, const PoseVo &vo);
 };
 
 // Cleaning mechanism control mode

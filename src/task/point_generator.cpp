@@ -9,6 +9,7 @@
 #include "segmentation/map_attribute.h"
 #include <Eigen/Dense>
 #include <eigen_conversions/eigen_msg.h>
+#include <tf/transform_datatypes.h>
 #include "exploration/radian_angle_conversion.h"
 #include "exploration/line.h"
 #include "tool/Variable.h"
@@ -881,6 +882,28 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
         std::vector<RealBlock> blocks;
         complexPathToRealBlock(task, complexPoseList, blocks);
         return blocks;
+    } else if (mode == TaskMode::Delivery) {
+//        auto coverage = TaskExploration::explorationPlanningPath(task);
+
+        task.setRate(1);
+
+        std::vector<DeliveryVo> deliveries = task.getDeliveries();
+
+        std::vector<RealBlock> blocks;
+
+        if (deliveries.empty())
+            return blocks;
+
+        int blockAccumulate = 0, pointAccumulate = 0;
+
+        auto firstDelivery = deliveries[0];
+        RealBlock firstBlock = deliveryToRealBlock(task, false, {firstDelivery}, blockAccumulate, pointAccumulate);
+        blocks.push_back(firstBlock);
+
+        RealBlock deliveryBlock = deliveryToRealBlock(task, true, deliveries, blockAccumulate, pointAccumulate);
+        blocks.push_back(deliveryBlock);
+
+        return blocks;
     } else {
         auto coverage = TaskExploration::explorationPlanningPath(task);
 
@@ -900,6 +923,58 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
         return blocks;
     }
 
+}
+
+RealBlock
+ExplorationGenerator::deliveryToRealBlock(const RealTask &task, bool isDelivery, const std::vector<DeliveryVo> &ds,
+                                          int &blockAccumulate, int &pointAccumulate) const {
+    RealBlock block;
+    block.id = blockAccumulate;
+
+    block.taskId = task.getId();
+
+    block.newTaskId = task.getTaskId();
+
+    block.name = task.getName();
+    block.rate = task.getRate();
+    block.mode = task.getMode();
+
+    block.knife = task.isKnife();
+    block.work_status = task.getWorkStatus();
+
+    block.arrive = false;
+    block.retry = false;
+    block.timeout = 0;
+
+    block.totalStep = 1;
+    block.totalFrequency = 1;
+    block.currentFrequency = 1;
+    block.inClean = false;
+
+    block.mustArrive = true;
+
+    block.isDelivery = isDelivery;
+
+    for (const auto &delivery: ds) {
+        RealPoint point;
+        point.id = pointAccumulate;
+        point.blockId = block.id;
+
+        geometry_msgs::Quaternion quaternion = tf::createQuaternionMsgFromYaw(delivery.getPoseVo().getTheta());
+
+        RealPosition realPosition{delivery.getPoseVo().getX(), delivery.getPoseVo().getY(), 0};
+        RealOrientation realOrientation{quaternion.x, quaternion.y, quaternion.z, quaternion.w};
+        point.realPosition = realPosition;
+        point.realOrientation = realOrientation;
+
+        point.deliveryVo = delivery;
+
+        block.plannerPoints.push_back(point);
+        pointAccumulate++;
+    }
+
+    blockAccumulate++;
+    return block;
 }
 
 bool

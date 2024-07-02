@@ -37,6 +37,8 @@ public:
             return std::make_unique<TaskMode>(TaskMode::Subregion);
         } else if (i == 3) {
             return std::make_unique<TaskMode>(TaskMode::Line);
+        } else if (i == 4) {
+            return std::make_unique<TaskMode>(TaskMode::Delivery);
         }
         return nullptr;
     }
@@ -50,6 +52,8 @@ public:
             return TaskMode::Subregion;
         } else if (i == 3) {
             return TaskMode::Line;
+        } else if (i == 4) {
+            return TaskMode::Delivery;
         }
         return TaskMode::Cover;
     }
@@ -272,6 +276,17 @@ public:
                                        make_column("end_month", &TimerPo::end_month, default_value(0)),
                                        make_column("end_day", &TimerPo::end_day, default_value(0)),
                                        foreign_key(&TimerPo::o_task_id).references(&TaskPo::id).on_delete.set_default()
+                            ),
+                            make_table("delivery",
+                                       make_column("id", &DeliveryPo::id, primary_key(), autoincrement()),
+                                       make_column("o_task_id", &DeliveryPo::o_task_id),
+                                       make_column("x", &DeliveryPo::x),
+                                       make_column("y", &DeliveryPo::y),
+                                       make_column("theta", &DeliveryPo::theta),
+                                       make_column("cmd", &DeliveryPo::cmd),
+                                       make_column("tag", &DeliveryPo::tag),
+                                       foreign_key(&DeliveryPo::o_task_id).references(
+                                               &TaskPo::id).on_delete.set_default()
                             )
         );
     }

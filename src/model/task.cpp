@@ -60,7 +60,8 @@ TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int 
 
 TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int rate, int mode,
                const WorkStatus &workStatus, bool principal, const std::vector<ZoneVo> &zones,
-               bool partition, const std::vector<SubregionVo> &subregions, bool knife, const std::string &source,
+               bool partition, const std::vector<SubregionVo> &subregions, bool knife,
+               const std::vector<DeliveryVo> &deliveries, const std::string &source,
                const std::string &launchPeople, long launchTime, long updateTime, long createTime, bool rain_snow)
         : id(id),
           o_map_id(oMapId),
@@ -73,6 +74,7 @@ TaskVo::TaskVo(long id, const std::string &oMapId, const std::string &name, int 
           partition(partition),
           subregions(subregions),
           knife(knife),
+          deliveries(deliveries),
           source(source),
           launch_people(launchPeople),
           launch_time(launchTime),
@@ -94,6 +96,10 @@ void TaskVo::setZones(const std::vector<ZoneVo> &zones) {
 
 void TaskVo::setSubregions(const std::vector<SubregionVo> &subregions) {
     TaskVo::subregions = subregions;
+}
+
+void TaskVo::setDeliveries(const std::vector<DeliveryVo> &deliveries) {
+    TaskVo::deliveries = deliveries;
 }
 
 void TaskVo::setSource(const std::string &source) {
@@ -142,6 +148,10 @@ const std::vector<SubregionVo> &TaskVo::getSubregions() const {
 
 bool TaskVo::isKnife() const {
     return knife;
+}
+
+const std::vector<DeliveryVo> &TaskVo::getDeliveries() const {
+    return deliveries;
 }
 
 const std::string &TaskVo::getSource() const {
@@ -297,4 +307,41 @@ const std::string &TimerVo::getOMapId() const {
 
 void TimerVo::setOMapId(const std::string &oMapId) {
     o_map_id = oMapId;
+}
+
+DeliveryVo::DeliveryVo() {}
+
+DeliveryVo::DeliveryVo(long deliveryId, const PoseVo &poseVo, int cmd, int tag) : deliveryId(deliveryId),
+                                                                                  poseVo(poseVo), cmd(cmd), tag(tag) {}
+
+const PoseVo &DeliveryVo::getPoseVo() const {
+    return poseVo;
+}
+
+void DeliveryVo::setPoseVo(const PoseVo &poseVo) {
+    DeliveryVo::poseVo = poseVo;
+}
+
+int DeliveryVo::getCmd() const {
+    return cmd;
+}
+
+void DeliveryVo::setCmd(int cmd) {
+    DeliveryVo::cmd = cmd;
+}
+
+int DeliveryVo::getTag() const {
+    return tag;
+}
+
+void DeliveryVo::setTag(int tag) {
+    DeliveryVo::tag = tag;
+}
+
+long DeliveryVo::getDeliveryId() const {
+    return deliveryId;
+}
+
+void DeliveryVo::setDeliveryId(long deliveryId) {
+    DeliveryVo::deliveryId = deliveryId;
 }

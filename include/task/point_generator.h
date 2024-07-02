@@ -76,6 +76,8 @@ public:
 
     RealBlock createPostElevator2Block(RealTask &task);
 
+    RealBlock deliveryToRealBlock(const RealTask &task, bool isDelivery, const std::vector<DeliveryVo> &ds,
+                                  int &blockAccumulate, int &pointAccumulate) const;
 };
 
 #endif //APP_COMMUNICATION_POINT_GENERATOR_H

@@ -22,6 +22,8 @@ long AddTaskStrategy::handler(TaskVo params) {
         checkZoned(params.getZones());
     } else if (params.getMode() == static_cast<int>(TaskMode::Subregion)) {
         checkSubregion(params.getSubregions());
+    } else if (params.getMode() == static_cast<int>(TaskMode::Delivery)) {
+        checkDelivery(params.getDeliveries());
     }
 
     MapPo map = SegmentationDataBase::instance().getDbMap();
@@ -43,6 +45,8 @@ long MultipleAddTaskStrategy::handler(TaskVo params) {
         checkZoned(params.getZones());
     } else if (params.getMode() == static_cast<int>(TaskMode::Subregion)) {
         checkSubregion(params.getSubregions());
+    } else if (params.getMode() == static_cast<int>(TaskMode::Delivery)) {
+        checkDelivery(params.getDeliveries());
     }
 
     MapPo map = SegmentationDataBase::instance().getDbMap();
@@ -396,6 +400,26 @@ long OperateAddSubregionStrategy::handler(ModifyTaskSubregion params) {
 
 std::string OperateDeleteSubregionStrategy::handler(ModifyTaskSubregion params) {
     TaskDataBase::instance().operateDeleteSubregion(params.id, params.subregion);
+    return "";
+}
+
+long OperateAddDeliveryStrategy::handler(ModifyTaskDelivery params) {
+    checkDelivery(params.delivery);
+    long zoneId = TaskDataBase::instance().operateAddDelivery(params.id, params.delivery);
+    if (zoneId == -1) {
+        throw app::exception(make_error_code(error::add_zone_fail));
+    }
+    return zoneId;
+}
+
+std::string OperateDeleteDeliveryStrategy::handler(ModifyTaskDelivery params) {
+    TaskDataBase::instance().operateDeleteDelivery(params.id, params.delivery);
+    return "";
+}
+
+std::string OperateModifyDeliveryStrategy::handler(ModifyTaskDelivery params) {
+    checkDelivery(params.delivery);
+    TaskDataBase::instance().operateModifyDelivery(params.id, params.delivery);
     return "";
 }
 

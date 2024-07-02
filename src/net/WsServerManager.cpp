@@ -519,7 +519,7 @@ public:
     WsServerThread() {}
 
     void *run() override {
-        LOG_IF(INFO, DEBUG_FIRING) << "WsServerThread : " << syscall(SYS_gettid);
+        LOG_IF(INFO, DEBUG_FIRING) << "WsServerThread : " << syscall(SYS_gettid) << " 端口号 9099";
 
         try {
             //设置日志级别

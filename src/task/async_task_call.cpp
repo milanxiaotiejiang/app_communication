@@ -25,6 +25,7 @@
 #include "segmentation/GateComprehensive.h"
 #include "manager/elevator_control.h"
 #include "manager/PublishOutManager.h"
+#include "manager/delivery_control.h"
 
 /*
  * 初始化函数将当墙状态设置为等待任务（状态机起始）
@@ -123,6 +124,17 @@ AsyncTaskCall::AsyncTaskCall() : feedback(std::make_shared<TaskFeedback>()),
                 postConditions.clear();
                 flowElevatorPostPoint.arrive = false;
                 pushBlock(flowElevatorPostPoint);
+            }
+        });
+    });
+
+    DeliveryControlManager::instance().setDeliveryCallback([this](DeliveryControlManager::DeliveryError result) {
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskCall : notify delivery finish ...";
+        notify_one([this, &result]() {
+            if (result == DeliveryControlManager::DeliveryError::NoDeliveryError) {
+                pushBlock(flowReadyBackPoint);
+            } else {
+                pushBlock(flowReadyBackPoint);
             }
         });
     });

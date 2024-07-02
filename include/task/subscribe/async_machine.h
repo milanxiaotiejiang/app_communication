@@ -7,7 +7,6 @@
 
 #include "task/status/state_machine.h"
 #include "task/subscribe/zoo_inner_status.h"
-#include "clean_history/CleanHistoryCenter.h"
 #include "simulation.h"
 #include "future/node/node_control.h"
 
@@ -102,7 +101,6 @@ public:
     void setFlow(event::flow flow) {
         mHandle.setParam(ASYNC_TASK_FLOW, static_cast<int>(flow));
 
-        clean_history_db::CleanHistoryCenter::instance().setCurrentFlow(flow);
         AsyncMachine::flow = flow;
     }
 
@@ -199,6 +197,8 @@ public:
                 return 10020;
             case event::flow::trigger_special_post_conditions:
                 return 10021;
+            case event::flow::trigger_delivery_logic:
+                return 10022;
         }
         return -1;
     }
@@ -237,6 +237,8 @@ public:
                 return "梯控前";
             case 10021:
                 return "梯控后";
+            case 10022:
+                return "配送中";
             default:
                 return "未知";
         }

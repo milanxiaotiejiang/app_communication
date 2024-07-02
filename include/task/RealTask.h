@@ -31,6 +31,8 @@ private:
     std::vector<SubregionVo> subregions;//新任务区域
     bool knife{false};//风刀开关
 
+    std::vector<DeliveryVo> deliveries;//配送
+
     std::string time_mode;
 
     std::string source;//创建任务的源头
@@ -174,6 +176,14 @@ public:
 
     void setKnife(bool knife) {
         RealTask::knife = knife;
+    }
+
+    const std::vector<DeliveryVo> &getDeliveries() const {
+        return deliveries;
+    }
+
+    void setDeliveries(const std::vector<DeliveryVo> &deliveries) {
+        RealTask::deliveries = deliveries;
     }
 
     const std::string &getTimeMode() const {

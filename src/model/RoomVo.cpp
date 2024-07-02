@@ -83,6 +83,11 @@ void PoseVo::setTheta(float theta) {
     PoseVo::theta = theta;
 }
 
+std::ostream &operator<<(std::ostream &os, const PoseVo &vo) {
+    os << "x: " << vo.x << " y: " << vo.y << " theta: " << vo.theta;
+    return os;
+}
+
 RoomVo::RoomVo() {}
 
 RoomVo::RoomVo(int id, std::string name, PointVo center,

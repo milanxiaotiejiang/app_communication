@@ -11,6 +11,7 @@
 #include "model/WorkStatus.h"
 #include "task/RealPoint.h"
 #include "task/status/state_machine.h"
+#include "model/task.h"
 
 class RealError {
 public:
@@ -77,6 +78,8 @@ public:
     float totalDistance;
 
     bool mustArrive{false};
+
+    bool isDelivery{false};
 
     friend std::ostream &operator<<(std::ostream &os, const RealBlock &block) {
         os << "id: " << block.id;

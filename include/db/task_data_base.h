@@ -87,6 +87,12 @@ public:
 
     void operateDeleteSubregion(long taskId, const SubregionVo &subregion);
 
+    long operateAddDelivery(long taskId, const DeliveryVo &delivery);
+
+    void operateDeleteDelivery(long taskId, const DeliveryVo &delivery);
+
+    void operateModifyDelivery(long taskId, const DeliveryVo &delivery);
+
     void modifyTimerName(long timerId, std::string name);
 
     void modifyTimer(const std::string &mapId, const TimerVo &timer);

@@ -7,11 +7,6 @@
 #include "manager/PublishOutManager.h"
 #include "task/manager/SwitchModePublish.h"
 #include "task/manager/NativeSystemManager.h"
-#include "clean_history/CleanHistoryCenter.h"
-#include "manager/InternalEventPubManager.h"
-
-const int WORK_STATUS_VERSION = 1;
-const int KNOB_STATUS_VERSION = 1;
 
 ZooRobotStatusSubscribe::ZooRobotStatusSubscribe(ros::NodeHandle handle)
         : handle(handle) {
@@ -32,19 +27,15 @@ ZooRobotStatusSubscribe::ZooRobotStatusSubscribe(ros::NodeHandle handle)
             ZooInnerStatus::instance().setRsoc(90);
             ZooInnerStatus::instance().setUrgencyStopStatus(false);
             NativeSystemManager::instance().urgencyStop(ZooInnerStatus::instance().getUrgencyStopStatus());
-            long current_execute_time = clean_history_db::CleanHistoryCenter::instance().getCurrentCleanTime();
             WorkStatus workStatus(0, 0, 0, 0, 0, 0);
             int machineCode = AsyncMachine::instance().getMachineCode();
-            if (machineCode != last_machine_code) {
-                internal_event::InternalEventPubManager::get_instance()->workStatusUpdate(machineCode);
-            }
             last_machine_code = machineCode;
             std::string machineMessage = AsyncMachine::instance().getMachineMessage(machineCode);
             auto status = ShowWorkStatus(ZooInnerStatus::instance().getRsoc(), 28, 72,
                                          workStatus,
                                          machineMessage, machineCode,
                                          ZooInnerStatus::instance().getUrgencyStopStatus(),
-                                         current_execute_time,
+                                         -1,
                                          ZooInnerStatus::instance().getIsCharging(),
                                          ZooInnerStatus::instance().getAromStatus());
             VersionSubscribe<ShowWorkStatus> statusResponse(1, status);

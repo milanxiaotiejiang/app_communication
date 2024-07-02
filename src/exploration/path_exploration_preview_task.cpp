@@ -35,6 +35,8 @@ void TaskExploration::task2RealTask(const TaskVo &task, RealTask &realTask) {
     realTask.setSubregions(task.getSubregions());
     realTask.setKnife(task.isKnife());
 
+    realTask.setDeliveries(task.getDeliveries());
+
     realTask.setSource(task.getSource());
     realTask.setLaunchPeople(task.getLaunchPeople());
     realTask.setLaunchTime(std::time(nullptr));
@@ -49,7 +51,8 @@ void TaskExploration::mapElevatorOutside2RealPoint(const MapPo &map, RealPoint &
 }
 
 void TaskExploration::mapElevatorInside2RealPoint(const MapPo &map, RealPoint &realPoint) {
-    RealPosition realPosition(map.elevator_inside_position_x, map.elevator_inside_position_y, map.elevator_inside_position_z);
+    RealPosition realPosition(map.elevator_inside_position_x, map.elevator_inside_position_y,
+                              map.elevator_inside_position_z);
     RealOrientation realOrientation(map.elevator_inside_orientation_x, map.elevator_inside_orientation_y,
                                     map.elevator_inside_orientation_z, map.elevator_inside_orientation_w);
     realPoint.realPosition = std::move(realPosition);
@@ -219,6 +222,27 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
 
     } else if (mode == TaskMode::Line) {
         explorationCenter.infinitelyNearBoundary(task.getMapId(), exploration_path, point_path, complex_path);
+    } else if (mode == TaskMode::Delivery) {
+        std::vector<PoseVo> poseList;
+        std::vector<PointVo> pointList;
+        std::vector<std::vector<PoseVo>> complexList;
+
+        std::vector<DeliveryVo> deliverys = task.getDeliveries();
+        for (const auto &delivery: deliverys) {
+            geometry_msgs::Pose2D pose2D;
+            pose2D.x = delivery.getPoseVo().getX();
+            pose2D.y = delivery.getPoseVo().getY();
+            pose2D.theta = delivery.getPoseVo().getTheta();
+            exploration_path.push_back(pose2D);
+
+            poseList.push_back(delivery.getPoseVo());
+            pointList.emplace_back(delivery.getPoseVo().getX(), delivery.getPoseVo().getY());
+            complexList.push_back(poseList);
+        }
+
+        coverage.setPoseList(poseList);
+        coverage.setPointList(pointList);
+        coverage.setComplexList(complexList);
     }
 
     boost::uuids::uuid uuid = boost::uuids::random_generator()();

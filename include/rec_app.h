@@ -30,7 +30,6 @@
 #include "net/base/Entrance.h"
 
 #include "prohibition.h"
-#include "sub/self_check.h"
 #include "tool/Switch.h"
 #include "tool/write_file.hpp"
 #include <actionlib/client/simple_action_client.h>
@@ -39,7 +38,6 @@
 #include <sub/MapInnerSubscribe.h>
 #include <tool/Variable.h>
 
-#include "manager/InternalEventPubManager.h"
 #include "net/WsServerManager.h"
 #include "net/MessageBusManager.h"
 #include "net/AiServerManager.h"
@@ -63,7 +61,6 @@
 #include "future/timer_call.h"
 #include "task/manager/NodeWorkModeManager.h"
 #include "manager/elevator_control.h"
-#include "clean_history/CleanHistoryCenter.h"
 #include "sys/wait.h"
 #include "leave/map_control.h"
 
@@ -84,6 +81,7 @@
 
 #include "leave/sensor/sensor_center.h"
 #include "task/manager/manual.h"
+#include "manager/delivery_control.h"
 
 google_breakpad::ExceptionHandler *exceptionHandler = nullptr;
 std::string unique_identification = boost::uuids::to_string(boost::uuids::random_generator()());

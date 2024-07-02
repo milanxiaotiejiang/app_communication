@@ -9,7 +9,8 @@ TaskPo::TaskPo() {}
 TaskPo::TaskPo(long id, const std::string &oMapId, const std::string &name, int rate, TaskMode mode, int sweep, int mop,
                int vacuum, int push, int aromatherapy, int disinfect, bool principal, const std::vector<ZonePo> &zones,
                bool partition, const std::string &subregionRange, const std::vector<SubregionPo> &subregions,
-               bool knife, TaskSource source, const std::string &launchPeople, long launchTime, time_t updateTime,
+               bool knife, const std::vector<DeliveryPo> &deliveries, TaskSource source,
+               const std::string &launchPeople, long launchTime, time_t updateTime,
                time_t createTime, bool rain_snow) : id(id),
                                                     o_map_id(oMapId),
                                                     name(name),
@@ -27,6 +28,7 @@ TaskPo::TaskPo(long id, const std::string &oMapId, const std::string &name, int 
                                                     subregion_range(subregionRange),
                                                     subregions(subregions),
                                                     knife(knife),
+                                                    deliveries(deliveries),
                                                     source(source),
                                                     launch_people(launchPeople),
                                                     launch_time(launchTime),
@@ -54,3 +56,10 @@ SubregionPo::SubregionPo() {}
 SubregionPo::SubregionPo(long id, long oTaskId, long subregionValue) : id(id), o_task_id(oTaskId),
                                                                        subregion_value(subregionValue) {}
 
+DeliveryPo::DeliveryPo() {}
+
+DeliveryPo::DeliveryPo(long id, long oTaskId, float x, float y, float theta, int cmd, int tag) : id(id),
+                                                                                                 o_task_id(oTaskId),
+                                                                                                 x(x), y(y),
+                                                                                                 theta(theta),
+                                                                                                 cmd(cmd), tag(tag) {}

@@ -32,7 +32,6 @@ enum MESSAGE_ID {
     FORCED_TO_ENTER_,                       //强制进入某种模式
     WORK_TO_ENTER_,                         //打开规划器，进入工作模式
     WORK_TO_MAP_APP_,                       //工作模式请求地图
-    CLEAN_HISTORY_REQUEST_,                 //请求清扫历史纪录
 
     GET_FINISHED_POINT_,                    //获取当前已经走过的点列
     IS_IN_BASEMENT_,                        //是否在基站
@@ -136,6 +135,9 @@ enum MESSAGE_ID {
     MODIFY_TASK_PARTITION,
     OPERATE_ADD_SUBREGION,
     OPERATE_DELETE_SUBREGION,
+    OPERATE_ADD_DELIVERY,
+    OPERATE_DELETE_DELIVERY,
+    OPERATE_MODIFY_DELIVERY,
 
     ADD_TIMER_TASK,                         //添加定时任务（当前地图）
     MULTIPLE_ADD_TIMER_TASK,                //添加定时任务（所有地图）

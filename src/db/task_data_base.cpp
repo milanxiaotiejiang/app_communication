@@ -66,6 +66,14 @@ TaskVo TaskDataBase::taskPo2Vo(const TaskPo &taskPo) {
             subregions.push_back(sub);
         }
         task.setSubregions(subregions);
+    } else if (taskPo.mode == TaskMode::Delivery) {
+        std::vector<DeliveryVo> deliveries;
+        for (const auto &delivery: taskPo.deliveries) {
+            PoseVo poseVo(delivery.x, delivery.y, delivery.theta);
+            DeliveryVo del(delivery.id, poseVo, delivery.cmd, delivery.tag);
+            deliveries.push_back(del);
+        }
+        task.setDeliveries(deliveries);
     }
     return task;
 }
@@ -82,6 +90,7 @@ long TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
     std::vector<std::string> zoneRanges;
     std::vector<long> subs;
     std::string subregion_range;
+    std::vector<DeliveryPo> dels;
 
     if (mode == TaskMode::Zoned) {
         std::vector<ZoneVo> zones = taskVo.getZones();
@@ -113,10 +122,18 @@ long TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
         for (const auto &subregion: subregions) {
             subs.push_back(subregion.getSubregionValue());
         }
+    } else if (mode == TaskMode::Delivery) {
+        std::vector<DeliveryVo> deliveries = taskVo.getDeliveries();
+        for (const auto &delivery: deliveries) {
+            DeliveryPo deliveryPo(0, 0, delivery.getPoseVo().getX(), delivery.getPoseVo().getY(),
+                                  delivery.getPoseVo().getTheta(), delivery.getCmd(), delivery.getTag());
+            dels.push_back(deliveryPo);
+        }
     }
 
     std::vector<ZonePo> z;
     std::vector<SubregionPo> s;
+    std::vector<DeliveryPo> d;
     TaskPo taskPo(0,
                   mapId,
                   taskVo.getName(),
@@ -134,6 +151,7 @@ long TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
                   subregion_range,
                   s,
                   taskVo.isKnife(),
+                  d,
                   SqliteDataBase::TaskSourceFromString(taskVo.getSource()),
                   taskVo.getLaunchPeople(),
                   time_t(),
@@ -150,6 +168,10 @@ long TaskDataBase::addTaskVo(const std::string &mapId, const TaskVo &taskVo) {
     for (const auto &item: subs) {
         SubregionPo subregionPo(0, taskId, item);
         taskStorage.insert(subregionPo);
+    }
+    for (auto &item: dels) {
+        item.o_task_id = taskId;
+        taskStorage.insert(item);
     }
     return taskId;
 }
@@ -173,6 +195,7 @@ void TaskDataBase::deleteOwnTask() {
     taskStorage.remove_all<TimerPo>();
     taskStorage.remove_all<ZonePo>();
     taskStorage.remove_all<SubregionPo>();
+    taskStorage.remove_all<DeliveryPo>();
     taskStorage.remove_all<TaskPo>();
 }
 
@@ -180,6 +203,7 @@ void TaskDataBase::deleteTaskFoId(long taskId) {
     deleteTimerForTask(taskId);
     taskStorage.remove_all<ZonePo>(where(c(&ZonePo::o_task_id) == taskId));
     taskStorage.remove_all<SubregionPo>(where(c(&SubregionPo::o_task_id) == taskId));
+    taskStorage.remove_all<DeliveryPo>(where(c(&DeliveryPo::o_task_id) == taskId));
     taskStorage.remove<TaskPo>(taskId);
 }
 
@@ -295,6 +319,11 @@ TaskVo TaskDataBase::modifyTask(const TaskVo &taskVo) {
         for (const auto &s: ss) {
             taskStorage.remove<SubregionPo>(s.id);
         }
+    } else if (originalTask.mode == TaskMode::Delivery) {
+        auto ds = taskStorage.get_all<DeliveryPo>(where(c(&DeliveryPo::o_task_id) == originalTask.id));
+        for (const auto &d: ds) {
+            taskStorage.remove<DeliveryPo>(d.id);
+        }
     }
 
     TaskMode mode = SqliteDataBase::TaskModeFromInt(taskVo.getMode());
@@ -302,6 +331,7 @@ TaskVo TaskDataBase::modifyTask(const TaskVo &taskVo) {
     std::vector<std::string> zoneRanges;
     std::vector<long> subs;
     std::string subregion_range;
+    std::vector<DeliveryPo> dels;
 
     if (mode == TaskMode::Zoned) {
         std::vector<ZoneVo> zones = taskVo.getZones();
@@ -333,10 +363,18 @@ TaskVo TaskDataBase::modifyTask(const TaskVo &taskVo) {
         for (const auto &subregion: subregions) {
             subs.push_back(subregion.getSubregionValue());
         }
+    } else if (mode == TaskMode::Delivery) {
+        std::vector<DeliveryVo> deliveries = taskVo.getDeliveries();
+        for (const auto &delivery: deliveries) {
+            DeliveryPo deliveryPo(0, 0, delivery.getPoseVo().getX(), delivery.getPoseVo().getY(),
+                                  delivery.getPoseVo().getTheta(), delivery.getCmd(), delivery.getTag());
+            dels.push_back(deliveryPo);
+        }
     }
 
     std::vector<ZonePo> z;
     std::vector<SubregionPo> s;
+    std::vector<DeliveryPo> d;
     TaskPo taskPo(originalTask.id,
                   originalTask.o_map_id,
                   taskVo.getName(),
@@ -354,6 +392,7 @@ TaskVo TaskDataBase::modifyTask(const TaskVo &taskVo) {
                   subregion_range,
                   s,
                   taskVo.isKnife(),
+                  d,
                   SqliteDataBase::TaskSourceFromString(taskVo.getSource()),
                   taskVo.getLaunchPeople(),
                   time_t(),
@@ -370,6 +409,10 @@ TaskVo TaskDataBase::modifyTask(const TaskVo &taskVo) {
     for (const auto &item: subs) {
         SubregionPo subregionPo(0, originalTask.id, item);
         taskStorage.insert(subregionPo);
+    }
+    for (auto &item: dels) {
+        item.o_task_id = originalTask.id;
+        taskStorage.insert(item);
     }
 
     return loadTaskFoId(originalTask.id);
@@ -448,6 +491,40 @@ void TaskDataBase::operateDeleteSubregion(long taskId, const SubregionVo &subreg
     }
 }
 
+long TaskDataBase::operateAddDelivery(long taskId, const DeliveryVo &delivery) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    if (task.mode == TaskMode::Delivery) {
+
+        DeliveryPo deliveryPo(0, taskId, delivery.getPoseVo().getX(), delivery.getPoseVo().getY(),
+                              delivery.getPoseVo().getTheta(), delivery.getCmd(), delivery.getTag());
+        auto deliveryId = taskStorage.insert(deliveryPo);
+        return deliveryId;
+    }
+    return -1;
+}
+
+void TaskDataBase::operateDeleteDelivery(long taskId, const DeliveryVo &delivery) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    if (task.mode == TaskMode::Zoned) {
+        taskStorage.remove<DeliveryPo>(delivery.getDeliveryId());
+    }
+}
+
+void TaskDataBase::operateModifyDelivery(long taskId, const DeliveryVo &delivery) {
+    TaskPo task = taskStorage.get<TaskPo>(taskId);
+    if (task.mode == TaskMode::Zoned) {
+        DeliveryPo deliveryPo = taskStorage.get<DeliveryPo>(delivery.getDeliveryId());
+
+        deliveryPo.x = delivery.getPoseVo().getX();
+        deliveryPo.y = delivery.getPoseVo().getY();
+        deliveryPo.theta = delivery.getPoseVo().getTheta();
+        deliveryPo.cmd = delivery.getCmd();
+        deliveryPo.tag = delivery.getTag();
+
+        taskStorage.update(deliveryPo);
+    }
+}
+
 void TaskDataBase::modifyTimerName(long timerId, std::string name) {
     TimerPo timer = taskStorage.get<TimerPo>(timerId);
     timer.name = std::move(name);
@@ -479,6 +556,10 @@ std::vector<TaskVo> TaskDataBase::loadTask() {
         for (const auto &s: ss) {
             t.subregions.push_back(s);
         }
+        auto ds = taskStorage.get_all<DeliveryPo>(where(c(&DeliveryPo::o_task_id) == t.id));
+        for (const auto &d: ds) {
+            t.deliveries.push_back(d);
+        }
     }
 
     for (auto &t: taskPos) {
@@ -503,6 +584,10 @@ std::vector<TaskVo> TaskDataBase::loadTaskFoMap(std::string mapId) {
         auto ss = taskStorage.get_all<SubregionPo>(where(c(&SubregionPo::o_task_id) == t.id));
         for (const auto &s: ss) {
             t.subregions.push_back(s);
+        }
+        auto ds = taskStorage.get_all<DeliveryPo>(where(c(&DeliveryPo::o_task_id) == t.id));
+        for (const auto &d: ds) {
+            t.deliveries.push_back(d);
         }
     }
 
@@ -530,6 +615,10 @@ TaskVo TaskDataBase::loadTaskFoId(long taskId) {
     auto ss = taskStorage.get_all<SubregionPo>(where(c(&SubregionPo::o_task_id) == taskPo.id));
     for (const auto &s: ss) {
         taskPo.subregions.push_back(s);
+    }
+    auto ds = taskStorage.get_all<DeliveryPo>(where(c(&DeliveryPo::o_task_id) == taskPo.id));
+    for (const auto &d: ds) {
+        taskPo.deliveries.push_back(d);
     }
     return taskPo2Vo(taskPo);
 }

@@ -123,6 +123,7 @@ namespace error {
         invalid_source,
         invalid_zones,
         invalid_subregions,
+        invalid_deliveries,
         no_task_for_return_base_station,
         add_zone_fail,
         add_subregion_fail,
@@ -395,6 +396,8 @@ namespace error {
                     return "Invalid zones";
                 case error::invalid_subregions:
                     return "Invalid subregions";
+                case error::invalid_deliveries:
+                    return "Invalid deliveries";
                 case error::no_task_for_return_base_station:
                     return "当前无任务，返回基站需要拍急停后推回基站位置";
                 case error::add_zone_fail:

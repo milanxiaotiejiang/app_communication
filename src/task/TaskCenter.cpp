@@ -22,10 +22,8 @@
 #include "net/base/VersionSubscribe.h"
 
 #include "manager/PublishOutManager.h"
-#include "manager/InternalEventPubManager.h"
 
 #include "future/thread_pool.h"
-#include "clean_history/CleanHistoryCenter.h"
 #include "future/node/node_control.h"
 
 #include <boost/uuid/uuid.hpp>
@@ -54,13 +52,9 @@ std::string TaskCenter::preTask(const RealTask &task) {
         }
     }
 
-    //添加一条历史纪录
-    clean_history_db::CleanHistoryCenter::instance().addCleanHistory(task);
     try {
         return proTask(task);
     } catch (app::exception const &e) {
-        //如果错误，会走到此处，历史更新错误信息
-        clean_history_db::CleanHistoryCenter::instance().launchFailed(task, e);
         const std::error_code &code = e.code();
         throw e;
     }

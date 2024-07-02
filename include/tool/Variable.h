@@ -12,10 +12,7 @@
 class Variable {
 private:
     nav_msgs::OccupancyGrid map_App;
-    int planner_type;
     geometry_msgs::Pose current_pose;
-    bool scan_flag;
-    bool m_move_base_recovery_failure;
     bool m_base_exist;   //是否存在基站
     bool m_face_recognition;   //是否存在基站
     bool m_knob;   //是否存在基站

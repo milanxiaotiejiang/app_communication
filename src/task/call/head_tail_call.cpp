@@ -8,6 +8,7 @@
 #include "future/timer_call.h"
 #include "task/manager/MechanismManager.h"
 #include "manager/elevator_control.h"
+#include "manager/delivery_control.h"
 
 void HeadTailPointCall::handleFlowBlock(const RealBlock &block) {
     if (block.id == FLOW_SEIZE_SEAT) {
@@ -167,6 +168,7 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             break;
         }
         case event::flow::flowing_water_production: {
+
             if (block.retry) {
                 auto nextBlock = findFrontBlock();
                 if (nextBlock.inClean) {
@@ -177,6 +179,10 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
                     }
                 }
                 callGoNextBlock(nextBlock);
+            } else if (block.isDelivery) {
+                LOG_IF(INFO, DEBUG_ELEVATOR) << "HeadTailPointCall : 触发配送逻辑 ...";
+                setFlow(event::flow::trigger_delivery_logic);
+                DeliveryControlManager::instance().handleFlow(block);
             } else {
                 if (plannerQueue.size() == 1) {
                     //最后一个已经走完，移除最后一个再次执行一次，走收拖头
@@ -299,6 +305,9 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
             break;
         case event::trigger_special_post_conditions:
             ElevatorControlManager::instance().completePostCirculation(block.arrive);
+            break;
+        case event::trigger_delivery_logic:
+            DeliveryControlManager::instance().completeCirculation(block.arrive);
             break;
         default:
             LOG(ERROR) << "HeadTailPointCall : 未知的流程 " << static_cast<int>(currentFlow());

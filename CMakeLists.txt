@@ -57,12 +57,13 @@ find_package(catkin REQUIRED COMPONENTS
         eigen_conversions
         replan_msgs
         back_charge_msgs
+        apriltag_ros
 )
 
 catkin_package(
         INCLUDE_DIRS include
         LIBRARIES app_communication
-        CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
+        CATKIN_DEPENDS roscpp rospy std_msgs message_runtime apriltag_ros
         #  DEPENDS system_lib
 )
 
