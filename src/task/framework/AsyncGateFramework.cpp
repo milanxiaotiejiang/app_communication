@@ -329,7 +329,8 @@ void AsyncGateImplement::cancelImplement() {
 }
 
 bool AsyncGateImplement::isImplement() {
-    return implementing;
+//    return implementing;
+    return false;
 }
 
 void AsyncGateImplement::executeOnPointDone(event::error error) {

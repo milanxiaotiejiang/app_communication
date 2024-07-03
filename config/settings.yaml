@@ -1,0 +1,9 @@
+tag_family: 'tag36h11'  # 常用选项: tag36h11, tag25h9, tag16h5
+tag_threads: 2          # 并行处理的线程数，默认为2
+tag_decimate: 1.0       # 输入图像的分辨率缩减因子，1.0表示不缩减
+tag_blur: 0.0           # 输入图像的模糊量，0.0表示不模糊
+tag_refine_edges: 1     # 是否细化边缘，1表示是
+tag_debug: 0            # 是否启用调试模式，0表示否
+max_hamming_dist: 2     # 最大汉明距离，2是一个好的选择
+publish_tf: true        # 是否发布标签的tf，true表示是
+transport_hint: "raw"   # 图像传输方式，默认使用"raw"

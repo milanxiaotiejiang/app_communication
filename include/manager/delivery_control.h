@@ -96,7 +96,11 @@ private:
     bool detection_received_;
     nav_msgs::Odometry current_odom_;
     bool odom_received_;
+
     bool target_reached_;
+
+    double start_x_;
+    double start_y_;
 
     ros::Timer move_timer_;
 
@@ -106,11 +110,13 @@ private:
 
     void odomCallback(const nav_msgs::Odometry::ConstPtr &msg);
 
-    void moveAccordingToTagCallback(const ros::TimerEvent &event);
-
-    bool moveAccordingToTag();
+    void move_timer_fun(const ros::TimerEvent &event);
 
     void doMoveAccordingToTag();
+
+    void doMoveAccordingToOdom();
+
+    void doMoveAccordingToTest();
 
     [[noreturn]] void point_circulation_thread_func();
 
