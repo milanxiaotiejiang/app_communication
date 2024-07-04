@@ -1,20 +1,5 @@
 <launch>
 
-    <!-- 相机参数 -->
-    <arg name="camera_name" default="/camera/color"/>
-    <arg name="image_topic" default="image_raw"/>
-
-    <!-- 加载参数 -->
-    <rosparam command="load" file="$(find app_communication)/config/settings.yaml" ns="apriltag_ros"/>
-    <rosparam command="load" file="$(find app_communication)/config/tags.yaml" ns="apriltag_ros"/>
-
-    <!-- 启动 apriltag_ros 节点 -->
-    <node pkg="apriltag_ros" type="continuous_detector" name="apriltag_ros" output="screen">
-        <remap from="image_rect" to="$(arg camera_name)/$(arg image_topic)"/>
-        <remap from="camera_info" to="$(arg camera_name)/camera_info"/>
-        <param name="publish_tag_detections_image" type="bool" value="true"/>
-    </node>
-
     <include file="$(find app_communication)/launch/bringup_param_zhuoer.launch"/>
 
     <param name="ul_sensor_name_1" value="/mrrobot/ul_sensor1"/>
