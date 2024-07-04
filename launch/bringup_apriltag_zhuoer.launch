@@ -1,16 +1,18 @@
 <launch>
 
+    <arg name="launch_prefix" default=""/>
+    <arg name="node_namespace" default="apriltag_ros_continuous_node"/>
     <!-- 相机参数 -->
     <arg name="camera_name" default="/usb_cam"/>
     <arg name="image_topic" default="image_raw"/>
 
     <!-- 加载参数 -->
-    <rosparam command="load" file="$(find app_communication)/config/settings.yaml" ns="apriltag_ros"/>
-    <rosparam command="load" file="$(find app_communication)/config/tags.yaml" ns="apriltag_ros"/>
+    <rosparam command="load" file="$(find app_communication)/config/settings.yaml" ns="$(arg node_namespace)"/>
+    <rosparam command="load" file="$(find app_communication)/config/tags.yaml" ns="$(arg node_namespace)"/>
 
     <!-- 启动 apriltag_ros 节点 -->
-    <node name="apriltag_ros_continuous_detector" pkg="apriltag_ros" type="continuous_detector" output="screen">
-        <param name="camera_frame" value="usb_cam"/>
+    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="$(arg node_namespace)" clear_params="true"
+          output="screen">
         <remap from="image_rect" to="$(arg camera_name)/$(arg image_topic)"/>
         <remap from="camera_info" to="$(arg camera_name)/camera_info"/>
         <param name="publish_tag_detections_image" type="bool" value="true"/>

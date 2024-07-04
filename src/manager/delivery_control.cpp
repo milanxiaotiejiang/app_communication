@@ -4,6 +4,8 @@
 
 #include <tbb/compat/thread>
 #include <utility>
+#include <tf/LinearMath/Transform.h>
+#include <tf/transform_datatypes.h>
 #include "manager/delivery_control.h"
 #include "simulation.h"
 #include "BaseThrowable.h"
@@ -22,10 +24,9 @@ void DeliveryControlManager::initialize(ros::NodeHandle nh) {
     up_pub_ = nh.advertise<std_msgs::Int32>("/up_pub_", 1);
 
     std::thread point_circulation_thread(&DeliveryControlManager::point_circulation_thread_func, this);
+    point_circulation_thread.detach();
 
     std::thread move_towards_tag_thread(&DeliveryControlManager::move_towards_tag_thread_func, this);
-
-    point_circulation_thread.detach();
     move_towards_tag_thread.detach();
 
     move_timer_ = nh.createTimer(ros::Duration(0.1), &DeliveryControlManager::move_timer_fun, this, false, false);
@@ -34,26 +35,98 @@ void DeliveryControlManager::initialize(ros::NodeHandle nh) {
 void DeliveryControlManager::tagDetectionsCallback(
         const apriltag_ros::AprilTagDetectionArray::ConstPtr &msg) {
 
-    for (const auto &detection: msg->detections) {
+    // 等待检测标志位开启
+    if (record_detection_) {
+        // 只检测一次，停止检测
+        record_detection_ = false;
 
-        for (size_t i = 0; i < detection.id.size(); ++i) {
-            int tag_id = detection.id[i];
-            double tag_size = detection.size[i];
-            const auto &position = detection.pose.pose.pose.position;
-            const auto &orientation = detection.pose.pose.pose.orientation;
+        int target_tag_id_ = currentPoint.deliveryVo.getTag();
+        bool has_target_tag = false;
 
-            LOG(INFO) << "Detected tag ID: " << tag_id;
-            LOG(INFO) << "Tag size: " << tag_size;
-            LOG(INFO) << "Tag position: [x: " << position.x << ", y: " << position.y << ", z: " << position.z << "]";
-            LOG(INFO) << "Tag orientation: [x: " << orientation.x << ", y: " << orientation.y << ", z: "
-                      << orientation.z << ", w: " << orientation.w << "]";
+        for (const auto &detection: msg->detections) {
+
+            for (size_t j = 0; j < detection.id.size(); ++j) {
+                int tag_id = detection.id[j];
+                double tag_size = detection.size[j];
+                const auto &position = detection.pose.pose.pose.position;
+                const auto &orientation = detection.pose.pose.pose.orientation;
+
+                LOG(INFO) << "Detected tag ID: " << tag_id;
+                LOG(INFO) << "Tag size: " << tag_size;
+                LOG(INFO) << "Tag position: [x: " << position.x << ", y: " << position.y << ", z: " << position.z
+                          << "]";
+                LOG(INFO) << "Tag orientation: [x: " << orientation.x << ", y: " << orientation.y << ", z: "
+                          << orientation.z << ", w: " << orientation.w << "]";
+            }
+
+            // 单个目标才能使用
+            if (detection.id.size() == 1) {
+                auto detected_tag_id = detection.id[0];
+
+                if (target_tag_id_ == detected_tag_id) {
+//                    current_detection_ = detection;
+
+                    const auto &position = detection.pose.pose.pose.position;
+                    const auto &orientation = detection.pose.pose.pose.orientation;
+
+                    // 相机相对于机器人的固定变换，位于机器人前方0.1米，高度0.2米
+                    tf::Transform camera_to_base;
+                    camera_to_base.setOrigin(tf::Vector3(0.1, 0.0, 0.2));
+                    camera_to_base.setRotation(tf::Quaternion(0, 0, 0, 1));
+
+                    // 二维码相对于相机的变换
+                    tf::Transform tag_to_camera;
+                    tag_to_camera.setOrigin(tf::Vector3(position.x, position.y, position.z));
+                    tag_to_camera.setRotation(
+                            tf::Quaternion(orientation.x, orientation.y, orientation.z, orientation.w));
+
+                    // 计算二维码相对于机器人的变换
+                    tf::Transform tag_to_base = camera_to_base * tag_to_camera;
+
+                    // 获取机器人的当前里程计信息
+                    tf::Transform base_to_odom;
+                    base_to_odom.setOrigin(tf::Vector3(current_odom_.pose.pose.position.x,
+                                                       current_odom_.pose.pose.position.y,
+                                                       current_odom_.pose.pose.position.z));
+                    base_to_odom.setRotation(tf::Quaternion(current_odom_.pose.pose.orientation.x,
+                                                            current_odom_.pose.pose.orientation.y,
+                                                            current_odom_.pose.pose.orientation.z,
+                                                            current_odom_.pose.pose.orientation.w));
+
+                    // 计算二维码相对于全局坐标系（例如里程计坐标系）的变换
+                    tf::Transform tag_to_odom = base_to_odom * tag_to_base;
+
+                    LOG(INFO) << "Detected tag ID: " << detected_tag_id;
+                    LOG(INFO) << "Tag position in odom - x: " << tag_to_odom.getOrigin().x()
+                              << ", y: " << tag_to_odom.getOrigin().y()
+                              << ", z: " << tag_to_odom.getOrigin().z();
+
+                    RealPoint realPoint;
+                    realPoint.realPosition.x = tag_to_odom.getOrigin().x();
+                    realPoint.realPosition.y = tag_to_odom.getOrigin().y();
+                    realPoint.realPosition.z = tag_to_odom.getOrigin().z();
+                    realPoint.realOrientation.x = tag_to_odom.getRotation().x();
+                    realPoint.realOrientation.y = tag_to_odom.getRotation().y();
+                    realPoint.realOrientation.z = tag_to_odom.getRotation().z();
+                    realPoint.realOrientation.w = tag_to_odom.getRotation().w();
+                    realPoint.core_move = true;
+
+
+                    PointPlanner::instance().goToPoint(realPoint);
+
+                    has_target_tag = true;
+                }
+            }
         }
 
-        if (std::find(detection.id.begin(), detection.id.end(), target_tag_id_) != detection.id.end()) {
-            current_detection_ = detection;
-            detection_received_ = true;
-            return;
+        if (!has_target_tag) {
+            {
+                std::unique_lock<std::mutex> lk(point_mutex_);
+                deliveryState = DeliveryState::OVER;
+            }
+            point_condition_variable_.notify_one();
         }
+
     }
 }
 
@@ -64,97 +137,6 @@ void DeliveryControlManager::odomCallback(const nav_msgs::Odometry::ConstPtr &ms
 
 void DeliveryControlManager::move_timer_fun(const ros::TimerEvent &event) {
 
-    if (Environment::instance().isRealEnvironment) {
-
-        doMoveAccordingToTag();
-        doMoveAccordingToOdom();
-
-    } else {
-
-//        doMoveAccordingToTest();
-        doMoveAccordingToOdom();
-    }
-
-    if (target_reached_) {
-        move_timer_.stop();
-
-        {
-            std::unique_lock<std::mutex> lk(point_mutex_);
-            deliveryState = DeliveryState::DELIVERY;
-        }
-        point_condition_variable_.notify_one();
-
-        LOG(INFO) << "Target reached!";
-    }
-
-}
-
-void DeliveryControlManager::doMoveAccordingToTag() {
-    if (!detection_received_ || !odom_received_) {
-        return;
-    }
-
-    const auto &position = current_detection_.pose.pose.pose.position;
-    double distance = std::sqrt(position.x * position.x + position.y * position.y + position.z * position.z);
-    double angle_to_tag = std::atan2(position.y, position.x);
-
-    geometry_msgs::Twist twist;
-
-    // 如果距离大于目标距离，前进
-    if (distance > target_distance_) {
-        twist.linear.x = linear_speed_;
-        twist.angular.z = angular_speed_ * angle_to_tag;
-    } else {
-        twist.linear.x = 0;
-        twist.angular.z = 0;
-        detection_received_ = false;  // 重置检测接收状态
-        target_reached_ = true;  // 标记到达目标位置
-    }
-
-    cmd_vel_pub_.publish(twist);
-
-    // 打印位置和距离信息
-    LOG(INFO) << "Current Distance: " << distance << ", Target Distance: " << target_distance_;
-    LOG(INFO) << "Position - x: " << position.x << ", y: " << position.y << ", z: " << position.z;
-
-}
-
-void DeliveryControlManager::doMoveAccordingToOdom() {
-    if (!odom_received_) {
-        return;
-    }
-
-    double current_x = current_odom_.pose.pose.position.x;
-    double current_y = current_odom_.pose.pose.position.y;
-
-    double distance_traveled = std::sqrt(std::pow(current_x - start_x_, 2) + std::pow(current_y - start_y_, 2));
-
-    geometry_msgs::Twist twist;
-
-    if (distance_traveled < target_distance_) {
-        twist.linear.x = linear_speed_;
-    } else {
-        twist.linear.x = 0;
-        target_reached_ = true;
-    }
-
-    cmd_vel_pub_.publish(twist);
-
-    LOG(INFO) << "Current Distance Traveled: " << distance_traveled << ", Target Distance: " << target_distance_;
-    LOG(INFO) << "Position - x: " << current_x << ", y: " << current_y;
-}
-
-void DeliveryControlManager::doMoveAccordingToTest() {
-    static int call_count = 0;
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    call_count++;
-    LOG_IF(INFO, DEBUG_DELIVERY) << "Executing moveTarget, call count: " << call_count;
-
-    if (call_count >= 5) {
-        call_count = 0; // 重置计数器
-
-        target_reached_ = true;
-    }
 }
 
 void DeliveryControlManager::point_circulation_thread_func() {
@@ -190,21 +172,13 @@ void DeliveryControlManager::point_circulation_thread_func() {
 }
 
 void DeliveryControlManager::move_towards_tag_thread_func() {
-    while (true) {
-        std::unique_lock<std::mutex> lock(move_mutex_);
-        move_condition_variable_.wait(lock, [this] { return move_triggered_; });
-
-        move_triggered_ = false;
-
-        LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager 启动进入预定位置的逻辑 ... ";
-
-        start_x_ = current_odom_.pose.pose.position.x;
-        start_y_ = current_odom_.pose.pose.position.y;
-        target_reached_ = false;
-
-        move_timer_.start();
-
-    }
+//    while (true) {
+//        std::unique_lock<std::mutex> lock(move_mutex_);
+//        move_condition_variable_.wait(lock, [this] { return move_triggered_; });
+//        move_triggered_ = false;
+//
+//        // todo
+//    }
 }
 
 
@@ -280,11 +254,19 @@ void DeliveryControlManager::doDistinguish() {
         try {
             LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager april_tag 再次定位 ... ";
 
-            {
-                std::unique_lock<std::mutex> lk(move_mutex_);
-                move_triggered_ = true;
-                move_condition_variable_.notify_one();
+            if (odom_received_) {
+                LOG_IF(ERROR, DEBUG_DELIVERY) << "DeliveryControlManager odom_received_ is false";
+                goError(DeliveryError::DeliveryDistinguishError);
+                return;
             }
+//            {
+//                std::unique_lock<std::mutex> lk(move_mutex_);
+//                move_triggered_ = true;
+//                move_condition_variable_.notify_one();
+//            }
+
+            // 开启检测
+            record_detection_ = true;
 
         } catch (app::exception const &e) {
             LOG_IF(ERROR, DEBUG_DELIVERY) << e.what();
@@ -363,6 +345,12 @@ void DeliveryControlManager::completeCirculation(bool arrive) {
             }
             point_condition_variable_.notify_one();
 
+        } else if (arriveState == ArriveState::ArriveDistinguish) {
+            {
+                std::unique_lock<std::mutex> lk(point_mutex_);
+                deliveryState = DeliveryState::DELIVERY;
+            }
+            point_condition_variable_.notify_one();
         }
     } else {
         LOG_IF(ERROR, DEBUG_DELIVERY) << "DeliveryControlManager completeCirculation fail ... ";
@@ -372,8 +360,11 @@ void DeliveryControlManager::completeCirculation(bool arrive) {
 }
 
 void DeliveryControlManager::handleFlow(const RealBlock &block) {
-    realBlock = block;
-    for (const auto &point: block.plannerPoints) {
+
+    for (int i = 0; i < block.plannerPoints.size(); ++i) {
+        auto point = block.plannerPoints[i];
+        point.deliveryVo.setTag(2);
+        point.deliveryVo.setCmd(2);
         plannerQueue.push_back(point);
     }
 
