@@ -73,9 +73,9 @@ void DeliveryControlManager::tagDetectionsCallback(
                     const auto &position = detection.pose.pose.pose.position;
                     const auto &orientation = detection.pose.pose.pose.orientation;
 
-                    // 相机相对于机器人的固定变换，位于机器人前方0.4米，高度0.4米
+                    // 相机相对于机器人的固定变换，位于机器人前方0.4米，高度0.3米
                     tf::Transform camera_to_base;
-                    camera_to_base.setOrigin(tf::Vector3(0.4, 0.0, 0.4));
+                    camera_to_base.setOrigin(tf::Vector3(0.4, 0.0, 0.3));
                     camera_to_base.setRotation(tf::Quaternion(0, 0, 0, 1));
 
                     // 二维码相对于相机的变换
