@@ -40,27 +40,31 @@ void DeliveryControlManager::tagDetectionsCallback(
     // 等待检测标志位开启
     if (record_detection_) {
 
+
         int target_tag_id_ = currentPoint.deliveryVo.getTag();
         bool has_target_tag = false;
 
+        LOG(INFO) << "Detected tag ID: " << target_tag_id_;
+
         for (const auto &detection: msg->detections) {
 
-            for (size_t j = 0; j < detection.id.size(); ++j) {
-                int tag_id = detection.id[j];
-                double tag_size = detection.size[j];
-                const auto &position = detection.pose.pose.pose.position;
-                const auto &orientation = detection.pose.pose.pose.orientation;
+            // for (size_t j = 0; j < detection.id.size(); ++j) {
+            //     int tag_id = detection.id[j];
+            //     double tag_size = detection.size[j];
+            //     const auto &position = detection.pose.pose.pose.position;
+            //     const auto &orientation = detection.pose.pose.pose.orientation;
 
-                LOG(INFO) << "Detected tag ID: " << tag_id;
-                LOG(INFO) << "Tag size: " << tag_size;
-                LOG(INFO) << "Tag position: [x: " << position.x << ", y: " << position.y << ", z: " << position.z
-                          << "]";
-                LOG(INFO) << "Tag orientation: [x: " << orientation.x << ", y: " << orientation.y << ", z: "
-                          << orientation.z << ", w: " << orientation.w << "]";
-            }
+            //     LOG(INFO) << "Detected tag ID: " << tag_id;
+            //     LOG(INFO) << "Tag size: " << tag_size;
+            //     LOG(INFO) << "Tag position: [x: " << position.x << ", y: " << position.y << ", z: " << position.z
+            //               << "]";
+            //     LOG(INFO) << "Tag orientation: [x: " << orientation.x << ", y: " << orientation.y << ", z: "
+            //               << orientation.z << ", w: " << orientation.w << "]";
+            // }
 
             // 单个目标才能使用
             if (detection.id.size() == 1) {
+
                 auto detected_tag_id = detection.id[0];
 
                 if (target_tag_id_ == detected_tag_id) {
@@ -69,9 +73,9 @@ void DeliveryControlManager::tagDetectionsCallback(
                     const auto &position = detection.pose.pose.pose.position;
                     const auto &orientation = detection.pose.pose.pose.orientation;
 
-                    // 相机相对于机器人的固定变换，位于机器人前方0.1米，高度0.2米
+                    // 相机相对于机器人的固定变换，位于机器人前方0.4米，高度0.4米
                     tf::Transform camera_to_base;
-                    camera_to_base.setOrigin(tf::Vector3(0.1, 0.0, 0.2));
+                    camera_to_base.setOrigin(tf::Vector3(0.4, 0.0, 0.4));
                     camera_to_base.setRotation(tf::Quaternion(0, 0, 0, 1));
 
                     // 二维码相对于相机的变换
@@ -96,7 +100,12 @@ void DeliveryControlManager::tagDetectionsCallback(
                     // 计算二维码相对于全局坐标系（例如里程计坐标系）的变换
                     tf::Transform tag_to_odom = base_to_odom * tag_to_base;
 
-                    LOG(INFO) << "Detected tag ID: " << detected_tag_id;
+
+                    LOG(INFO) << "detection position - x: " << position.x
+                              << ", y: " << position.y << ", z: " << position.z;
+                    LOG(INFO) << "current_odom_ position - x: " << current_odom_.pose.pose.position.x
+                              << ", y: " << current_odom_.pose.pose.position.y
+                              << ", z: " << current_odom_.pose.pose.position.z;
                     LOG(INFO) << "Tag position in odom - x: " << tag_to_odom.getOrigin().x()
                               << ", y: " << tag_to_odom.getOrigin().y()
                               << ", z: " << tag_to_odom.getOrigin().z();
@@ -112,6 +121,7 @@ void DeliveryControlManager::tagDetectionsCallback(
                     realPoint.core_move = true;
 
 
+                    arriveState = ArriveState::ArriveDistinguish;
                     PointPlanner::instance().goToPoint(realPoint);
 
                     has_target_tag = true;
@@ -123,11 +133,13 @@ void DeliveryControlManager::tagDetectionsCallback(
         if (has_target_tag) {
             // 正常检测出来点位，已经发给move_base了，这里无需做任何事情
 
+            record_detection_ = false;
+
             LOG(INFO) << "Detected target tag, no need to do anything. record_detection_count_ : "
                       << record_detection_count_;
         } else {
             record_detection_count_++;
-            if (record_detection_count_ > 50) {
+            if (record_detection_count_ > 100) {
                 // 在一定的阈值内未检测到目标点位，认为检测失败，直接到下一个点位
                 LOG(INFO) << "Detected target tag failed, record_detection_count_ : " << record_detection_count_;
                 record_detection_ = false;
@@ -303,10 +315,39 @@ void DeliveryControlManager::doDistinguish() {
 void DeliveryControlManager::doDelivery() {
     pool_.execute([this]() {
         try {
-            LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager 抬升 ... ";
+            LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager 抬升并后退 ... ";
 
             up_pub_.publish(std_msgs::Int32());
-            std::this_thread::sleep_for(std::chrono::seconds(5));
+
+            // 目标距离，单位：米
+            double target_distance = 0.5;
+
+            // 速度设置，单位：米/秒
+            double backward_speed = -0.2; // 负值表示后退
+
+            // 发布速度消息的频率，单位：赫兹
+            double rate = 10.0;
+            ros::Rate loop_rate(rate);
+
+            // 总共需要运行的时间，单位：秒
+            double duration = target_distance / std::abs(backward_speed);
+
+            // 运行循环的次数
+            int iterations = duration * rate;
+
+            for (int i = 0; i < iterations; ++i) {
+                geometry_msgs::Twist cmd_vel_msg;
+                cmd_vel_msg.linear.x = backward_speed;
+                cmd_vel_pub_.publish(cmd_vel_msg);
+                loop_rate.sleep();
+            }
+
+            // 停止移动
+            geometry_msgs::Twist cmd_vel_msg;
+            cmd_vel_msg.linear.x = 0;
+            cmd_vel_pub_.publish(cmd_vel_msg);
+
+//            std::this_thread::sleep_for(std::chrono::seconds(5));
 
             {
                 std::unique_lock<std::mutex> lk(point_mutex_);
