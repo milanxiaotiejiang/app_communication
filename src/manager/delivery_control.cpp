@@ -271,7 +271,7 @@ void DeliveryControlManager::doDistinguish() {
         try {
             LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager april_tag 再次定位 ... ";
 
-            if (odom_received_) {
+            if (!odom_received_) {
                 LOG_IF(ERROR, DEBUG_DELIVERY) << "DeliveryControlManager odom_received_ is false";
                 goError(DeliveryError::DeliveryDistinguishError);
                 return;
