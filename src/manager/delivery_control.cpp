@@ -34,11 +34,11 @@ void DeliveryControlManager::initialize(ros::NodeHandle nh) {
 
 void DeliveryControlManager::tagDetectionsCallback(
         const apriltag_ros::AprilTagDetectionArray::ConstPtr &msg) {
+    aprilTagDetectionArray = *msg;
+    april_tag_detection_received_ = true;
 
     // 等待检测标志位开启
     if (record_detection_) {
-        // 只检测一次，停止检测
-        record_detection_ = false;
 
         int target_tag_id_ = currentPoint.deliveryVo.getTag();
         bool has_target_tag = false;
@@ -117,17 +117,34 @@ void DeliveryControlManager::tagDetectionsCallback(
                     has_target_tag = true;
                 }
             }
+
         }
 
-        if (!has_target_tag) {
-            {
-                std::unique_lock<std::mutex> lk(point_mutex_);
-                deliveryState = DeliveryState::OVER;
+        if (has_target_tag) {
+            // 正常检测出来点位，已经发给move_base了，这里无需做任何事情
+
+            LOG(INFO) << "Detected target tag, no need to do anything. record_detection_count_ : "
+                      << record_detection_count_;
+        } else {
+            record_detection_count_++;
+            if (record_detection_count_ > 50) {
+                // 在一定的阈值内未检测到目标点位，认为检测失败，直接到下一个点位
+                LOG(INFO) << "Detected target tag failed, record_detection_count_ : " << record_detection_count_;
+                record_detection_ = false;
+                {
+                    std::unique_lock<std::mutex> lk(point_mutex_);
+                    deliveryState = DeliveryState::OVER;
+                }
+                point_condition_variable_.notify_one();
+            } else {
+                // 继续再次重试
+                LOG(INFO) << "Detected target tag failed, continue to retry. record_detection_count_ : "
+                          << record_detection_count_;
             }
-            point_condition_variable_.notify_one();
         }
 
     }
+
 }
 
 void DeliveryControlManager::odomCallback(const nav_msgs::Odometry::ConstPtr &msg) {
@@ -259,14 +276,16 @@ void DeliveryControlManager::doDistinguish() {
                 goError(DeliveryError::DeliveryDistinguishError);
                 return;
             }
-//            {
-//                std::unique_lock<std::mutex> lk(move_mutex_);
-//                move_triggered_ = true;
-//                move_condition_variable_.notify_one();
-//            }
+            {
+                std::unique_lock<std::mutex> lk(move_mutex_);
+                move_triggered_ = true;
+                move_condition_variable_.notify_one();
+            }
 
             // 开启检测
+            tagDetectionState = TagDetectionStateNone;
             record_detection_ = true;
+            record_detection_count_ = 0;
 
         } catch (app::exception const &e) {
             LOG_IF(ERROR, DEBUG_DELIVERY) << e.what();

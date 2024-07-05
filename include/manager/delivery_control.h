@@ -63,12 +63,12 @@ private:
         ArriveDistinguish,
     };
 
-//    enum TagDetectionState {
-//        TagDetectionStateNone,
-//        TagDetectionStateDetected,    // none -> into 从初始状态到已经检测到对应的tag时的状态
-//        TagDetectionStateNotDetected,     // none -> out 从初始状态到未检测到对应的tag时的状态
-//        TagDetectionStateReached,    // into -> over 从已经检测到对应的tag到已经到达对应的tag时的状态
-//    };
+    enum TagDetectionState {
+        TagDetectionStateNone,
+        TagDetectionStateDetected,    // none -> into 从初始状态到已经检测到对应的tag时的状态
+        TagDetectionStateNotDetected,     // none -> out 从初始状态到未检测到对应的tag时的状态
+        TagDetectionStateReached,    // into -> over 从已经检测到对应的tag到已经到达对应的tag时的状态
+    };
 
 
     ros::Subscriber tag_sub_;
@@ -87,23 +87,26 @@ private:
     std::condition_variable point_condition_variable_;
     std::atomic<DeliveryState> deliveryState;
 
-//    std::mutex move_mutex_;
-//    std::condition_variable move_condition_variable_;
-//    bool move_triggered_;
+    std::mutex move_mutex_;
+    std::condition_variable move_condition_variable_;
+    bool move_triggered_;
 
     DeliveryError deliveryError;
     ArriveState arriveState;
 
     bool record_detection_;                                 // 是否开启接受消息
+    int record_detection_count_;                            // 记录接受消息的次数
 
 //    apriltag_ros::AprilTagDetection current_detection_;
 //    bool detection_received_;
 
+    apriltag_ros::AprilTagDetectionArray aprilTagDetectionArray;
+    bool april_tag_detection_received_;
 
     nav_msgs::Odometry current_odom_;
     bool odom_received_;
 
-//    TagDetectionState tagDetectionState = TagDetectionStateNone;
+    TagDetectionState tagDetectionState = TagDetectionStateNone;
 
 //    double start_x_;
 //    double start_y_;

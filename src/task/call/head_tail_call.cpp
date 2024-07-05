@@ -321,22 +321,24 @@ void HeadTailPointCall::callOpenMechanism(const WorkStatus &status, bool knife, 
     flowOpenMechanismPoint.arrive = true;
 
 //    MechanismManager::instance().controlWorkStatus(status, knife);
-    if (!Environment::instance().isRealEnvironment) {
-        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this]() {
-            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
-            notify_one([this]() {
-                pushBlock(flowOpenMechanismPoint);
-            });
-        });
-    } else {
-        async::TimerCall::instance().baseLoop()->scheduleLater(
-                std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this]() {
-                    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
-                    notify_one([this]() {
-                        pushBlock(flowOpenMechanismPoint);
-                    });
-                });
-    }
+//    if (!Environment::instance().isRealEnvironment) {
+//        async::TimerCall::instance().baseLoop()->scheduleLater(std::chrono::seconds(1), [this]() {
+//            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
+//            notify_one([this]() {
+//                pushBlock(flowOpenMechanismPoint);
+//            });
+//        });
+//    } else {
+//        async::TimerCall::instance().baseLoop()->scheduleLater(
+//                std::chrono::seconds(OPENING_TIME_OF_CLEANING_MECHANISM), [this]() {
+//                    LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 相应的清洁机构已打开 ...";
+//                    notify_one([this]() {
+//                        pushBlock(flowOpenMechanismPoint);
+//                    });
+//                });
+//    }
+
+    pushBlock(flowOpenMechanismPoint);
 }
 
 void HeadTailPointCall::callCloseMechanism(std::function<void()> f) {
