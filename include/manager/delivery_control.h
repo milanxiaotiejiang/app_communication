@@ -96,8 +96,10 @@ private:
     ArriveState arriveState;
 
     bool record_detection_;                                 // 是否开启接受消息
-    int record_detection_count_;                            // 记录接受消息的次数
-    int has_target_tag_count_;
+    int tag_detection_count_;                            // 记录接受消息的次数
+
+    std::vector<tf::Transform> recent_detections_;          // 用于存储最近的检测结果
+    int continuous_detection_count_ = 0;            // 用于跟踪连续检测到目标标签的次数
 
 //    apriltag_ros::AprilTagDetection current_detection_;
 //    bool detection_received_;
@@ -116,6 +118,14 @@ private:
     ros::Timer move_timer_;
 
     DeliveryFailCallback mDeliveryFailCallback;
+
+    tf::Transform calculateTransform(const tf::Vector3 &avg_position, const tf::Quaternion &avg_orientation);
+
+    tf::Transform calculateTagToOdomTransform(const tf::Transform &tag_to_base);
+
+    void publishTagPosition(const tf::Transform &tag_to_odom);
+
+    void moveToTag(const tf::Transform &tag_to_odom);
 
     void tagDetectionsCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr &msg);
 

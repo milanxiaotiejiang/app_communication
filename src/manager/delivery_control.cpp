@@ -35,6 +35,62 @@ void DeliveryControlManager::initialize(ros::NodeHandle nh) {
     move_timer_ = nh.createTimer(ros::Duration(0.1), &DeliveryControlManager::move_timer_fun, this, false, false);
 }
 
+tf::Transform
+DeliveryControlManager::calculateTransform(const tf::Vector3 &avg_position, const tf::Quaternion &avg_orientation) {
+    // 相机到基座的固定变换
+    tf::Transform camera_to_base(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.4, 0.0, 0.3));
+
+    // 从平均位置和方向创建标签到相机的变换
+    tf::Transform tag_to_camera(avg_orientation, avg_position);
+
+    // 计算标签到基座的最终变换
+    return camera_to_base * tag_to_camera;
+}
+
+tf::Transform DeliveryControlManager::calculateTagToOdomTransform(const tf::Transform &tag_to_base) {
+    // 获取机器人的当前里程计信息
+    tf::Transform base_to_odom;
+    base_to_odom.setOrigin(tf::Vector3(current_odom_.pose.pose.position.x,
+                                       current_odom_.pose.pose.position.y,
+                                       current_odom_.pose.pose.position.z));
+    base_to_odom.setRotation(tf::Quaternion(current_odom_.pose.pose.orientation.x,
+                                            current_odom_.pose.pose.orientation.y,
+                                            current_odom_.pose.pose.orientation.z,
+                                            current_odom_.pose.pose.orientation.w));
+
+    // 计算二维码相对于全局坐标系（例如里程计坐标系）的变换
+    return base_to_odom * tag_to_base;
+}
+
+void DeliveryControlManager::publishTagPosition(const tf::Transform &tag_to_odom) {
+    geometry_msgs::PoseStamped pose;
+    pose.header.frame_id = "odom";
+    pose.header.stamp = ros::Time::now();
+    pose.pose.position.x = tag_to_odom.getOrigin().getX();
+    pose.pose.position.y = tag_to_odom.getOrigin().getY();
+    pose.pose.position.z = tag_to_odom.getOrigin().getZ();
+    pose.pose.orientation.x = tag_to_odom.getRotation().x();
+    pose.pose.orientation.y = tag_to_odom.getRotation().y();
+    pose.pose.orientation.z = tag_to_odom.getRotation().z();
+    pose.pose.orientation.w = tag_to_odom.getRotation().w();
+    pose_pub_.publish(pose);
+}
+
+void DeliveryControlManager::moveToTag(const tf::Transform &tag_to_odom) {
+    RealPoint realPoint;
+    realPoint.realPosition.x = tag_to_odom.getOrigin().getX();
+    realPoint.realPosition.y = tag_to_odom.getOrigin().getY();
+    realPoint.realPosition.z = tag_to_odom.getOrigin().getZ();
+    realPoint.realOrientation.x = tag_to_odom.getRotation().x();
+    realPoint.realOrientation.y = tag_to_odom.getRotation().y();
+    realPoint.realOrientation.z = tag_to_odom.getRotation().z();
+    realPoint.realOrientation.w = tag_to_odom.getRotation().w();
+    realPoint.core_move = true;
+
+    arriveState = ArriveState::ArriveDistinguish;
+    PointPlanner::instance().goToPoint(realPoint);
+}
+
 void DeliveryControlManager::tagDetectionsCallback(
         const apriltag_ros::AprilTagDetectionArray::ConstPtr &msg) {
     aprilTagDetectionArray = *msg;
@@ -42,7 +98,6 @@ void DeliveryControlManager::tagDetectionsCallback(
 
     // 等待检测标志位开启
     if (record_detection_) {
-
 
         int target_tag_id_ = currentPoint.deliveryVo.getTag();
         bool has_target_tag = false;
@@ -66,103 +121,80 @@ void DeliveryControlManager::tagDetectionsCallback(
             // }
 
             // 单个目标才能使用
-            if (detection.id.size() == 1) {
+            if (detection.id.size() == 1 && detection.id[0] == target_tag_id_) {
 
-                auto detected_tag_id = detection.id[0];
+                const auto &position = detection.pose.pose.pose.position;
+                const auto &orientation = detection.pose.pose.pose.orientation;
 
-                if (target_tag_id_ == detected_tag_id) {
-//                    current_detection_ = detection;
+                // 相机相对于机器人的固定变换，位于机器人前方0.4米，高度0.3米
+                tf::Transform camera_to_base;
+                camera_to_base.setOrigin(tf::Vector3(0.4, 0.0, 0.3));
+                camera_to_base.setRotation(tf::Quaternion(0, 0, 0, 1));
+                // 二维码相对于相机的变换
+                tf::Transform tag_to_camera(tf::Quaternion(orientation.x, orientation.y, orientation.z, orientation.w),
+                                            tf::Vector3(position.x, position.y, position.z));
 
-                    has_target_tag_count_++;
+                recent_detections_.push_back(tag_to_camera);
+                continuous_detection_count_++;
 
-                    if (has_target_tag_count_ > 30) {
-
-                        const auto &position = detection.pose.pose.pose.position;
-                        const auto &orientation = detection.pose.pose.pose.orientation;
-
-                        // 相机相对于机器人的固定变换，位于机器人前方0.4米，高度0.3米
-                        tf::Transform camera_to_base;
-                        camera_to_base.setOrigin(tf::Vector3(0.4, 0.0, 0.3));
-                        camera_to_base.setRotation(tf::Quaternion(0, 0, 0, 1));
-
-                        // 二维码相对于相机的变换
-                        tf::Transform tag_to_camera;
-                        tag_to_camera.setOrigin(tf::Vector3(position.x, position.y, position.z));
-                        tag_to_camera.setRotation(
-                                tf::Quaternion(orientation.x, orientation.y, orientation.z, orientation.w));
-
-                        // 计算二维码相对于机器人的变换
-                        tf::Transform tag_to_base = camera_to_base * tag_to_camera;
-
-                        // 获取机器人的当前里程计信息
-                        tf::Transform base_to_odom;
-                        base_to_odom.setOrigin(tf::Vector3(current_odom_.pose.pose.position.x,
-                                                           current_odom_.pose.pose.position.y,
-                                                           current_odom_.pose.pose.position.z));
-                        base_to_odom.setRotation(tf::Quaternion(current_odom_.pose.pose.orientation.x,
-                                                                current_odom_.pose.pose.orientation.y,
-                                                                current_odom_.pose.pose.orientation.z,
-                                                                current_odom_.pose.pose.orientation.w));
-
-                        // 计算二维码相对于全局坐标系（例如里程计坐标系）的变换
-                        tf::Transform tag_to_odom = base_to_odom * tag_to_base;
-
-
-                        LOG(INFO) << "detection position - x: " << position.x
-                                  << ", y: " << position.y << ", z: " << position.z;
-                        LOG(INFO) << "current_odom_ position - x: " << current_odom_.pose.pose.position.x
-                                  << ", y: " << current_odom_.pose.pose.position.y
-                                  << ", z: " << current_odom_.pose.pose.position.z;
-                        LOG(INFO) << "Tag position in odom - x: " << tag_to_odom.getOrigin().x()
-                                  << ", y: " << tag_to_odom.getOrigin().y()
-                                  << ", z: " << tag_to_odom.getOrigin().z();
-
-                        geometry_msgs::PoseStamped pose;
-                        pose.header.frame_id = "odom";
-                        pose.header.stamp = ros::Time::now();
-                        pose.pose.position.x = tag_to_odom.getOrigin().x();
-                        pose.pose.position.y = tag_to_odom.getOrigin().y();
-                        pose.pose.position.z = tag_to_odom.getOrigin().z();
-                        pose.pose.orientation.x = tag_to_odom.getRotation().x();
-                        pose.pose.orientation.y = tag_to_odom.getRotation().y();
-                        pose.pose.orientation.z = tag_to_odom.getRotation().z();
-                        pose.pose.orientation.w = tag_to_odom.getRotation().w();
-
-                        pose_pub_.publish(pose);
-
-                        RealPoint realPoint;
-                        realPoint.realPosition.x = tag_to_odom.getOrigin().x();
-                        realPoint.realPosition.y = tag_to_odom.getOrigin().y();
-                        realPoint.realPosition.z = tag_to_odom.getOrigin().z();
-                        realPoint.realOrientation.x = tag_to_odom.getRotation().x();
-                        realPoint.realOrientation.y = tag_to_odom.getRotation().y();
-                        realPoint.realOrientation.z = tag_to_odom.getRotation().z();
-                        realPoint.realOrientation.w = tag_to_odom.getRotation().w();
-                        realPoint.core_move = true;
-
-
-                        arriveState = ArriveState::ArriveDistinguish;
-                        PointPlanner::instance().goToPoint(realPoint);
-
-                        has_target_tag = true;
-                    }
+                if (continuous_detection_count_ >= 30) {
+                    has_target_tag = true;
+                    break;
                 }
+
+            } else {
+                // 如果检测到非目标标签ID，重置累计的数据
+                recent_detections_.clear();
+                continuous_detection_count_ = 0;
             }
 
         }
 
         if (has_target_tag) {
-            // 正常检测出来点位，已经发给move_base了，这里无需做任何事情
+
+            LOG(INFO) << "Detected target tag, no need to do anything."
+                      << "  record_detection_count_ : " << tag_detection_count_
+                      << "  continuous_detection_count_ : " << continuous_detection_count_;
+
+            // 正常检测出来点位
+            tf::Vector3 avg_position(0, 0, 0);
+            tf::Quaternion avg_orientation(0, 0, 0, 0);
+
+            // 只计算最后10次的平均值
+            int start_index = std::max(0, int(recent_detections_.size()) - 10);  // 确保从最后10个开始
+
+            for (int i = start_index; i < recent_detections_.size(); ++i) {
+                avg_position += recent_detections_[i].getOrigin();
+                avg_orientation += recent_detections_[i].getRotation();
+            }
+            avg_position /= 10;  // 只平均最后10个检测
+            avg_orientation.normalize();
+
+            tf::Transform avg_tag_to_base = calculateTransform(avg_position, avg_orientation);
+
+            tf::Transform tag_to_odom = calculateTagToOdomTransform(avg_tag_to_base);
+
+
+            LOG(INFO) << "detection position - x: " << avg_tag_to_base.getOrigin().getX()
+                      << ", y: " << avg_tag_to_base.getOrigin().getY() << ", z: " << avg_tag_to_base.getOrigin().getZ();
+            LOG(INFO) << "Tag position in odom - x: " << tag_to_odom.getOrigin().getX()
+                      << ", y: " << tag_to_odom.getOrigin().getY()
+                      << ", z: " << tag_to_odom.getOrigin().getZ();
+            LOG(INFO) << "current_odom_ position - x: " << current_odom_.pose.pose.position.x
+                      << ", y: " << current_odom_.pose.pose.position.y
+                      << ", z: " << current_odom_.pose.pose.position.z;
+
+            publishTagPosition(tag_to_odom);
+
+            moveToTag(tag_to_odom);
 
             record_detection_ = false;
 
-            LOG(INFO) << "Detected target tag, no need to do anything. record_detection_count_ : "
-                      << record_detection_count_;
         } else {
-            record_detection_count_++;
-            if (record_detection_count_ > 100) {
+            tag_detection_count_++;
+            if (tag_detection_count_ > 100) {
                 // 在一定的阈值内未检测到目标点位，认为检测失败，直接到下一个点位
-                LOG(INFO) << "Detected target tag failed, record_detection_count_ : " << record_detection_count_;
+                LOG(INFO) << "Detected target tag failed, record_detection_count_ : " << tag_detection_count_;
                 record_detection_ = false;
                 {
                     std::unique_lock<std::mutex> lk(point_mutex_);
@@ -172,7 +204,7 @@ void DeliveryControlManager::tagDetectionsCallback(
             } else {
                 // 继续再次重试
                 LOG(INFO) << "Detected target tag failed, continue to retry. record_detection_count_ : "
-                          << record_detection_count_;
+                          << tag_detection_count_;
             }
         }
 
@@ -320,8 +352,11 @@ void DeliveryControlManager::doDistinguish() {
                     std::this_thread::sleep_for(std::chrono::seconds(1));
                     // 开启检测
                     tagDetectionState = TagDetectionStateNone;
-                    record_detection_count_ = 0;
-                    has_target_tag_count_ = 0;
+                    tag_detection_count_ = 0;
+
+                    recent_detections_.clear();
+                    continuous_detection_count_ = 0;
+
                     record_detection_ = true;
                 } else {
                     LOG_IF(INFO, DEBUG_DELIVERY) << "3. 跳过 april_tag 定位 ... ";
