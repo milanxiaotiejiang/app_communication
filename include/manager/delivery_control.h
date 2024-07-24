@@ -76,6 +76,8 @@ private:
 
     ros::Publisher cmd_vel_pub_;
 
+    ros::Publisher pose_pub_;
+
     RealBlock realBlock;
     std::deque<RealPoint> plannerQueue;
     RealPoint currentPoint;

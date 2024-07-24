@@ -24,6 +24,8 @@ void DeliveryControlManager::initialize(ros::NodeHandle nh) {
 
     cmd_vel_pub_ = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
 
+    pose_pub_ = nh.advertise<geometry_msgs::PoseStamped>("/tag_to_odom/goal", 1);
+
     std::thread point_circulation_thread(&DeliveryControlManager::point_circulation_thread_func, this);
     point_circulation_thread.detach();
 
@@ -73,8 +75,7 @@ void DeliveryControlManager::tagDetectionsCallback(
 
                     has_target_tag_count_++;
 
-                    if(has_target_tag_count_ > 10){
-
+                    if (has_target_tag_count_ > 30) {
 
                         const auto &position = detection.pose.pose.pose.position;
                         const auto &orientation = detection.pose.pose.pose.orientation;
@@ -96,8 +97,8 @@ void DeliveryControlManager::tagDetectionsCallback(
                         // 获取机器人的当前里程计信息
                         tf::Transform base_to_odom;
                         base_to_odom.setOrigin(tf::Vector3(current_odom_.pose.pose.position.x,
-                                                        current_odom_.pose.pose.position.y,
-                                                        current_odom_.pose.pose.position.z));
+                                                           current_odom_.pose.pose.position.y,
+                                                           current_odom_.pose.pose.position.z));
                         base_to_odom.setRotation(tf::Quaternion(current_odom_.pose.pose.orientation.x,
                                                                 current_odom_.pose.pose.orientation.y,
                                                                 current_odom_.pose.pose.orientation.z,
@@ -108,14 +109,27 @@ void DeliveryControlManager::tagDetectionsCallback(
 
 
                         LOG(INFO) << "detection position - x: " << position.x
-                                << ", y: " << position.y << ", z: " << position.z;
+                                  << ", y: " << position.y << ", z: " << position.z;
                         LOG(INFO) << "current_odom_ position - x: " << current_odom_.pose.pose.position.x
-                                << ", y: " << current_odom_.pose.pose.position.y
-                                << ", z: " << current_odom_.pose.pose.position.z;
+                                  << ", y: " << current_odom_.pose.pose.position.y
+                                  << ", z: " << current_odom_.pose.pose.position.z;
                         LOG(INFO) << "Tag position in odom - x: " << tag_to_odom.getOrigin().x()
-                                << ", y: " << tag_to_odom.getOrigin().y()
-                                << ", z: " << tag_to_odom.getOrigin().z();
-                        // Tag position in odom - x: 1.73756, y: 0.329602, z: 0.99652
+                                  << ", y: " << tag_to_odom.getOrigin().y()
+                                  << ", z: " << tag_to_odom.getOrigin().z();
+
+                        geometry_msgs::PoseStamped pose;
+                        pose.header.frame_id = "odom";
+                        pose.header.stamp = ros::Time::now();
+                        pose.pose.position.x = tag_to_odom.getOrigin().x();
+                        pose.pose.position.y = tag_to_odom.getOrigin().y();
+                        pose.pose.position.z = tag_to_odom.getOrigin().z();
+                        pose.pose.orientation.x = tag_to_odom.getRotation().x();
+                        pose.pose.orientation.y = tag_to_odom.getRotation().y();
+                        pose.pose.orientation.z = tag_to_odom.getRotation().z();
+                        pose.pose.orientation.w = tag_to_odom.getRotation().w();
+
+                        pose_pub_.publish(pose);
+
                         RealPoint realPoint;
                         realPoint.realPosition.x = tag_to_odom.getOrigin().x();
                         realPoint.realPosition.y = tag_to_odom.getOrigin().y();
@@ -303,6 +317,7 @@ void DeliveryControlManager::doDistinguish() {
             if (cmd == 0) {
                 if (Environment::instance().isRealEnvironment) {
                     LOG_IF(INFO, DEBUG_DELIVERY) << "3. april_tag 再次定位 ... ";
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
                     // 开启检测
                     tagDetectionState = TagDetectionStateNone;
                     record_detection_count_ = 0;
