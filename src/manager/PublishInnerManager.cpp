@@ -40,6 +40,7 @@ void PublishInnerManager::initialize(ros::NodeHandle handle) {
 //    pub_metal_detection_switch = handle.advertise<std_msgs::Int32>("/mrrobot/metal_detection_switch", 1);
 //    pub_sewage_pump_switch = handle.advertise<std_msgs::Int32>("/mrrobot/sewage_pump_switch", 1);
     pub_move_base_simple_goal = handle.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1);
+    pub_lift_control = handle.advertise<std_msgs::Int16>("/lift_control", 1);
 }
 
 //void PublishInnerManager::publishPushMode(const std_msgs::Int32 &message) const {
@@ -173,4 +174,10 @@ void PublishInnerManager::publishManualPush(const std_msgs::Int32 &message) cons
 
 void PublishInnerManager::pubNavGoal(const geometry_msgs::PoseStamped &message) const {
     pub_move_base_simple_goal.publish(message);
+}
+
+void PublishInnerManager::pubLiftControl(bool up) const {
+    std_msgs::Int16 message;
+    message.data = up ? 1 : 0;
+    pub_lift_control.publish(message);
 }

@@ -14,6 +14,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int8.h>
+#include <std_msgs/Int16.h>
 
 class PublishInnerManager {
 private:
@@ -33,7 +34,8 @@ private:
     pub_ds_version,             //下位机版本
     pub_reset_prohibition,      //禁行区
     pub_manual_push,            //手动模式
-    pub_move_base_simple_goal;  //导航目标
+    pub_move_base_simple_goal,  //导航目标
+    pub_lift_control;
 
 public:
     static auto &instance() {
@@ -100,6 +102,8 @@ public:
 //    void pubSewagePumpSwitch(const std_msgs::Int32 &message) const;
 
     void pubNavGoal(const geometry_msgs::PoseStamped &message) const;
+
+    void pubLiftControl(bool up) const;
 };
 
 #endif //APP_COMMUNICATION_PUBLISHINNERMANAGER_H

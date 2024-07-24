@@ -6,10 +6,12 @@
 #include <utility>
 #include <tf/LinearMath/Transform.h>
 #include <tf/transform_datatypes.h>
+#include <std_msgs/Int16.h>
 #include "manager/delivery_control.h"
 #include "simulation.h"
 #include "BaseThrowable.h"
 #include "task/point_planner.h"
+#include "manager/PublishInnerManager.h"
 
 void DeliveryControlManager::initialize(ros::NodeHandle nh) {
 
@@ -21,7 +23,6 @@ void DeliveryControlManager::initialize(ros::NodeHandle nh) {
     }
 
     cmd_vel_pub_ = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
-    up_pub_ = nh.advertise<std_msgs::Int32>("/up_pub_", 1);
 
     std::thread point_circulation_thread(&DeliveryControlManager::point_circulation_thread_func, this);
     point_circulation_thread.detach();
@@ -221,13 +222,12 @@ void DeliveryControlManager::goError(DeliveryControlManager::DeliveryError error
 }
 
 void DeliveryControlManager::doTake() {
-    LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager 取出队列头部第一个点 ... ";
-
     if (plannerQueue.empty()) {
         LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager doTake ... plannerQueue is empty";
         return;
     }
 
+    LOG_IF(INFO, DEBUG_DELIVERY) << "----------------------- start ... ";
     currentPoint = plannerQueue.front();
     plannerQueue.pop_front();
 
@@ -237,7 +237,7 @@ void DeliveryControlManager::doTake() {
 void DeliveryControlManager::doMove() {
     pool_.execute([this]() {
         try {
-            LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager move_base 初步移动 ... ";
+            LOG_IF(INFO, DEBUG_DELIVERY) << "1. move_base 初步移动 ... ";
 
             arriveState = ArriveState::ArriveMove;
             currentPoint.core_move = false;
@@ -259,7 +259,7 @@ void DeliveryControlManager::doMove() {
 void DeliveryControlManager::doCalibration() {
     pool_.execute([this]() {
         try {
-            LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager core_move 二次微调 ... ";
+            LOG_IF(INFO, DEBUG_DELIVERY) << "2. core_move 二次微调 ... ";
 
             arriveState = ArriveState::ArriveCalibration;
             currentPoint.core_move = true;
@@ -281,8 +281,6 @@ void DeliveryControlManager::doCalibration() {
 void DeliveryControlManager::doDistinguish() {
     pool_.execute([this]() {
         try {
-            LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager april_tag 再次定位 ... ";
-
             if (!odom_received_) {
                 LOG_IF(ERROR, DEBUG_DELIVERY) << "DeliveryControlManager odom_received_ is false";
                 goError(DeliveryError::DeliveryDistinguishError);
@@ -294,10 +292,38 @@ void DeliveryControlManager::doDistinguish() {
                 move_condition_variable_.notify_one();
             }
 
-            // 开启检测
-            tagDetectionState = TagDetectionStateNone;
-            record_detection_ = true;
-            record_detection_count_ = 0;
+            int tag = currentPoint.deliveryVo.getTag();
+
+            if (tag == 0) {
+                if (Environment::instance().isRealEnvironment) {
+                    LOG_IF(INFO, DEBUG_DELIVERY) << "3. april_tag 再次定位 ... ";
+                    // 开启检测
+                    tagDetectionState = TagDetectionStateNone;
+                    record_detection_ = true;
+                    record_detection_count_ = 0;
+                } else {
+                    LOG_IF(INFO, DEBUG_DELIVERY) << "3. 跳过 april_tag 定位 ... ";
+                    // 跳过检测
+                    rectilinearMove(0.2);
+
+                    {
+                        std::unique_lock<std::mutex> lk(point_mutex_);
+                        deliveryState = DeliveryState::DELIVERY;
+                    }
+                    point_condition_variable_.notify_one();
+                }
+            } else if (tag == 1) {
+                LOG_IF(INFO, DEBUG_DELIVERY) << "3. 跳过 april_tag 进入下个步骤 ... ";
+
+                {
+                    std::unique_lock<std::mutex> lk(point_mutex_);
+                    deliveryState = DeliveryState::DELIVERY;
+                }
+                point_condition_variable_.notify_one();
+            } else {
+                throw app::exception("未用到的 tag");
+            }
+
 
         } catch (app::exception const &e) {
             LOG_IF(ERROR, DEBUG_DELIVERY) << e.what();
@@ -315,39 +341,24 @@ void DeliveryControlManager::doDistinguish() {
 void DeliveryControlManager::doDelivery() {
     pool_.execute([this]() {
         try {
-            LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager 抬升并后退 ... ";
+            int tag = currentPoint.deliveryVo.getTag();
 
-            up_pub_.publish(std_msgs::Int32());
+            if (tag == 0) {
+                LOG_IF(INFO, DEBUG_DELIVERY) << "4. 抬升并后退 ... ";
 
-            // 目标距离，单位：米
-            double target_distance = 0.5;
+                PublishInnerManager::instance().pubLiftControl(true);
+                std::this_thread::sleep_for(std::chrono::seconds(5));
+                rectilinearMove(-0.2);
+            } else if (tag == 1) {
+                LOG_IF(INFO, DEBUG_DELIVERY) << "4. 放下并后退 ... ";
 
-            // 速度设置，单位：米/秒
-            double backward_speed = -0.2; // 负值表示后退
-
-            // 发布速度消息的频率，单位：赫兹
-            double rate = 10.0;
-            ros::Rate loop_rate(rate);
-
-            // 总共需要运行的时间，单位：秒
-            double duration = target_distance / std::abs(backward_speed);
-
-            // 运行循环的次数
-            int iterations = duration * rate;
-
-            for (int i = 0; i < iterations; ++i) {
-                geometry_msgs::Twist cmd_vel_msg;
-                cmd_vel_msg.linear.x = backward_speed;
-                cmd_vel_pub_.publish(cmd_vel_msg);
-                loop_rate.sleep();
+                PublishInnerManager::instance().pubLiftControl(false);
+                std::this_thread::sleep_for(std::chrono::seconds(5));
+                rectilinearMove(-0.2);
+            } else {
+                throw app::exception("未用到的 tag");
             }
 
-            // 停止移动
-            geometry_msgs::Twist cmd_vel_msg;
-            cmd_vel_msg.linear.x = 0;
-            cmd_vel_pub_.publish(cmd_vel_msg);
-
-//            std::this_thread::sleep_for(std::chrono::seconds(5));
 
             {
                 std::unique_lock<std::mutex> lk(point_mutex_);
@@ -369,7 +380,7 @@ void DeliveryControlManager::doDelivery() {
 }
 
 void DeliveryControlManager::doOver() {
-    LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager 配送结束 ... ";
+    LOG_IF(INFO, DEBUG_DELIVERY) << "5. 单元结束 ... ";
 
     if (plannerQueue.empty()) {
         deliveryState = DeliveryState::NONE;
@@ -378,9 +389,47 @@ void DeliveryControlManager::doOver() {
     } else {
         deliveryState = DeliveryState::MOVE;
 
+        LOG_IF(INFO, DEBUG_DELIVERY) << "----------------------- start ... ";
         currentPoint = plannerQueue.front();
         plannerQueue.pop_front();
     }
+}
+
+/**
+ *
+ * @param backward_speed 负值表示后退
+ */
+void DeliveryControlManager::rectilinearMove(double backward_speed) const {
+//    if (backward_speed > 0) {
+//        LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager rectilinearMove 向前移动 0.5 m ... ";
+//    } else if (backward_speed < 0) {
+//        LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager rectilinearMove 后退移动 0.5 m ... ";
+//    }
+
+    // 目标距离，单位：米
+    double target_distance = 0.5;
+
+    // 发布速度消息的频率，单位：赫兹
+    double rate = 10.0;
+    ros::Rate loop_rate(rate);
+
+    // 总共需要运行的时间，单位：秒
+    double duration = target_distance / std::abs(backward_speed);
+
+    // 运行循环的次数
+    int iterations = duration * rate;
+
+    for (int i = 0; i < iterations; ++i) {
+        geometry_msgs::Twist cmd_vel_msg;
+        cmd_vel_msg.linear.x = backward_speed;
+        cmd_vel_pub_.publish(cmd_vel_msg);
+        loop_rate.sleep();
+    }
+
+    // 停止移动
+    geometry_msgs::Twist cmd_vel_msg;
+    cmd_vel_msg.linear.x = 0;
+    cmd_vel_pub_.publish(cmd_vel_msg);
 }
 
 void DeliveryControlManager::setDeliveryCallback(DeliveryControlManager::DeliveryFailCallback callback) {
@@ -390,15 +439,16 @@ void DeliveryControlManager::setDeliveryCallback(DeliveryControlManager::Deliver
 void DeliveryControlManager::completeCirculation(bool arrive) {
 
     if (arrive) {
-        LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager completeCirculation " << arrive << " ... ";
 
         if (arriveState == ArriveState::ArriveMove) {
+            LOG_IF(INFO, DEBUG_DELIVERY) << "1.1 result " << arrive << " ... ";
             {
                 std::unique_lock<std::mutex> lk(point_mutex_);
                 deliveryState = DeliveryState::CALIBRATION;
             }
             point_condition_variable_.notify_one();
         } else if (arriveState == ArriveState::ArriveCalibration) {
+            LOG_IF(INFO, DEBUG_DELIVERY) << "2.1 result " << arrive << " ... ";
             {
                 std::unique_lock<std::mutex> lk(point_mutex_);
                 deliveryState = DeliveryState::DISTINGUISH;
@@ -406,6 +456,7 @@ void DeliveryControlManager::completeCirculation(bool arrive) {
             point_condition_variable_.notify_one();
 
         } else if (arriveState == ArriveState::ArriveDistinguish) {
+            LOG_IF(INFO, DEBUG_DELIVERY) << "3.1 result " << arrive << " ... ";
             {
                 std::unique_lock<std::mutex> lk(point_mutex_);
                 deliveryState = DeliveryState::DELIVERY;
@@ -421,10 +472,7 @@ void DeliveryControlManager::completeCirculation(bool arrive) {
 
 void DeliveryControlManager::handleFlow(const RealBlock &block) {
 
-    for (int i = 0; i < block.plannerPoints.size(); ++i) {
-        auto point = block.plannerPoints[i];
-        point.deliveryVo.setTag(2);
-        point.deliveryVo.setCmd(2);
+    for (const auto &point: block.plannerPoints) {
         plannerQueue.push_back(point);
     }
 

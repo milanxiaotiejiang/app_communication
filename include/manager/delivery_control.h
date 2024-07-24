@@ -75,7 +75,6 @@ private:
     ros::Subscriber odom_sub_;
 
     ros::Publisher cmd_vel_pub_;
-    ros::Publisher up_pub_;
 
     RealBlock realBlock;
     std::deque<RealPoint> plannerQueue;
@@ -139,7 +138,10 @@ private:
 
     void doOver();
 
+    void rectilinearMove(double backward_speed) const;
+
 public:
+
     void initialize(ros::NodeHandle handle);
 
     void setDeliveryCallback(DeliveryFailCallback callback);
@@ -147,7 +149,6 @@ public:
     void completeCirculation(bool arrive);
 
     void handleFlow(const RealBlock &block);
-
 };
 
 
