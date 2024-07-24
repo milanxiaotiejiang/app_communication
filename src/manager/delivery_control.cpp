@@ -292,9 +292,9 @@ void DeliveryControlManager::doDistinguish() {
                 move_condition_variable_.notify_one();
             }
 
-            int tag = currentPoint.deliveryVo.getTag();
+            int cmd = currentPoint.deliveryVo.getCmd();
 
-            if (tag == 0) {
+            if (cmd == 0) {
                 if (Environment::instance().isRealEnvironment) {
                     LOG_IF(INFO, DEBUG_DELIVERY) << "3. april_tag 再次定位 ... ";
                     // 开启检测
@@ -312,7 +312,7 @@ void DeliveryControlManager::doDistinguish() {
                     }
                     point_condition_variable_.notify_one();
                 }
-            } else if (tag == 1) {
+            } else if (cmd == 1) {
                 LOG_IF(INFO, DEBUG_DELIVERY) << "3. 跳过 april_tag 进入下个步骤 ... ";
 
                 {
@@ -321,7 +321,7 @@ void DeliveryControlManager::doDistinguish() {
                 }
                 point_condition_variable_.notify_one();
             } else {
-                throw app::exception("未用到的 tag");
+                throw app::exception("未用到的 cmd");
             }
 
 
@@ -341,22 +341,22 @@ void DeliveryControlManager::doDistinguish() {
 void DeliveryControlManager::doDelivery() {
     pool_.execute([this]() {
         try {
-            int tag = currentPoint.deliveryVo.getTag();
+            int cmd = currentPoint.deliveryVo.getCmd();
 
-            if (tag == 0) {
+            if (cmd == 0) {
                 LOG_IF(INFO, DEBUG_DELIVERY) << "4. 抬升并后退 ... ";
 
                 PublishInnerManager::instance().pubLiftControl(true);
                 std::this_thread::sleep_for(std::chrono::seconds(5));
                 rectilinearMove(-0.2);
-            } else if (tag == 1) {
+            } else if (cmd == 1) {
                 LOG_IF(INFO, DEBUG_DELIVERY) << "4. 放下并后退 ... ";
 
                 PublishInnerManager::instance().pubLiftControl(false);
                 std::this_thread::sleep_for(std::chrono::seconds(5));
                 rectilinearMove(-0.2);
             } else {
-                throw app::exception("未用到的 tag");
+                throw app::exception("未用到的 cmd");
             }
 
 
