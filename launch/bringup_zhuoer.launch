@@ -3,11 +3,11 @@
     <!-- 底盘 -->
     <include file="$(find xpkg_bringup)/bringup_vehicle/launch/bringup_basic_ctrl.launch"/>
 
-
+    <!-- tf transform -->
     <include file="$(find app_communication)/launch/bringup_tf_zhuoer.launch"/>
 
     <!-- 雷达 -->
-    <include file="$(find bluesea2)/launch/lidar_e200e.launch"/>
+    <include file="$(find bluesea2)/launch/lidar_e200_zhuoer.launch"/>
 
     <!-- imu -->
     <include file="$(find handsfree_ros_imu)/launch/zhuoer_imu.launch"/>
