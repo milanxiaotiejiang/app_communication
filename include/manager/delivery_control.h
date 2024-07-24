@@ -95,6 +95,7 @@ private:
 
     bool record_detection_;                                 // 是否开启接受消息
     int record_detection_count_;                            // 记录接受消息的次数
+    int has_target_tag_count_;
 
 //    apriltag_ros::AprilTagDetection current_detection_;
 //    bool detection_received_;
