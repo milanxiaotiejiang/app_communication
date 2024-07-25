@@ -13,7 +13,7 @@
     <include file="$(find handsfree_ros_imu)/launch/zhuoer_imu.launch"/>
 
     <!--轮式里程计与imu融合-->
-    <include file="$(find robot_pose_ekf)/robot_pose_ekf.launch"/>
+    <include file="$(find app_communication)/launch/robot_pose_ekf.launch"/>
 
     <!--启动跌落检测节点-->
     <!--    <include if="$(arg cliff_detect)" file="$(find dimage_to_pointcloud)/launch/cliff_detect.launch"/>-->
@@ -40,13 +40,13 @@
     <include file="$(find map_server)/launch/bringup_map_server.launch"/>
 
     <!--启动导航节点-->
-   <include file="$(find move_base)/launch/move_base.launch"/>
+    <include file="$(find move_base)/launch/move_base.launch"/>
 
     <!--启动pad通讯节点-->
-   <include file="$(find app_communication)/launch/app_communication.launch"/>
+    <include file="$(find app_communication)/launch/app_communication.launch"/>
 
     <!--启动相机-->
-   <include file="$(find usb_cam)/launch/usb_cam-test.launch"/>
+    <!-- <include file="$(find usb_cam)/launch/usb_cam-test.launch"/> -->
 
     <!--启动 apriltag_ros-->
     <include file="$(find app_communication)/launch/bringup_apriltag_zhuoer.launch"/>
