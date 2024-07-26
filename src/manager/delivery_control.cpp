@@ -52,9 +52,9 @@ void DeliveryControlManager::convertPose(const geometry_msgs::PoseStamped &input
 
     // 旋转
     tf::Quaternion rotation(current_odom_.pose.pose.orientation.x,
-                                            current_odom_.pose.pose.orientation.y,
-                                            current_odom_.pose.pose.orientation.z,
-                                            current_odom_.pose.pose.orientation.w);
+                            current_odom_.pose.pose.orientation.y,
+                            current_odom_.pose.pose.orientation.z,
+                            current_odom_.pose.pose.orientation.w);
     // rotation.setRPY(-M_PI / 2, 0, 0);
     tf::Transform rotation_transform(rotation, tf::Vector3(0.0, 0.0, 0.0));
 
@@ -291,12 +291,12 @@ void DeliveryControlManager::tagDetectionsCallback(
 
                 tf::Transform avg_tag_to_base;
                 avg_tag_to_base.setOrigin(tf::Vector3(output_pose.pose.position.x,
-                                                    output_pose.pose.position.y,
-                                                    output_pose.pose.position.z));
+                                                      output_pose.pose.position.y,
+                                                      output_pose.pose.position.z));
                 avg_tag_to_base.setRotation(tf::Quaternion(output_pose.pose.orientation.x,
-                                                        output_pose.pose.orientation.y,
-                                                        output_pose.pose.orientation.z,
-                                                        output_pose.pose.orientation.w));
+                                                           output_pose.pose.orientation.y,
+                                                           output_pose.pose.orientation.z,
+                                                           output_pose.pose.orientation.w));
 
                 recent_detections_.push_back(avg_tag_to_base);
                 continuous_detection_count_++;
@@ -343,10 +343,10 @@ void DeliveryControlManager::tagDetectionsCallback(
 
 
             auto last_transform = recent_detections_[recent_detections_.size() - 1];
-            tf::Quaternion last_avg_orientation(last_transform.getRotation().getX(), 
-                                last_transform.getRotation().getY(), 
-                                last_transform.getRotation().getZ(), 
-                                last_transform.getRotation().getW());
+            tf::Quaternion last_avg_orientation(last_transform.getRotation().getX(),
+                                                last_transform.getRotation().getY(),
+                                                last_transform.getRotation().getZ(),
+                                                last_transform.getRotation().getW());
 
             // tf::Transform avg_tag_to_base;
             // avg_tag_to_base.setOrigin(avg_position);
