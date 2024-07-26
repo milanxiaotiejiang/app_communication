@@ -122,6 +122,8 @@ private:
 
     DeliveryFailCallback mDeliveryFailCallback;
 
+    void convertPose(const geometry_msgs::PoseStamped &input_pose, geometry_msgs::PoseStamped &output_pose);
+
     bool transformPose(const geometry_msgs::PoseStamped &input_pose, geometry_msgs::PoseStamped &output_pose);
 
     tf::Transform calculateTransform(const tf::Vector3 &avg_position, const tf::Quaternion &avg_orientation);
