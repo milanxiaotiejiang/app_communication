@@ -126,7 +126,9 @@ private:
 
     bool transformPose(const geometry_msgs::PoseStamped &input_pose, geometry_msgs::PoseStamped &output_pose);
 
-    tf::Transform calculateTransform(const tf::Vector3 &avg_position, const tf::Quaternion &avg_orientation);
+    tf::Transform adjustToHorizontal(const tf::Transform &tag_transform);
+
+    tf::Transform calculateTransform(const tf::Transform &avg_tag_to_base);
 
     tf::Transform calculateTagToOdomTransform(const tf::Transform &tag_to_base);
 

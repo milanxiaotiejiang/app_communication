@@ -88,14 +88,35 @@ bool DeliveryControlManager::transformPose(const geometry_msgs::PoseStamped &inp
     }
 }
 
+tf::Transform DeliveryControlManager::adjustToHorizontal(const tf::Transform &tag_transform) {
+    // 获取当前的旋转四元数
+    tf::Quaternion current_orientation = tag_transform.getRotation();
+
+    // 将四元数转换为欧拉角
+    double roll, pitch, yaw;
+    tf::Matrix3x3(current_orientation).getRPY(roll, pitch, yaw);
+
+    // 创建一个新的四元数，只保留偏航角和滚转角，将俯仰角设置为0
+    tf::Quaternion horizontal_orientation;
+    horizontal_orientation.setRPY(roll, 0, yaw);
+
+    // 创建一个新的变换，保留原始位置，更新旋转部分
+    tf::Transform horizontal_transform(horizontal_orientation, tag_transform.getOrigin());
+
+    return horizontal_transform;
+}
+
+
 tf::Transform
-DeliveryControlManager::calculateTransform(const tf::Vector3 &avg_position, const tf::Quaternion &avg_orientation) {
-    tf::Transform camera_to_base(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0.0, 0.0, 0.1));
+DeliveryControlManager::calculateTransform(const tf::Transform &avg_tag_to_base) {
+    tf::Quaternion z_rotation;
+    z_rotation.setRPY(0, M_PI / 2, 0);  // 绕Z轴旋转90度
 
-    // 从平均位置和方向创建标签到相机的变换
-    tf::Transform tag_to_camera(avg_orientation, avg_position);
+    // 创建旋转变换
+    tf::Transform z_rotation_transform(z_rotation, tf::Vector3(0.0, 0.0, 0.0));
 
-    return camera_to_base * tag_to_camera;
+    // 更新传入的变换
+    return avg_tag_to_base * z_rotation_transform;  // 注意乘法的顺序，它决定了旋转的应用顺序
 }
 
 tf::Transform DeliveryControlManager::calculateTagToOdomTransform(const tf::Transform &tag_to_base) {
@@ -204,7 +225,8 @@ void DeliveryControlManager::tagTestCallback(const std_msgs::Int32 &flag) {
             input_pose.pose.orientation.w = detection.pose.pose.pose.orientation.w;
 
             geometry_msgs::PoseStamped output_pose;
-            convertPose(input_pose, output_pose);
+//            convertPose(input_pose, output_pose);
+            transformPose(input_pose, output_pose);
 
             tf::Transform avg_tag_to_base;
             avg_tag_to_base.setOrigin(tf::Vector3(output_pose.pose.position.x,
@@ -215,10 +237,13 @@ void DeliveryControlManager::tagTestCallback(const std_msgs::Int32 &flag) {
                                                        output_pose.pose.orientation.z,
                                                        output_pose.pose.orientation.w));
 
-            tf::Transform tag_to_odom = calculateTagToOdomTransform(avg_tag_to_base);
+//            tf::Transform tag_to_odom = calculateTagToOdomTransform(avg_tag_to_base);
+//            tf::Transform final_position = calculatePositionForwardFromTag(tag_to_odom, 0.5);
 
-            tf::Transform final_position = calculatePositionForwardFromTag(tag_to_odom, 0.5);
+            tf::Transform tag_to_odom = calculateTransform(avg_tag_to_base);
+            tf::Transform horizontal_transform = adjustToHorizontal(tag_to_odom);
 
+            tf::Transform final_position = calculatePositionForwardFromTag(horizontal_transform, 0.2);
 
             LOG(INFO) << "Detected tag ID: " << detection.id[0];
             LOG(INFO) << "tag position - x: " << output_pose.pose.position.x << ", y: " << output_pose.pose.position.y
@@ -237,7 +262,7 @@ void DeliveryControlManager::tagTestCallback(const std_msgs::Int32 &flag) {
                       << final_position.getOrigin().getY() << ", z: " << final_position.getOrigin().getZ();
 
             publishTagPosition(tag_to_odom);
-            publishFinalPosition(final_position);
+            publishFinalPosition(horizontal_transform);
         }
     }
 }
@@ -287,7 +312,8 @@ void DeliveryControlManager::tagDetectionsCallback(
                 input_pose.pose.orientation.w = detection.pose.pose.pose.orientation.w;
 
                 geometry_msgs::PoseStamped output_pose;
-                convertPose(input_pose, output_pose);
+//                convertPose(input_pose, output_pose);
+                transformPose(input_pose, output_pose);
 
                 tf::Transform avg_tag_to_base;
                 avg_tag_to_base.setOrigin(tf::Vector3(output_pose.pose.position.x,
@@ -325,55 +351,38 @@ void DeliveryControlManager::tagDetectionsCallback(
                       << "  continuous_detection_count_ : " << continuous_detection_count_;
 
             // 正常检测出来点位
-            // auto last = recent_detections_[recent_detections_.size() - 1];
-            // tf::Quaternion avg_orientation(last.getOrigin().x(), last.getOrigin().y(), last.getOrigin().z(),
-            //                                last.getOrigin().w());
+//            tf::Vector3 avg_position(0, 0, 0);
+//            tf::Quaternion avg_orientation(0, 0, 0, 0);
+//            // 只计算最后10次的平均值
+//            int start_index = std::max(0, int(recent_detections_.size()) - 10);  // 确保从最后10个开始
+//
+//            for (int i = start_index; i < recent_detections_.size(); ++i) {
+//                avg_position += recent_detections_[i].getOrigin();
+//                avg_orientation += recent_detections_[i].getRotation();
+//            }
+//            avg_position /= 10;  // 只平均最后10个检测
+//            avg_orientation.normalize();
 
-            // tf::Vector3 avg_position(0, 0, 0);
-            // tf::Quaternion avg_orientation(0, 0, 0, 0);
-            // // 只计算最后10次的平均值
-            // int start_index = std::max(0, int(recent_detections_.size()) - 10);  // 确保从最后10个开始
-
-            // for (int i = start_index; i < recent_detections_.size(); ++i) {
-            //     avg_position += recent_detections_[i].getOrigin();
-            //     avg_orientation += recent_detections_[i].getRotation();
-            // }
-            // avg_position /= 10;  // 只平均最后10个检测
-            // avg_orientation.normalize();
+//             tf::Transform avg_tag_to_base;
+//             avg_tag_to_base.setOrigin(avg_position);
+//             avg_tag_to_base.setRotation(avg_orientation);
 
 
             auto last_transform = recent_detections_[recent_detections_.size() - 1];
-            tf::Quaternion last_avg_orientation(last_transform.getRotation().getX(),
-                                                last_transform.getRotation().getY(),
-                                                last_transform.getRotation().getZ(),
-                                                last_transform.getRotation().getW());
 
-            // tf::Transform avg_tag_to_base;
-            // avg_tag_to_base.setOrigin(avg_position);
-            // avg_tag_to_base.setRotation(avg_orientation);
-
-            tf::Transform tag_to_odom = calculateTagToOdomTransform(last_transform);
-
-            tf::Transform final_position = calculatePositionForwardFromTag(tag_to_odom, 0.5);
+//            tf::Transform tag_to_odom = calculateTagToOdomTransform(last_transform);
+//            tf::Transform final_position = calculatePositionForwardFromTag(tag_to_odom, 0.5);
 
 
-            // LOG(INFO) << "detection position - x: " << avg_tag_to_base.getOrigin().getX()
-            //           << ", y: " << avg_tag_to_base.getOrigin().getY() << ", z: " << avg_tag_to_base.getOrigin().getZ()
-            //           << ", o: " << avg_tag_to_base.getRotation().getX();
-            // LOG(INFO) << "current_odom_ position - x: " << current_odom_.pose.pose.position.x
-            //           << ", y: " << current_odom_.pose.pose.position.y
-            //           << ", z: " << current_odom_.pose.pose.position.z;
-            // LOG(INFO) << "Tag position in odom - x: " << tag_to_odom.getOrigin().getX()
-            //           << ", y: " << tag_to_odom.getOrigin().getY()
-            //           << ", z: " << tag_to_odom.getOrigin().getZ()
-            //           << ", o: " << tag_to_odom.getRotation().getX();
-            // LOG(INFO) << "Final position - x: " << final_position.getOrigin().getX() << ", y: "
-            //           << final_position.getOrigin().getY() << ", z: " << final_position.getOrigin().getZ();
+            tf::Transform tag_to_odom = calculateTransform(last_transform);
+            tf::Transform horizontal_transform = adjustToHorizontal(tag_to_odom);
+
+            tf::Transform final_position = calculatePositionForwardFromTag(horizontal_transform, 0.2);
 
             publishTagPosition(tag_to_odom);
-            publishFinalPosition(final_position);
+            publishFinalPosition(horizontal_transform);
 
-            moveToTag(tag_to_odom);
+            moveToTag(horizontal_transform);
 
             record_detection_ = false;
 
@@ -549,7 +558,7 @@ void DeliveryControlManager::doDistinguish() {
                 } else {
                     LOG_IF(INFO, DEBUG_DELIVERY) << "3. 跳过 april_tag 定位 ... ";
                     // 跳过检测
-                    rectilinearMove(0.2);
+                    rectilinearMove(0.0);
 
                     {
                         std::unique_lock<std::mutex> lk(point_mutex_);
@@ -591,7 +600,7 @@ void DeliveryControlManager::doDelivery() {
             if (cmd == 0) {
                 LOG_IF(INFO, DEBUG_DELIVERY) << "4. 抬升并后退 ... ";
 
-                rectilinearMove(0.06);
+                rectilinearMove(0.0);
                 PublishInnerManager::instance().pubLiftControl(true);
                 std::this_thread::sleep_for(std::chrono::seconds(10));
                 rectilinearMove(-0.3);
