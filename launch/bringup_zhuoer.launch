@@ -3,21 +3,6 @@
     <!-- 底盘 -->
     <include file="$(find xpkg_bringup)/bringup_vehicle/launch/bringup_basic_ctrl.launch"/>
 
-    <!-- tf transform -->
-    <include file="$(find app_communication)/launch/bringup_tf_zhuoer.launch"/>
-
-    <!-- 雷达 -->
-    <include file="$(find bluesea2)/launch/lidar_e200_zhuoer.launch"/>
-
-    <!-- imu -->
-    <include file="$(find handsfree_ros_imu)/launch/zhuoer_imu.launch"/>
-
-    <!--轮式里程计与imu融合-->
-    <include file="$(find app_communication)/launch/robot_pose_ekf.launch"/>
-
-    <!--启动跌落检测节点-->
-    <!--    <include if="$(arg cliff_detect)" file="$(find dimage_to_pointcloud)/launch/cliff_detect.launch"/>-->
-
     <!--启动配置速度优先级节点-->
     <include file="$(find yocs_cmd_vel_mux)/launch/start_all_cmd_control.launch"/>
 
@@ -31,7 +16,7 @@
     <include file="$(find back_charge)/launch/back_charge.launch"/>
 
     <!--启动短程导航节点-->
-    <include file="$(find back_charge)/launch/core_move.launch"/>
+    <include file="$(find core_move)/launch/core_move.launch"/>
 
     <!--启动cartographer管理节点-->
     <include file="$(find cartographer_ros)/launch/bringup_cartographer.launch"/>

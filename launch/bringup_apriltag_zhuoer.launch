@@ -1,15 +1,5 @@
 <launch>
 
-    <!--启动相机-->
-    <!-- <include file="$(find usb_cam)/launch/usb_cam-test.launch"/> -->
-
-    <!-- 在ROS的launch文件中添加 -->
-    <node pkg="tf" type="static_transform_publisher" name="camera_to_base_link_broadcaster"
-        args="0 0 0.15 1.5708 -1.5708 0 base_link camera_link 100" />
-
-    <!--start orbbec camera -->
-    <include file="$(find orbbec_camera)/launch/dabai_dcw2.launch"/>
-
     <arg name="launch_prefix" default=""/>
     <arg name="node_namespace" default="apriltag_ros_continuous_node"/>
     <!-- 相机参数 -->
