@@ -351,38 +351,38 @@ bool CartographerServiceClient::callReadyCheck() {
 }
 
 bool CartographerServiceClient::callStartLocalization() {
-//    if (!Environment::instance().isRealEnvironment) {
-//        return true;
-//    }
-//
-//    LOG_IF(INFO, DEBUG_NODE) << "callStartLocalization  ready call ... ";
-//
-//    back_charge_msgs::start_localization srv;
-//    bool result = start_localization.call(srv);
-//    if (result) {
-//        bool tfValid = srv.response.tf_valid;
-//        LOG_IF(INFO, DEBUG_NODE) << "callStartLocalization  tfValid : " << tfValid;
-//        return tfValid;
-//    } else {
-//        LOG(ERROR) << "Failed to call service start_localization ...";
-//        return result;
-//    }
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
+    }
+
+    LOG_IF(INFO, DEBUG_NODE) << "callStartLocalization  ready call ... ";
+
+    back_charge_msgs::start_localization srv;
+    bool result = start_localization.call(srv);
+    if (result) {
+        bool tfValid = srv.response.tf_valid;
+        LOG_IF(INFO, DEBUG_NODE) << "callStartLocalization  tfValid : " << tfValid;
+        return tfValid;
+    } else {
+        LOG(ERROR) << "Failed to call service start_localization ...";
+        return result;
+    }
     return true;
 }
 
 bool CartographerServiceClient::callStopLocalization() {
-//    if (!Environment::instance().isRealEnvironment) {
-//        return true;
-//    }
-//    back_charge_msgs::stop_localization srv;
-//    bool result = stop_localization.call(srv);
-//    if (result) {
-//        bool tfValid = srv.response.tf_valid;
-//        LOG_IF(INFO, DEBUG_NODE) << "callStopLocalization  tfValid : " << tfValid;
-//        return !tfValid;
-//    } else {
-//        LOG(ERROR) << "Failed to call service stop_localization ...";
-//        return result;
-//    }
+    if (!Environment::instance().isRealEnvironment) {
+        return true;
+    }
+    back_charge_msgs::stop_localization srv;
+    bool result = stop_localization.call(srv);
+    if (result) {
+        bool tfValid = srv.response.tf_valid;
+        LOG_IF(INFO, DEBUG_NODE) << "callStopLocalization  tfValid : " << tfValid;
+        return !tfValid;
+    } else {
+        LOG(ERROR) << "Failed to call service stop_localization ...";
+        return result;
+    }
     return true;
 }
