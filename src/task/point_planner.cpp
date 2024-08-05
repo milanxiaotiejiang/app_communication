@@ -83,7 +83,7 @@ void PointPlanner::resetForReplanServer() {
 }
 
 bool PointPlanner::waitForCoreMoveServer() {
-    core_move = std::make_shared<CoreMoveAction>("back_charge_core_move", true);
+    core_move = std::make_shared<CoreMoveAction>("core_move_action", true);
     return core_move->waitForServer(ros::Duration(10));
 }
 

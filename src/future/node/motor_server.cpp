@@ -12,11 +12,11 @@ void MotorServerSingleton::init(ros::NodeHandle handle) {
         return;
     }
     LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  init ... ";
-    start_motor = handle.serviceClient<std_srvs::Empty>("start_motor");
-    start_motor.waitForExistence();
-    stop_motor = handle.serviceClient<std_srvs::Empty>("stop_motor");
-    stop_motor.waitForExistence();
-    LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  init start_motor stop_motor complete ... ";
+    // start_motor = handle.serviceClient<std_srvs::Empty>("start_motor");
+    // start_motor.waitForExistence();
+    // stop_motor = handle.serviceClient<std_srvs::Empty>("stop_motor");
+    // stop_motor.waitForExistence();
+    // LOG_IF(INFO, DEBUG_NODE) << "MotorServerSingleton  init start_motor stop_motor complete ... ";
     initialize_start = true;
 }
 
