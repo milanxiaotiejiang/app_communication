@@ -228,21 +228,44 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
         std::vector<std::vector<PoseVo>> complexList;
 
         std::vector<DeliveryVo> deliverys = task.getDeliveries();
-        for (const auto &delivery: deliverys) {
+
+        if (deliverys.empty()) {
+
+            PoseVo poseVo(Environment::instance().default_delivery_x,
+                          Environment::instance().default_delivery_y, 0);
+
             geometry_msgs::Pose2D pose2D;
-            pose2D.x = delivery.getPoseVo().getX();
-            pose2D.y = delivery.getPoseVo().getY();
-            pose2D.theta = delivery.getPoseVo().getTheta();
+            pose2D.x = Environment::instance().default_delivery_x;
+            pose2D.y = Environment::instance().default_delivery_y;
+            pose2D.theta = 0;
             exploration_path.push_back(pose2D);
 
-            poseList.push_back(delivery.getPoseVo());
-            pointList.emplace_back(delivery.getPoseVo().getX(), delivery.getPoseVo().getY());
+            poseList.push_back(poseVo);
+            pointList.emplace_back(poseVo.getX(), poseVo.getY());
             complexList.push_back(poseList);
-        }
 
-        coverage.setPoseList(poseList);
-        coverage.setPointList(pointList);
-        coverage.setComplexList(complexList);
+
+            coverage.setPoseList(poseList);
+            coverage.setPointList(pointList);
+            coverage.setComplexList(complexList);
+        } else {
+            for (const auto &delivery: deliverys) {
+                geometry_msgs::Pose2D pose2D;
+                pose2D.x = delivery.getPoseVo().getX();
+                pose2D.y = delivery.getPoseVo().getY();
+                pose2D.theta = delivery.getPoseVo().getTheta();
+                exploration_path.push_back(pose2D);
+
+                poseList.push_back(delivery.getPoseVo());
+                pointList.emplace_back(delivery.getPoseVo().getX(), delivery.getPoseVo().getY());
+                complexList.push_back(poseList);
+            }
+
+
+            coverage.setPoseList(poseList);
+            coverage.setPointList(pointList);
+            coverage.setComplexList(complexList);
+        }
     }
 
     boost::uuids::uuid uuid = boost::uuids::random_generator()();

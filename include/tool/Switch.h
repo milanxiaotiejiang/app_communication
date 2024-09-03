@@ -111,6 +111,7 @@ enum MESSAGE_ID {
     MULTIPLE_LIST_TASK,                     //获取任务列表（地图ID）
     MULTIPLE_WHOLE_LIST_TASK,               //获取任务列表（所有地图）
     QUERY_ID_TASK,
+    ADD_DEFAULT_DELIVERY_TASK,
 
     BUILD_PRINCIPAL_TASK,                   //设置默认任务
     CANCEL_PRINCIPAL_TASK,                  //取消默认任务

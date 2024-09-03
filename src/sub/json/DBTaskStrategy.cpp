@@ -129,6 +129,16 @@ TaskVo QueryIdTaskStrategy::handler(long params) {
     return TaskDataBase::instance().loadTaskFoId(params);
 }
 
+std::string AddDefaultDeliveryTaskStrategy::handler(std::string params) {
+    checkName(params);
+    MapPo map = SegmentationDataBase::instance().getDbMap();
+    TaskVo taskVo(-1, map.id, params, 1, 4, false,
+                  false, false, params, params, 0,
+                  0, 0, false);
+    TaskDataBase::instance().addTask(map.id, taskVo);
+    return "";
+}
+
 void ClearCurrentListTaskStrategy::handler() {
     TaskDataBase::instance().deleteTaskFoMap(SegmentationDataBase::instance().getDbMap().id);
     ScheduleManagerSingleton::instance().trigger_task_update();

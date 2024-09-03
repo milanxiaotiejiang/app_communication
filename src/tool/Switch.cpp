@@ -288,6 +288,9 @@ int switch_ID(const std::string &str) {
     if (str == "multiple_principal_task") {
         return MULTIPLE_PRINCIPAL_TASK;
     }
+    if (str == "add_default_delivery_task") {
+        return ADD_DEFAULT_DELIVERY_TASK;
+    }
 
     if (str == "build_rain_snow_task") {
         return BUILD_RAIN_SNOW_TASK;

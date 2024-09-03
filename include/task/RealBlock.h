@@ -80,6 +80,7 @@ public:
     bool mustArrive{false};
 
     bool isDelivery{false};
+    bool isDefaultDelivery{false};
 
     friend std::ostream &operator<<(std::ostream &os, const RealBlock &block) {
         os << "id: " << block.id;

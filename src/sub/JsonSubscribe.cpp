@@ -285,6 +285,9 @@ void JsonSubscribe::subscribeCallback(const std_msgs::String &result) {
         case QUERY_ID_TASK:
             messageStrategy = new QueryIdTaskStrategy();
             break;
+        case ADD_DEFAULT_DELIVERY_TASK:
+            messageStrategy = new AddDefaultDeliveryTaskStrategy();
+            break;
 
         case BUILD_PRINCIPAL_TASK:
             messageStrategy = new BuildPrincipalTaskStrategy();

@@ -118,6 +118,11 @@ public:
     double inner_white_pixel_ratio{0.6};
     double internal_spatial_analysis_count{30};
 
+    double default_pack_x{0};
+    double default_pack_y{0.5};
+    double default_delivery_x{2.75};
+    double default_delivery_y{2.75};
+
     static bool will() {
         return (rand() % 10) > 5;
     }

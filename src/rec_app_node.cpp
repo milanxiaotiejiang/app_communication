@@ -544,6 +544,18 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<bool>("dependence_imu", dependence_imu, false);
     Module::instance().dependence_imu = dependence_imu;
 
+    double default_pack_x;
+    nh.param<double>("default_pack_x", default_pack_x, 0);
+    Environment::instance().default_pack_x = default_pack_x;
+    double default_pack_y;
+    nh.param<double>("default_pack_y", default_pack_y, 0.5);
+    Environment::instance().default_pack_y = default_pack_y;
+    double default_delivery_x;
+    nh.param<double>("default_delivery_x", default_delivery_x, 2.75);
+    Environment::instance().default_delivery_x = default_delivery_x;
+    double default_delivery_y;
+    nh.param<double>("default_delivery_y", default_delivery_y, 2.75);
+    Environment::instance().default_delivery_y = default_delivery_y;
 }
 
 void release() {

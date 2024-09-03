@@ -891,18 +891,42 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
 
         std::vector<RealBlock> blocks;
 
-        if (deliveries.empty())
-            return blocks;
+        if (deliveries.empty()) {
 
-        int blockAccumulate = 0, pointAccumulate = 0;
+            DeliveryVo pack;
+            pack.setPoseVo(PoseVo(Environment::instance().default_pack_x,
+                                  Environment::instance().default_pack_y, 0));
 
-        auto firstDelivery = deliveries[0];
-        RealBlock firstBlock = deliveryToRealBlock(task, false, {firstDelivery}, blockAccumulate, pointAccumulate);
-        blocks.push_back(firstBlock);
+            DeliveryVo delivery;
+            delivery.setPoseVo(PoseVo(Environment::instance().default_delivery_x,
+                                      Environment::instance().default_delivery_y, 0));
 
-        RealBlock deliveryBlock = deliveryToRealBlock(task, true, deliveries, blockAccumulate, pointAccumulate);
-        blocks.push_back(deliveryBlock);
 
+            int blockAccumulate = 0, pointAccumulate = 0;
+
+            RealBlock firstBlock = deliveryToRealBlock(task, false, false,
+                                                       {pack}, blockAccumulate, pointAccumulate);
+            firstBlock.isDefaultDelivery = true;
+            blocks.push_back(firstBlock);
+
+            RealBlock deliveryBlock = deliveryToRealBlock(task, true, true,
+                                                          {pack, delivery}, blockAccumulate, pointAccumulate);
+            blocks.push_back(deliveryBlock);
+
+        } else {
+
+            int blockAccumulate = 0, pointAccumulate = 0;
+
+            auto firstDelivery = deliveries[0];
+            RealBlock firstBlock = deliveryToRealBlock(task, false, false,
+                                                       {firstDelivery}, blockAccumulate, pointAccumulate);
+            blocks.push_back(firstBlock);
+
+            RealBlock deliveryBlock = deliveryToRealBlock(task, true, false,
+                                                          deliveries, blockAccumulate, pointAccumulate);
+            blocks.push_back(deliveryBlock);
+
+        }
         return blocks;
     } else {
         auto coverage = TaskExploration::explorationPlanningPath(task);
@@ -926,7 +950,8 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
 }
 
 RealBlock
-ExplorationGenerator::deliveryToRealBlock(const RealTask &task, bool isDelivery, const std::vector<DeliveryVo> &ds,
+ExplorationGenerator::deliveryToRealBlock(const RealTask &task, bool isDelivery, bool isDefaultDelivery,
+                                          const std::vector<DeliveryVo> &ds,
                                           int &blockAccumulate, int &pointAccumulate) const {
     RealBlock block;
     block.id = blockAccumulate;
@@ -954,6 +979,7 @@ ExplorationGenerator::deliveryToRealBlock(const RealTask &task, bool isDelivery,
     block.mustArrive = true;
 
     block.isDelivery = isDelivery;
+    block.isDefaultDelivery = isDefaultDelivery;
 
     for (const auto &delivery: ds) {
         RealPoint point;

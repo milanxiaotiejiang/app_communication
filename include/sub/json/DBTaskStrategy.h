@@ -54,6 +54,11 @@ public:
     TaskVo handler(long params) override;
 };
 
+class AddDefaultDeliveryTaskStrategy : public MessageStrategy<std::string, std::string> {
+public:
+    std::string handler(std::string params) override;
+};
+
 class ClearCurrentListTaskStrategy : public MessageStringStrategy {
 public:
     void handler() override;
