@@ -896,10 +896,12 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
             DeliveryVo pack;
             pack.setPoseVo(PoseVo(Environment::instance().default_pack_x,
                                   Environment::instance().default_pack_y, 0));
+            pack.setCmd(0);
 
             DeliveryVo delivery;
             delivery.setPoseVo(PoseVo(Environment::instance().default_delivery_x,
                                       Environment::instance().default_delivery_y, 0));
+            delivery.setCmd(1);
 
 
             int blockAccumulate = 0, pointAccumulate = 0;

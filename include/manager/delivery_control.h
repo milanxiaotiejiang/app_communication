@@ -85,6 +85,8 @@ private:
     std::deque<RealPoint> plannerQueue;
     RealPoint currentPoint;
 
+    bool isDefaultDelivery;
+
     async::ThreadPool pool_;
 
     std::mutex point_mutex_;

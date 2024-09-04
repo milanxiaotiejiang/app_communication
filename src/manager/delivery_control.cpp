@@ -480,7 +480,14 @@ void DeliveryControlManager::doTake() {
     currentPoint = plannerQueue.front();
     plannerQueue.pop_front();
 
-    deliveryState = DeliveryState::MOVE;
+    if (isDefaultDelivery) {
+        LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager doTake ... isDefaultDelivery";
+
+        deliveryState = DeliveryState::DELIVERY;
+    } else {
+        deliveryState = DeliveryState::MOVE;
+    }
+
 }
 
 void DeliveryControlManager::doMove() {
@@ -595,25 +602,51 @@ void DeliveryControlManager::doDistinguish() {
 void DeliveryControlManager::doDelivery() {
     pool_.execute([this]() {
         try {
-            int cmd = currentPoint.deliveryVo.getCmd();
 
-            if (cmd == 0) {
-                LOG_IF(INFO, DEBUG_DELIVERY) << "4. 抬升并后退 ... ";
+            if (isDefaultDelivery) {
+                LOG_IF(INFO, DEBUG_DELIVERY) << "4. 默认配送  ... ";
 
-                rectilinearMove(0.0);
-                PublishInnerManager::instance().pubLiftControl(true);
-                std::this_thread::sleep_for(std::chrono::seconds(10));
-                rectilinearMove(-0.3);
-            } else if (cmd == 1) {
-                LOG_IF(INFO, DEBUG_DELIVERY) << "4. 放下并后退 ... ";
 
-                PublishInnerManager::instance().pubLiftControl(false);
-                std::this_thread::sleep_for(std::chrono::seconds(10));
-                rectilinearMove(-0.3);
+                int cmd = currentPoint.deliveryVo.getCmd();
+
+                if (cmd == 0) {
+                    LOG_IF(INFO, DEBUG_DELIVERY) << "4. 前进并抬升 ... ";
+                    rectilinearMove(0.5);
+
+                    PublishInnerManager::instance().pubLiftControl(true);
+                    std::this_thread::sleep_for(std::chrono::seconds(10));
+
+                } else if (cmd == 1) {
+
+                    LOG_IF(INFO, DEBUG_DELIVERY) << "4. 放下并后退 ... ";
+
+                    PublishInnerManager::instance().pubLiftControl(false);
+                    std::this_thread::sleep_for(std::chrono::seconds(10));
+                    rectilinearMove(-0.5);
+                } else {
+                    throw app::exception("未用到的 cmd");
+                }
+
             } else {
-                throw app::exception("未用到的 cmd");
-            }
+                int cmd = currentPoint.deliveryVo.getCmd();
 
+                if (cmd == 0) {
+                    LOG_IF(INFO, DEBUG_DELIVERY) << "4. 抬升并后退 ... ";
+
+                    rectilinearMove(0.0);
+                    PublishInnerManager::instance().pubLiftControl(true);
+                    std::this_thread::sleep_for(std::chrono::seconds(10));
+                    rectilinearMove(-0.3);
+                } else if (cmd == 1) {
+                    LOG_IF(INFO, DEBUG_DELIVERY) << "4. 放下并后退 ... ";
+
+                    PublishInnerManager::instance().pubLiftControl(false);
+                    std::this_thread::sleep_for(std::chrono::seconds(10));
+                    rectilinearMove(-0.3);
+                } else {
+                    throw app::exception("未用到的 cmd");
+                }
+            }
 
             {
                 std::unique_lock<std::mutex> lk(point_mutex_);
@@ -727,6 +760,7 @@ void DeliveryControlManager::completeCirculation(bool arrive) {
 
 void DeliveryControlManager::handleFlow(const RealBlock &block) {
 
+    this->isDefaultDelivery = block.isDefaultDelivery;
     for (const auto &point: block.plannerPoints) {
         plannerQueue.push_back(point);
     }
