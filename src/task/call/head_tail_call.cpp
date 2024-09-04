@@ -137,7 +137,15 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
                 recordEmergencyStop(event::flow::ensure_move_to_start_point, block);
                 setFlow(event::flow::ensure_move_to_start_point);
                 RealBlock front = plannerQueue.front();
-                callGoFirstPoint(front);
+
+                if (front.isDefaultDelivery) {
+                    LOG_IF(INFO, DEBUG_TASK)
+                                    << "HeadTailPointCall : 不用去第一个点，第一个点直接跳过 ...";
+                    LOG_IF(INFO, DEBUG_ELEVATOR) << "HeadTailPointCall : 触发配送逻辑 ...";
+                    setFlow(event::flow::trigger_delivery_logic);
+                    DeliveryControlManager::instance().handleFlow(block);
+                } else
+                    callGoFirstPoint(front);
             } else {
                 LOG_IF(INFO, DEBUG_ELEVATOR) << "HeadTailPointCall : 梯控前期逻辑开始 ...";
                 setFlow(event::flow::trigger_special_pre_conditions);

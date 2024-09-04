@@ -906,10 +906,10 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
 
             int blockAccumulate = 0, pointAccumulate = 0;
 
-            RealBlock firstBlock = deliveryToRealBlock(task, false, false,
-                                                       {pack}, blockAccumulate, pointAccumulate);
-            firstBlock.isDefaultDelivery = true;
-            blocks.push_back(firstBlock);
+//            RealBlock firstBlock = deliveryToRealBlock(task, false, false,
+//                                                       {pack}, blockAccumulate, pointAccumulate);
+//            firstBlock.isDefaultDelivery = true;
+//            blocks.push_back(firstBlock);
 
             RealBlock deliveryBlock = deliveryToRealBlock(task, true, true,
                                                           {pack, delivery}, blockAccumulate, pointAccumulate);
