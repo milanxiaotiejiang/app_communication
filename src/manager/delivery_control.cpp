@@ -611,7 +611,7 @@ void DeliveryControlManager::doDelivery() {
 
                 if (cmd == 0) {
                     LOG_IF(INFO, DEBUG_DELIVERY) << "4. 前进并抬升 ... ";
-                    rectilinearMove(0.5);
+                    rectilinearMove(0.2);
 
                     PublishInnerManager::instance().pubLiftControl(true);
                     std::this_thread::sleep_for(std::chrono::seconds(10));
@@ -622,7 +622,7 @@ void DeliveryControlManager::doDelivery() {
 
                     PublishInnerManager::instance().pubLiftControl(false);
                     std::this_thread::sleep_for(std::chrono::seconds(10));
-                    rectilinearMove(-0.5);
+                    rectilinearMove(-0.2);
                 } else {
                     throw app::exception("未用到的 cmd");
                 }
