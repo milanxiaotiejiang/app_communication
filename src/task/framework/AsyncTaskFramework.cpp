@@ -240,39 +240,39 @@ void AsyncTaskFramework::callCancelBackStation() {
 
 void AsyncTaskFramework::callSwitchWorkMode(const std::function<void(bool work)> f) {
     LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 新任务来了，查看当前是否处于工作状态 ...";
-//    if (!isWorkMode()) {
-//        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 不是工作状态，准备启动工作状态 ...";
-//
-//        NodeWorkModeManager::instance().forceToWork();
-//
-//        async::ThreadPool pool_;
-//        pool_.setNumOfThreads(1);
-//        pool_.execute([this, &f]() {
-//            while (!isWorkMode() && !sleepTimeout) {
-//                sleep(1);
-//            }
-//            if (!sleepTimeout) {
-//                async::TimerCall::instance().baseLoop()->cancelAny();
-//            }
-//            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 工作模式启动状态 "
-//                                     << "  是否是工作 ： " << NodeControl::instance().isWork()
-//                                     << "  是否是建图 ： " << NodeControl::instance().isMap()
-//                                     << "  是否是睡眠 ： " << NodeControl::instance().isSleep()
-//                                     << " ...";
-//            notify_one([this, &f]() {
-//                f(isWorkMode());
-//            });
-//        });
-//        async::TimerCall::instance().baseLoop()
-//                ->scheduleLater(std::chrono::seconds(WAITING_TIME_OF_NODE_WORK_MODE), [this]() {
-//                    sleepTimeout = true;
-//                });
-//    } else {
+    if (!isWorkMode()) {
+        LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 不是工作状态，准备启动工作状态 ...";
+
+        NodeWorkModeManager::instance().forceToWork();
+
+        async::ThreadPool pool_;
+        pool_.setNumOfThreads(1);
+        pool_.execute([this, &f]() {
+            while (!isWorkMode() && !sleepTimeout) {
+                sleep(1);
+            }
+            if (!sleepTimeout) {
+                async::TimerCall::instance().baseLoop()->cancelAny();
+            }
+            LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 工作模式启动状态 "
+                                     << "  是否是工作 ： " << NodeControl::instance().isWork()
+                                     << "  是否是建图 ： " << NodeControl::instance().isMap()
+                                     << "  是否是睡眠 ： " << NodeControl::instance().isSleep()
+                                     << " ...";
+            notify_one([this, &f]() {
+                f(isWorkMode());
+            });
+        });
+        async::TimerCall::instance().baseLoop()
+                ->scheduleLater(std::chrono::seconds(WAITING_TIME_OF_NODE_WORK_MODE), [this]() {
+                    sleepTimeout = true;
+                });
+    } else {
         LOG_IF(INFO, DEBUG_TASK) << "AsyncTaskFramework : 是工作状态 ...";
         notify_one([&f]() {
             f(true);
         });
-//    }
+    }
 }
 
 void AsyncTaskFramework::callOpenMechanism(const WorkStatus &status, bool knife, std::function<void()> f) {
