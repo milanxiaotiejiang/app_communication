@@ -231,12 +231,11 @@ RoomCoverage TaskExploration::explorationPlanningPath(const RealTask &task) {
 
         if (deliverys.empty()) {
 
-            PoseVo poseVo(Environment::instance().default_delivery_x,
-                          Environment::instance().default_delivery_y, 0);
+            PoseVo poseVo(0, 0, 0);
 
             geometry_msgs::Pose2D pose2D;
-            pose2D.x = Environment::instance().default_delivery_x;
-            pose2D.y = Environment::instance().default_delivery_y;
+            pose2D.x = 0;
+            pose2D.y = 0;
             pose2D.theta = 0;
             exploration_path.push_back(pose2D);
 
