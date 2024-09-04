@@ -494,6 +494,8 @@ void DeliveryControlManager::doMove() {
     pool_.execute([this]() {
         try {
             LOG_IF(INFO, DEBUG_DELIVERY) << "1. move_base 初步移动 ... ";
+            LOG_IF(INFO, DEBUG_DELIVERY) << "currentPoint : (" << currentPoint.realPosition.x 
+            << ", " << currentPoint.realPosition.y << ")";
 
             arriveState = ArriveState::ArriveMove;
             currentPoint.core_move = false;
