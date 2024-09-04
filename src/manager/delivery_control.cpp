@@ -675,7 +675,12 @@ void DeliveryControlManager::doOver() {
 
         mDeliveryFailCallback(deliveryError);
     } else {
-        deliveryState = DeliveryState::MOVE;
+
+        if (isDefaultDelivery) {
+            deliveryState = DeliveryState::DELIVERY;
+        } else {
+            deliveryState = DeliveryState::MOVE;
+        }
 
         LOG_IF(INFO, DEBUG_DELIVERY) << "----------------------- start ... ";
         currentPoint = plannerQueue.front();

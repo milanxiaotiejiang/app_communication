@@ -143,7 +143,7 @@ void HeadTailPointCall::processControl(const RealBlock &block) {
                                     << "HeadTailPointCall : 不用去第一个点，第一个点直接跳过 ...";
                     LOG_IF(INFO, DEBUG_ELEVATOR) << "HeadTailPointCall : 触发配送逻辑 ...";
                     setFlow(event::flow::trigger_delivery_logic);
-                    DeliveryControlManager::instance().handleFlow(block);
+                    DeliveryControlManager::instance().handleFlow(front);
                 } else
                     callGoFirstPoint(front);
             } else {
