@@ -544,18 +544,27 @@ void initNodeParams(const ros::NodeHandle &nh) {
     nh.param<bool>("dependence_imu", dependence_imu, false);
     Module::instance().dependence_imu = dependence_imu;
 
-    double default_pack_x;
-    nh.param<double>("default_pack_x", default_pack_x, 0);
-    Environment::instance().default_pack_x = default_pack_x;
-    double default_pack_y;
-    nh.param<double>("default_pack_y", default_pack_y, 0.5);
-    Environment::instance().default_pack_y = default_pack_y;
+    int up_waiting_time;
+    nh.param<int>("up_waiting_time", up_waiting_time, 2000);
+    Environment::instance().up_waiting_time = up_waiting_time;
+    int down_waiting_time;
+    nh.param<int>("down_waiting_time", down_waiting_time, 2000);
+    Environment::instance().down_waiting_time = down_waiting_time;
+    int delivery_interval_time;
+    nh.param<int>("delivery_interval_time", delivery_interval_time, 500);
+    Environment::instance().delivery_interval_time = delivery_interval_time;
     double default_delivery_x;
     nh.param<double>("default_delivery_x", default_delivery_x, 2.75);
     Environment::instance().default_delivery_x = default_delivery_x;
     double default_delivery_y;
     nh.param<double>("default_delivery_y", default_delivery_y, 2.75);
     Environment::instance().default_delivery_y = default_delivery_y;
+    double delivery_forward_distance;
+    nh.param<double>("delivery_forward_distance", delivery_forward_distance, 2.75);
+    Environment::instance().delivery_forward_distance = delivery_forward_distance;
+    double delivery_backward_distance;
+    nh.param<double>("delivery_backward_distance", delivery_backward_distance, 2.75);
+    Environment::instance().delivery_backward_distance = delivery_backward_distance;
 }
 
 void release() {

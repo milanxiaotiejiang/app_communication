@@ -897,8 +897,8 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
             const cv::Point2d &origin = MapAttributeSingleton::instance().getMapOrigin();
 
             DeliveryVo pack;
-            pack.setPoseVo(PoseVo(origin.x + Environment::instance().default_pack_x,
-                                  origin.y + Environment::instance().default_pack_y, 0));
+            pack.setPoseVo(PoseVo(origin.x + Environment::instance().up_waiting_time,
+                                  origin.y + Environment::instance().down_waiting_time, 0));
             pack.setCmd(0);
 
 
@@ -910,8 +910,9 @@ std::vector<RealBlock> ExplorationGenerator::taskGeneratePointList(RealTask &tas
             //                           origin.x + Environment::instance().default_delivery_y, 0));
             delivery.setCmd(1);
 
-LOG(INFO) << "origin (" << origin.x << ", " << origin.y << ") , default_delivery (" 
-<< Environment::instance().default_delivery_x << ", " << Environment::instance().default_delivery_y << ") ...";
+            LOG(INFO) << "origin (" << origin.x << ", " << origin.y << ") , default_delivery ("
+                      << Environment::instance().default_delivery_x << ", "
+                      << Environment::instance().default_delivery_y << ") ...";
 
             int blockAccumulate = 0, pointAccumulate = 0;
 

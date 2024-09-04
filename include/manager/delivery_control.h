@@ -168,7 +168,7 @@ private:
 
     void doOver();
 
-    void rectilinearMove(double backward_speed) const;
+    void rectilinearMove(double backward_speed, double target_distance = 0.5) const;
 
 public:
 

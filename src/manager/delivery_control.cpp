@@ -494,8 +494,8 @@ void DeliveryControlManager::doMove() {
     pool_.execute([this]() {
         try {
             LOG_IF(INFO, DEBUG_DELIVERY) << "1. move_base 初步移动 ... ";
-            LOG_IF(INFO, DEBUG_DELIVERY) << "currentPoint : (" << currentPoint.realPosition.x 
-            << ", " << currentPoint.realPosition.y << ")";
+            LOG_IF(INFO, DEBUG_DELIVERY) << "currentPoint : (" << currentPoint.realPosition.x
+                                         << ", " << currentPoint.realPosition.y << ")";
 
             arriveState = ArriveState::ArriveMove;
             currentPoint.core_move = false;
@@ -613,18 +613,22 @@ void DeliveryControlManager::doDelivery() {
 
                 if (cmd == 0) {
                     LOG_IF(INFO, DEBUG_DELIVERY) << "4. 前进并抬升 ... ";
-                    rectilinearMove(0.2);
+                    rectilinearMove(0.2, Environment::instance().delivery_forward_distance);
 
+                    std::this_thread::sleep_for(
+                            std::chrono::milliseconds(Environment::instance().delivery_interval_time));
                     PublishInnerManager::instance().pubLiftControl(true);
-                    std::this_thread::sleep_for(std::chrono::seconds(10));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(Environment::instance().up_waiting_time));
 
                 } else if (cmd == 1) {
 
                     LOG_IF(INFO, DEBUG_DELIVERY) << "4. 放下并后退 ... ";
 
                     PublishInnerManager::instance().pubLiftControl(false);
-                    std::this_thread::sleep_for(std::chrono::seconds(10));
-                    rectilinearMove(-0.2);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(
+                            Environment::instance().down_waiting_time +
+                            Environment::instance().delivery_interval_time));
+                    rectilinearMove(-0.2, Environment::instance().delivery_backward_distance);
                 } else {
                     throw app::exception("未用到的 cmd");
                 }
@@ -690,15 +694,12 @@ void DeliveryControlManager::doOver() {
  *
  * @param backward_speed 负值表示后退
  */
-void DeliveryControlManager::rectilinearMove(double backward_speed) const {
+void DeliveryControlManager::rectilinearMove(double backward_speed, double target_distance) const {
 //    if (backward_speed > 0) {
 //        LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager rectilinearMove 向前移动 0.5 m ... ";
 //    } else if (backward_speed < 0) {
 //        LOG_IF(INFO, DEBUG_DELIVERY) << "DeliveryControlManager rectilinearMove 后退移动 0.5 m ... ";
 //    }
-
-    // 目标距离，单位：米
-    double target_distance = 0.5;
 
     // 发布速度消息的频率，单位：赫兹
     double rate = 10.0;
