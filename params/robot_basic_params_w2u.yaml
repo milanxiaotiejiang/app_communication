@@ -81,7 +81,7 @@ dependence_imu: false
 up_waiting_time: 2000
 down_waiting_time: 2000
 delivery_interval_time: 500
-default_delivery_x: 2.75
-default_delivery_y: 2.75
+default_delivery_x: 1.75
+default_delivery_y: 0
 delivery_forward_distance: 0.3
 delivery_backward_distance: 0.6
